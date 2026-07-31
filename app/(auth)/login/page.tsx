@@ -3,6 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AxiosError } from "axios";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
@@ -92,6 +93,16 @@ export default function LoginPage() {
           </Button>
           {submitError ? <p className="text-sm text-red-600">{submitError}</p> : null}
         </form>
+
+        <div className="mt-8 border-t border-border pt-4 text-center text-sm text-muted-foreground">
+          <p>
+            Data deletion instructions are available at{" "}
+            <Link className="font-medium text-primary underline-offset-4 hover:underline" href="/data-deletion-instructions">
+              /data-deletion-instructions
+            </Link>
+            .
+          </p>
+        </div>
       </Card>
     </main>
   );
