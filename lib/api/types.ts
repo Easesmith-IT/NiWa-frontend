@@ -203,6 +203,9 @@ export interface ConversationRecord {
   lastActivityAt: string;
   lastMessageStatus: string;
   unreadCount: number;
+  labels: string[];
+  notes: ConversationNoteRecord[];
+  activityFeed: ConversationActivityRecord[];
 }
 
 export interface ConversationMessageRecord {
@@ -218,6 +221,34 @@ export interface ConversationMessageRecord {
   timestamp: string;
   payload: unknown;
   status: string;
+}
+
+export interface ConversationNoteHistoryRecord {
+  content: string;
+  editedAt: string;
+  editedById: string;
+  editedByName: string;
+}
+
+export interface ConversationNoteRecord {
+  _id: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  authorId: string;
+  authorName: string;
+  pinned: boolean;
+  history: ConversationNoteHistoryRecord[];
+}
+
+export interface ConversationActivityRecord {
+  _id: string;
+  type: string;
+  description: string;
+  actorId?: string;
+  actorName: string;
+  createdAt: string;
+  metadata?: Record<string, unknown>;
 }
 
 export interface ConversationsResponse {
@@ -277,3 +308,12 @@ export interface ConversationReadResponse {
 }
 
 export interface MediaReplyResponse extends OutboundMessageResponse {}
+
+export interface ConversationLabelsResponse {
+  conversation: ConversationRecord;
+}
+
+export interface ConversationNoteMutationResponse {
+  conversation: ConversationRecord;
+  note: ConversationNoteRecord;
+}

@@ -65,6 +65,7 @@ export default function SettingsPage() {
   const [profileError, setProfileError] = useState<string | null>(null);
   const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [connectionError, setConnectionError] = useState<string | null>(null);
 
   const {
     register,
@@ -158,6 +159,12 @@ export default function SettingsPage() {
       const response = await apiClient.post<ConnectionTestResponse>("/settings/test-connection");
       return response.data;
     },
+    onSuccess: () => {
+      setConnectionError(null);
+    },
+    onError: (error) => {
+      setConnectionError(getErrorMessage(error, "Failed to test Meta connection."));
+    },
   });
 
   const profileMutation = useMutation({
@@ -230,10 +237,10 @@ export default function SettingsPage() {
           </div>
           <form
             className="space-y-4"
-            onSubmit={profileForm.handleSubmit(async (values) => {
+            onSubmit={profileForm.handleSubmit((values) => {
               setProfileError(null);
               setProfileMessage(null);
-              await profileMutation.mutateAsync(values);
+              profileMutation.mutate(values);
             })}
           >
             <Input placeholder="Operator name" {...profileForm.register("name")} />
@@ -257,10 +264,10 @@ export default function SettingsPage() {
           </div>
           <form
             className="space-y-4"
-            onSubmit={passwordForm.handleSubmit(async (values) => {
+            onSubmit={passwordForm.handleSubmit((values) => {
               setPasswordError(null);
               setPasswordMessage(null);
-              await passwordMutation.mutateAsync(values);
+              passwordMutation.mutate(values);
             })}
           >
             <Input
@@ -304,6 +311,9 @@ export default function SettingsPage() {
             <p className="mt-3 text-sm text-foreground">
               {connectionTestMutation.data?.message ?? "No connection test run yet."}
             </p>
+            {connectionError ? (
+              <p className="mt-2 text-sm text-red-700">{connectionError}</p>
+            ) : null}
             {typeof connectionTestMutation.data?.statusCode === "number" ? (
               <p className="mt-2 text-sm text-foreground">
                 Meta status code: {connectionTestMutation.data.statusCode}
@@ -338,10 +348,10 @@ export default function SettingsPage() {
 
         <form
           className="grid gap-4 md:grid-cols-2"
-          onSubmit={handleSubmit(async (values) => {
+          onSubmit={handleSubmit((values) => {
             setSubmitError(null);
             setSubmitMessage(null);
-            await saveMutation.mutateAsync(values);
+            saveMutation.mutate(values);
           })}
         >
           <Input placeholder="App ID" {...register("appId")} />
@@ -360,7 +370,10 @@ export default function SettingsPage() {
               </Button>
               <Button
                 disabled={connectionTestMutation.isPending}
-                onClick={() => connectionTestMutation.mutate()}
+                onClick={() => {
+                  setConnectionError(null);
+                  connectionTestMutation.mutate();
+                }}
                 type="button"
                 variant="secondary"
               >

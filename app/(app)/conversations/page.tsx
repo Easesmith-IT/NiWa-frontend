@@ -13,8 +13,12 @@ import { Input } from "../../../components/ui/input";
 import { Textarea } from "../../../components/ui/textarea";
 import { apiClient } from "../../../lib/api/client";
 import {
+  ConversationActivityRecord,
   ConversationDetailResponse,
+  ConversationLabelsResponse,
   ConversationMessageRecord,
+  ConversationNoteMutationResponse,
+  ConversationNoteRecord,
   ConversationReadResponse,
   ConversationRecord,
   ConversationsResponse,
@@ -100,17 +104,11 @@ const renderMessageBody = (message: ConversationMessageRecord) => {
 
   if (type === "interactive") {
     const interactive = payload?.interactive ?? {};
-    return (
-      interactive?.button_reply?.title ??
-      interactive?.list_reply?.title ??
-      message.previewText
-    );
+    return interactive?.button_reply?.title ?? interactive?.list_reply?.title ?? message.previewText;
   }
 
   if (type === "reaction") {
-    return payload?.reaction?.emoji
-      ? `Reaction: ${payload.reaction.emoji}`
-      : message.previewText;
+    return payload?.reaction?.emoji ? `Reaction: ${payload.reaction.emoji}` : message.previewText;
   }
 
   if (["image", "video", "audio", "sticker"].includes(type)) {
@@ -123,12 +121,35 @@ const renderMessageBody = (message: ConversationMessageRecord) => {
   return message.previewText || JSON.stringify(message.payload, null, 2);
 };
 
+const formatDateTime = (value?: string) => {
+  if (!value) {
+    return "Not available";
+  }
+
+  return new Date(value).toLocaleString();
+};
+
+const noteSort = (left: ConversationNoteRecord, right: ConversationNoteRecord) => {
+  if (left.pinned !== right.pinned) {
+    return left.pinned ? -1 : 1;
+  }
+
+  return new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime();
+};
+
 export default function ConversationsPage() {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [replyError, setReplyError] = useState<string | null>(null);
   const [readError, setReadError] = useState<string | null>(null);
+  const [workspaceError, setWorkspaceError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterMode, setFilterMode] = useState<"all" | "unread">("all");
+  const [draftLabels, setDraftLabels] = useState<string[]>([]);
+  const [labelInput, setLabelInput] = useState("");
+  const [noteContent, setNoteContent] = useState("");
+  const [notePinned, setNotePinned] = useState(false);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const [editingNoteContent, setEditingNoteContent] = useState("");
   const replyForm = useForm<ReplyValues>({
     resolver: zodResolver(replySchema),
     defaultValues: {
@@ -168,11 +189,7 @@ export default function ConversationsPage() {
   });
 
   const conversations = useMemo(() => conversationsQuery.data?.conversations ?? [], [conversationsQuery.data]);
-
-  const allMedia = useMemo(
-    () => mediaQuery.data?.media ?? [],
-    [mediaQuery.data],
-  );
+  const allMedia = useMemo(() => mediaQuery.data?.media ?? [], [mediaQuery.data]);
 
   useEffect(() => {
     if (!selectedConversationId && conversations.length > 0) {
@@ -181,9 +198,7 @@ export default function ConversationsPage() {
   }, [conversations, selectedConversationId]);
 
   const selectedConversation = useMemo(
-    () =>
-      conversations.find((conversation: ConversationRecord) => conversation._id === selectedConversationId) ??
-      null,
+    () => conversations.find((conversation) => conversation._id === selectedConversationId) ?? null,
     [conversations, selectedConversationId],
   );
 
@@ -198,6 +213,20 @@ export default function ConversationsPage() {
     enabled: Boolean(selectedConversationId),
   });
 
+  const workspaceConversation = detailQuery.data?.conversation ?? selectedConversation;
+  const sortedNotes = useMemo(
+    () => [...(workspaceConversation?.notes ?? [])].sort(noteSort),
+    [workspaceConversation?.notes],
+  );
+  const activityFeed = useMemo(
+    () => [...(workspaceConversation?.activityFeed ?? [])].reverse(),
+    [workspaceConversation?.activityFeed],
+  );
+
+  useEffect(() => {
+    setDraftLabels(workspaceConversation?.labels ?? []);
+  }, [workspaceConversation?._id, workspaceConversation?.labels]);
+
   const lastIncomingMessageId = useMemo(() => {
     const messages = detailQuery.data?.messages ?? [];
     const incomingMessage = [...messages]
@@ -207,12 +236,9 @@ export default function ConversationsPage() {
   }, [detailQuery.data]);
 
   const selectedReplyType = replyForm.watch("type");
-  const selectedTemplateName =
-    selectedReplyType === "template" ? replyForm.watch("templateName") : undefined;
+  const selectedTemplateName = selectedReplyType === "template" ? replyForm.watch("templateName") : undefined;
   const selectedMediaId =
-    selectedReplyType !== "text" && selectedReplyType !== "template"
-      ? replyForm.watch("mediaId")
-      : undefined;
+    selectedReplyType !== "text" && selectedReplyType !== "template" ? replyForm.watch("mediaId") : undefined;
   const selectedTemplate = useMemo(
     () =>
       (templatesQuery.data?.templates ?? []).find(
@@ -230,6 +256,17 @@ export default function ConversationsPage() {
       replyForm.setValue("languageCode", selectedTemplate.language || "en");
     }
   }, [replyForm, selectedTemplate]);
+
+  const refreshConversationData = async () => {
+    await Promise.all([detailQuery.refetch(), conversationsQuery.refetch()]);
+  };
+
+  const toErrorMessage = (error: unknown, fallback: string) =>
+    error instanceof AxiosError
+      ? error.response?.data?.message ?? fallback
+      : error instanceof Error
+        ? error.message
+        : fallback;
 
   const replyMutation = useMutation({
     mutationFn: async (values: ReplyValues) => {
@@ -252,31 +289,24 @@ export default function ConversationsPage() {
                 languageCode: values.languageCode,
                 bodyVariables: parseTemplateVariables(values.bodyVariables),
               }
-          : {
-              conversationId: selectedConversationId,
-              type: values.type,
-              mediaId: values.mediaId,
-              caption: values.caption,
-              filename: values.filename,
-            };
+            : {
+                conversationId: selectedConversationId,
+                type: values.type,
+                mediaId: values.mediaId,
+                caption: values.caption,
+                filename: values.filename,
+              };
 
       const response = await apiClient.post<OutboundMessageResponse>("/conversations/reply", payload);
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       setReplyError(null);
       replyForm.reset({ type: "text", body: "" });
-      detailQuery.refetch();
-      conversationsQuery.refetch();
+      await refreshConversationData();
     },
     onError: (error) => {
-      const message =
-        error instanceof AxiosError
-          ? error.response?.data?.message ?? "Reply failed."
-          : error instanceof Error
-            ? error.message
-            : "Reply failed.";
-      setReplyError(message);
+      setReplyError(toErrorMessage(error, "Reply failed."));
     },
   });
 
@@ -291,19 +321,12 @@ export default function ConversationsPage() {
       );
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       setReadError(null);
-      conversationsQuery.refetch();
-      detailQuery.refetch();
+      await refreshConversationData();
     },
     onError: (error) => {
-      const message =
-        error instanceof AxiosError
-          ? error.response?.data?.message ?? "Failed to clear unread count."
-          : error instanceof Error
-            ? error.message
-            : "Failed to clear unread count.";
-      setReadError(message);
+      setReadError(toErrorMessage(error, "Failed to clear unread count."));
     },
   });
 
@@ -314,21 +337,120 @@ export default function ConversationsPage() {
       });
       return response.data;
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       setReadError(null);
-      conversationsQuery.refetch();
-      detailQuery.refetch();
+      await refreshConversationData();
     },
     onError: (error) => {
-      const message =
-        error instanceof AxiosError
-          ? error.response?.data?.message ?? "Failed to mark message as read."
-          : error instanceof Error
-            ? error.message
-            : "Failed to mark message as read.";
-      setReadError(message);
+      setReadError(toErrorMessage(error, "Failed to mark message as read."));
     },
   });
+
+  const labelsMutation = useMutation({
+    mutationFn: async (labels: string[]) => {
+      if (!selectedConversationId) {
+        throw new Error("No conversation selected.");
+      }
+
+      const response = await apiClient.put<ConversationLabelsResponse>(
+        `/conversations/${selectedConversationId}/labels`,
+        { labels },
+      );
+      return response.data;
+    },
+    onSuccess: async (response) => {
+      setWorkspaceError(null);
+      setDraftLabels(response.conversation.labels);
+      setLabelInput("");
+      await refreshConversationData();
+    },
+    onError: (error) => {
+      setWorkspaceError(toErrorMessage(error, "Failed to update labels."));
+    },
+  });
+
+  const addNoteMutation = useMutation({
+    mutationFn: async () => {
+      if (!selectedConversationId) {
+        throw new Error("No conversation selected.");
+      }
+
+      const response = await apiClient.post<ConversationNoteMutationResponse>(
+        `/conversations/${selectedConversationId}/notes`,
+        {
+          content: noteContent,
+          pinned: notePinned,
+        },
+      );
+      return response.data;
+    },
+    onSuccess: async () => {
+      setWorkspaceError(null);
+      setNoteContent("");
+      setNotePinned(false);
+      await refreshConversationData();
+    },
+    onError: (error) => {
+      setWorkspaceError(toErrorMessage(error, "Failed to add note."));
+    },
+  });
+
+  const updateNoteMutation = useMutation({
+    mutationFn: async ({
+      noteId,
+      content,
+      pinned,
+    }: {
+      noteId: string;
+      content?: string;
+      pinned?: boolean;
+    }) => {
+      if (!selectedConversationId) {
+        throw new Error("No conversation selected.");
+      }
+
+      const response = await apiClient.patch<ConversationNoteMutationResponse>(
+        `/conversations/${selectedConversationId}/notes/${noteId}`,
+        {
+          ...(typeof content === "string" ? { content } : {}),
+          ...(typeof pinned === "boolean" ? { pinned } : {}),
+        },
+      );
+      return response.data;
+    },
+    onSuccess: async () => {
+      setWorkspaceError(null);
+      setEditingNoteId(null);
+      setEditingNoteContent("");
+      await refreshConversationData();
+    },
+    onError: (error) => {
+      setWorkspaceError(toErrorMessage(error, "Failed to update note."));
+    },
+  });
+
+  const addDraftLabel = () => {
+    const nextValue = labelInput.trim();
+
+    if (!nextValue) {
+      return;
+    }
+
+    if (draftLabels.some((label) => label.toLowerCase() === nextValue.toLowerCase())) {
+      setLabelInput("");
+      return;
+    }
+
+    setDraftLabels((current) => [...current, nextValue]);
+    setLabelInput("");
+  };
+
+  const removeDraftLabel = (value: string) => {
+    setDraftLabels((current) => current.filter((label) => label !== value));
+  };
+
+  const isWorkspaceBusy =
+    labelsMutation.isPending || addNoteMutation.isPending || updateNoteMutation.isPending;
 
   return (
     <div className="space-y-6">
@@ -363,12 +485,12 @@ export default function ConversationsPage() {
         </div>
       </Card>
 
-      <div className="grid gap-4 xl:grid-cols-[360px_minmax(0,1fr)]">
-        <Card className="max-h-[70vh] overflow-hidden p-0">
+      <div className="grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)_360px]">
+        <Card className="max-h-[74vh] overflow-hidden p-0">
           <div className="border-b border-border px-5 py-4">
             <h3 className="text-lg font-semibold">Conversation List</h3>
           </div>
-          <div className="max-h-[calc(70vh-72px)] overflow-y-auto p-2">
+          <div className="max-h-[calc(74vh-72px)] overflow-y-auto p-2">
             {conversations.map((conversation: ConversationRecord) => (
               <button
                 className={
@@ -395,12 +517,24 @@ export default function ConversationsPage() {
                     </span>
                   ) : null}
                 </div>
+                {conversation.labels.length ? (
+                  <div className="mt-3 flex flex-wrap gap-2">
+                    {conversation.labels.slice(0, 3).map((label) => (
+                      <span
+                        className="rounded-full bg-[#f7f1e4] px-2 py-1 text-[11px] font-medium text-[#6b4f2a]"
+                        key={label}
+                      >
+                        {label}
+                      </span>
+                    ))}
+                  </div>
+                ) : null}
                 <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
                   {conversation.lastMessageText || `[${conversation.lastMessageType}]`}
                 </p>
                 <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
                   <span>{conversation.lastMessageStatus}</span>
-                  <span>{new Date(conversation.lastActivityAt).toLocaleString()}</span>
+                  <span>{formatDateTime(conversation.lastActivityAt)}</span>
                 </div>
               </button>
             ))}
@@ -410,15 +544,15 @@ export default function ConversationsPage() {
           </div>
         </Card>
 
-        <Card className="flex min-h-[70vh] flex-col p-0">
+        <Card className="flex min-h-[74vh] flex-col p-0">
           <div className="border-b border-border px-6 py-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div>
                 <h3 className="text-lg font-semibold">
-                  {selectedConversation?.contactName || "Conversation"}
+                  {workspaceConversation?.contactName || "Conversation"}
                 </h3>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  {selectedConversation?.contactPhoneNumber || "Select a conversation"}
+                  {workspaceConversation?.contactPhoneNumber || "Select a conversation"}
                 </p>
               </div>
               <Button
@@ -456,12 +590,8 @@ export default function ConversationsPage() {
                     {message.direction === "incoming" ? "incoming" : message.status}
                   </span>
                 </div>
-                <p className="mt-3 whitespace-pre-wrap text-sm">
-                  {renderMessageBody(message)}
-                </p>
-                {message.direction === "incoming" &&
-                message.waMessageId &&
-                message.status !== "read" ? (
+                <p className="mt-3 whitespace-pre-wrap text-sm">{renderMessageBody(message)}</p>
+                {message.direction === "incoming" && message.waMessageId && message.status !== "read" ? (
                   <div className="mt-3 flex justify-end">
                     <Button
                       disabled={markAsReadMutation.isPending}
@@ -474,9 +604,7 @@ export default function ConversationsPage() {
                     </Button>
                   </div>
                 ) : null}
-                <p className="mt-3 text-right text-[11px] opacity-70">
-                  {new Date(message.timestamp).toLocaleString()}
-                </p>
+                <p className="mt-3 text-right text-[11px] opacity-70">{formatDateTime(message.timestamp)}</p>
               </div>
             ))}
             {!detailQuery.isLoading && (detailQuery.data?.messages ?? []).length === 0 ? (
@@ -492,7 +620,7 @@ export default function ConversationsPage() {
                 await replyMutation.mutateAsync(values);
               })}
             >
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2">
                 <button
                   className={
                     selectedReplyType === "text"
@@ -563,7 +691,7 @@ export default function ConversationsPage() {
                     ))}
                   </select>
                   <Textarea
-                    placeholder={"Template body variables, one per line"}
+                    placeholder="Template body variables, one per line"
                     {...replyForm.register("bodyVariables")}
                   />
                   {selectedTemplate ? (
@@ -648,11 +776,7 @@ export default function ConversationsPage() {
                   <div className="text-sm text-muted-foreground">No incoming message available for read sync.</div>
                 )}
                 {selectedConversationId ? (
-                  <Button
-                    onClick={() => clearUnreadMutation.mutate()}
-                    type="button"
-                    variant="ghost"
-                  >
+                  <Button onClick={() => clearUnreadMutation.mutate()} type="button" variant="ghost">
                     Clear local unread counter
                   </Button>
                 ) : null}
@@ -661,15 +785,236 @@ export default function ConversationsPage() {
               {readError ? <p className="text-sm text-red-600">{readError}</p> : null}
               {replyError ? <p className="text-sm text-red-600">{replyError}</p> : null}
 
-              <Button
-                disabled={!selectedConversationId || replyMutation.isPending}
-                type="submit"
-              >
+              <Button disabled={!selectedConversationId || replyMutation.isPending} type="submit">
                 {replyMutation.isPending ? "Sending..." : "Send Reply"}
               </Button>
             </form>
           </div>
         </Card>
+
+        <div className="space-y-4">
+          <Card className="space-y-4 p-5">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                Customer Profile
+              </p>
+              <h3 className="mt-2 text-lg font-semibold">
+                {workspaceConversation?.contactName || "Select a conversation"}
+              </h3>
+            </div>
+            <div className="grid gap-3 text-sm">
+              <div className="rounded-2xl bg-white/70 p-3">
+                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Phone</p>
+                <p className="mt-1 font-medium">{workspaceConversation?.contactPhoneNumber || "Not available"}</p>
+              </div>
+              <div className="rounded-2xl bg-white/70 p-3">
+                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">WhatsApp ID</p>
+                <p className="mt-1 font-medium">{workspaceConversation?.waId || "Not available"}</p>
+              </div>
+              <div className="rounded-2xl bg-white/70 p-3">
+                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Last Activity</p>
+                <p className="mt-1 font-medium">
+                  {workspaceConversation ? formatDateTime(workspaceConversation.lastActivityAt) : "Not available"}
+                </p>
+              </div>
+            </div>
+          </Card>
+
+          <Card className="space-y-4 p-5">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Labels</p>
+                <h3 className="mt-1 text-lg font-semibold">Conversation Labels</h3>
+              </div>
+              <Button
+                disabled={!selectedConversationId || isWorkspaceBusy}
+                onClick={() => labelsMutation.mutate(draftLabels)}
+                size="sm"
+                type="button"
+              >
+                {labelsMutation.isPending ? "Saving..." : "Save Labels"}
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {draftLabels.map((label) => (
+                <span
+                  className="inline-flex items-center gap-2 rounded-full bg-[#f7f1e4] px-3 py-1 text-sm text-[#6b4f2a]"
+                  key={label}
+                >
+                  {label}
+                  <button
+                    className="text-xs"
+                    onClick={() => removeDraftLabel(label)}
+                    type="button"
+                  >
+                    Remove
+                  </button>
+                </span>
+              ))}
+              {draftLabels.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No labels assigned yet.</p>
+              ) : null}
+            </div>
+            <div className="flex gap-2">
+              <Input
+                onChange={(event) => setLabelInput(event.target.value)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter") {
+                    event.preventDefault();
+                    addDraftLabel();
+                  }
+                }}
+                placeholder="Add label"
+                value={labelInput}
+              />
+              <Button disabled={!selectedConversationId} onClick={addDraftLabel} type="button" variant="secondary">
+                Add
+              </Button>
+            </div>
+          </Card>
+
+          <Card className="space-y-4 p-5">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Notes</p>
+              <h3 className="mt-1 text-lg font-semibold">Internal Workspace</h3>
+            </div>
+            <div className="space-y-3">
+              <Textarea
+                onChange={(event) => setNoteContent(event.target.value)}
+                placeholder="Add an internal note for this conversation"
+                value={noteContent}
+              />
+              <label className="flex items-center gap-2 text-sm text-muted-foreground">
+                <input
+                  checked={notePinned}
+                  onChange={(event) => setNotePinned(event.target.checked)}
+                  type="checkbox"
+                />
+                Pin this note
+              </label>
+              <Button
+                disabled={!selectedConversationId || !noteContent.trim() || addNoteMutation.isPending}
+                onClick={() => addNoteMutation.mutate()}
+                type="button"
+              >
+                {addNoteMutation.isPending ? "Adding..." : "Add Note"}
+              </Button>
+            </div>
+            <div className="space-y-3">
+              {sortedNotes.map((note) => (
+                <div className="rounded-2xl bg-white/70 p-4" key={note._id}>
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-medium">{note.authorName}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {formatDateTime(note.updatedAt)}
+                        {note.history.length ? ` | ${note.history.length} edit${note.history.length === 1 ? "" : "s"}` : ""}
+                      </p>
+                    </div>
+                    <Button
+                      disabled={updateNoteMutation.isPending}
+                      onClick={() =>
+                        updateNoteMutation.mutate({
+                          noteId: note._id,
+                          pinned: !note.pinned,
+                        })
+                      }
+                      size="sm"
+                      type="button"
+                      variant="secondary"
+                    >
+                      {note.pinned ? "Unpin" : "Pin"}
+                    </Button>
+                  </div>
+                  {editingNoteId === note._id ? (
+                    <div className="mt-3 space-y-3">
+                      <Textarea
+                        onChange={(event) => setEditingNoteContent(event.target.value)}
+                        value={editingNoteContent}
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          disabled={!editingNoteContent.trim() || updateNoteMutation.isPending}
+                          onClick={() =>
+                            updateNoteMutation.mutate({
+                              noteId: note._id,
+                              content: editingNoteContent,
+                            })
+                          }
+                          size="sm"
+                          type="button"
+                        >
+                          Save
+                        </Button>
+                        <Button
+                          onClick={() => {
+                            setEditingNoteId(null);
+                            setEditingNoteContent("");
+                          }}
+                          size="sm"
+                          type="button"
+                          variant="ghost"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">{note.content}</p>
+                      <div className="mt-3 flex items-center justify-between gap-3">
+                        <p className="text-xs text-muted-foreground">{note.pinned ? "Pinned note" : "Standard note"}</p>
+                        <Button
+                          onClick={() => {
+                            setEditingNoteId(note._id);
+                            setEditingNoteContent(note.content);
+                          }}
+                          size="sm"
+                          type="button"
+                          variant="ghost"
+                        >
+                          Edit
+                        </Button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              ))}
+              {sortedNotes.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No internal notes added yet.</p>
+              ) : null}
+            </div>
+          </Card>
+
+          <Card className="space-y-4 p-5">
+            <div>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Activity Feed</p>
+              <h3 className="mt-1 text-lg font-semibold">Conversation Audit Trail</h3>
+            </div>
+            <div className="space-y-3">
+              {activityFeed.map((entry: ConversationActivityRecord) => (
+                <div className="rounded-2xl bg-white/70 p-4" key={entry._id}>
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-sm font-medium">{entry.description}</p>
+                    <span className="rounded-full bg-accent px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-accent-foreground">
+                      {entry.type}
+                    </span>
+                  </div>
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {entry.actorName} | {formatDateTime(entry.createdAt)}
+                  </p>
+                </div>
+              ))}
+              {activityFeed.length === 0 ? (
+                <p className="text-sm text-muted-foreground">No activity recorded yet.</p>
+              ) : null}
+            </div>
+          </Card>
+
+          {workspaceError ? (
+            <Card className="border border-red-200 p-4 text-sm text-red-600">{workspaceError}</Card>
+          ) : null}
+        </div>
       </div>
     </div>
   );

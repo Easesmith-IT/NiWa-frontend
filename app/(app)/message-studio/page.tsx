@@ -481,9 +481,9 @@ export default function MessageStudioPage() {
 
             <Button
               disabled={sendMutation.isPending}
-              onClick={async () => {
+              onClick={() => {
                 setSubmitError(null);
-                await sendMutation.mutateAsync();
+                sendMutation.mutate();
               }}
               type="button"
             >
