@@ -137,6 +137,15 @@ const noteSort = (left: ConversationNoteRecord, right: ConversationNoteRecord) =
   return new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime();
 };
 
+const getConversationLabels = (conversation?: Pick<ConversationRecord, "labels"> | null) =>
+  Array.isArray(conversation?.labels) ? conversation.labels : [];
+
+const getTemplateVariables = (template?: Pick<TemplateRecord, "variables"> | null) =>
+  Array.isArray(template?.variables) ? template.variables : [];
+
+const getNoteHistory = (note?: Pick<ConversationNoteRecord, "history"> | null) =>
+  Array.isArray(note?.history) ? note.history : [];
+
 export default function ConversationsPage() {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [replyError, setReplyError] = useState<string | null>(null);
@@ -222,10 +231,14 @@ export default function ConversationsPage() {
     () => [...(workspaceConversation?.activityFeed ?? [])].reverse(),
     [workspaceConversation?.activityFeed],
   );
+  const selectedConversationLabels = useMemo(
+    () => getConversationLabels(workspaceConversation),
+    [workspaceConversation],
+  );
 
   useEffect(() => {
-    setDraftLabels(workspaceConversation?.labels ?? []);
-  }, [workspaceConversation?._id, workspaceConversation?.labels]);
+    setDraftLabels(selectedConversationLabels);
+  }, [selectedConversationLabels, workspaceConversation?._id]);
 
   const lastIncomingMessageId = useMemo(() => {
     const messages = detailQuery.data?.messages ?? [];
@@ -245,6 +258,10 @@ export default function ConversationsPage() {
         (template: TemplateRecord) => template.name === selectedTemplateName,
       ) ?? null,
     [selectedTemplateName, templatesQuery.data],
+  );
+  const selectedTemplateVariables = useMemo(
+    () => getTemplateVariables(selectedTemplate),
+    [selectedTemplate],
   );
   const selectedMedia = useMemo(
     () => allMedia.find((item: MediaRecord) => item.metaMediaId === selectedMediaId) ?? null,
@@ -517,9 +534,9 @@ export default function ConversationsPage() {
                     </span>
                   ) : null}
                 </div>
-                {conversation.labels.length ? (
+                {getConversationLabels(conversation).length ? (
                   <div className="mt-3 flex flex-wrap gap-2">
-                    {conversation.labels.slice(0, 3).map((label) => (
+                    {getConversationLabels(conversation).slice(0, 3).map((label) => (
                       <span
                         className="rounded-full bg-[#f7f1e4] px-2 py-1 text-[11px] font-medium text-[#6b4f2a]"
                         key={label}
@@ -700,8 +717,8 @@ export default function ConversationsPage() {
                         Template Preview
                       </p>
                       <p className="mt-2 text-sm text-foreground">
-                        {selectedTemplate.variables.length
-                          ? `Variables: ${selectedTemplate.variables.join(", ")}`
+                        {selectedTemplateVariables.length
+                          ? `Variables: ${selectedTemplateVariables.join(", ")}`
                           : "No variables"}
                       </p>
                       <p className="mt-2 text-sm text-muted-foreground">
@@ -908,7 +925,9 @@ export default function ConversationsPage() {
                       <p className="text-sm font-medium">{note.authorName}</p>
                       <p className="text-xs text-muted-foreground">
                         {formatDateTime(note.updatedAt)}
-                        {note.history.length ? ` | ${note.history.length} edit${note.history.length === 1 ? "" : "s"}` : ""}
+                        {getNoteHistory(note).length
+                          ? ` | ${getNoteHistory(note).length} edit${getNoteHistory(note).length === 1 ? "" : "s"}`
+                          : ""}
                       </p>
                     </div>
                     <Button
