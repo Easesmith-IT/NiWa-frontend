@@ -3,6 +3,15 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { AxiosError } from "axios";
+import {
+  CheckCheck,
+  CircleDot,
+  MessageCircleMore,
+  Search,
+  Sparkles,
+  Tag,
+  UserRound,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -58,19 +67,19 @@ const parseTemplateVariables = (value?: string) =>
 
 const statusTone = (status: string, direction: "incoming" | "outgoing") => {
   if (direction === "incoming") {
-    return "bg-[#eef4ef] text-[#1f513e]";
+    return "bg-[#e7f5ec] text-[#1f5b43]";
   }
   if (status === "read") {
-    return "bg-[#dff2ff] text-[#0b5a7a]";
+    return "bg-[#d6efff] text-[#0e5575]";
   }
   if (status === "delivered") {
-    return "bg-[#e8f5e9] text-[#275d2c]";
+    return "bg-[#ddefd9] text-[#355f2c]";
   }
   if (status === "failed") {
-    return "bg-[#fde8e8] text-[#9b1c1c]";
+    return "bg-[#ffe0e0] text-[#8f2323]";
   }
 
-  return "bg-accent text-accent-foreground";
+  return "bg-[#efe4c9] text-[#725324]";
 };
 
 const renderMessageBody = (message: ConversationMessageRecord) => {
@@ -79,9 +88,13 @@ const renderMessageBody = (message: ConversationMessageRecord) => {
 
   if (type === "location") {
     const location = payload?.location;
-    return [location?.name, location?.address, location?.latitude && location?.longitude
-      ? `${location.latitude}, ${location.longitude}`
-      : null]
+    return [
+      location?.name,
+      location?.address,
+      location?.latitude && location?.longitude
+        ? `${location.latitude}, ${location.longitude}`
+        : null,
+    ]
       .filter(Boolean)
       .join("\n");
   }
@@ -129,6 +142,28 @@ const formatDateTime = (value?: string) => {
   return new Date(value).toLocaleString();
 };
 
+const formatShortTime = (value?: string) => {
+  if (!value) {
+    return "--:--";
+  }
+
+  return new Date(value).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+const formatShortDate = (value?: string) => {
+  if (!value) {
+    return "No activity";
+  }
+
+  return new Date(value).toLocaleDateString([], {
+    day: "numeric",
+    month: "short",
+  });
+};
+
 const noteSort = (left: ConversationNoteRecord, right: ConversationNoteRecord) => {
   if (left.pinned !== right.pinned) {
     return left.pinned ? -1 : 1;
@@ -146,6 +181,20 @@ const getTemplateVariables = (template?: Pick<TemplateRecord, "variables"> | nul
 const getNoteHistory = (note?: Pick<ConversationNoteRecord, "history"> | null) =>
   Array.isArray(note?.history) ? note.history : [];
 
+const getInitials = (name?: string, fallback?: string) => {
+  const source = name?.trim() || fallback?.trim() || "N";
+  return source
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+};
+
+const messageTypeLabel = (type: string) =>
+  type
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+
 export default function ConversationsPage() {
   const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
   const [replyError, setReplyError] = useState<string | null>(null);
@@ -159,6 +208,7 @@ export default function ConversationsPage() {
   const [notePinned, setNotePinned] = useState(false);
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const [editingNoteContent, setEditingNoteContent] = useState("");
+
   const replyForm = useForm<ReplyValues>({
     resolver: zodResolver(replySchema),
     defaultValues: {
@@ -197,7 +247,10 @@ export default function ConversationsPage() {
     },
   });
 
-  const conversations = useMemo(() => conversationsQuery.data?.conversations ?? [], [conversationsQuery.data]);
+  const conversations = useMemo(
+    () => conversationsQuery.data?.conversations ?? [],
+    [conversationsQuery.data],
+  );
   const allMedia = useMemo(() => mediaQuery.data?.media ?? [], [mediaQuery.data]);
 
   useEffect(() => {
@@ -223,6 +276,7 @@ export default function ConversationsPage() {
   });
 
   const workspaceConversation = detailQuery.data?.conversation ?? selectedConversation;
+  const conversationMessages = detailQuery.data?.messages ?? [];
   const sortedNotes = useMemo(
     () => [...(workspaceConversation?.notes ?? [])].sort(noteSort),
     [workspaceConversation?.notes],
@@ -241,17 +295,19 @@ export default function ConversationsPage() {
   }, [selectedConversationLabels, workspaceConversation?._id]);
 
   const lastIncomingMessageId = useMemo(() => {
-    const messages = detailQuery.data?.messages ?? [];
-    const incomingMessage = [...messages]
+    const incomingMessage = [...conversationMessages]
       .reverse()
       .find((message) => message.direction === "incoming" && message.waMessageId);
     return incomingMessage?.waMessageId ?? "";
-  }, [detailQuery.data]);
+  }, [conversationMessages]);
 
   const selectedReplyType = replyForm.watch("type");
-  const selectedTemplateName = selectedReplyType === "template" ? replyForm.watch("templateName") : undefined;
+  const selectedTemplateName =
+    selectedReplyType === "template" ? replyForm.watch("templateName") : undefined;
   const selectedMediaId =
-    selectedReplyType !== "text" && selectedReplyType !== "template" ? replyForm.watch("mediaId") : undefined;
+    selectedReplyType !== "text" && selectedReplyType !== "template"
+      ? replyForm.watch("mediaId")
+      : undefined;
   const selectedTemplate = useMemo(
     () =>
       (templatesQuery.data?.templates ?? []).find(
@@ -471,367 +527,490 @@ export default function ConversationsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">
-          Conversations
-        </p>
-        <h2 className="mt-2 text-3xl font-semibold">Operator Inbox</h2>
+      <div className="flex flex-col gap-4 rounded-[2rem] border border-white/60 bg-[linear-gradient(135deg,rgba(255,255,255,0.84),rgba(250,244,230,0.9))] p-5 shadow-[0_18px_50px_rgba(44,56,38,0.08)] lg:flex-row lg:items-end lg:justify-between">
+        <div>
+          <p className="text-sm font-medium uppercase tracking-[0.26em] text-muted-foreground">
+            Conversations
+          </p>
+          <h2 className="mt-2 text-3xl font-semibold">Operator Inbox</h2>
+          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
+            Reworked into a WhatsApp-style workspace with faster scanning, cleaner message bubbles,
+            and a reply area that stays anchored to the active thread.
+          </p>
+        </div>
+        <div className="grid grid-cols-3 gap-3 text-sm lg:min-w-[360px]">
+          <div className="rounded-2xl bg-white/80 p-3">
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Threads</p>
+            <p className="mt-2 text-xl font-semibold">{conversations.length}</p>
+          </div>
+          <div className="rounded-2xl bg-white/80 p-3">
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Unread</p>
+            <p className="mt-2 text-xl font-semibold">
+              {conversations.reduce((total, item) => total + item.unreadCount, 0)}
+            </p>
+          </div>
+          <div className="rounded-2xl bg-white/80 p-3">
+            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Selected</p>
+            <p className="mt-2 truncate text-sm font-semibold">
+              {workspaceConversation?.contactName || workspaceConversation?.contactPhoneNumber || "None"}
+            </p>
+          </div>
+        </div>
       </div>
 
-      <Card className="p-4">
-        <div className="grid gap-3 md:grid-cols-[1fr_auto_auto]">
-          <Input
-            onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder="Search by name, phone, or recent message"
-            value={searchQuery}
-          />
-          <Button
-            onClick={() => setFilterMode("all")}
-            type="button"
-            variant={filterMode === "all" ? "primary" : "secondary"}
-          >
-            All
-          </Button>
-          <Button
-            onClick={() => setFilterMode("unread")}
-            type="button"
-            variant={filterMode === "unread" ? "primary" : "secondary"}
-          >
-            Unread
-          </Button>
-        </div>
-      </Card>
-
-      <div className="grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)_360px]">
-        <Card className="max-h-[74vh] overflow-hidden p-0">
-          <div className="border-b border-border px-5 py-4">
-            <h3 className="text-lg font-semibold">Conversation List</h3>
-          </div>
-          <div className="max-h-[calc(74vh-72px)] overflow-y-auto p-2">
-            {conversations.map((conversation: ConversationRecord) => (
-              <button
-                className={
-                  conversation._id === selectedConversationId
-                    ? "mb-2 w-full rounded-2xl border border-primary bg-[#eef4ef] p-4 text-left"
-                    : "mb-2 w-full rounded-2xl border border-transparent bg-white/70 p-4 text-left"
-                }
-                key={conversation._id}
-                onClick={() => setSelectedConversationId(conversation._id)}
-                type="button"
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="font-medium text-foreground">
-                      {conversation.contactName || conversation.contactPhoneNumber}
-                    </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {conversation.contactPhoneNumber}
-                    </p>
-                  </div>
-                  {conversation.unreadCount > 0 ? (
-                    <span className="rounded-full bg-primary px-2 py-1 text-xs font-medium text-primary-foreground">
-                      {conversation.unreadCount}
-                    </span>
-                  ) : null}
-                </div>
-                {getConversationLabels(conversation).length ? (
-                  <div className="mt-3 flex flex-wrap gap-2">
-                    {getConversationLabels(conversation).slice(0, 3).map((label) => (
-                      <span
-                        className="rounded-full bg-[#f7f1e4] px-2 py-1 text-[11px] font-medium text-[#6b4f2a]"
-                        key={label}
-                      >
-                        {label}
-                      </span>
-                    ))}
-                  </div>
-                ) : null}
-                <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
-                  {conversation.lastMessageText || `[${conversation.lastMessageType}]`}
-                </p>
-                <div className="mt-3 flex items-center justify-between text-xs text-muted-foreground">
-                  <span>{conversation.lastMessageStatus}</span>
-                  <span>{formatDateTime(conversation.lastActivityAt)}</span>
-                </div>
-              </button>
-            ))}
-            {!conversationsQuery.isLoading && conversations.length === 0 ? (
-              <p className="p-4 text-sm text-muted-foreground">No conversations available yet.</p>
-            ) : null}
-          </div>
-        </Card>
-
-        <Card className="flex min-h-[74vh] flex-col p-0">
-          <div className="border-b border-border px-6 py-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
+      <div className="grid gap-4 xl:grid-cols-[340px_minmax(0,1fr)_350px]">
+        <Card className="overflow-hidden p-0">
+          <div className="border-b border-border bg-[rgba(255,255,255,0.7)] px-5 py-4">
+            <div className="flex items-center justify-between gap-3">
               <div>
-                <h3 className="text-lg font-semibold">
-                  {workspaceConversation?.contactName || "Conversation"}
-                </h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {workspaceConversation?.contactPhoneNumber || "Select a conversation"}
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
+                  Chat List
                 </p>
+                <h3 className="mt-1 text-lg font-semibold">Recent conversations</h3>
+              </div>
+              <div className="rounded-full bg-[#16302b] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#f8f1de]">
+                {filterMode}
+              </div>
+            </div>
+            <div className="mt-4 flex gap-2">
+              <div className="relative flex-1">
+                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  className="pl-10"
+                  onChange={(event) => setSearchQuery(event.target.value)}
+                  placeholder="Search contact or last message"
+                  value={searchQuery}
+                />
               </div>
               <Button
-                disabled={!selectedConversationId || clearUnreadMutation.isPending}
-                onClick={() => clearUnreadMutation.mutate()}
-                size="sm"
+                onClick={() => setFilterMode("all")}
                 type="button"
-                variant="secondary"
+                variant={filterMode === "all" ? "primary" : "secondary"}
               >
-                {clearUnreadMutation.isPending ? "Clearing..." : "Clear Unread"}
+                All
+              </Button>
+              <Button
+                onClick={() => setFilterMode("unread")}
+                type="button"
+                variant={filterMode === "unread" ? "primary" : "secondary"}
+              >
+                Unread
               </Button>
             </div>
           </div>
 
-          <div className="flex-1 space-y-4 overflow-y-auto px-6 py-5">
-            {(detailQuery.data?.messages ?? []).map((message: ConversationMessageRecord) => (
-              <div
-                className={
-                  message.direction === "outgoing"
-                    ? "ml-auto max-w-[80%] rounded-3xl rounded-br-lg bg-[#16302b] px-4 py-3 text-[#f8f1de]"
-                    : "max-w-[80%] rounded-3xl rounded-bl-lg bg-white px-4 py-3 text-foreground"
-                }
-                key={message._id}
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <span className="text-xs font-semibold uppercase tracking-[0.2em] opacity-80">
-                    {message.messageType}
-                  </span>
-                  <span
-                    className={`rounded-full px-2 py-1 text-[10px] font-medium ${statusTone(
-                      message.status,
-                      message.direction,
-                    )}`}
-                  >
-                    {message.direction === "incoming" ? "incoming" : message.status}
-                  </span>
-                </div>
-                <p className="mt-3 whitespace-pre-wrap text-sm">{renderMessageBody(message)}</p>
-                {message.direction === "incoming" && message.waMessageId && message.status !== "read" ? (
-                  <div className="mt-3 flex justify-end">
-                    <Button
-                      disabled={markAsReadMutation.isPending}
-                      onClick={() => markAsReadMutation.mutate(message.waMessageId!)}
-                      size="sm"
-                      type="button"
-                      variant="secondary"
-                    >
-                      {markAsReadMutation.isPending ? "Marking..." : "Mark Read"}
-                    </Button>
+          <div className="max-h-[76vh] space-y-2 overflow-y-auto bg-[rgba(255,255,255,0.45)] p-3">
+            {conversations.map((conversation) => {
+              const isActive = conversation._id === selectedConversationId;
+              const title = conversation.contactName || conversation.contactPhoneNumber;
+              const labels = getConversationLabels(conversation);
+
+              return (
+                <button
+                  className={
+                    isActive
+                      ? "w-full rounded-[26px] border border-[#d2e8dc] bg-[linear-gradient(135deg,#ffffff,#eef7f0)] px-4 py-4 text-left shadow-[0_10px_30px_rgba(32,73,58,0.08)]"
+                      : "w-full rounded-[26px] border border-transparent bg-white/80 px-4 py-4 text-left transition hover:border-[#e6dcc7] hover:bg-white"
+                  }
+                  key={conversation._id}
+                  onClick={() => setSelectedConversationId(conversation._id)}
+                  type="button"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,#d6f0df,#8ec5a1)] text-sm font-semibold text-[#16302b]">
+                      {getInitials(conversation.contactName, conversation.contactPhoneNumber)}
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="truncate font-semibold text-foreground">{title}</p>
+                          <p className="mt-1 truncate text-xs text-muted-foreground">
+                            {conversation.contactPhoneNumber}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-[11px] font-medium text-muted-foreground">
+                            {formatShortDate(conversation.lastActivityAt)}
+                          </p>
+                          {conversation.unreadCount > 0 ? (
+                            <span className="mt-2 inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-primary px-2 text-xs font-semibold text-primary-foreground">
+                              {conversation.unreadCount}
+                            </span>
+                          ) : null}
+                        </div>
+                      </div>
+                      {labels.length > 0 ? (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {labels.slice(0, 2).map((label) => (
+                            <span
+                              className="rounded-full bg-[#f7efe0] px-2.5 py-1 text-[11px] font-medium text-[#7a5929]"
+                              key={label}
+                            >
+                              {label}
+                            </span>
+                          ))}
+                        </div>
+                      ) : null}
+                      <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
+                        {conversation.lastMessageText || `[${messageTypeLabel(conversation.lastMessageType)}]`}
+                      </p>
+                    </div>
                   </div>
-                ) : null}
-                <p className="mt-3 text-right text-[11px] opacity-70">{formatDateTime(message.timestamp)}</p>
+                </button>
+              );
+            })}
+            {!conversationsQuery.isLoading && conversations.length === 0 ? (
+              <div className="rounded-[26px] bg-white/85 p-6 text-sm text-muted-foreground">
+                No conversations available yet.
               </div>
-            ))}
-            {!detailQuery.isLoading && (detailQuery.data?.messages ?? []).length === 0 ? (
-              <p className="text-sm text-muted-foreground">No messages in this conversation yet.</p>
             ) : null}
           </div>
+        </Card>
 
-          <div className="border-t border-border px-6 py-5">
-            <form
-              className="space-y-4"
-              onSubmit={replyForm.handleSubmit(async (values) => {
-                setReplyError(null);
-                await replyMutation.mutateAsync(values);
-              })}
-            >
-              <div className="flex flex-wrap gap-2">
-                <button
-                  className={
-                    selectedReplyType === "text"
-                      ? "rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-                      : "rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-foreground"
-                  }
-                  onClick={() => replyForm.reset({ type: "text", body: "" })}
-                  type="button"
-                >
-                  Text Reply
-                </button>
-                <button
-                  className={
-                    selectedReplyType === "template"
-                      ? "rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-                      : "rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-foreground"
-                  }
-                  onClick={() =>
-                    replyForm.reset({
-                      type: "template",
-                      templateName: "",
-                      languageCode: "en",
-                      bodyVariables: "",
-                    })
-                  }
-                  type="button"
-                >
-                  Template Reply
-                </button>
-                <button
-                  className={
-                    ["image", "video", "audio", "document", "sticker"].includes(selectedReplyType)
-                      ? "rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
-                      : "rounded-full bg-accent px-4 py-2 text-sm font-medium text-accent-foreground"
-                  }
-                  onClick={() =>
-                    replyForm.reset({
-                      type: "image",
-                      mediaId: "",
-                      caption: "",
-                      filename: "",
-                    })
-                  }
-                  type="button"
-                >
-                  Media Reply
-                </button>
+        <Card className="overflow-hidden p-0">
+          <div className="border-b border-border bg-[linear-gradient(180deg,rgba(255,255,255,0.88),rgba(245,239,225,0.9))] px-5 py-4">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[linear-gradient(135deg,#d6f0df,#8ec5a1)] font-semibold text-[#16302b]">
+                  {getInitials(
+                    workspaceConversation?.contactName,
+                    workspaceConversation?.contactPhoneNumber,
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold">
+                    {workspaceConversation?.contactName || "Conversation"}
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    {workspaceConversation?.contactPhoneNumber || "Select a conversation"}
+                  </p>
+                </div>
               </div>
-
-              {selectedReplyType === "text" ? (
-                <div className="space-y-3">
-                  <Textarea placeholder="Write a reply" {...replyForm.register("body")} />
-                  {"body" in replyForm.formState.errors && replyForm.formState.errors.body ? (
-                    <p className="text-sm text-red-600">{replyForm.formState.errors.body.message}</p>
-                  ) : null}
-                </div>
-              ) : selectedReplyType === "template" ? (
-                <div className="space-y-3">
-                  <select
-                    className="flex h-11 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
-                    {...replyForm.register("templateName")}
-                  >
-                    <option value="">Select a template</option>
-                    {(templatesQuery.data?.templates ?? []).map((template: TemplateRecord) => (
-                      <option key={template._id} value={template.name}>
-                        {template.name} ({template.language})
-                      </option>
-                    ))}
-                  </select>
-                  <Textarea
-                    placeholder="Template body variables, one per line"
-                    {...replyForm.register("bodyVariables")}
-                  />
-                  {selectedTemplate ? (
-                    <div className="rounded-2xl bg-[#f7f1e4] p-4">
-                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                        Template Preview
-                      </p>
-                      <p className="mt-2 text-sm text-foreground">
-                        {selectedTemplateVariables.length
-                          ? `Variables: ${selectedTemplateVariables.join(", ")}`
-                          : "No variables"}
-                      </p>
-                      <p className="mt-2 text-sm text-muted-foreground">
-                        Status: {selectedTemplate.status}
-                      </p>
-                    </div>
-                  ) : null}
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  <select
-                    className="flex h-11 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
-                    {...replyForm.register("type")}
-                  >
-                    <option value="image">Image</option>
-                    <option value="video">Video</option>
-                    <option value="audio">Audio</option>
-                    <option value="document">Document</option>
-                    <option value="sticker">Sticker</option>
-                  </select>
-                  <select
-                    className="flex h-11 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
-                    {...replyForm.register("mediaId")}
-                  >
-                    <option value="">Select stored media</option>
-                    {allMedia
-                      .filter((item) =>
-                        selectedReplyType === "document"
-                          ? item.mediaType === "document"
-                          : selectedReplyType === "sticker"
-                            ? item.mediaType === "sticker"
-                            : item.mediaType === selectedReplyType,
-                      )
-                      .map((item: MediaRecord) => (
-                        <option key={item._id} value={item.metaMediaId}>
-                          {item.fileName} ({item.mediaType})
-                        </option>
-                      ))}
-                  </select>
-                  {(selectedReplyType === "image" ||
-                    selectedReplyType === "video" ||
-                    selectedReplyType === "document") ? (
-                    <Textarea placeholder="Optional caption" {...replyForm.register("caption")} />
-                  ) : null}
-                  {selectedReplyType === "document" ? (
-                    <Input placeholder="Optional filename override" {...replyForm.register("filename")} />
-                  ) : null}
-                  {selectedMedia ? (
-                    <div className="rounded-2xl bg-[#f7f1e4] p-4">
-                      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                        Selected Media
-                      </p>
-                      <p className="mt-2 text-sm text-foreground">
-                        {selectedMedia.fileName} | {selectedMedia.mediaType} | {selectedMedia.metaMediaId}
-                      </p>
-                    </div>
-                  ) : null}
-                </div>
-              )}
-
-              <div className="grid gap-3 md:grid-cols-2">
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  disabled={!selectedConversationId || clearUnreadMutation.isPending}
+                  onClick={() => clearUnreadMutation.mutate()}
+                  size="sm"
+                  type="button"
+                  variant="secondary"
+                >
+                  {clearUnreadMutation.isPending ? "Clearing..." : "Clear unread"}
+                </Button>
                 {lastIncomingMessageId ? (
                   <Button
                     disabled={markAsReadMutation.isPending}
                     onClick={() => markAsReadMutation.mutate(lastIncomingMessageId)}
+                    size="sm"
                     type="button"
-                    variant="secondary"
+                    variant="ghost"
                   >
-                    {markAsReadMutation.isPending ? "Marking..." : "Mark Latest Incoming Read"}
-                  </Button>
-                ) : (
-                  <div className="text-sm text-muted-foreground">No incoming message available for read sync.</div>
-                )}
-                {selectedConversationId ? (
-                  <Button onClick={() => clearUnreadMutation.mutate()} type="button" variant="ghost">
-                    Clear local unread counter
+                    {markAsReadMutation.isPending ? "Marking..." : "Sync read"}
                   </Button>
                 ) : null}
               </div>
+            </div>
+            {selectedConversationLabels.length > 0 ? (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {selectedConversationLabels.map((label) => (
+                  <span
+                    className="rounded-full bg-[#efe5cf] px-3 py-1 text-xs font-medium text-[#735327]"
+                    key={label}
+                  >
+                    {label}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+          </div>
 
-              {readError ? <p className="text-sm text-red-600">{readError}</p> : null}
-              {replyError ? <p className="text-sm text-red-600">{replyError}</p> : null}
+          <div className="relative flex min-h-[76vh] flex-col">
+            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(37,102,76,0.08),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(214,155,76,0.12),transparent_26%),linear-gradient(180deg,#efe7d7_0%,#e8decb_100%)]" />
+            <div className="relative flex-1 space-y-4 overflow-y-auto px-5 py-5">
+              {conversationMessages.map((message) => {
+                const isOutgoing = message.direction === "outgoing";
 
-              <Button disabled={!selectedConversationId || replyMutation.isPending} type="submit">
-                {replyMutation.isPending ? "Sending..." : "Send Reply"}
-              </Button>
-            </form>
+                return (
+                  <div
+                    className={isOutgoing ? "flex justify-end" : "flex justify-start"}
+                    key={message._id}
+                  >
+                    <div
+                      className={
+                        isOutgoing
+                          ? "max-w-[82%] rounded-[24px] rounded-br-md bg-[linear-gradient(180deg,#d8f5cf,#c7edb8)] px-4 py-3 text-[#16302b] shadow-[0_10px_28px_rgba(57,110,51,0.12)]"
+                          : "max-w-[82%] rounded-[24px] rounded-bl-md bg-white px-4 py-3 text-foreground shadow-[0_10px_28px_rgba(85,67,31,0.08)]"
+                      }
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-[11px] font-semibold uppercase tracking-[0.18em] opacity-70">
+                          {messageTypeLabel(message.messageType)}
+                        </span>
+                        <span
+                          className={`rounded-full px-2 py-1 text-[10px] font-medium ${statusTone(
+                            message.status,
+                            message.direction,
+                          )}`}
+                        >
+                          {isOutgoing ? message.status : "incoming"}
+                        </span>
+                      </div>
+                      <p className="mt-3 whitespace-pre-wrap text-sm leading-6">
+                        {renderMessageBody(message)}
+                      </p>
+                      {message.direction === "incoming" &&
+                      message.waMessageId &&
+                      message.status !== "read" ? (
+                        <div className="mt-3 flex justify-end">
+                          <Button
+                            disabled={markAsReadMutation.isPending}
+                            onClick={() => markAsReadMutation.mutate(message.waMessageId!)}
+                            size="sm"
+                            type="button"
+                            variant="secondary"
+                          >
+                            {markAsReadMutation.isPending ? "Marking..." : "Mark read"}
+                          </Button>
+                        </div>
+                      ) : null}
+                      <div className="mt-3 flex items-center justify-end gap-2 text-[11px] opacity-70">
+                        <span>{formatShortTime(message.timestamp)}</span>
+                        {isOutgoing ? (
+                          <CheckCheck className="h-3.5 w-3.5" />
+                        ) : (
+                          <CircleDot className="h-3.5 w-3.5" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {!detailQuery.isLoading && conversationMessages.length === 0 ? (
+                <div className="flex h-full min-h-[260px] items-center justify-center">
+                  <div className="rounded-[28px] bg-white/85 px-8 py-10 text-center shadow-[0_16px_40px_rgba(90,70,26,0.08)]">
+                    <MessageCircleMore className="mx-auto h-10 w-10 text-muted-foreground" />
+                    <p className="mt-4 text-sm text-muted-foreground">
+                      No messages in this conversation yet.
+                    </p>
+                  </div>
+                </div>
+              ) : null}
+            </div>
+
+            <div className="relative border-t border-border bg-white/85 px-5 py-5 backdrop-blur">
+              <form
+                className="space-y-4"
+                onSubmit={replyForm.handleSubmit((values) => {
+                  setReplyError(null);
+                  replyMutation.mutate(values);
+                })}
+              >
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    className={
+                      selectedReplyType === "text"
+                        ? "rounded-full bg-[#16302b] px-4 py-2 text-sm font-medium text-[#f8f1de]"
+                        : "rounded-full bg-[#f4ecdb] px-4 py-2 text-sm font-medium text-[#6e5632]"
+                    }
+                    onClick={() => replyForm.reset({ type: "text", body: "" })}
+                    type="button"
+                  >
+                    Text
+                  </button>
+                  <button
+                    className={
+                      selectedReplyType === "template"
+                        ? "rounded-full bg-[#16302b] px-4 py-2 text-sm font-medium text-[#f8f1de]"
+                        : "rounded-full bg-[#f4ecdb] px-4 py-2 text-sm font-medium text-[#6e5632]"
+                    }
+                    onClick={() =>
+                      replyForm.reset({
+                        type: "template",
+                        templateName: "",
+                        languageCode: "en",
+                        bodyVariables: "",
+                      })
+                    }
+                    type="button"
+                  >
+                    Template
+                  </button>
+                  <button
+                    className={
+                      ["image", "video", "audio", "document", "sticker"].includes(selectedReplyType)
+                        ? "rounded-full bg-[#16302b] px-4 py-2 text-sm font-medium text-[#f8f1de]"
+                        : "rounded-full bg-[#f4ecdb] px-4 py-2 text-sm font-medium text-[#6e5632]"
+                    }
+                    onClick={() =>
+                      replyForm.reset({
+                        type: "image",
+                        mediaId: "",
+                        caption: "",
+                        filename: "",
+                      })
+                    }
+                    type="button"
+                  >
+                    Media
+                  </button>
+                </div>
+
+                {selectedReplyType === "text" ? (
+                  <div className="space-y-3">
+                    <Textarea
+                      className="min-h-24 rounded-[24px] bg-[#f9f6ef]"
+                      placeholder="Write a message"
+                      {...replyForm.register("body")}
+                    />
+                    {"body" in replyForm.formState.errors && replyForm.formState.errors.body ? (
+                      <p className="text-sm text-red-600">
+                        {replyForm.formState.errors.body.message}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : selectedReplyType === "template" ? (
+                  <div className="grid gap-3">
+                    <select
+                      className="flex h-12 w-full rounded-[20px] border border-input bg-[#f9f6ef] px-4 py-2 text-sm text-foreground outline-none focus:border-primary"
+                      {...replyForm.register("templateName")}
+                    >
+                      <option value="">Select a template</option>
+                      {(templatesQuery.data?.templates ?? []).map((template) => (
+                        <option key={template._id} value={template.name}>
+                          {template.name} ({template.language})
+                        </option>
+                      ))}
+                    </select>
+                    <Textarea
+                      className="min-h-24 rounded-[24px] bg-[#f9f6ef]"
+                      placeholder="Template variables, one per line"
+                      {...replyForm.register("bodyVariables")}
+                    />
+                    {selectedTemplate ? (
+                      <div className="rounded-[24px] border border-[#eadbbf] bg-[#fffaf0] p-4">
+                        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                          <Sparkles className="h-4 w-4" />
+                          Template snapshot
+                        </div>
+                        <p className="mt-3 text-sm text-foreground">
+                          {selectedTemplateVariables.length
+                            ? `Variables: ${selectedTemplateVariables.join(", ")}`
+                            : "No variables"}
+                        </p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Status: {selectedTemplate.status}
+                        </p>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : (
+                  <div className="grid gap-3">
+                    <select
+                      className="flex h-12 w-full rounded-[20px] border border-input bg-[#f9f6ef] px-4 py-2 text-sm text-foreground outline-none focus:border-primary"
+                      {...replyForm.register("type")}
+                    >
+                      <option value="image">Image</option>
+                      <option value="video">Video</option>
+                      <option value="audio">Audio</option>
+                      <option value="document">Document</option>
+                      <option value="sticker">Sticker</option>
+                    </select>
+                    <select
+                      className="flex h-12 w-full rounded-[20px] border border-input bg-[#f9f6ef] px-4 py-2 text-sm text-foreground outline-none focus:border-primary"
+                      {...replyForm.register("mediaId")}
+                    >
+                      <option value="">Select stored media</option>
+                      {allMedia
+                        .filter((item) =>
+                          selectedReplyType === "document"
+                            ? item.mediaType === "document"
+                            : selectedReplyType === "sticker"
+                              ? item.mediaType === "sticker"
+                              : item.mediaType === selectedReplyType,
+                        )
+                        .map((item) => (
+                          <option key={item._id} value={item.metaMediaId}>
+                            {item.fileName} ({item.mediaType})
+                          </option>
+                        ))}
+                    </select>
+                    {(selectedReplyType === "image" ||
+                      selectedReplyType === "video" ||
+                      selectedReplyType === "document") ? (
+                      <Textarea
+                        className="min-h-20 rounded-[24px] bg-[#f9f6ef]"
+                        placeholder="Optional caption"
+                        {...replyForm.register("caption")}
+                      />
+                    ) : null}
+                    {selectedReplyType === "document" ? (
+                      <Input
+                        className="rounded-[20px] bg-[#f9f6ef]"
+                        placeholder="Optional filename override"
+                        {...replyForm.register("filename")}
+                      />
+                    ) : null}
+                    {selectedMedia ? (
+                      <div className="rounded-[24px] border border-[#eadbbf] bg-[#fffaf0] p-4 text-sm">
+                        {selectedMedia.fileName} | {selectedMedia.mediaType} |{" "}
+                        {selectedMedia.metaMediaId}
+                      </div>
+                    ) : null}
+                  </div>
+                )}
+
+                {readError ? <p className="text-sm text-red-600">{readError}</p> : null}
+                {replyError ? <p className="text-sm text-red-600">{replyError}</p> : null}
+
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <p className="text-sm text-muted-foreground">
+                    Messages are stored in the active conversation thread after send.
+                  </p>
+                  <Button disabled={!selectedConversationId || replyMutation.isPending} type="submit">
+                    {replyMutation.isPending ? "Sending..." : "Send reply"}
+                  </Button>
+                </div>
+              </form>
+            </div>
           </div>
         </Card>
 
         <div className="space-y-4">
           <Card className="space-y-4 p-5">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                Customer Profile
-              </p>
-              <h3 className="mt-2 text-lg font-semibold">
-                {workspaceConversation?.contactName || "Select a conversation"}
-              </h3>
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#edf4ef] text-[#16302b]">
+                <UserRound className="h-5 w-5" />
+              </div>
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                  Contact
+                </p>
+                <h3 className="mt-1 text-lg font-semibold">
+                  {workspaceConversation?.contactName || "Select a conversation"}
+                </h3>
+              </div>
             </div>
             <div className="grid gap-3 text-sm">
-              <div className="rounded-2xl bg-white/70 p-3">
+              <div className="rounded-2xl bg-white/80 p-3">
                 <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Phone</p>
-                <p className="mt-1 font-medium">{workspaceConversation?.contactPhoneNumber || "Not available"}</p>
+                <p className="mt-1 font-medium">
+                  {workspaceConversation?.contactPhoneNumber || "Not available"}
+                </p>
               </div>
-              <div className="rounded-2xl bg-white/70 p-3">
-                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">WhatsApp ID</p>
+              <div className="rounded-2xl bg-white/80 p-3">
+                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                  WhatsApp ID
+                </p>
                 <p className="mt-1 font-medium">{workspaceConversation?.waId || "Not available"}</p>
               </div>
-              <div className="rounded-2xl bg-white/70 p-3">
-                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Last Activity</p>
+              <div className="rounded-2xl bg-white/80 p-3">
+                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+                  Last activity
+                </p>
                 <p className="mt-1 font-medium">
-                  {workspaceConversation ? formatDateTime(workspaceConversation.lastActivityAt) : "Not available"}
+                  {workspaceConversation
+                    ? formatDateTime(workspaceConversation.lastActivityAt)
+                    : "Not available"}
                 </p>
               </div>
             </div>
@@ -839,9 +1018,14 @@ export default function ConversationsPage() {
 
           <Card className="space-y-4 p-5">
             <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Labels</p>
-                <h3 className="mt-1 text-lg font-semibold">Conversation Labels</h3>
+              <div className="flex items-center gap-2">
+                <Tag className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                    Labels
+                  </p>
+                  <h3 className="mt-1 text-lg font-semibold">Conversation tags</h3>
+                </div>
               </div>
               <Button
                 disabled={!selectedConversationId || isWorkspaceBusy}
@@ -849,7 +1033,7 @@ export default function ConversationsPage() {
                 size="sm"
                 type="button"
               >
-                {labelsMutation.isPending ? "Saving..." : "Save Labels"}
+                {labelsMutation.isPending ? "Saving..." : "Save"}
               </Button>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -859,11 +1043,7 @@ export default function ConversationsPage() {
                   key={label}
                 >
                   {label}
-                  <button
-                    className="text-xs"
-                    onClick={() => removeDraftLabel(label)}
-                    type="button"
-                  >
+                  <button className="text-xs" onClick={() => removeDraftLabel(label)} type="button">
                     Remove
                   </button>
                 </span>
@@ -892,8 +1072,10 @@ export default function ConversationsPage() {
 
           <Card className="space-y-4 p-5">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Notes</p>
-              <h3 className="mt-1 text-lg font-semibold">Internal Workspace</h3>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                Notes
+              </p>
+              <h3 className="mt-1 text-lg font-semibold">Internal workspace</h3>
             </div>
             <div className="space-y-3">
               <Textarea
@@ -914,12 +1096,12 @@ export default function ConversationsPage() {
                 onClick={() => addNoteMutation.mutate()}
                 type="button"
               >
-                {addNoteMutation.isPending ? "Adding..." : "Add Note"}
+                {addNoteMutation.isPending ? "Adding..." : "Add note"}
               </Button>
             </div>
             <div className="space-y-3">
               {sortedNotes.map((note) => (
-                <div className="rounded-2xl bg-white/70 p-4" key={note._id}>
+                <div className="rounded-2xl bg-white/80 p-4" key={note._id}>
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-sm font-medium">{note.authorName}</p>
@@ -982,7 +1164,9 @@ export default function ConversationsPage() {
                     <>
                       <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">{note.content}</p>
                       <div className="mt-3 flex items-center justify-between gap-3">
-                        <p className="text-xs text-muted-foreground">{note.pinned ? "Pinned note" : "Standard note"}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {note.pinned ? "Pinned note" : "Standard note"}
+                        </p>
                         <Button
                           onClick={() => {
                             setEditingNoteId(note._id);
@@ -1007,12 +1191,14 @@ export default function ConversationsPage() {
 
           <Card className="space-y-4 p-5">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Activity Feed</p>
-              <h3 className="mt-1 text-lg font-semibold">Conversation Audit Trail</h3>
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                Activity feed
+              </p>
+              <h3 className="mt-1 text-lg font-semibold">Audit trail</h3>
             </div>
             <div className="space-y-3">
               {activityFeed.map((entry: ConversationActivityRecord) => (
-                <div className="rounded-2xl bg-white/70 p-4" key={entry._id}>
+                <div className="rounded-2xl bg-white/80 p-4" key={entry._id}>
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-sm font-medium">{entry.description}</p>
                     <span className="rounded-full bg-accent px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-accent-foreground">
