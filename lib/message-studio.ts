@@ -1,10 +1,29 @@
 import { MediaRecord, TemplateRecord } from "./api/types";
 
+export interface TemplateUrlButtonConfig {
+  index: number;
+  text: string;
+  url: string;
+  requiresParameter: boolean;
+}
+
 export const parseLines = (value: string) =>
   value
     .split("\n")
     .map((item) => item.trim())
     .filter(Boolean);
+
+export const getTemplateUrlButtons = (template?: TemplateRecord | null): TemplateUrlButtonConfig[] =>
+  (template?.components ?? [])
+    .flatMap((component) => component.buttons ?? [])
+    .map((button, index) => ({
+      index,
+      text: button.text?.trim() || `Button ${index + 1}`,
+      url: button.url?.trim() || "",
+      requiresParameter:
+        (button.type ?? "").toUpperCase() === "URL" && /{{\d+}}/.test(button.url ?? ""),
+    }))
+    .filter((button) => button.requiresParameter);
 
 export const parseListSections = (value: string) =>
   value
@@ -27,6 +46,7 @@ export const buildMessageStudioPreview = (params: {
   templateHeaderFormat?: string;
   selectedMedia?: MediaRecord | null;
   selectedTemplateHeaderMedia?: MediaRecord | null;
+  templateButtonVariables?: string[];
   mediaCaption?: string;
   locationName?: string;
   locationAddress?: string;
@@ -52,6 +72,7 @@ export const buildMessageStudioPreview = (params: {
     templateHeaderFormat,
     selectedMedia,
     selectedTemplateHeaderMedia,
+    templateButtonVariables,
     mediaCaption,
     locationName,
     locationAddress,
@@ -83,6 +104,11 @@ export const buildMessageStudioPreview = (params: {
             : "No variables",
           templateHeaderFormat
             ? `Header: ${templateHeaderFormat}${selectedTemplateHeaderMedia ? ` | ${selectedTemplateHeaderMedia.fileName}` : ""}`
+            : null,
+          templateButtonVariables?.length
+            ? `Button params: ${templateButtonVariables
+                .map((value, index) => `#${index + 1} ${value}`)
+                .join(", ")}`
             : null,
         ]
           .filter(Boolean)

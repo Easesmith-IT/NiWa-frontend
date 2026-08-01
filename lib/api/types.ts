@@ -147,7 +147,13 @@ export interface TemplateRecord {
     format?: string;
     text?: string;
     example?: unknown;
-    buttons?: unknown[];
+    buttons?: Array<{
+      type?: string;
+      text?: string;
+      url?: string;
+      phone_number?: string;
+      example?: unknown;
+    }>;
   }>;
   rawPayload: unknown;
   updatedAt: string;

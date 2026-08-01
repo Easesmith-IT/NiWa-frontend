@@ -28,6 +28,7 @@ import {
 } from "../../../lib/api/types";
 import {
   buildMessageStudioPreview,
+  getTemplateUrlButtons,
   parseLines,
   parseListSections,
 } from "../../../lib/message-studio";
@@ -92,6 +93,7 @@ export default function MessageStudioPage() {
   const [templateLanguage, setTemplateLanguage] = useState(initialLanguage);
   const [templateVariables, setTemplateVariables] = useState("");
   const [templateHeaderMediaId, setTemplateHeaderMediaId] = useState("");
+  const [templateButtonVariables, setTemplateButtonVariables] = useState<string[]>([]);
 
   const [selectedMediaId, setSelectedMediaId] = useState(initialMediaId);
   const [mediaCaption, setMediaCaption] = useState("");
@@ -198,6 +200,11 @@ export default function MessageStudioPage() {
     );
   }, [mediaQuery.data, templateHeaderFormat]);
 
+  const templateUrlButtons = useMemo(
+    () => getTemplateUrlButtons(selectedTemplate),
+    [selectedTemplate],
+  );
+
   useEffect(() => {
     if (selectedTemplate && selectedTemplate.language !== templateLanguage) {
       setTemplateLanguage(selectedTemplate.language);
@@ -206,6 +213,10 @@ export default function MessageStudioPage() {
 
   useEffect(() => {
     setTemplateHeaderMediaId("");
+  }, [selectedTemplate?.name, selectedTemplate?.language]);
+
+  useEffect(() => {
+    setTemplateButtonVariables([]);
   }, [selectedTemplate?.name, selectedTemplate?.language]);
 
   const sendMutation = useMutation({
@@ -224,6 +235,9 @@ export default function MessageStudioPage() {
           languageCode: templateLanguage,
           bodyVariables: parseLines(templateVariables),
           ...(templateHeaderMediaId ? { headerMediaId: templateHeaderMediaId } : {}),
+          ...(templateUrlButtons.length > 0
+            ? { buttonVariables: templateButtonVariables.map((value) => value.trim()) }
+            : {}),
         };
       } else if (["image", "video", "audio", "document", "sticker"].includes(mode)) {
         endpoint = `/messages/${mode}`;
@@ -357,6 +371,7 @@ export default function MessageStudioPage() {
         templateHeaderFormat,
         selectedMedia,
         selectedTemplateHeaderMedia,
+        templateButtonVariables: templateButtonVariables.map((value) => value.trim()).filter(Boolean),
         mediaCaption,
         locationName,
         locationAddress,
@@ -382,6 +397,7 @@ export default function MessageStudioPage() {
       templateHeaderFormat,
       selectedMedia,
       selectedTemplateHeaderMedia,
+      templateButtonVariables,
       mediaCaption,
       locationName,
       locationAddress,
@@ -526,6 +542,11 @@ export default function MessageStudioPage() {
                             Header media required: {templateHeaderFormat}
                           </p>
                         ) : null}
+                        {templateUrlButtons.length > 0 ? (
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            Dynamic URL buttons: {templateUrlButtons.length}
+                          </p>
+                        ) : null}
                       </div>
                     ) : null}
                     {templateHeaderFormat ? (
@@ -541,6 +562,36 @@ export default function MessageStudioPage() {
                           </option>
                         ))}
                       </select>
+                    ) : null}
+                    {templateUrlButtons.length > 0 ? (
+                      <div className="grid gap-3">
+                        {templateUrlButtons.map((button, index) => (
+                          <div
+                            className="rounded-[24px] border border-[#eadbbf] bg-[#fff8ea] p-4"
+                            key={`${button.index}-${button.text}`}
+                          >
+                            <p className="text-sm font-medium text-foreground">{button.text}</p>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              URL button #{button.index + 1} requires a Meta template parameter.
+                            </p>
+                            <p className="mt-1 text-xs text-muted-foreground">
+                              Template URL: {button.url}
+                            </p>
+                            <Input
+                              className="mt-3 rounded-[20px] bg-[#faf7f1]"
+                              onChange={(event) =>
+                                setTemplateButtonVariables((current) => {
+                                  const next = [...current];
+                                  next[index] = event.target.value;
+                                  return next;
+                                })
+                              }
+                              placeholder={`Button ${button.index + 1} parameter value`}
+                              value={templateButtonVariables[index] ?? ""}
+                            />
+                          </div>
+                        ))}
+                      </div>
                     ) : null}
                   </>
                 ) : null}
