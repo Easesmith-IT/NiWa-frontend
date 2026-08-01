@@ -24,7 +24,9 @@ export const buildMessageStudioPreview = (params: {
   mode: string;
   textBody?: string;
   selectedTemplate?: TemplateRecord | null;
+  templateHeaderFormat?: string;
   selectedMedia?: MediaRecord | null;
+  selectedTemplateHeaderMedia?: MediaRecord | null;
   mediaCaption?: string;
   locationName?: string;
   locationAddress?: string;
@@ -47,7 +49,9 @@ export const buildMessageStudioPreview = (params: {
     mode,
     textBody,
     selectedTemplate,
+    templateHeaderFormat,
     selectedMedia,
+    selectedTemplateHeaderMedia,
     mediaCaption,
     locationName,
     locationAddress,
@@ -72,11 +76,17 @@ export const buildMessageStudioPreview = (params: {
   }
   if (mode === "template") {
     return selectedTemplate
-      ? `${selectedTemplate.name} (${selectedTemplate.language})\n${
+      ? [
+          `${selectedTemplate.name} (${selectedTemplate.language})`,
           selectedTemplate.variables.length
             ? `Variables: ${selectedTemplate.variables.join(", ")}`
-            : "No variables"
-        }`
+            : "No variables",
+          templateHeaderFormat
+            ? `Header: ${templateHeaderFormat}${selectedTemplateHeaderMedia ? ` | ${selectedTemplateHeaderMedia.fileName}` : ""}`
+            : null,
+        ]
+          .filter(Boolean)
+          .join("\n")
       : "Select a template to preview.";
   }
   if (["image", "video", "audio", "document", "sticker"].includes(mode)) {

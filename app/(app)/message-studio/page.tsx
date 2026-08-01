@@ -91,6 +91,7 @@ export default function MessageStudioPage() {
   const [templateName, setTemplateName] = useState(initialTemplate);
   const [templateLanguage, setTemplateLanguage] = useState(initialLanguage);
   const [templateVariables, setTemplateVariables] = useState("");
+  const [templateHeaderMediaId, setTemplateHeaderMediaId] = useState("");
 
   const [selectedMediaId, setSelectedMediaId] = useState(initialMediaId);
   const [mediaCaption, setMediaCaption] = useState("");
@@ -169,11 +170,43 @@ export default function MessageStudioPage() {
     [selectedMediaId, mediaQuery.data],
   );
 
+  const templateHeaderFormat = useMemo(() => {
+    const headerComponent = selectedTemplate?.components.find(
+      (component) =>
+        component.type === "HEADER" &&
+        ["IMAGE", "VIDEO", "DOCUMENT"].includes(component.format ?? ""),
+    );
+
+    return headerComponent?.format ?? "";
+  }, [selectedTemplate]);
+
+  const selectedTemplateHeaderMedia = useMemo(
+    () =>
+      (mediaQuery.data?.media ?? []).find(
+        (media: MediaRecord) => media.metaMediaId === templateHeaderMediaId,
+      ) ?? null,
+    [templateHeaderMediaId, mediaQuery.data],
+  );
+
+  const filteredTemplateHeaderMedia = useMemo(() => {
+    if (!templateHeaderFormat) {
+      return [];
+    }
+
+    return (mediaQuery.data?.media ?? []).filter(
+      (media: MediaRecord) => media.mediaType === templateHeaderFormat.toLowerCase(),
+    );
+  }, [mediaQuery.data, templateHeaderFormat]);
+
   useEffect(() => {
     if (selectedTemplate && selectedTemplate.language !== templateLanguage) {
       setTemplateLanguage(selectedTemplate.language);
     }
   }, [selectedTemplate, templateLanguage]);
+
+  useEffect(() => {
+    setTemplateHeaderMediaId("");
+  }, [selectedTemplate?.name, selectedTemplate?.language]);
 
   const sendMutation = useMutation({
     mutationFn: async () => {
@@ -190,6 +223,7 @@ export default function MessageStudioPage() {
           templateName,
           languageCode: templateLanguage,
           bodyVariables: parseLines(templateVariables),
+          ...(templateHeaderMediaId ? { headerMediaId: templateHeaderMediaId } : {}),
         };
       } else if (["image", "video", "audio", "document", "sticker"].includes(mode)) {
         endpoint = `/messages/${mode}`;
@@ -320,7 +354,9 @@ export default function MessageStudioPage() {
         mode,
         textBody,
         selectedTemplate,
+        templateHeaderFormat,
         selectedMedia,
+        selectedTemplateHeaderMedia,
         mediaCaption,
         locationName,
         locationAddress,
@@ -343,7 +379,9 @@ export default function MessageStudioPage() {
       mode,
       textBody,
       selectedTemplate,
+      templateHeaderFormat,
       selectedMedia,
+      selectedTemplateHeaderMedia,
       mediaCaption,
       locationName,
       locationAddress,
@@ -483,7 +521,26 @@ export default function MessageStudioPage() {
                         <p className="mt-1 text-sm text-muted-foreground">
                           {selectedTemplate.status} | {selectedTemplate.language}
                         </p>
+                        {templateHeaderFormat ? (
+                          <p className="mt-1 text-sm text-muted-foreground">
+                            Header media required: {templateHeaderFormat}
+                          </p>
+                        ) : null}
                       </div>
+                    ) : null}
+                    {templateHeaderFormat ? (
+                      <select
+                        className="flex h-12 w-full rounded-[20px] border border-input bg-[#faf7f1] px-4 py-2 text-sm text-foreground outline-none focus:border-primary"
+                        onChange={(event) => setTemplateHeaderMediaId(event.target.value)}
+                        value={templateHeaderMediaId}
+                      >
+                        <option value="">Select {templateHeaderFormat.toLowerCase()} header media</option>
+                        {filteredTemplateHeaderMedia.map((media) => (
+                          <option key={media._id} value={media.metaMediaId}>
+                            {media.fileName} ({media.mediaType})
+                          </option>
+                        ))}
+                      </select>
                     ) : null}
                   </>
                 ) : null}
