@@ -1,4 +1,5 @@
 import { MediaRecord, TemplateRecord } from "./api/types";
+import { getMediaDisplayName } from "./media";
 
 export interface TemplateUrlButtonConfig {
   index: number;
@@ -14,16 +15,27 @@ export const parseLines = (value: string) =>
     .filter(Boolean);
 
 export const getTemplateUrlButtons = (template?: TemplateRecord | null): TemplateUrlButtonConfig[] =>
-  (template?.components ?? [])
-    .flatMap((component) => component.buttons ?? [])
+  (template?.urlButtons ?? [])
     .map((button, index) => ({
-      index,
+      index: button.index ?? index,
       text: button.text?.trim() || `Button ${index + 1}`,
       url: button.url?.trim() || "",
-      requiresParameter:
-        (button.type ?? "").toUpperCase() === "URL" && /{{\d+}}/.test(button.url ?? ""),
+      requiresParameter: Boolean(button.dynamic),
     }))
     .filter((button) => button.requiresParameter);
+
+const formatVariableValues = (label: string, keys: string[], values: string[]) => {
+  const rows = keys
+    .map((key, index) => `${key}: ${values[index]?.trim() || "-"}`)
+    .filter(Boolean);
+
+  return rows.length ? `${label}: ${rows.join(", ")}` : null;
+};
+
+const getBodyVariableKeys = (template?: TemplateRecord | null) =>
+  template?.bodyVariables?.length ? template.bodyVariables : template?.variables ?? [];
+
+const getHeaderVariableKeys = (template?: TemplateRecord | null) => template?.headerVariables ?? [];
 
 export const parseListSections = (value: string) =>
   value
@@ -46,6 +58,8 @@ export const buildMessageStudioPreview = (params: {
   templateHeaderFormat?: string;
   selectedMedia?: MediaRecord | null;
   selectedTemplateHeaderMedia?: MediaRecord | null;
+  templateBodyVariables?: string[];
+  templateHeaderVariables?: string[];
   templateButtonVariables?: string[];
   mediaCaption?: string;
   locationName?: string;
@@ -72,6 +86,8 @@ export const buildMessageStudioPreview = (params: {
     templateHeaderFormat,
     selectedMedia,
     selectedTemplateHeaderMedia,
+    templateBodyVariables,
+    templateHeaderVariables,
     templateButtonVariables,
     mediaCaption,
     locationName,
@@ -99,11 +115,22 @@ export const buildMessageStudioPreview = (params: {
     return selectedTemplate
       ? [
           `${selectedTemplate.name} (${selectedTemplate.language})`,
-          selectedTemplate.variables.length
-            ? `Variables: ${selectedTemplate.variables.join(", ")}`
-            : "No variables",
+          selectedTemplate.bodyText ? `Body: ${selectedTemplate.bodyText}` : null,
+          selectedTemplate.headerText ? `Header text: ${selectedTemplate.headerText}` : null,
+          selectedTemplate.footerText ? `Footer: ${selectedTemplate.footerText}` : null,
+          formatVariableValues(
+            "Body vars",
+            getBodyVariableKeys(selectedTemplate),
+            templateBodyVariables ?? [],
+          ) ??
+            (getBodyVariableKeys(selectedTemplate).length ? "Body vars pending" : "No body variables"),
+          formatVariableValues(
+            "Header vars",
+            getHeaderVariableKeys(selectedTemplate),
+            templateHeaderVariables ?? [],
+          ),
           templateHeaderFormat
-            ? `Header: ${templateHeaderFormat}${selectedTemplateHeaderMedia ? ` | ${selectedTemplateHeaderMedia.fileName}` : ""}`
+            ? `Header: ${templateHeaderFormat}${selectedTemplateHeaderMedia ? ` | ${getMediaDisplayName(selectedTemplateHeaderMedia)}` : ""}`
             : null,
           templateButtonVariables?.length
             ? `Button params: ${templateButtonVariables
@@ -117,7 +144,7 @@ export const buildMessageStudioPreview = (params: {
   }
   if (["image", "video", "audio", "document", "sticker"].includes(mode)) {
     return selectedMedia
-      ? `${selectedMedia.fileName}\n${selectedMedia.mediaType} | ${selectedMedia.mimeType}\n${
+      ? `${getMediaDisplayName(selectedMedia)}\n${selectedMedia.mediaType} | ${selectedMedia.mimeType}\n${
           mediaCaption || "No caption"
         }`
       : "Select stored media.";

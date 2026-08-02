@@ -21,6 +21,12 @@ import { Card } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
 import { Textarea } from "../../../components/ui/textarea";
 import { apiClient } from "../../../lib/api/client";
+import { getMediaDisplayName } from "../../../lib/media";
+import {
+  buildTemplateOptionValue,
+  findTemplateByOptionValue,
+  getActiveTemplates,
+} from "../../../lib/templates";
 import {
   ConversationActivityRecord,
   ConversationDetailResponse,
@@ -252,6 +258,10 @@ export default function ConversationsPage() {
     [conversationsQuery.data],
   );
   const allMedia = useMemo(() => mediaQuery.data?.media ?? [], [mediaQuery.data]);
+  const activeTemplates = useMemo(
+    () => getActiveTemplates(templatesQuery.data?.templates ?? []),
+    [templatesQuery.data],
+  );
 
   useEffect(() => {
     if (!selectedConversationId && conversations.length > 0) {
@@ -302,18 +312,22 @@ export default function ConversationsPage() {
   }, [conversationMessages]);
 
   const selectedReplyType = replyForm.watch("type");
-  const selectedTemplateName =
-    selectedReplyType === "template" ? replyForm.watch("templateName") : undefined;
+  const selectedTemplateName = selectedReplyType === "template" ? replyForm.watch("templateName") : undefined;
+  const selectedTemplateLanguage =
+    selectedReplyType === "template" ? replyForm.watch("languageCode") : undefined;
   const selectedMediaId =
     selectedReplyType !== "text" && selectedReplyType !== "template"
       ? replyForm.watch("mediaId")
       : undefined;
   const selectedTemplate = useMemo(
     () =>
-      (templatesQuery.data?.templates ?? []).find(
-        (template: TemplateRecord) => template.name === selectedTemplateName,
-      ) ?? null,
-    [selectedTemplateName, templatesQuery.data],
+      findTemplateByOptionValue(
+        activeTemplates,
+        selectedTemplateName && selectedTemplateLanguage
+          ? `${selectedTemplateName}::${selectedTemplateLanguage}`
+          : "",
+      ),
+    [activeTemplates, selectedTemplateLanguage, selectedTemplateName],
   );
   const selectedTemplateVariables = useMemo(
     () => getTemplateVariables(selectedTemplate),
@@ -827,7 +841,7 @@ export default function ConversationsPage() {
                       replyForm.reset({
                         type: "template",
                         templateName: "",
-                        languageCode: "en",
+                        languageCode: "",
                         bodyVariables: "",
                       })
                     }
@@ -872,18 +886,45 @@ export default function ConversationsPage() {
                   <div className="grid gap-3">
                     <select
                       className="flex h-12 w-full rounded-[20px] border border-input bg-[#f9f6ef] px-4 py-2 text-sm text-foreground outline-none focus:border-primary"
-                      {...replyForm.register("templateName")}
+                      onChange={(event) => {
+                        const nextValue = event.target.value;
+                        const nextTemplate = findTemplateByOptionValue(activeTemplates, nextValue);
+
+                        replyForm.setValue("templateName", nextTemplate?.name ?? "");
+                        replyForm.setValue("languageCode", nextTemplate?.language ?? "");
+                      }}
+                      value={
+                        selectedTemplateName && selectedTemplateLanguage
+                          ? `${selectedTemplateName}::${selectedTemplateLanguage}`
+                          : ""
+                      }
                     >
-                      <option value="">Select a template</option>
-                      {(templatesQuery.data?.templates ?? []).map((template) => (
-                        <option key={template._id} value={template.name}>
+                      <option value="">
+                        {activeTemplates.length > 0
+                          ? "Select active template"
+                          : "No active templates available"}
+                      </option>
+                      {activeTemplates.map((template) => (
+                        <option
+                          key={template._id}
+                          value={buildTemplateOptionValue(template)}
+                        >
                           {template.name} ({template.language})
                         </option>
                       ))}
                     </select>
+                    <div className="rounded-[20px] border border-[#eadbbf] bg-[#fffaf0] px-4 py-3 text-sm text-muted-foreground">
+                      {activeTemplates.length > 0
+                        ? `Active catalog: ${activeTemplates.length} approved Meta templates available for this workspace.`
+                        : "No approved sendable templates are available for this workspace right now. Run template sync after checking the active Meta account settings."}
+                    </div>
                     <Textarea
                       className="min-h-24 rounded-[24px] bg-[#f9f6ef]"
-                      placeholder="Template variables, one per line"
+                      placeholder={
+                        selectedTemplate
+                          ? "Template body variables, one per line"
+                          : "Choose a template first to see whether variables are needed"
+                      }
                       {...replyForm.register("bodyVariables")}
                     />
                     {selectedTemplate ? (
@@ -900,8 +941,20 @@ export default function ConversationsPage() {
                         <p className="mt-1 text-sm text-muted-foreground">
                           Status: {selectedTemplate.status}
                         </p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          Language: {selectedTemplate.language}
+                        </p>
+                        {selectedTemplate.bodyText ? (
+                          <p className="mt-2 text-sm text-foreground">{selectedTemplate.bodyText}</p>
+                        ) : null}
                       </div>
-                    ) : null}
+                    ) : (
+                      <div className="rounded-[24px] border border-dashed border-[#eadbbf] bg-[#fffdf7] p-4 text-sm text-muted-foreground">
+                        {activeTemplates.length > 0
+                          ? "Choose an active template to load its language, variable requirements, and preview text before sending."
+                          : "No template preview is available because the active template catalog is empty."}
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="grid gap-3">
@@ -930,7 +983,7 @@ export default function ConversationsPage() {
                         )
                         .map((item) => (
                           <option key={item._id} value={item.metaMediaId}>
-                            {item.fileName} ({item.mediaType})
+                            {getMediaDisplayName(item)} ({item.mediaType})
                           </option>
                         ))}
                     </select>
@@ -952,7 +1005,7 @@ export default function ConversationsPage() {
                     ) : null}
                     {selectedMedia ? (
                       <div className="rounded-[24px] border border-[#eadbbf] bg-[#fffaf0] p-4 text-sm">
-                        {selectedMedia.fileName} | {selectedMedia.mediaType} |{" "}
+                        {getMediaDisplayName(selectedMedia)} | {selectedMedia.mediaType} |{" "}
                         {selectedMedia.metaMediaId}
                       </div>
                     ) : null}

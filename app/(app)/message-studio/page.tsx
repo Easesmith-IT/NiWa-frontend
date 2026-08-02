@@ -19,6 +19,12 @@ import { Card } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
 import { Textarea } from "../../../components/ui/textarea";
 import { apiClient } from "../../../lib/api/client";
+import { getMediaDisplayName } from "../../../lib/media";
+import {
+  buildTemplateOptionValue,
+  findTemplateByOptionValue,
+  getActiveTemplates,
+} from "../../../lib/templates";
 import {
   MediaListResponse,
   MediaRecord,
@@ -73,6 +79,9 @@ const formatPreviewTitle = (mode: ComposerMode) =>
     .replace(/_/g, " ")
     .replace(/\b\w/g, (char) => char.toUpperCase());
 
+const getBodyVariableKeys = (template?: TemplateRecord | null) =>
+  template?.bodyVariables?.length ? template.bodyVariables : template?.variables ?? [];
+
 export default function MessageStudioPage() {
   const searchParams = useSearchParams();
   const initialMode = (searchParams.get("mode") as ComposerMode | null) ?? "text";
@@ -92,6 +101,8 @@ export default function MessageStudioPage() {
   const [templateName, setTemplateName] = useState(initialTemplate);
   const [templateLanguage, setTemplateLanguage] = useState(initialLanguage);
   const [templateVariables, setTemplateVariables] = useState("");
+  const [templateBodyVariableValues, setTemplateBodyVariableValues] = useState<string[]>([]);
+  const [templateHeaderVariableValues, setTemplateHeaderVariableValues] = useState<string[]>([]);
   const [templateHeaderMediaId, setTemplateHeaderMediaId] = useState("");
   const [templateButtonVariables, setTemplateButtonVariables] = useState<string[]>([]);
 
@@ -148,20 +159,18 @@ export default function MessageStudioPage() {
     },
   });
 
-  const selectedTemplate = useMemo(
-    () => {
-      const templates = templatesQuery.data?.templates ?? [];
+  const activeTemplates = useMemo(
+    () => getActiveTemplates(templatesQuery.data?.templates ?? []),
+    [templatesQuery.data],
+  );
 
-      return (
-        templates.find(
-          (template: TemplateRecord) =>
-            template.name === templateName && template.language === templateLanguage,
-        ) ??
-        templates.find((template: TemplateRecord) => template.name === templateName) ??
-        null
-      );
-    },
-    [templateLanguage, templateName, templatesQuery.data],
+  const selectedTemplate = useMemo(
+    () =>
+      findTemplateByOptionValue(
+        activeTemplates,
+        templateName && templateLanguage ? `${templateName}::${templateLanguage}` : "",
+      ),
+    [activeTemplates, templateLanguage, templateName],
   );
 
   const selectedMedia = useMemo(
@@ -173,6 +182,13 @@ export default function MessageStudioPage() {
   );
 
   const templateHeaderFormat = useMemo(() => {
+    if (
+      selectedTemplate?.headerFormat &&
+      ["IMAGE", "VIDEO", "DOCUMENT"].includes(selectedTemplate.headerFormat)
+    ) {
+      return selectedTemplate.headerFormat;
+    }
+
     const headerComponent = selectedTemplate?.components.find(
       (component) =>
         component.type === "HEADER" &&
@@ -212,6 +228,22 @@ export default function MessageStudioPage() {
   }, [selectedTemplate, templateLanguage]);
 
   useEffect(() => {
+    const bodyKeys = getBodyVariableKeys(selectedTemplate);
+    const headerKeys = selectedTemplate?.headerVariables ?? [];
+
+    setTemplateBodyVariableValues((current) =>
+      bodyKeys.map((_, index) => current[index] ?? ""),
+    );
+    setTemplateHeaderVariableValues((current) =>
+      headerKeys.map((_, index) => current[index] ?? ""),
+    );
+  }, [selectedTemplate]);
+
+  useEffect(() => {
+    setTemplateVariables(templateBodyVariableValues.join("\n"));
+  }, [templateBodyVariableValues]);
+
+  useEffect(() => {
     setTemplateHeaderMediaId("");
   }, [selectedTemplate?.name, selectedTemplate?.language]);
 
@@ -228,12 +260,22 @@ export default function MessageStudioPage() {
         endpoint = "/messages/text";
         payload = { to: commonTo, body: textBody, previewUrl };
       } else if (mode === "template") {
+        const structuredBodyVariables = templateBodyVariableValues.map((value) => value.trim());
+        const fallbackBodyVariables = parseLines(templateVariables);
         endpoint = "/messages/template";
         payload = {
           to: commonTo,
           templateName,
           languageCode: templateLanguage,
-          bodyVariables: parseLines(templateVariables),
+          bodyVariables:
+            structuredBodyVariables.filter(Boolean).length > 0
+              ? structuredBodyVariables
+              : fallbackBodyVariables,
+          ...(templateHeaderVariableValues.filter((value) => value.trim()).length > 0
+            ? {
+                headerVariables: templateHeaderVariableValues.map((value) => value.trim()),
+              }
+            : {}),
           ...(templateHeaderMediaId ? { headerMediaId: templateHeaderMediaId } : {}),
           ...(templateUrlButtons.length > 0
             ? { buttonVariables: templateButtonVariables.map((value) => value.trim()) }
@@ -371,6 +413,8 @@ export default function MessageStudioPage() {
         templateHeaderFormat,
         selectedMedia,
         selectedTemplateHeaderMedia,
+        templateBodyVariables: templateBodyVariableValues,
+        templateHeaderVariables: templateHeaderVariableValues,
         templateButtonVariables: templateButtonVariables.map((value) => value.trim()).filter(Boolean),
         mediaCaption,
         locationName,
@@ -397,6 +441,8 @@ export default function MessageStudioPage() {
       templateHeaderFormat,
       selectedMedia,
       selectedTemplateHeaderMedia,
+      templateBodyVariableValues,
+      templateHeaderVariableValues,
       templateButtonVariables,
       mediaCaption,
       locationName,
@@ -503,25 +549,42 @@ export default function MessageStudioPage() {
                   <>
                     <select
                       className="flex h-12 w-full rounded-[20px] border border-input bg-[#faf7f1] px-4 py-2 text-sm text-foreground outline-none focus:border-primary"
-                      onChange={(event) => setTemplateName(event.target.value)}
-                      value={templateName}
+                      onChange={(event) => {
+                        const nextTemplate = findTemplateByOptionValue(activeTemplates, event.target.value);
+                        setTemplateName(nextTemplate?.name ?? "");
+                        setTemplateLanguage(nextTemplate?.language ?? "");
+                      }}
+                      value={templateName ? `${templateName}::${templateLanguage}` : ""}
                     >
-                      <option value="">Select synced template</option>
-                      {(templatesQuery.data?.templates ?? []).map((template) => (
-                        <option key={template._id} value={template.name}>
+                      <option value="">
+                        {activeTemplates.length > 0
+                          ? "Select active template"
+                          : "No active templates available"}
+                      </option>
+                      {activeTemplates.map((template) => (
+                        <option
+                          key={template._id}
+                          value={buildTemplateOptionValue(template)}
+                        >
                           {template.name} ({template.language})
                         </option>
                       ))}
                     </select>
-                    <Input
-                      className="rounded-[20px] bg-[#faf7f1]"
-                      onChange={(event) => setTemplateLanguage(event.target.value)}
-                      placeholder="Language code"
-                      value={templateLanguage}
-                    />
+                    <div className="rounded-[20px] border border-[#eadbbf] bg-[#fff8ea] px-4 py-3 text-sm text-muted-foreground">
+                      {activeTemplates.length > 0
+                        ? `Active catalog: ${activeTemplates.length} approved Meta templates available. Stale templates from earlier syncs are hidden.`
+                        : "No approved sendable templates are available for this Meta workspace yet. Run template sync after confirming the active WABA settings."}
+                    </div>
                     <Textarea
                       className="min-h-24 rounded-[26px] bg-[#faf7f1]"
-                      onChange={(event) => setTemplateVariables(event.target.value)}
+                      onChange={(event) => {
+                        const nextValue = event.target.value;
+                        const nextLines = nextValue.split("\n");
+                        setTemplateVariables(nextValue);
+                        setTemplateBodyVariableValues(
+                          getBodyVariableKeys(selectedTemplate).map((_, index) => nextLines[index]?.trim() ?? ""),
+                        );
+                      }}
                       placeholder="Body variables, one per line"
                       value={templateVariables}
                     />
@@ -537,6 +600,14 @@ export default function MessageStudioPage() {
                         <p className="mt-1 text-sm text-muted-foreground">
                           {selectedTemplate.status} | {selectedTemplate.language}
                         </p>
+                        {selectedTemplate.bodyText ? (
+                          <p className="mt-2 text-sm text-foreground">{selectedTemplate.bodyText}</p>
+                        ) : null}
+                        {selectedTemplate.headerText ? (
+                          <p className="mt-2 text-sm text-muted-foreground">
+                            Header text: {selectedTemplate.headerText}
+                          </p>
+                        ) : null}
                         {templateHeaderFormat ? (
                           <p className="mt-1 text-sm text-muted-foreground">
                             Header media required: {templateHeaderFormat}
@@ -547,6 +618,63 @@ export default function MessageStudioPage() {
                             Dynamic URL buttons: {templateUrlButtons.length}
                           </p>
                         ) : null}
+                        {!selectedTemplate.isSendable && selectedTemplate.sendabilityReason ? (
+                          <p className="mt-2 rounded-2xl bg-[#fff2df] px-3 py-2 text-sm text-[#8a4b12]">
+                            {selectedTemplate.sendabilityReason}
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : (
+                      <div className="rounded-[24px] border border-dashed border-[#eadbbf] bg-[#fffdf7] p-4 text-sm text-muted-foreground">
+                        {activeTemplates.length > 0
+                          ? "Choose an active template to load its language, body preview, variables, and any media or URL-button requirements."
+                          : "No template preview is available because the active template catalog is empty."}
+                      </div>
+                    )}
+                    {getBodyVariableKeys(selectedTemplate).length > 0 ? (
+                      <div className="grid gap-3">
+                        {getBodyVariableKeys(selectedTemplate).map((variable, index) => (
+                          <Input
+                            className="rounded-[20px] bg-[#faf7f1]"
+                            key={`${variable}-${index}`}
+                            onChange={(event) =>
+                              setTemplateBodyVariableValues((current) => {
+                                const next = [...current];
+                                next[index] = event.target.value;
+                                return next;
+                              })
+                            }
+                            placeholder={variable}
+                            value={templateBodyVariableValues[index] ?? ""}
+                          />
+                        ))}
+                      </div>
+                    ) : selectedTemplate ? (
+                      <div className="rounded-[20px] border border-dashed border-[#eadbbf] bg-[#fffdf7] px-4 py-3 text-sm text-muted-foreground">
+                        This template does not require body variables.
+                      </div>
+                    ) : null}
+                    {(selectedTemplate?.headerVariables?.length ?? 0) > 0 ? (
+                      <div className="grid gap-3">
+                        {selectedTemplate?.headerVariables?.map((variable, index) => (
+                          <Input
+                            className="rounded-[20px] bg-[#faf7f1]"
+                            key={`${variable}-${index}`}
+                            onChange={(event) =>
+                              setTemplateHeaderVariableValues((current) => {
+                                const next = [...current];
+                                next[index] = event.target.value;
+                                return next;
+                              })
+                            }
+                            placeholder={`Header variable: ${variable}`}
+                            value={templateHeaderVariableValues[index] ?? ""}
+                          />
+                        ))}
+                      </div>
+                    ) : selectedTemplate?.headerFormat === "TEXT" ? (
+                      <div className="rounded-[20px] border border-dashed border-[#eadbbf] bg-[#fffdf7] px-4 py-3 text-sm text-muted-foreground">
+                        This template uses a fixed text header and does not require header variables.
                       </div>
                     ) : null}
                     {templateHeaderFormat ? (
@@ -558,7 +686,7 @@ export default function MessageStudioPage() {
                         <option value="">Select {templateHeaderFormat.toLowerCase()} header media</option>
                         {filteredTemplateHeaderMedia.map((media) => (
                           <option key={media._id} value={media.metaMediaId}>
-                            {media.fileName} ({media.mediaType})
+                            {getMediaDisplayName(media)} ({media.mediaType})
                           </option>
                         ))}
                       </select>
@@ -606,7 +734,7 @@ export default function MessageStudioPage() {
                       <option value="">Select stored media</option>
                       {filteredMedia.map((media) => (
                         <option key={media._id} value={media.metaMediaId}>
-                          {media.fileName} ({media.mediaType})
+                          {getMediaDisplayName(media)} ({media.mediaType})
                         </option>
                       ))}
                     </select>
@@ -894,7 +1022,7 @@ export default function MessageStudioPage() {
                           <div className="mt-3 rounded-2xl bg-[rgba(22,48,43,0.08)] px-3 py-2 text-xs">
                             <div className="flex items-center gap-2">
                               <Paperclip className="h-3.5 w-3.5" />
-                              {selectedMedia.fileName}
+                              {getMediaDisplayName(selectedMedia)}
                             </div>
                           </div>
                         ) : null}

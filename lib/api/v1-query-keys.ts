@@ -1,0 +1,18 @@
+export const v1QueryKeys = {
+  activities: ["v1", "activities"] as const,
+  automations: ["v1", "automations"] as const,
+  automationRuns: ["v1", "automation-runs"] as const,
+  contacts: ["v1", "contacts"] as const,
+  conversations: ["v1", "conversations"] as const,
+  dashboard: ["v1", "dashboard"] as const,
+  inbox: ["v1", "inbox"] as const,
+  inboxSearch: ["v1", "inbox-search"] as const,
+  inboxThread: ["v1", "inbox-thread"] as const,
+  labels: ["v1", "labels"] as const,
+  messages: ["v1", "messages"] as const,
+  notes: ["v1", "notes"] as const,
+  quickReplies: ["v1", "quick-replies"] as const,
+  scheduledMessages: ["v1", "scheduled-messages"] as const,
+  search: ["v1", "search"] as const,
+  tasks: ["v1", "tasks"] as const,
+};

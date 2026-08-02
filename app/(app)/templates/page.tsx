@@ -15,6 +15,9 @@ const componentPreview = (template: TemplateRecord) =>
     .map((component) => `${component.type}${component.format ? ` (${component.format})` : ""}${component.text ? `: ${component.text}` : ""}`)
     .join("\n");
 
+const getBodyVariables = (template: TemplateRecord) =>
+  template.bodyVariables?.length ? template.bodyVariables : template.variables;
+
 export default function TemplatesPage() {
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("");
@@ -108,13 +111,42 @@ export default function TemplatesPage() {
             </div>
 
             <div className="mt-4 grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                  Variables
-                </p>
-                <p className="mt-2 text-sm text-foreground">
-                  {template.variables.length ? template.variables.join(", ") : "No body variables"}
-                </p>
+              <div className="space-y-4">
+                <div>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                    Template anatomy
+                  </p>
+                  <div className="mt-2 space-y-2 text-sm text-foreground">
+                    <p>Body vars: {getBodyVariables(template).length ? getBodyVariables(template).join(", ") : "None"}</p>
+                    <p>Header: {template.headerFormat ?? "None"}</p>
+                    <p>Header vars: {template.headerVariables?.length ? template.headerVariables.join(", ") : "None"}</p>
+                    <p>Buttons: {template.buttonCount ?? template.urlButtons?.length ?? 0}</p>
+                    <p>Footer: {template.footerText || "None"}</p>
+                  </div>
+                </div>
+                {template.urlButtons?.length ? (
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                      URL buttons
+                    </p>
+                    <div className="mt-2 space-y-2">
+                      {template.urlButtons.map((button) => (
+                        <div className="rounded-2xl bg-[#f7f1e4] px-3 py-2 text-sm text-foreground" key={`${template._id}-${button.index}`}>
+                          <p>{button.text}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {button.type} | {button.dynamic ? "Dynamic" : "Static"}
+                            {button.url ? ` | ${button.url}` : ""}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : null}
+                {!template.isSendable && template.sendabilityReason ? (
+                  <div className="rounded-2xl border border-[#e8c9a8] bg-[#fff4e7] px-4 py-3 text-sm text-[#8a4b12]">
+                    {template.sendabilityReason}
+                  </div>
+                ) : null}
               </div>
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">

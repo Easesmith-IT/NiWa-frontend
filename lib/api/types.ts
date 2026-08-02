@@ -141,7 +141,30 @@ export interface TemplateRecord {
   language: string;
   status: string;
   variables: string[];
+  bodyText?: string;
+  bodyVariableCount?: number;
+  bodyVariables?: string[];
+  buttonCount?: number;
+  footerText?: string;
+  headerFormat?: string;
+  headerMediaRequired?: boolean;
+  headerText?: string;
+  headerVariableCount?: number;
+  headerVariables?: string[];
   isSendable?: boolean;
+  sendabilityReason?: string | null;
+  supportedFeatures?: string[];
+  unsupportedReasons?: string[];
+  urlButtons?: Array<{
+    dynamic?: boolean;
+    example?: unknown;
+    index: number;
+    phoneNumber?: string;
+    text: string;
+    type: string;
+    url?: string;
+    variableCount?: number;
+  }>;
   components: Array<{
     type: string;
     format?: string;
@@ -176,10 +199,13 @@ export interface TemplateSyncResponse {
 export interface MediaRecord {
   _id: string;
   metaMediaId: string;
+  customName?: string | null;
   fileName: string;
   mimeType: string;
   mediaType: string;
   fileSize: number;
+  folder?: string | null;
+  tags?: string[];
   uploadedAt: string;
   requestPayload?: unknown;
   responsePayload: unknown;
