@@ -13,6 +13,9 @@ export const useInboxThreadsV1Query = (params: {
   search: string;
 }) =>
   useQuery({
+    refetchInterval: 10000,
+    refetchOnReconnect: true,
+    refetchOnWindowFocus: true,
     queryKey: [...v1QueryKeys.inbox, params.filter, params.search],
     queryFn: async () => {
       const result = await listInboxThreadsV1(params);
@@ -29,6 +32,9 @@ export const useInboxThreadDetailV1Query = (
 ) =>
   useQuery({
     enabled: Boolean(conversationId),
+    refetchInterval: conversationId ? 5000 : false,
+    refetchOnReconnect: true,
+    refetchOnWindowFocus: true,
     queryKey: [...v1QueryKeys.inboxThread, conversationId, params?.messageLimit ?? null],
     queryFn: async () => {
       const result = await getInboxThreadDetailV1(conversationId as string, params);

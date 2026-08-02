@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   ArrowDownToLine,
-  ContactRound,
   FileText,
   GitMerge,
   PencilLine,
@@ -56,6 +55,39 @@ const defaultLabelDraft = {
   name: "",
   slug: "",
 };
+
+const buildInitials = (value?: string | null) => {
+  const source = value?.trim();
+  if (!source) {
+    return "NW";
+  }
+
+  return source
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? "")
+    .join("");
+};
+
+const ContactAvatar = ({
+  avatarUrl,
+  name,
+}: {
+  avatarUrl?: string | null;
+  name?: string | null;
+}) =>
+  avatarUrl ? (
+    <img
+      alt={name ?? "Contact"}
+      className="h-11 w-11 rounded-full object-cover"
+      referrerPolicy="no-referrer"
+      src={avatarUrl}
+    />
+  ) : (
+    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#dfe5dc] text-sm font-semibold text-[#2d644d]">
+      {buildInitials(name)}
+    </div>
+  );
 
 export default function ContactsPage() {
   const [search, setSearch] = useState("");
@@ -338,17 +370,17 @@ export default function ContactsPage() {
                   type="button"
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <ContactRound className="h-4 w-4" />
+                    <div className="flex items-start gap-3">
+                      <ContactAvatar avatarUrl={contact.avatarUrl} name={contact.displayName} />
+                      <div>
                         <p className="text-sm font-semibold">{contact.displayName}</p>
+                        <p className={`mt-2 text-sm ${isActive ? "text-[#d7e7dd]" : "text-muted-foreground"}`}>
+                          {contact.phoneNumber}
+                        </p>
+                        <p className={`mt-1 text-sm ${isActive ? "text-[#d7e7dd]" : "text-muted-foreground"}`}>
+                          {contact.company || "No company set"}
+                        </p>
                       </div>
-                      <p className={`mt-2 text-sm ${isActive ? "text-[#d7e7dd]" : "text-muted-foreground"}`}>
-                        {contact.phoneNumber}
-                      </p>
-                      <p className={`mt-1 text-sm ${isActive ? "text-[#d7e7dd]" : "text-muted-foreground"}`}>
-                        {contact.company || "No company set"}
-                      </p>
                     </div>
                     <div className={`text-right text-xs ${isActive ? "text-[#d7e7dd]" : "text-muted-foreground"}`}>
                       <p>{contact.profileName || "No profile name"}</p>

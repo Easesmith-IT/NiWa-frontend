@@ -151,6 +151,38 @@ const buildInitials = (value?: string | null) => {
     .join("");
 };
 
+const ContactAvatar = ({
+  avatarUrl,
+  className,
+  name,
+}: {
+  avatarUrl?: string | null;
+  className?: string;
+  name?: string | null;
+}) => {
+  if (avatarUrl) {
+    return (
+      <img
+        alt={name ?? "Contact"}
+        className={cn("rounded-full object-cover", className)}
+        referrerPolicy="no-referrer"
+        src={avatarUrl}
+      />
+    );
+  }
+
+  return (
+    <div
+      className={cn(
+        "flex items-center justify-center rounded-full bg-[#dfe5dc] font-semibold text-[#2d644d]",
+        className,
+      )}
+    >
+      {buildInitials(name)}
+    </div>
+  );
+};
+
 const getContactVariableDefaults = (contact?: {
   company?: string | null;
   displayName?: string;
@@ -250,6 +282,15 @@ const renderOutgoingStatusIcon = (status?: string) => {
   }
 };
 
+type OptimisticInboxMessage = {
+  _id: string;
+  createdAt: string;
+  direction: "outgoing";
+  messageType: "text";
+  previewText: string;
+  status: "failed" | "queued" | "sent";
+};
+
 const PanelSection = ({
   title,
   children,
@@ -289,6 +330,7 @@ export default function InboxPage() {
   const [composerMenuOpen, setComposerMenuOpen] = useState(false);
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
   const [quickReplyPanelOpen, setQuickReplyPanelOpen] = useState(false);
+  const [optimisticMessages, setOptimisticMessages] = useState<OptimisticInboxMessage[]>([]);
   const [composerFeedback, setComposerFeedback] = useState<{
     message: string;
     tone: "error" | "success";
@@ -357,6 +399,7 @@ export default function InboxPage() {
     setComposerMenuOpen(false);
     setScheduleDialogOpen(false);
     setQuickReplyPanelOpen(false);
+    setOptimisticMessages([]);
     setComposerFeedback(null);
   }, [activeConversationId]);
 
@@ -405,13 +448,36 @@ export default function InboxPage() {
     });
   }, [quickReplies, quickReplyTrigger]);
 
+  const displayedMessages = useMemo(() => {
+    const persistedMessages = detail?.messages ?? [];
+
+    if (optimisticMessages.length === 0) {
+      return persistedMessages;
+    }
+
+    const messagesById = new Map<string, (typeof persistedMessages)[number]>();
+
+    optimisticMessages.forEach((message) => {
+      messagesById.set(message._id, message);
+    });
+    persistedMessages.forEach((message) => {
+      messagesById.set(message._id, message);
+    });
+
+    return Array.from(messagesById.values()).sort((left, right) => {
+      const leftTime = left.createdAt ? new Date(left.createdAt).getTime() : 0;
+      const rightTime = right.createdAt ? new Date(right.createdAt).getTime() : 0;
+      return leftTime - rightTime;
+    });
+  }, [detail?.messages, optimisticMessages]);
+
   const messageGroups = useMemo(() => {
     const groups: Array<{ day: string; messages: NonNullable<typeof detail>["messages"] }> = [];
-    if (!detail) {
+    if (!detail && optimisticMessages.length === 0) {
       return groups;
     }
 
-    detail.messages.forEach((message) => {
+    displayedMessages.forEach((message) => {
       const day = formatMessageDay(message.createdAt);
       const existing = groups[groups.length - 1];
 
@@ -424,7 +490,7 @@ export default function InboxPage() {
     });
 
     return groups;
-  }, [detail]);
+  }, [detail, displayedMessages, optimisticMessages.length]);
 
   useEffect(() => {
     if (!selectedQuickReply) {
@@ -493,24 +559,70 @@ export default function InboxPage() {
       return;
     }
 
+    const outboundBody = composerBody.trim();
+    const optimisticMessageId = `optimistic-${Date.now()}`;
+    const optimisticCreatedAt = new Date().toISOString();
+
     setComposerFeedback(null);
+    setComposerBody("");
+    setSelectedQuickReplyId("");
+    setQuickReplyVariableValues({});
+    setOptimisticMessages((current) => [
+      ...current,
+      {
+        _id: optimisticMessageId,
+        createdAt: optimisticCreatedAt,
+        direction: "outgoing",
+        messageType: "text",
+        previewText: outboundBody,
+        status: "queued",
+      },
+    ]);
     sendTextMutation.mutate(
       {
-        body: composerBody.trim(),
+        body: outboundBody,
         contactId: detail.contact._id,
         conversationId: activeConversationId ?? undefined,
       },
       {
-        onSuccess: () => {
-          setComposerBody("");
-          setSelectedQuickReplyId("");
-          setQuickReplyVariableValues({});
+        onSuccess: (result) => {
+          const storedMessage = result?.message;
+
+          setOptimisticMessages((current) =>
+            current.map((message) =>
+              message._id === optimisticMessageId
+                ? {
+                    ...message,
+                    _id:
+                      typeof storedMessage?._id === "string" && storedMessage._id.length > 0
+                        ? storedMessage._id
+                        : message._id,
+                    createdAt: storedMessage?.createdAt ?? message.createdAt,
+                    previewText: storedMessage?.previewText ?? message.previewText,
+                    status:
+                      (storedMessage?.status as "failed" | "queued" | "sent" | undefined) ??
+                      "sent",
+                  }
+                : message,
+            ),
+          );
           setComposerFeedback({
-            message: "Message sent successfully.",
+            message: "Message sent. Waiting for delivery status...",
             tone: "success",
           });
         },
         onError: (error) => {
+          setComposerBody((current) => current || outboundBody);
+          setOptimisticMessages((current) =>
+            current.map((message) =>
+              message._id === optimisticMessageId
+                ? {
+                    ...message,
+                    status: "failed",
+                  }
+                : message,
+            ),
+          );
           setComposerFeedback({
             message: getErrorMessage(error, "Message could not be sent."),
             tone: "error",
@@ -613,9 +725,11 @@ export default function InboxPage() {
                   onClick={() => setSelectedConversationId(thread.conversation._id)}
                   type="button"
                 >
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[#dfe5dc] text-sm font-semibold text-[#2d644d]">
-                    {buildInitials(displayName)}
-                  </div>
+                  <ContactAvatar
+                    avatarUrl={thread.contact?.avatarUrl}
+                    className="h-12 w-12 shrink-0 text-sm"
+                    name={displayName}
+                  />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
@@ -684,9 +798,11 @@ export default function InboxPage() {
                   onClick={() => setContactInfoOpen(true)}
                   type="button"
                 >
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[#dfe5dc] text-sm font-semibold text-[#2d644d]">
-                    {buildInitials(detail.contact.displayName)}
-                  </div>
+                  <ContactAvatar
+                    avatarUrl={detail.contact.avatarUrl}
+                    className="h-10 w-10 shrink-0 text-sm"
+                    name={detail.contact.displayName}
+                  />
                   <div className="min-w-0">
                     <p className="truncate text-[16px] font-medium text-[#25342f]">
                       {detail.contact.displayName}
@@ -752,6 +868,17 @@ export default function InboxPage() {
                         key={index}
                       />
                     ))}
+                  </div>
+                ) : null}
+
+                {!detailQuery.isLoading && messageGroups.length === 0 ? (
+                  <div className="flex h-full min-h-[240px] items-center justify-center">
+                    <div className="rounded-[28px] border border-[#e2d8ca] bg-[#fffdf9] px-6 py-5 text-center">
+                      <p className="text-sm font-medium text-[#25342f]">No messages in this thread yet.</p>
+                      <p className="mt-1 text-sm text-[#7a8b82]">
+                        New inbound and outbound messages will appear here automatically.
+                      </p>
+                    </div>
                   </div>
                 ) : null}
 
@@ -903,6 +1030,7 @@ export default function InboxPage() {
                   <div className="relative min-w-0 flex-1">
                     <Textarea
                       className="min-h-[54px] rounded-[28px] border-[#ddd2c3] bg-white px-4 py-3 text-[15px] text-[#25342f] placeholder:text-[#7a8b82]"
+                      disabled={sendTextMutation.isPending}
                       onChange={(event) => setComposerBody(event.target.value)}
                       onKeyDown={handleComposerKeyDown}
                       placeholder="Type a message"
@@ -922,13 +1050,29 @@ export default function InboxPage() {
                     <Command className="h-5 w-5" />
                   </button>
                   <button
-                    className="rounded-full bg-[#2d644d] p-3 text-white transition hover:bg-[#255440]"
+                    className={cn(
+                      "rounded-full p-3 text-white transition",
+                      sendTextMutation.isPending
+                        ? "cursor-not-allowed bg-[#7ea18f]"
+                        : "bg-[#2d644d] hover:bg-[#255440]",
+                    )}
+                    disabled={sendTextMutation.isPending || !composerBody.trim()}
                     onClick={sendMessage}
                     type="button"
                   >
-                    <SendHorizonal className="h-4 w-4" />
+                    {sendTextMutation.isPending ? (
+                      <Clock3 className="h-4 w-4 animate-pulse" />
+                    ) : (
+                      <SendHorizonal className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
+
+                {sendTextMutation.isPending ? (
+                  <div className="mt-3 rounded-xl bg-[#eef4ef] px-4 py-3 text-sm text-[#315444]">
+                    Sending message...
+                  </div>
+                ) : null}
 
                 {composerFeedback ? (
                   <div
@@ -1058,9 +1202,11 @@ export default function InboxPage() {
 
             <div className="px-6 pb-8 pt-6">
               <div className="flex flex-col items-center text-center">
-                <div className="flex h-24 w-24 items-center justify-center rounded-full bg-[#dfe5dc] text-2xl font-semibold text-[#2d644d]">
-                  {buildInitials(detail.contact.displayName)}
-                </div>
+                <ContactAvatar
+                  avatarUrl={detail.contact.avatarUrl}
+                  className="h-24 w-24 text-2xl"
+                  name={detail.contact.displayName}
+                />
                 <h3 className="mt-4 text-[28px] font-semibold tracking-[-0.03em] text-[#25342f]">
                   {detail.contact.displayName}
                 </h3>

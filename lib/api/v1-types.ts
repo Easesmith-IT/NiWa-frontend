@@ -29,6 +29,7 @@ export interface ContactCustomFieldRecordV1 {
 }
 
 export interface ContactRecordV1 extends V1RecordBase {
+  avatarUrl?: string | null;
   company?: string | null;
   customFields?: ContactCustomFieldRecordV1[];
   displayName: string;
