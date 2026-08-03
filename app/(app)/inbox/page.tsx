@@ -475,6 +475,23 @@ export default function InboxPage() {
     }
   }, [searchParams]);
 
+  useEffect(() => {
+    if (threads.length === 0) {
+      if (selectedConversationId !== null) {
+        setSelectedConversationId(null);
+      }
+      return;
+    }
+
+    const hasSelectedConversation = selectedConversationId
+      ? threads.some((thread) => thread.conversation._id === selectedConversationId)
+      : false;
+
+    if (!hasSelectedConversation) {
+      setSelectedConversationId(threads[0]?.conversation._id ?? null);
+    }
+  }, [selectedConversationId, threads]);
+
   const selectedThread = useMemo(
     () =>
       threads.find((thread) => thread.conversation._id === selectedConversationId) ??
@@ -900,16 +917,24 @@ export default function InboxPage() {
                   <MessageSquareDot className="h-8 w-8" />
                 </div>
                 <h2 className="mt-6 text-[36px] font-semibold tracking-[-0.03em] text-[#25342f]">
-                  NiWa
+                  {detailQuery.isFetching || detailQuery.isPending ? "Loading conversation" : "NiWa"}
                 </h2>
                 <p className="mt-3 text-[18px] text-[#4f6258]">
-                  Select a conversation to start messaging
+                  {detailQuery.isError
+                    ? "This conversation could not be opened."
+                    : detailQuery.isFetching || detailQuery.isPending
+                      ? "Fetching thread details from the inbox API"
+                      : "Select a conversation to start messaging"}
                 </p>
                 <p className="mt-4 text-[15px] leading-7 text-[#6f7f75]">
-                  Manage customer conversations, templates and follow-ups from one workspace.
+                  {detailQuery.isError
+                    ? getErrorMessage(detailQuery.error, "The inbox detail request failed.")
+                    : "Manage customer conversations, templates and follow-ups from one workspace."}
                 </p>
                 <p className="mt-14 text-[13px] text-[#7a8b82]">
-                  Connected through WhatsApp Business Platform
+                  {detailQuery.isError
+                    ? "The conversation list is still available while the detail request is being fixed."
+                    : "Connected through WhatsApp Business Platform"}
                 </p>
               </div>
             </div>
