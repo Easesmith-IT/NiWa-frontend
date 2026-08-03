@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { Menu, Search, Wifi } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -16,12 +17,14 @@ interface TopbarProps {
 export const Topbar = ({ onOpenCommandPalette, onToggleSidebar }: TopbarProps) => {
   const router = useRouter();
   const pathname = usePathname();
+  const queryClient = useQueryClient();
 
   const handleLogout = async () => {
     try {
       await apiClient.post("/auth/logout");
     } finally {
       clearAccessToken();
+      queryClient.clear();
       router.replace("/login");
     }
   };

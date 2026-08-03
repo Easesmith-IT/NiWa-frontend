@@ -2,6 +2,8 @@ import axios from "axios";
 
 import { clearAccessToken, getAccessToken, redirectToLogin, setAccessToken } from "../auth";
 
+import { apiClient } from "./client";
+
 const v1BaseUrl = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api"}/v1`;
 
 export const v1ApiClient = axios.create({
@@ -29,7 +31,7 @@ v1ApiClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshResponse = await v1ApiClient.post("/auth/refresh");
+        const refreshResponse = await apiClient.post("/auth/refresh");
         const nextAccessToken = refreshResponse.data?.accessToken;
 
         if (typeof nextAccessToken === "string" && nextAccessToken.length > 0) {
