@@ -34,6 +34,7 @@ import { getAccessToken } from "../../../lib/auth";
 import { cn } from "../../../lib/utils";
 import {
   useAddContactLabelV1Mutation,
+  usePatchContactV1Mutation,
   useRemoveContactLabelV1Mutation,
 } from "../../../features/contacts";
 import {
@@ -155,6 +156,24 @@ const buildInitials = (value?: string | null) => {
     .join("");
 };
 
+const avatarColorStyles = [
+  "bg-[#dfe5dc] text-[#2d644d]",
+  "bg-[#e0e8f5] text-[#2b5288]",
+  "bg-[#f5e6e0] text-[#883d2b]",
+  "bg-[#eee0f5] text-[#632b88]",
+  "bg-[#f5f2e0] text-[#70642b]",
+  "bg-[#e0f5f2] text-[#2b7d70]",
+];
+
+const getAvatarColorStyle = (name?: string | null) => {
+  if (!name) return avatarColorStyles[0];
+  let hash = 0;
+  for (let i = 0; i < name.length; i++) {
+    hash += name.charCodeAt(i);
+  }
+  return avatarColorStyles[hash % avatarColorStyles.length];
+};
+
 const ContactAvatar = ({
   avatarUrl,
   className,
@@ -178,7 +197,8 @@ const ContactAvatar = ({
   return (
     <div
       className={cn(
-        "flex items-center justify-center rounded-full bg-[#dfe5dc] font-semibold text-[#2d644d]",
+        "flex items-center justify-center rounded-full font-semibold transition-colors",
+        getAvatarColorStyle(name),
         className,
       )}
     >
@@ -506,7 +526,14 @@ export default function InboxPage() {
 
   const detailQuery = useInboxThreadDetailV1Query(activeConversationId, { messageLimit: 1000 });
   const syncHistoryMutation = useSyncInboxThreadHistoryV1Mutation();
+  const patchContactMutation = usePatchContactV1Mutation();
   const detail = detailQuery.data?.data ?? null;
+
+  const [editingContact, setEditingContact] = useState(false);
+  const [editDisplayName, setEditDisplayName] = useState("");
+  const [editCompany, setEditCompany] = useState("");
+  const [editEmail, setEditEmail] = useState("");
+  const [editAvatarUrl, setEditAvatarUrl] = useState("");
   const tasksQuery = useTasksV1Query(detail?.contact?._id ? { contactId: detail.contact._id } : undefined);
   const scheduledMessagesQuery = useScheduledMessagesV1Query(
     detail?.contact?._id ? { contactId: detail.contact._id } : undefined,
@@ -1424,27 +1451,126 @@ export default function InboxPage() {
             </div>
 
             <div className="px-6 pb-8 pt-6">
-              <div className="flex flex-col items-center text-center">
-                <ContactAvatar
-                  avatarUrl={detail.contact.avatarUrl}
-                  className="h-24 w-24 text-2xl"
-                  name={detail.contact.displayName}
-                />
-                <h3 className="mt-4 text-[28px] font-semibold tracking-[-0.03em] text-[#25342f]">
-                  {detail.contact.displayName}
-                </h3>
-                <p className="mt-2 text-[16px] text-[#56675d]">
-                  {detail.contact.phoneNumber || "No phone available"}
-                </p>
-                {detail.contact.profileName && detail.contact.profileName !== detail.contact.displayName ? (
-                  <p className="mt-1 text-sm text-[#7a8b82]">
-                    WhatsApp profile: {detail.contact.profileName}
+              {editingContact ? (
+                <div className="space-y-3 text-left">
+                  <div>
+                    <label className="mb-1 block text-xs uppercase tracking-[0.12em] text-[#6f7f75]">
+                      Display Name
+                    </label>
+                    <Input
+                      className="border-[#ddd2c3] bg-white text-[#25342f]"
+                      onChange={(e) => setEditDisplayName(e.target.value)}
+                      placeholder="Display Name"
+                      value={editDisplayName}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs uppercase tracking-[0.12em] text-[#6f7f75]">
+                      Company
+                    </label>
+                    <Input
+                      className="border-[#ddd2c3] bg-white text-[#25342f]"
+                      onChange={(e) => setEditCompany(e.target.value)}
+                      placeholder="Company Name"
+                      value={editCompany}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs uppercase tracking-[0.12em] text-[#6f7f75]">
+                      Email Address
+                    </label>
+                    <Input
+                      className="border-[#ddd2c3] bg-white text-[#25342f]"
+                      onChange={(e) => setEditEmail(e.target.value)}
+                      placeholder="email@example.com"
+                      type="email"
+                      value={editEmail}
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs uppercase tracking-[0.12em] text-[#6f7f75]">
+                      Custom Avatar Image URL
+                    </label>
+                    <Input
+                      className="border-[#ddd2c3] bg-white text-[#25342f]"
+                      onChange={(e) => setEditAvatarUrl(e.target.value)}
+                      placeholder="https://example.com/avatar.jpg"
+                      value={editAvatarUrl}
+                    />
+                  </div>
+                  <div className="flex gap-2 pt-2">
+                    <Button
+                      className="bg-[#2d644d] text-white hover:bg-[#255440]"
+                      disabled={!editDisplayName.trim() || patchContactMutation.isPending}
+                      onClick={() =>
+                        patchContactMutation.mutate(
+                          {
+                            contactId: detail.contact._id,
+                            payload: {
+                              avatarUrl: editAvatarUrl.trim(),
+                              company: editCompany.trim(),
+                              displayName: editDisplayName.trim(),
+                              email: editEmail.trim(),
+                            },
+                          },
+                          {
+                            onSuccess: () => setEditingContact(false),
+                          },
+                        )
+                      }
+                      size="sm"
+                      type="button"
+                    >
+                      Save changes
+                    </Button>
+                    <Button
+                      onClick={() => setEditingContact(false)}
+                      size="sm"
+                      type="button"
+                      variant="secondary"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col items-center text-center">
+                  <ContactAvatar
+                    avatarUrl={detail.contact.avatarUrl}
+                    className="h-24 w-24 text-2xl"
+                    name={detail.contact.displayName}
+                  />
+                  <h3 className="mt-4 text-[28px] font-semibold tracking-[-0.03em] text-[#25342f]">
+                    {detail.contact.displayName}
+                  </h3>
+                  <p className="mt-2 text-[16px] text-[#56675d]">
+                    {detail.contact.phoneNumber || "No phone available"}
                   </p>
-                ) : null}
-                {detail.contact.company ? (
-                  <p className="mt-1 text-sm text-[#7a8b82]">{detail.contact.company}</p>
-                ) : null}
-              </div>
+                  {detail.contact.profileName && detail.contact.profileName !== detail.contact.displayName ? (
+                    <p className="mt-1 text-sm text-[#7a8b82]">
+                      WhatsApp profile: {detail.contact.profileName}
+                    </p>
+                  ) : null}
+                  {detail.contact.company ? (
+                    <p className="mt-1 text-sm text-[#7a8b82]">{detail.contact.company}</p>
+                  ) : null}
+                  <Button
+                    className="mt-4 border-[#ddd2c3] bg-white text-[#25342f] hover:bg-[#f6f1e9]"
+                    onClick={() => {
+                      setEditDisplayName(detail.contact.displayName ?? "");
+                      setEditCompany(detail.contact.company ?? "");
+                      setEditEmail(detail.contact.email ?? "");
+                      setEditAvatarUrl(detail.contact.avatarUrl ?? "");
+                      setEditingContact(true);
+                    }}
+                    size="sm"
+                    type="button"
+                    variant="secondary"
+                  >
+                    Edit contact details
+                  </Button>
+                </div>
+              )}
             </div>
 
             <PanelSection title="Labels">

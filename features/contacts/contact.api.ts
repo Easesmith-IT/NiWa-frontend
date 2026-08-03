@@ -26,6 +26,7 @@ export const createContactV1 = async (payload: {
 export const patchContactV1 = async (
   contactId: string,
   payload: Partial<{
+    avatarUrl: string;
     company: string;
     customFields: Array<{ key: string; type: "boolean" | "date" | "number" | "text"; value: string }>;
     displayName: string;
