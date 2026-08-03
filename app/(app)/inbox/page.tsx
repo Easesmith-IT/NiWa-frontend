@@ -1,10 +1,11 @@
 "use client";
 
 import { AxiosError } from "axios";
-import { KeyboardEvent, ReactNode, useEffect, useMemo, useState } from "react";
+import { KeyboardEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Archive,
+  ArrowDown,
   CalendarClock,
   Check,
   CheckCheck,
@@ -39,6 +40,8 @@ import {
   useRemoveContactLabelV1Mutation,
 } from "../../../features/contacts";
 import {
+  ChatWindowSkeleton,
+  ThreadListSkeleton,
   useInboxRealtime,
   useInboxThreadDetailV1Query,
   useInboxThreadStateMutation,
@@ -564,6 +567,21 @@ export default function InboxPage() {
     }
   };
 
+  const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const [showJumpToBottom, setShowJumpToBottom] = useState(false);
+
+  const scrollToBottom = (smooth = true) => {
+    messagesEndRef.current?.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
+  };
+
+  const handleMessageContainerScroll = () => {
+    const el = messagesContainerRef.current;
+    if (!el) return;
+    const isFarFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight > 140;
+    setShowJumpToBottom(isFarFromBottom);
+  };
+
   useEffect(() => {
     setContactInfoOpen(false);
     setSelectedQuickReplyId("");
@@ -585,6 +603,10 @@ export default function InboxPage() {
     setQuickReplyPanelOpen(false);
     setOptimisticMessages([]);
     setComposerFeedback(null);
+    setShowJumpToBottom(false);
+
+    const timer = setTimeout(() => scrollToBottom(false), 50);
+    return () => clearTimeout(timer);
   }, [activeConversationId]);
 
   const selectedQuickReply = useMemo(
@@ -902,62 +924,66 @@ export default function InboxPage() {
           </div>
 
           <div className="niwa-scrollbar min-h-0 flex-1 overflow-y-auto">
-            {threads.map((thread) => {
-              const isActive = thread.conversation._id === activeConversationId;
-              const rawName =
-                thread.contact?.displayName ||
-                thread.contact?.profileName ||
-                thread.contact?.phoneNumber ||
-                thread.conversation.waId;
-              const displayName = withDisplayPhoneNumber(rawName) ?? rawName;
+            {threadsQuery.isPending || threadsQuery.isLoading ? (
+              <ThreadListSkeleton />
+            ) : (
+              threads.map((thread) => {
+                const isActive = thread.conversation._id === activeConversationId;
+                const rawName =
+                  thread.contact?.displayName ||
+                  thread.contact?.profileName ||
+                  thread.contact?.phoneNumber ||
+                  thread.conversation.waId;
+                const displayName = withDisplayPhoneNumber(rawName) ?? rawName;
 
-              return (
-                <button
-                  className={cn(
-                    "flex w-full items-start gap-3 border-b border-[#ece1d4] px-6 py-4 text-left transition",
-                    isActive ? "bg-[#ece4d8]" : "hover:bg-[#f2ebe2]",
-                  )}
-                  key={thread.conversation._id}
-                  onClick={() => setSelectedConversationId(thread.conversation._id)}
-                  type="button"
-                >
-                  <ContactAvatar
-                    avatarUrl={thread.contact?.avatarUrl}
-                    className="h-12 w-12 shrink-0 text-sm"
-                    name={displayName}
-                  />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p
-                          className={cn(
-                            "truncate text-[15px]",
-                            thread.conversation.unreadCount > 0 ? "font-semibold" : "font-medium",
-                          )}
-                        >
-                          {displayName}
-                        </p>
-                        <p className="mt-1 truncate text-[14px] text-[#65766d]">
-                          {thread.conversation.lastMessageText || "No messages yet."}
-                        </p>
-                      </div>
-                      <div className="flex shrink-0 flex-col items-end gap-2">
-                        <span className="text-[12px] text-[#7a8b82]">
-                          {formatConversationTime(thread.conversation.lastMessageAt || thread.conversation.updatedAt)}
-                        </span>
-                        {thread.conversation.unreadCount > 0 ? (
-                          <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-[#2d644d] px-2 py-0.5 text-[11px] font-semibold text-white">
-                            {thread.conversation.unreadCount}
+                return (
+                  <button
+                    className={cn(
+                      "flex w-full items-start gap-3 border-b border-[#ece1d4] px-6 py-4 text-left transition",
+                      isActive ? "bg-[#ece4d8]" : "hover:bg-[#f2ebe2]",
+                    )}
+                    key={thread.conversation._id}
+                    onClick={() => setSelectedConversationId(thread.conversation._id)}
+                    type="button"
+                  >
+                    <ContactAvatar
+                      avatarUrl={thread.contact?.avatarUrl}
+                      className="h-12 w-12 shrink-0 text-sm"
+                      name={displayName}
+                    />
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <p
+                            className={cn(
+                              "truncate text-[15px]",
+                              thread.conversation.unreadCount > 0 ? "font-semibold" : "font-medium",
+                            )}
+                          >
+                            {displayName}
+                          </p>
+                          <p className="mt-1 truncate text-[14px] text-[#65766d]">
+                            {thread.conversation.lastMessageText || "No messages yet."}
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 flex-col items-end gap-2">
+                          <span className="text-[12px] text-[#7a8b82]">
+                            {formatConversationTime(thread.conversation.lastMessageAt || thread.conversation.updatedAt)}
                           </span>
-                        ) : null}
+                          {thread.conversation.unreadCount > 0 ? (
+                            <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-[#2d644d] px-2 py-0.5 text-[11px] font-semibold text-white">
+                              {thread.conversation.unreadCount}
+                            </span>
+                          ) : null}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                </button>
-              );
-            })}
+                  </button>
+                );
+              })
+            )}
 
-            {!threadsQuery.isPending && threads.length === 0 ? (
+            {!threadsQuery.isPending && !threadsQuery.isLoading && threads.length === 0 ? (
               <div className="px-6 py-10 text-center text-sm text-[#7a8b82]">
                 No conversations match this view.
               </div>
@@ -965,32 +991,26 @@ export default function InboxPage() {
           </div>
         </aside>
 
-        <section className="flex min-h-0 flex-col bg-[#fbf7f1]">
-          {!detail ? (
+        <section className="flex min-h-0 flex-col bg-[#fbf7f1] relative">
+          {detailQuery.isPending || detailQuery.isLoading ? (
+            <ChatWindowSkeleton />
+          ) : !detail ? (
             <div className="flex h-full items-center justify-center px-8">
               <div className="max-w-lg text-center">
                 <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#e6eee6] text-[#2d644d]">
                   <MessageSquareDot className="h-8 w-8" />
                 </div>
                 <h2 className="mt-6 text-[36px] font-semibold tracking-[-0.03em] text-[#25342f]">
-                  {detailQuery.isFetching || detailQuery.isPending ? "Loading conversation" : "NiWa"}
+                  NiWa Desk
                 </h2>
                 <p className="mt-3 text-[18px] text-[#4f6258]">
-                  {detailQuery.isError
-                    ? "This conversation could not be opened."
-                    : detailQuery.isFetching || detailQuery.isPending
-                      ? "Fetching thread details from the inbox API"
-                      : "Select a conversation to start messaging"}
+                  Select a conversation to start messaging
                 </p>
                 <p className="mt-4 text-[15px] leading-7 text-[#6f7f75]">
-                  {detailQuery.isError
-                    ? getErrorMessage(detailQuery.error, "The inbox detail request failed.")
-                    : "Manage customer conversations, templates and follow-ups from one workspace."}
+                  Manage customer conversations, templates and follow-ups from one workspace.
                 </p>
                 <p className="mt-14 text-[13px] text-[#7a8b82]">
-                  {detailQuery.isError
-                    ? "The conversation list is still available while the detail request is being fixed."
-                    : "Connected through WhatsApp Business Platform"}
+                  Connected through WhatsApp Business Platform
                 </p>
               </div>
             </div>
@@ -1008,9 +1028,37 @@ export default function InboxPage() {
                     name={detail.contact.displayName}
                   />
                   <div className="min-w-0">
-                    <p className="truncate text-[16px] font-medium text-[#25342f]">
-                      {withDisplayPhoneNumber(detail.contact.displayName) ?? detail.contact.displayName}
-                    </p>
+                    <div className="flex items-center gap-2">
+                      <p className="truncate text-[16px] font-medium text-[#25342f]">
+                        {withDisplayPhoneNumber(detail.contact.displayName) ?? detail.contact.displayName}
+                      </p>
+                      {(() => {
+                        const closesAt = detail.conversation.customerServiceWindowClosesAt;
+                        if (!closesAt) return null;
+                        const closeDate = new Date(closesAt);
+                        const now = new Date();
+                        const diffMs = closeDate.getTime() - now.getTime();
+
+                        if (diffMs <= 0) {
+                          return (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-[#fdeaea] px-2 py-0.5 text-[10px] font-semibold text-[#9d3434]">
+                              <span className="h-1.5 w-1.5 rounded-full bg-[#9d3434]" />
+                              24h Expired
+                            </span>
+                          );
+                        }
+
+                        const hours = Math.floor(diffMs / (1000 * 60 * 60));
+                        const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+                        return (
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#eaf5ee] px-2.5 py-0.5 text-[10px] font-semibold text-[#2d644d]">
+                            <span className="h-1.5 w-1.5 rounded-full bg-[#2d644d] animate-pulse" />
+                            24h Active ({hours}h {mins}m)
+                          </span>
+                        );
+                      })()}
+                    </div>
                     <p className="truncate text-[13px] text-[#6f7f75]">
                       {withDisplayPhoneNumber(detail.contact.phoneNumber || detail.conversation.waId)}
                     </p>
@@ -1070,7 +1118,11 @@ export default function InboxPage() {
                 </div>
               </div>
 
-              <div className="niwa-scrollbar min-h-0 flex-1 overflow-y-auto bg-[linear-gradient(180deg,#fbf7f1_0%,#f7f0e7_100%)] px-8 py-6">
+              <div
+                className="niwa-scrollbar min-h-0 flex-1 overflow-y-auto bg-[linear-gradient(180deg,#fbf7f1_0%,#f7f0e7_100%)] px-8 py-6 relative"
+                onScroll={handleMessageContainerScroll}
+                ref={messagesContainerRef}
+              >
                 {detailQuery.isLoading ? (
                   <div className="space-y-3">
                     {Array.from({ length: 6 }).map((_, index) => (
@@ -1099,7 +1151,7 @@ export default function InboxPage() {
                 {messageGroups.map((group) => (
                   <div className="mb-6" key={group.day}>
                     <div className="mb-4 flex justify-center">
-                      <span className="rounded-full border border-[#e3d8ca] bg-[#fffdf9] px-3 py-1 text-[11px] text-[#7a8b82]">
+                      <span className="rounded-full border border-[#e3d8ca] bg-[#fffdf9] px-3 py-1 text-[11px] font-medium text-[#7a8b82] shadow-sm">
                         {group.day}
                       </span>
                     </div>
