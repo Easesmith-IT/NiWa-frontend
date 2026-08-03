@@ -1,22 +1,14 @@
 "use client";
 
-import Link from "next/link";
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
+import { RefreshCw, Search, SlidersHorizontal, Sparkles } from "lucide-react";
 
 import { Button } from "../../../components/ui/button";
-import { Card } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
 import { apiClient } from "../../../lib/api/client";
-import { TemplateRecord, TemplatesResponse, TemplateSyncResponse } from "../../../lib/api/types";
-
-const componentPreview = (template: TemplateRecord) =>
-  template.components
-    .map((component) => `${component.type}${component.format ? ` (${component.format})` : ""}${component.text ? `: ${component.text}` : ""}`)
-    .join("\n");
-
-const getBodyVariables = (template: TemplateRecord) =>
-  template.bodyVariables?.length ? template.bodyVariables : template.variables;
+import { WhatsAppTemplateCard } from "../../../features/templates";
+import type { TemplateRecord, TemplatesResponse, TemplateSyncResponse } from "../../../lib/api/types";
 
 export default function TemplatesPage() {
   const [query, setQuery] = useState("");
@@ -29,10 +21,10 @@ export default function TemplatesPage() {
     queryFn: async () => {
       const response = await apiClient.get<TemplatesResponse>("/templates", {
         params: {
-          query: query || undefined,
-          status: status || undefined,
           category: category || undefined,
           language: language || undefined,
+          query: query || undefined,
+          status: status || undefined,
         },
       });
       return response.data;
@@ -52,115 +44,111 @@ export default function TemplatesPage() {
   const templates = useMemo(() => templatesQuery.data?.templates ?? [], [templatesQuery.data]);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">
-          Templates
-        </p>
-        <h2 className="mt-2 text-3xl font-semibold">Synced WhatsApp Templates</h2>
-      </div>
+    <div className="flex flex-col space-y-6">
+      {/* Header & Controls Bar */}
+      <div className="flex flex-col gap-4 rounded-2xl border border-[#e5ddd3] bg-[#fbf7f1] p-6 shadow-sm md:flex-row md:items-center md:justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight text-[#25342f]">
+            WhatsApp Template Studio
+          </h1>
+          <p className="text-xs text-[#6f7f75]">
+            Meta-approved message templates, variable schemas, and interactive previews
+          </p>
+        </div>
 
-      <Card className="space-y-4 p-6">
-        <div className="grid gap-3 lg:grid-cols-[1fr_180px_180px_160px_auto]">
-          <Input onChange={(event) => setQuery(event.target.value)} placeholder="Search templates by name" value={query} />
-          <Input onChange={(event) => setStatus(event.target.value)} placeholder="Status" value={status} />
-          <Input onChange={(event) => setCategory(event.target.value)} placeholder="Category" value={category} />
-          <Input onChange={(event) => setLanguage(event.target.value)} placeholder="Language" value={language} />
-          <Button disabled={syncMutation.isPending} onClick={() => syncMutation.mutate()} variant="secondary">
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            className="bg-[#2d644d] text-white hover:bg-[#255440]"
+            disabled={syncMutation.isPending}
+            onClick={() => syncMutation.mutate()}
+            type="button"
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${syncMutation.isPending ? "animate-spin" : ""}`} />
             {syncMutation.isPending ? "Syncing..." : "Sync From Meta"}
           </Button>
         </div>
-        <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-          <span>
-            Last sync:{" "}
+      </div>
+
+      {/* Filter Bar */}
+      <div className="flex flex-col gap-3 rounded-2xl border border-[#e5ddd3] bg-white p-4 shadow-sm md:flex-row md:items-center md:justify-between">
+        <div className="relative flex-1">
+          <Search className="absolute left-3.5 top-2.5 h-4 w-4 text-[#7a8b82]" />
+          <Input
+            className="rounded-xl border-[#ddd2c3] bg-[#fbf7f1] pl-9 text-xs text-[#25342f] placeholder:text-[#7a8b82]"
+            onChange={(e) => setQuery(e.target.value)}
+            placeholder="Search templates by name..."
+            value={query}
+          />
+        </div>
+
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1.5 text-xs text-[#6f7f75] px-2">
+            <SlidersHorizontal className="h-3.5 w-3.5" />
+            <span>Filters:</span>
+          </div>
+
+          <select
+            className="h-9 rounded-xl border border-[#ddd2c3] bg-[#fbf7f1] px-3 text-xs text-[#25342f] outline-none"
+            onChange={(e) => setStatus(e.target.value)}
+            value={status}
+          >
+            <option value="">All Statuses</option>
+            <option value="APPROVED">Approved</option>
+            <option value="PENDING">Pending</option>
+            <option value="REJECTED">Rejected</option>
+          </select>
+
+          <select
+            className="h-9 rounded-xl border border-[#ddd2c3] bg-[#fbf7f1] px-3 text-xs text-[#25342f] outline-none"
+            onChange={(e) => setCategory(e.target.value)}
+            value={category}
+          >
+            <option value="">All Categories</option>
+            <option value="MARKETING">Marketing</option>
+            <option value="UTILITY">Utility</option>
+            <option value="AUTHENTICATION">Authentication</option>
+          </select>
+
+          <Input
+            className="h-9 w-28 rounded-xl border-[#ddd2c3] bg-[#fbf7f1] text-xs text-[#25342f]"
+            onChange={(e) => setLanguage(e.target.value)}
+            placeholder="en_US"
+            value={language}
+          />
+        </div>
+      </div>
+
+      {/* Sync Timestamp Banner */}
+      <div className="flex items-center justify-between text-xs text-[#7a8b82] px-2">
+        <span>
+          Last synced:{" "}
+          <strong className="text-[#25342f]">
             {templatesQuery.data?.lastSyncedAt
               ? new Date(templatesQuery.data.lastSyncedAt).toLocaleString()
               : "Not synced yet"}
+          </strong>
+        </span>
+        {typeof syncMutation.data?.count === "number" ? (
+          <span className="font-semibold text-[#2d644d]">
+            ✓ Synced {syncMutation.data.count} template(s) from Meta
           </span>
-          {typeof syncMutation.data?.count === "number" ? (
-            <span>
-              Synced {syncMutation.data.count} template{syncMutation.data.count === 1 ? "" : "s"}.
-            </span>
-          ) : null}
-        </div>
-      </Card>
+        ) : null}
+      </div>
 
-      <div className="grid gap-4">
+      {/* Template Card List */}
+      <div className="space-y-4">
         {templates.map((template) => (
-          <Card className="p-6" key={template._id}>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <h3 className="text-lg font-semibold">{template.name}</h3>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {template.language} | {template.category} | {template.status}
-                </p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <div className="rounded-full bg-accent px-3 py-1 text-xs font-medium text-accent-foreground">
-                  {template.variables.length} variable{template.variables.length === 1 ? "" : "s"}
-                </div>
-                <div className="rounded-full bg-[#eef4ef] px-3 py-1 text-xs font-medium text-[#1f513e]">
-                  {template.isSendable ? "Sendable" : "Not sendable"}
-                </div>
-                <Link href={`/message-studio?mode=template&template=${encodeURIComponent(template.name)}&language=${encodeURIComponent(template.language)}`}>
-                  <Button size="sm" type="button" variant="secondary">
-                    Use in Studio
-                  </Button>
-                </Link>
-              </div>
-            </div>
-
-            <div className="mt-4 grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
-              <div className="space-y-4">
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                    Template anatomy
-                  </p>
-                  <div className="mt-2 space-y-2 text-sm text-foreground">
-                    <p>Body vars: {getBodyVariables(template).length ? getBodyVariables(template).join(", ") : "None"}</p>
-                    <p>Header: {template.headerFormat ?? "None"}</p>
-                    <p>Header vars: {template.headerVariables?.length ? template.headerVariables.join(", ") : "None"}</p>
-                    <p>Buttons: {template.buttonCount ?? template.urlButtons?.length ?? 0}</p>
-                    <p>Footer: {template.footerText || "None"}</p>
-                  </div>
-                </div>
-                {template.urlButtons?.length ? (
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                      URL buttons
-                    </p>
-                    <div className="mt-2 space-y-2">
-                      {template.urlButtons.map((button) => (
-                        <div className="rounded-2xl bg-[#f7f1e4] px-3 py-2 text-sm text-foreground" key={`${template._id}-${button.index}`}>
-                          <p>{button.text}</p>
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            {button.type} | {button.dynamic ? "Dynamic" : "Static"}
-                            {button.url ? ` | ${button.url}` : ""}
-                          </p>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : null}
-                {!template.isSendable && template.sendabilityReason ? (
-                  <div className="rounded-2xl border border-[#e8c9a8] bg-[#fff4e7] px-4 py-3 text-sm text-[#8a4b12]">
-                    {template.sendabilityReason}
-                  </div>
-                ) : null}
-              </div>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                  Components
-                </p>
-                <pre className="mt-2 overflow-x-auto rounded-xl bg-[#16302b] p-4 text-xs text-[#f8f1de]">
-                  {componentPreview(template) || "No component preview"}
-                </pre>
-              </div>
-            </div>
-          </Card>
+          <WhatsAppTemplateCard key={template._id} template={template} />
         ))}
+
         {!templatesQuery.isLoading && templates.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No templates stored yet. Run a sync first.</p>
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#ddd2c3] bg-[#fbf7f1] p-12 text-center text-[#7a8b82]">
+            <Sparkles className="h-10 w-10 text-[#a0aca4]" />
+            <p className="mt-3 text-sm font-semibold text-[#25342f]">No templates found</p>
+            <p className="mt-1 text-xs">
+              No Meta templates match your filters. Click "Sync From Meta" to pull the latest templates.
+            </p>
+          </div>
         ) : null}
       </div>
     </div>
