@@ -4,6 +4,7 @@ import { v1QueryKeys } from "../../lib/api/v1-query-keys";
 import {
   getInboxThreadDetailV1,
   listInboxThreadsV1,
+  syncInboxThreadHistoryV1,
   updateInboxThreadStateV1,
 } from "./inbox.api";
 import { mapInboxThreadDetailV1, mapInboxThreadRecordV1 } from "./inbox.mappers";
@@ -28,14 +29,14 @@ export const useInboxThreadsV1Query = (params: {
 
 export const useInboxThreadDetailV1Query = (
   conversationId: string | null,
-  params?: { messageLimit?: number },
+  params?: { cursor?: string | null; messageLimit?: number },
 ) =>
   useQuery({
     enabled: Boolean(conversationId),
     refetchInterval: conversationId ? 5000 : false,
     refetchOnReconnect: true,
     refetchOnWindowFocus: true,
-    queryKey: [...v1QueryKeys.inboxThread, conversationId, params?.messageLimit ?? null],
+    queryKey: [...v1QueryKeys.inboxThread, conversationId, params?.cursor ?? null, params?.messageLimit ?? null],
     queryFn: async () => {
       const result = await getInboxThreadDetailV1(conversationId as string, params);
       return {
@@ -66,3 +67,20 @@ export const useInboxThreadStateMutation = () => {
     },
   });
 };
+
+export const useSyncInboxThreadHistoryV1Mutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (conversationId: string) => syncInboxThreadHistoryV1(conversationId),
+    onSuccess: async (_result, conversationId) => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: v1QueryKeys.inbox }),
+        queryClient.invalidateQueries({
+          queryKey: [...v1QueryKeys.inboxThread, conversationId],
+        }),
+      ]);
+    },
+  });
+};
+

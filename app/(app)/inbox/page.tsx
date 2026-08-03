@@ -16,6 +16,7 @@ import {
   Paperclip,
   Pin,
   Plus,
+  RefreshCw,
   Search,
   SendHorizonal,
   Smile,
@@ -40,6 +41,7 @@ import {
   useInboxThreadDetailV1Query,
   useInboxThreadStateMutation,
   useInboxThreadsV1Query,
+  useSyncInboxThreadHistoryV1Mutation,
 } from "../../../features/inbox";
 import { useLabelsV1Query } from "../../../features/labels";
 import { useSendTextMessageV1Mutation } from "../../../features/messages";
@@ -503,11 +505,28 @@ export default function InboxPage() {
   useInboxRealtime(activeConversationId);
 
   const detailQuery = useInboxThreadDetailV1Query(activeConversationId, { messageLimit: 1000 });
+  const syncHistoryMutation = useSyncInboxThreadHistoryV1Mutation();
   const detail = detailQuery.data?.data ?? null;
   const tasksQuery = useTasksV1Query(detail?.contact?._id ? { contactId: detail.contact._id } : undefined);
   const scheduledMessagesQuery = useScheduledMessagesV1Query(
     detail?.contact?._id ? { contactId: detail.contact._id } : undefined,
   );
+
+  const handleSyncHistory = async () => {
+    if (!activeConversationId) return;
+    try {
+      await syncHistoryMutation.mutateAsync(activeConversationId);
+      setComposerFeedback({
+        message: "Thread history synchronized successfully.",
+        tone: "success",
+      });
+    } catch (error) {
+      setComposerFeedback({
+        message: getErrorMessage(error, "Failed to synchronize thread history."),
+        tone: "error",
+      });
+    }
+  };
 
   useEffect(() => {
     setContactInfoOpen(false);
@@ -961,7 +980,17 @@ export default function InboxPage() {
                   </div>
                 </button>
 
-                <div className="flex items-center gap-1">
+                <div className="flex items-center gap-2">
+                  <button
+                    className="flex items-center gap-1.5 rounded-full border border-[#ddd2c3] bg-[#fffdf9] px-3 py-1.5 text-xs font-medium text-[#4f6258] transition hover:border-[#2d644d] hover:bg-[#efe7db] hover:text-[#25342f] disabled:opacity-50"
+                    disabled={syncHistoryMutation.isPending}
+                    onClick={handleSyncHistory}
+                    title="Sync & Reconcile Chat History"
+                    type="button"
+                  >
+                    <RefreshCw className={cn("h-3.5 w-3.5", syncHistoryMutation.isPending && "animate-spin")} />
+                    <span>{syncHistoryMutation.isPending ? "Syncing..." : "Sync History"}</span>
+                  </button>
                   <button
                     className="rounded-full p-2 text-[#6f7f75] transition hover:bg-[#f2ebe2] hover:text-[#25342f]"
                     type="button"

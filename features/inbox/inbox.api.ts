@@ -18,13 +18,14 @@ export const listInboxThreadsV1 = async (params?: {
 
 export const getInboxThreadDetailV1 = async (
   conversationId: string,
-  params?: { messageLimit?: number },
+  params?: { cursor?: string | null; messageLimit?: number },
 ) => {
   const response = await v1ApiClient.get<{
     data: InboxThreadDetailV1;
     pagination: V1ListResponse<never>["pagination"];
   }>(`/inbox/${conversationId}`, {
     params: {
+      cursor: params?.cursor || undefined,
       messageLimit: params?.messageLimit,
     },
   });
@@ -39,3 +40,13 @@ export const updateInboxThreadStateV1 = async (
   const response = await v1ApiClient.post(`/inbox/${conversationId}/${action}`);
   return response.data;
 };
+
+export const syncInboxThreadHistoryV1 = async (conversationId: string) => {
+  const response = await v1ApiClient.post<{
+    data: InboxThreadDetailV1;
+    message: string;
+  }>(`/inbox/${conversationId}/sync-history`);
+
+  return response.data;
+};
+
