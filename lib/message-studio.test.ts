@@ -40,7 +40,7 @@ test("buildMessageStudioPreview renders template preview", () => {
   });
 
   assert.match(preview, /welcome_template/);
-  assert.match(preview, /Variables: \{\{1\}\}, \{\{2\}\}/);
+  assert.match(preview, /Body vars: \{\{1\}\}: -, \{\{2\}\}: -/);
 });
 
 test("buildMessageStudioPreview renders location preview", () => {

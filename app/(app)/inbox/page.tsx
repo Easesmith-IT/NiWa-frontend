@@ -29,6 +29,7 @@ import {
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Textarea } from "../../../components/ui/textarea";
+import { getAccessToken } from "../../../lib/auth";
 import { cn } from "../../../lib/utils";
 import {
   useAddContactLabelV1Mutation,
@@ -42,6 +43,7 @@ import {
 } from "../../../features/inbox";
 import { useLabelsV1Query } from "../../../features/labels";
 import { useSendTextMessageV1Mutation } from "../../../features/messages";
+import { getMessageMediaUrlV1 } from "../../../features/messages/message.api";
 import {
   useCreateContactNoteV1Mutation,
   useDeleteNoteV1Mutation,
@@ -282,6 +284,116 @@ const renderOutgoingStatusIcon = (status?: string) => {
   }
 };
 
+const getMessageTimestamp = (message: {
+  createdAt?: string;
+  metaTimestamp?: string | null;
+}) => message.metaTimestamp || message.createdAt || "";
+
+const buildMessageStatusDetails = (message: {
+  errorDetails?: string | null;
+  status?: string;
+  statusTimestamps?: {
+    deliveredAt?: string | null;
+    failedAt?: string | null;
+    queuedAt?: string | null;
+    readAt?: string | null;
+    sentAt?: string | null;
+  };
+}) => {
+  const parts = [
+    message.statusTimestamps?.queuedAt ? `Queued: ${formatDateTime(message.statusTimestamps.queuedAt)}` : null,
+    message.statusTimestamps?.sentAt ? `Sent: ${formatDateTime(message.statusTimestamps.sentAt)}` : null,
+    message.statusTimestamps?.deliveredAt
+      ? `Delivered: ${formatDateTime(message.statusTimestamps.deliveredAt)}`
+      : null,
+    message.statusTimestamps?.readAt ? `Read: ${formatDateTime(message.statusTimestamps.readAt)}` : null,
+    message.statusTimestamps?.failedAt ? `Failed: ${formatDateTime(message.statusTimestamps.failedAt)}` : null,
+    message.status === "failed" && message.errorDetails ? `Reason: ${message.errorDetails}` : null,
+  ].filter(Boolean);
+
+  return parts.join("\n");
+};
+
+const MessageMedia = ({
+  messageId,
+  mimeType,
+}: {
+  messageId: string;
+  mimeType?: string | null;
+}) => {
+  const [mediaUrl, setMediaUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let disposed = false;
+    let objectUrl: string | null = null;
+
+    const load = async () => {
+      try {
+        const token = getAccessToken();
+        const response = await fetch(getMessageMediaUrlV1(messageId), {
+          headers: token ? { Authorization: `Bearer ${token}` } : {},
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const blob = await response.blob();
+        objectUrl = URL.createObjectURL(blob);
+
+        if (!disposed) {
+          setMediaUrl(objectUrl);
+        }
+      } catch {
+        if (!disposed) {
+          setMediaUrl(null);
+        }
+      }
+    };
+
+    void load();
+
+    return () => {
+      disposed = true;
+      if (objectUrl) {
+        URL.revokeObjectURL(objectUrl);
+      }
+    };
+  }, [messageId]);
+
+  if (!mediaUrl) {
+    return (
+      <div className="mt-2 rounded-xl bg-black/5 px-3 py-2 text-xs text-[#6f7f75]">
+        Loading media...
+      </div>
+    );
+  }
+
+  if (mimeType?.startsWith("image/")) {
+    return <img alt="WhatsApp media" className="mt-2 max-h-72 rounded-xl object-cover" src={mediaUrl} />;
+  }
+
+  if (mimeType?.startsWith("video/")) {
+    return <video className="mt-2 max-h-72 rounded-xl" controls src={mediaUrl} />;
+  }
+
+  if (mimeType?.startsWith("audio/")) {
+    return <audio className="mt-2 w-full" controls src={mediaUrl} />;
+  }
+
+  return (
+    <a
+      className="mt-2 inline-flex rounded-xl bg-black/5 px-3 py-2 text-sm text-[#2d644d] underline-offset-2 hover:underline"
+      href={mediaUrl}
+      rel="noreferrer"
+      target="_blank"
+    >
+      Open attachment
+    </a>
+  );
+};
+
 type OptimisticInboxMessage = {
   _id: string;
   createdAt: string;
@@ -465,8 +577,8 @@ export default function InboxPage() {
     });
 
     return Array.from(messagesById.values()).sort((left, right) => {
-      const leftTime = left.createdAt ? new Date(left.createdAt).getTime() : 0;
-      const rightTime = right.createdAt ? new Date(right.createdAt).getTime() : 0;
+      const leftTime = getMessageTimestamp(left) ? new Date(getMessageTimestamp(left)).getTime() : 0;
+      const rightTime = getMessageTimestamp(right) ? new Date(getMessageTimestamp(right)).getTime() : 0;
       return leftTime - rightTime;
     });
   }, [detail?.messages, optimisticMessages]);
@@ -478,7 +590,7 @@ export default function InboxPage() {
     }
 
     displayedMessages.forEach((message) => {
-      const day = formatMessageDay(message.createdAt);
+      const day = formatMessageDay(getMessageTimestamp(message));
       const existing = groups[groups.length - 1];
 
       if (!existing || existing.day !== day) {
@@ -491,6 +603,17 @@ export default function InboxPage() {
 
     return groups;
   }, [detail, displayedMessages, optimisticMessages.length]);
+
+  useEffect(() => {
+    if (!activeConversationId || !detail?.conversation || detail.conversation.unreadCount <= 0) {
+      return;
+    }
+
+    threadMutation.mutate({
+      action: "read",
+      conversationId: activeConversationId,
+    });
+  }, [activeConversationId, detail?.conversation, threadMutation]);
 
   useEffect(() => {
     if (!selectedQuickReply) {
@@ -892,6 +1015,18 @@ export default function InboxPage() {
                     <div className="space-y-2">
                       {group.messages.map((message) => {
                         const outgoing = message.direction === "outgoing";
+                        const mediaMimeType = message.media?.mimeType ?? null;
+                        const messageTime = getMessageTimestamp(message);
+                        const statusDetails = outgoing ? buildMessageStatusDetails(message) : "";
+                        const locationData = (message.locationData ?? {}) as {
+                          address?: string;
+                          latitude?: number;
+                          longitude?: number;
+                          name?: string;
+                        };
+                        const hasLocation =
+                          typeof locationData.latitude === "number" &&
+                          typeof locationData.longitude === "number";
 
                         return (
                           <div className={cn("flex", outgoing ? "justify-end" : "justify-start")} key={message._id}>
@@ -903,13 +1038,47 @@ export default function InboxPage() {
                                   : "rounded-bl-md bg-white",
                               )}
                             >
-                              <p className="whitespace-pre-wrap text-[14px] leading-6 text-[#25342f]">
-                                {message.previewText || `[${message.messageType}]`}
-                              </p>
+                              {message.replyTo ? (
+                                <div className="mb-2 rounded-xl border-l-2 border-black/15 bg-black/5 px-3 py-2 text-xs text-[#5c6d63]">
+                                  {message.replyTo.previewText || `[${message.replyTo.messageType}]`}
+                                </div>
+                              ) : null}
+                              {message.textBody ? (
+                                <p className="whitespace-pre-wrap text-[14px] leading-6 text-[#25342f]">
+                                  {message.textBody}
+                                </p>
+                              ) : (
+                                <p className="whitespace-pre-wrap text-[14px] leading-6 text-[#25342f]">
+                                  {message.previewText || `[${message.messageType}]`}
+                                </p>
+                              )}
+                              {message.media?.metaMediaId ? (
+                                <MessageMedia messageId={message._id} mimeType={mediaMimeType} />
+                              ) : null}
+                              {message.media?.caption && message.media.caption !== message.textBody ? (
+                                <p className="mt-2 whitespace-pre-wrap text-[13px] leading-5 text-[#44534d]">
+                                  {message.media.caption}
+                                </p>
+                              ) : null}
+                              {hasLocation ? (
+                                <a
+                                  className="mt-2 block rounded-xl bg-black/5 px-3 py-2 text-sm text-[#2d644d] underline-offset-2 hover:underline"
+                                  href={`https://maps.google.com/?q=${locationData.latitude},${locationData.longitude}`}
+                                  rel="noreferrer"
+                                  target="_blank"
+                                >
+                                  {locationData.name || locationData.address || "Open location"}
+                                </a>
+                              ) : null}
                               <div className="mt-2 flex items-center justify-end gap-1 text-[11px] text-[#7a8b82]">
-                                <span>{formatConversationTime(message.createdAt)}</span>
-                                {outgoing ? renderOutgoingStatusIcon(message.status) : null}
+                                <span>{formatConversationTime(messageTime)}</span>
+                                {outgoing ? (
+                                  <span title={statusDetails || undefined}>{renderOutgoingStatusIcon(message.status)}</span>
+                                ) : null}
                               </div>
+                              {message.status === "failed" && message.errorDetails ? (
+                                <p className="mt-2 text-[12px] text-[#bf5b4b]">{message.errorDetails}</p>
+                              ) : null}
                             </div>
                           </div>
                         );
@@ -1213,6 +1382,11 @@ export default function InboxPage() {
                 <p className="mt-2 text-[16px] text-[#56675d]">
                   {detail.contact.phoneNumber || "No phone available"}
                 </p>
+                {detail.contact.profileName && detail.contact.profileName !== detail.contact.displayName ? (
+                  <p className="mt-1 text-sm text-[#7a8b82]">
+                    WhatsApp profile: {detail.contact.profileName}
+                  </p>
+                ) : null}
                 {detail.contact.company ? (
                   <p className="mt-1 text-sm text-[#7a8b82]">{detail.contact.company}</p>
                 ) : null}

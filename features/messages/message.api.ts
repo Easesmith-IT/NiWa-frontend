@@ -16,3 +16,6 @@ export const sendTextMessageV1 = async (payload: {
   const response = await v1ApiClient.post("/messages/text", payload);
   return response.data;
 };
+
+export const getMessageMediaUrlV1 = (messageId: string) =>
+  `${v1ApiClient.defaults.baseURL}/messages/${messageId}/media`;
