@@ -32,6 +32,7 @@ import { Input } from "../../../components/ui/input";
 import { Textarea } from "../../../components/ui/textarea";
 import { getAccessToken } from "../../../lib/auth";
 import { cn } from "../../../lib/utils";
+import { withDisplayPhoneNumber } from "../../../features/shared/mappers";
 import {
   useAddContactLabelV1Mutation,
   usePatchContactV1Mutation,
@@ -147,6 +148,14 @@ const buildInitials = (value?: string | null) => {
   const source = value?.trim();
   if (!source) {
     return "NW";
+  }
+
+  const digitsOnly = source.replace(/\D/g, "");
+  if (digitsOnly.length >= 7 && (source.startsWith("+") || /^\d+$/.test(source))) {
+    if (digitsOnly.startsWith("91") && digitsOnly.length === 12) {
+      return `9${digitsOnly[2]}`;
+    }
+    return digitsOnly.slice(0, 2);
   }
 
   return source
@@ -895,11 +904,12 @@ export default function InboxPage() {
           <div className="niwa-scrollbar min-h-0 flex-1 overflow-y-auto">
             {threads.map((thread) => {
               const isActive = thread.conversation._id === activeConversationId;
-              const displayName =
+              const rawName =
                 thread.contact?.displayName ||
                 thread.contact?.profileName ||
                 thread.contact?.phoneNumber ||
                 thread.conversation.waId;
+              const displayName = withDisplayPhoneNumber(rawName) ?? rawName;
 
               return (
                 <button
@@ -999,10 +1009,10 @@ export default function InboxPage() {
                   />
                   <div className="min-w-0">
                     <p className="truncate text-[16px] font-medium text-[#25342f]">
-                      {detail.contact.displayName}
+                      {withDisplayPhoneNumber(detail.contact.displayName) ?? detail.contact.displayName}
                     </p>
                     <p className="truncate text-[13px] text-[#6f7f75]">
-                      {detail.contact.phoneNumber || detail.conversation.waId}
+                      {withDisplayPhoneNumber(detail.contact.phoneNumber || detail.conversation.waId)}
                     </p>
                   </div>
                 </button>
