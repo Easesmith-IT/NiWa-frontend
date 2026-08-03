@@ -7,7 +7,11 @@ import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
 import { apiClient } from "../../../lib/api/client";
-import { WebhookEventRecord, WebhooksResponse } from "../../../lib/api/types";
+import {
+  WebhookEventRecord,
+  WebhookReconcileResponse,
+  WebhooksResponse,
+} from "../../../lib/api/types";
 
 const downloadJson = (fileName: string, value: unknown) => {
   const blob = new Blob([JSON.stringify(value, null, 2)], { type: "application/json" });
@@ -48,7 +52,20 @@ export default function WebhooksPage() {
     },
   });
 
+  const reconcileWebhookMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiClient.post<WebhookReconcileResponse>("/webhooks/reconcile");
+      return response.data;
+    },
+    onSuccess: () => {
+      webhooksQuery.refetch();
+    },
+  });
+
   const latestEvents = useMemo(() => webhooksQuery.data?.events ?? [], [webhooksQuery.data]);
+  const missingFields = webhooksQuery.data?.metaWebhookDiagnosticsMissingFields ?? [];
+  const subscriptionCount = webhooksQuery.data?.metaAppSubscriptions?.length ?? 0;
+  const reconcileMessage = reconcileWebhookMutation.data?.message;
 
   return (
     <div className="space-y-6">
@@ -80,17 +97,38 @@ export default function WebhooksPage() {
             <p className="mt-2 text-sm text-foreground">
               Subscription health: {webhooksQuery.data?.subscriptionHealth ?? "Unknown"}
             </p>
+            {missingFields.length ? (
+              <p className="mt-2 text-sm text-red-700">
+                Missing Meta settings: {missingFields.join(", ")}
+              </p>
+            ) : null}
           </div>
           <div className="rounded-2xl bg-[#eef4ef] p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
               Connection
             </p>
             <p className="mt-3 text-sm text-foreground">
-              Configured webhook URL: {webhooksQuery.data?.configuredWebhookUrl || "Not set"}
+              Saved callback URL: {webhooksQuery.data?.configuredWebhookUrl || "Not set"}
             </p>
             <p className="mt-2 text-sm text-foreground">
               Last event: {webhooksQuery.data?.lastEventAt ? new Date(webhooksQuery.data.lastEventAt).toLocaleString() : "None"}
             </p>
+            <p className="mt-2 text-sm text-foreground">
+              Meta callback URL: {webhooksQuery.data?.metaCallbackUrl || "Not detected from Meta"}
+            </p>
+            <p className="mt-2 text-sm text-foreground">
+              Active Meta app subscriptions: {subscriptionCount}
+            </p>
+            {webhooksQuery.data?.callbackUrlMatchesBackendEndpoint === false ? (
+              <p className="mt-2 text-sm text-red-700">
+                Meta is not subscribed to the live backend callback endpoint.
+              </p>
+            ) : null}
+            {webhooksQuery.data?.callbackUrlMatchesBackendEndpoint ? (
+              <p className="mt-2 text-sm text-emerald-700">
+                Meta callback matches the live backend endpoint.
+              </p>
+            ) : null}
           </div>
         </div>
 
@@ -106,7 +144,24 @@ export default function WebhooksPage() {
           >
             {testWebhookMutation.isPending ? "Sending..." : "Create Test Event"}
           </Button>
+          <Button
+            disabled={reconcileWebhookMutation.isPending || webhooksQuery.isLoading}
+            onClick={() => reconcileWebhookMutation.mutate()}
+            type="button"
+          >
+            {reconcileWebhookMutation.isPending ? "Repairing..." : "Repair Subscription"}
+          </Button>
         </div>
+        {reconcileMessage ? (
+          <p className={`mt-4 text-sm ${reconcileWebhookMutation.data?.success ? "text-emerald-700" : "text-red-700"}`}>
+            {reconcileMessage}
+          </p>
+        ) : null}
+        {reconcileWebhookMutation.isError ? (
+          <p className="mt-4 text-sm text-red-700">
+            Failed to repair Meta subscription. Check API logs for the exact Graph response.
+          </p>
+        ) : null}
 
         <div className="mt-6 space-y-3">
           {latestEvents.map((event) => (

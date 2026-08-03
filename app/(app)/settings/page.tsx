@@ -360,7 +360,7 @@ export default function SettingsPage() {
           <Input placeholder="Business Account ID" {...register("businessAccountId")} />
           <Input placeholder="Phone Number ID" {...register("phoneNumberId")} />
           <Input placeholder="Verify Token" {...register("verifyToken")} />
-          <Input placeholder="Webhook URL" {...register("webhookUrl")} />
+          <Input placeholder="Saved Meta callback URL (should match the endpoint above)" {...register("webhookUrl")} />
           <Input placeholder="API Version" {...register("apiVersion")} />
           <Input placeholder="Cloud API Base URL" {...register("cloudApiBaseUrl")} />
           <div className="md:col-span-2">

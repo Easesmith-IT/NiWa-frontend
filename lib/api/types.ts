@@ -78,6 +78,11 @@ export interface WebhookLogsResponse {
 export interface WebhooksResponse {
   metaWebhookEndpoint: string;
   configuredWebhookUrl: string;
+  callbackUrlMatchesBackendEndpoint?: boolean;
+  metaAppSubscriptions?: Array<Record<string, unknown>>;
+  metaCallbackUrl?: string | null;
+  metaPhoneNumberWebhookConfiguration?: Record<string, unknown> | null;
+  metaWebhookDiagnosticsMissingFields?: string[];
   verifyTokenConfigured: boolean;
   apiVersion: string;
   verificationStatus?: string;
@@ -85,6 +90,23 @@ export interface WebhooksResponse {
   totalEvents: number;
   lastEventAt: string | null;
   events: WebhookEventRecord[];
+}
+
+export interface WebhookReconcileResponse {
+  success: boolean;
+  message: string;
+  requestBody: unknown;
+  responseBody: unknown;
+  diagnostics: {
+    appSubscriptions: Array<Record<string, unknown>>;
+    callbackUrlMatchesBackendEndpoint: boolean;
+    metaCallbackUrl: string | null;
+    metaPhoneNumberWebhookConfiguration: Record<string, unknown> | null;
+    metaWebhookEndpoint: string;
+    missingFields: string[];
+    savedWebhookUrl: string;
+    verifyTokenConfigured: boolean;
+  };
 }
 
 export interface LoginResponse {
