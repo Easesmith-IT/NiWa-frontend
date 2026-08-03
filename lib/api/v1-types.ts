@@ -44,6 +44,7 @@ export interface ContactRecordV1 extends V1RecordBase {
 
 export interface ConversationRecordV1 extends V1RecordBase {
   contactId: string;
+  lastMessageAt?: string | null;
   lastReadAt?: string | null;
   lastReadMessageId?: string | null;
   lastMessageDirection?: "incoming" | "outgoing";

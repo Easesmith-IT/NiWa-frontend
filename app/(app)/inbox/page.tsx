@@ -906,7 +906,7 @@ export default function InboxPage() {
                       </div>
                       <div className="flex shrink-0 flex-col items-end gap-2">
                         <span className="text-[12px] text-[#7a8b82]">
-                          {formatConversationTime(thread.conversation.updatedAt)}
+                          {formatConversationTime(thread.conversation.lastMessageAt || thread.conversation.updatedAt)}
                         </span>
                         {thread.conversation.unreadCount > 0 ? (
                           <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-[#2d644d] px-2 py-0.5 text-[11px] font-semibold text-white">
