@@ -41,6 +41,7 @@ import {
 } from "../../../features/contacts";
 import {
   ChatWindowSkeleton,
+  ImageLightboxModal,
   ThreadListSkeleton,
   useInboxRealtime,
   useInboxThreadDetailV1Query,
@@ -351,9 +352,11 @@ const buildMessageStatusDetails = (message: {
 const MessageMedia = ({
   messageId,
   mimeType,
+  onImageClick,
 }: {
   messageId: string;
   mimeType?: string | null;
+  onImageClick?: () => void;
 }) => {
   const [mediaUrl, setMediaUrl] = useState<string | null>(null);
 
@@ -405,7 +408,14 @@ const MessageMedia = ({
   }
 
   if (mimeType?.startsWith("image/")) {
-    return <img alt="WhatsApp media" className="mt-2 max-h-72 rounded-xl object-cover" src={mediaUrl} />;
+    return (
+      <img
+        alt="WhatsApp media"
+        className="mt-2 max-h-72 rounded-xl object-cover cursor-pointer hover:opacity-95 transition shadow-sm"
+        onClick={onImageClick}
+        src={mediaUrl}
+      />
+    );
   }
 
   if (mimeType?.startsWith("video/")) {
@@ -654,6 +664,8 @@ export default function InboxPage() {
     });
   }, [quickReplies, quickReplyTrigger]);
 
+  const [lightboxImageId, setLightboxImageId] = useState<string | null>(null);
+
   const displayedMessages = useMemo(() => {
     const persistedMessages = detail?.messages ?? [];
 
@@ -676,6 +688,32 @@ export default function InboxPage() {
       return leftTime - rightTime;
     });
   }, [detail?.messages, optimisticMessages]);
+
+  const lightboxImages = useMemo(() => {
+    return displayedMessages
+      .filter(
+        (m) =>
+          m.messageType === "image" ||
+          m.media?.mimeType?.startsWith("image/") ||
+          Boolean(m.media?.metaMediaId),
+      )
+      .map((m) => {
+        const isOutgoing = m.direction === "outgoing";
+        const senderName = isOutgoing
+          ? "You"
+          : detail?.contact.displayName || detail?.contact.phoneNumber || "Customer";
+        const timestamp = formatConversationTime(getMessageTimestamp(m));
+        const caption =
+          m.textBody || (m.previewText && m.previewText !== "[image]" ? m.previewText : null);
+
+        return {
+          caption,
+          messageId: m._id,
+          senderName,
+          timestamp,
+        };
+      });
+  }, [displayedMessages, detail?.contact]);
 
   const messageGroups = useMemo(() => {
     const groups: Array<{ day: string; messages: NonNullable<typeof detail>["messages"] }> = [];
@@ -1190,13 +1228,17 @@ export default function InboxPage() {
                                 <p className="whitespace-pre-wrap text-[14px] leading-6 text-[#25342f]">
                                   {message.textBody}
                                 </p>
-                              ) : (
+                              ) : message.messageType === "text" || (message.previewText && message.previewText !== "[image]") ? (
                                 <p className="whitespace-pre-wrap text-[14px] leading-6 text-[#25342f]">
-                                  {message.previewText || `[${message.messageType}]`}
+                                  {message.previewText}
                                 </p>
-                              )}
+                              ) : null}
                               {message.media?.metaMediaId ? (
-                                <MessageMedia messageId={message._id} mimeType={mediaMimeType} />
+                                <MessageMedia
+                                  messageId={message._id}
+                                  mimeType={mediaMimeType}
+                                  onImageClick={() => setLightboxImageId(message._id)}
+                                />
                               ) : null}
                               {message.media?.caption && message.media.caption !== message.textBody ? (
                                 <p className="mt-2 whitespace-pre-wrap text-[13px] leading-5 text-[#44534d]">
@@ -1953,6 +1995,17 @@ export default function InboxPage() {
           </aside>
         ) : null}
       </div>
+
+      {lightboxImageId ? (
+        <ImageLightboxModal
+          images={lightboxImages}
+          initialIndex={Math.max(
+            0,
+            lightboxImages.findIndex((img) => img.messageId === lightboxImageId),
+          )}
+          onClose={() => setLightboxImageId(null)}
+        />
+      ) : null}
     </div>
   );
 }
