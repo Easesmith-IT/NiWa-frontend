@@ -32,7 +32,7 @@ export default function SearchPage() {
   return (
     <div className="space-y-4">
       {/* Header Search Banner */}
-      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle">
+      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle dark:border-[#292C2F] dark:bg-[#121416]">
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px] xl:items-center">
           <div>
             <h1 className="text-xl font-semibold tracking-tight text-foreground">
@@ -41,7 +41,7 @@ export default function SearchPage() {
             <p className="mt-1 max-w-2xl text-xs text-muted-foreground">
               Search across contacts, inbox threads, WhatsApp message content, and internal team notes.
             </p>
-            <div className="mt-3 flex items-center gap-2 rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-3 py-1.5 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary">
+            <div className="mt-3 flex items-center gap-2 rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-3 py-1.5 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary dark:border-[#303438] dark:bg-[#17191B]">
               <Search className="h-4 w-4 text-muted-foreground" />
               <Input
                 className="border-0 bg-transparent px-0 text-xs text-foreground placeholder:text-muted-foreground focus-visible:ring-0"
@@ -58,7 +58,7 @@ export default function SearchPage() {
               { label: "Messages", value: totals?.messages ?? 0 },
               { label: "Notes", value: totals?.notes ?? 0 },
             ].map((item) => (
-              <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-2.5" key={item.label}>
+              <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-2.5 dark:border-[#292C2F] dark:bg-[#17191B]" key={item.label}>
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{item.label}</p>
                 <p className="mt-0.5 text-lg font-bold text-foreground">{item.value}</p>
               </div>
@@ -83,7 +83,7 @@ export default function SearchPage() {
       ) : null}
       {hasError ? (
         <Card className="p-4 space-y-3">
-          <p className="text-xs font-medium text-[#C2413A]">
+          <p className="text-xs font-medium text-[#C2413A] dark:text-[#D7685C]">
             Search query failed. Please verify API backend connection.
           </p>
           <div className="flex gap-2">
@@ -107,8 +107,8 @@ export default function SearchPage() {
       <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-4">
           <Card className="space-y-3.5 p-4">
-            <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-2">
-              <Inbox className="h-4 w-4 text-[#176B4D]" />
+            <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-2 dark:border-[#202326]">
+              <Inbox className="h-4 w-4 text-[#176B4D] dark:text-[#359B76]" />
               <div>
                 <h2 className="text-sm font-semibold text-foreground">Inbox Threads</h2>
               </div>
@@ -116,15 +116,15 @@ export default function SearchPage() {
             <div className="space-y-2.5">
               {isLoading ? (
                 Array.from({ length: 2 }).map((_, index) => (
-                  <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 animate-pulse space-y-2" key={`thread-loading-${index}`}>
-                    <div className="h-3.5 w-36 rounded bg-[#E4E4E7]" />
-                    <div className="h-3 w-full rounded bg-[#E4E4E7]" />
+                  <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 animate-pulse space-y-2 dark:border-[#292C2F] dark:bg-[#17191B]" key={`thread-loading-${index}`}>
+                    <div className="h-3.5 w-36 rounded bg-[#E4E4E7] dark:bg-[#292C2F]" />
+                    <div className="h-3 w-full rounded bg-[#E4E4E7] dark:bg-[#292C2F]" />
                   </div>
                 ))
               ) : null}
               {(inboxSearchQuery.data?.data ?? []).map((item) => (
                 <Link
-                  className="block rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 transition-colors hover:border-[#D4D4D8]"
+                  className="block rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 transition-colors hover:border-[#D4D4D8] dark:border-[#292C2F] dark:bg-[#17191B] dark:hover:border-[#3A3E42]"
                   href={`/inbox?conversationId=${encodeURIComponent(item.conversation._id)}`}
                   key={item.conversation._id}
                 >
@@ -153,8 +153,8 @@ export default function SearchPage() {
           </Card>
 
           <Card className="space-y-3.5 p-4">
-            <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-2">
-              <MessageSquareText className="h-4 w-4 text-[#176B4D]" />
+            <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-2 dark:border-[#202326]">
+              <MessageSquareText className="h-4 w-4 text-[#176B4D] dark:text-[#359B76]" />
               <div>
                 <h2 className="text-sm font-semibold text-foreground">Message Content Hits</h2>
               </div>
@@ -162,14 +162,14 @@ export default function SearchPage() {
             <div className="space-y-2.5">
               {isLoading ? (
                 Array.from({ length: 2 }).map((_, index) => (
-                  <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 animate-pulse space-y-2" key={`message-loading-${index}`}>
-                    <div className="h-3.5 w-32 rounded bg-[#E4E4E7]" />
-                    <div className="h-3 w-full rounded bg-[#E4E4E7]" />
+                  <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 animate-pulse space-y-2 dark:border-[#292C2F] dark:bg-[#17191B]" key={`message-loading-${index}`}>
+                    <div className="h-3.5 w-32 rounded bg-[#E4E4E7] dark:bg-[#292C2F]" />
+                    <div className="h-3 w-full rounded bg-[#E4E4E7] dark:bg-[#292C2F]" />
                   </div>
                 ))
               ) : null}
               {(globalSearchQuery.data?.data.messages ?? []).map((item) => (
-                <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3" key={item.message._id}>
+                <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 dark:border-[#292C2F] dark:bg-[#17191B]" key={item.message._id}>
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-xs font-semibold text-foreground">
@@ -192,22 +192,22 @@ export default function SearchPage() {
 
         <div className="space-y-4">
           <Card className="space-y-3.5 p-4">
-            <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-2">
-              <ContactRound className="h-4 w-4 text-[#176B4D]" />
+            <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-2 dark:border-[#202326]">
+              <ContactRound className="h-4 w-4 text-[#176B4D] dark:text-[#359B76]" />
               <div>
                 <h2 className="text-sm font-semibold text-foreground">Contacts</h2>
               </div>
             </div>
             <div className="space-y-2.5">
               {isLoading ? (
-                <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 animate-pulse space-y-2">
-                  <div className="h-3.5 w-36 rounded bg-[#E4E4E7]" />
-                  <div className="h-3 w-28 rounded bg-[#E4E4E7]" />
+                <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 animate-pulse space-y-2 dark:border-[#292C2F] dark:bg-[#17191B]">
+                  <div className="h-3.5 w-36 rounded bg-[#E4E4E7] dark:bg-[#292C2F]" />
+                  <div className="h-3 w-28 rounded bg-[#E4E4E7] dark:bg-[#292C2F]" />
                 </div>
               ) : null}
               {(globalSearchQuery.data?.data.contacts ?? []).map((item) => (
                 <Link
-                  className="block rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 transition-colors hover:border-[#D4D4D8]"
+                  className="block rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 transition-colors hover:border-[#D4D4D8] dark:border-[#292C2F] dark:bg-[#17191B] dark:hover:border-[#3A3E42]"
                   href="/contacts"
                   key={item.contact._id}
                 >
@@ -222,21 +222,21 @@ export default function SearchPage() {
           </Card>
 
           <Card className="space-y-3.5 p-4">
-            <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-2">
-              <NotebookPen className="h-4 w-4 text-[#176B4D]" />
+            <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-2 dark:border-[#202326]">
+              <NotebookPen className="h-4 w-4 text-[#176B4D] dark:text-[#359B76]" />
               <div>
                 <h2 className="text-sm font-semibold text-foreground">Internal Notes</h2>
               </div>
             </div>
             <div className="space-y-2.5">
               {isLoading ? (
-                <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 animate-pulse space-y-2">
-                  <div className="h-3.5 w-32 rounded bg-[#E4E4E7]" />
-                  <div className="h-3 w-full rounded bg-[#E4E4E7]" />
+                <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 animate-pulse space-y-2 dark:border-[#292C2F] dark:bg-[#17191B]">
+                  <div className="h-3.5 w-32 rounded bg-[#E4E4E7] dark:bg-[#292C2F]" />
+                  <div className="h-3 w-full rounded bg-[#E4E4E7] dark:bg-[#292C2F]" />
                 </div>
               ) : null}
               {(globalSearchQuery.data?.data.notes ?? []).map((item) => (
-                <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3" key={item.note._id}>
+                <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 dark:border-[#292C2F] dark:bg-[#17191B]" key={item.note._id}>
                   <div className="flex items-start justify-between gap-3">
                     <div>
                       <p className="text-xs font-semibold text-foreground">

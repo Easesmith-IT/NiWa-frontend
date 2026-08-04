@@ -467,20 +467,20 @@ export default function MessageStudioPage() {
   return (
     <div className="space-y-4">
       {/* Header Banner */}
-      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle">
+      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle dark:border-[#292C2F] dark:bg-[#121416]">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           Message Studio & Dispatch Workbench
         </h1>
         <p className="mt-1 max-w-2xl text-xs text-muted-foreground">
           Compose, validate, preview, and send Meta Cloud API message payloads (Templates, Text, Interactive, Media).
         </p>
-        <div className="mt-3 flex flex-wrap gap-1.5 border-t border-[#F0F0F2] pt-3">
+        <div className="mt-3 flex flex-wrap gap-1.5 border-t border-[#F0F0F2] pt-3 dark:border-[#202326]">
           {messageModes.map((item) => (
             <button
               className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
                 item.key === mode
-                  ? "bg-[#176B4D] text-white"
-                  : "border border-[#E4E4E7] bg-[#FAFAFA] text-foreground hover:bg-[#F4F4F5]"
+                  ? "bg-[#176B4D] text-white dark:bg-[#2D8A67]"
+                  : "border border-[#E4E4E7] bg-[#FAFAFA] text-foreground hover:bg-[#F4F4F5] dark:border-[#292C2F] dark:bg-[#17191B] dark:hover:bg-[#202326]"
               }`}
               key={item.key}
               onClick={() => {
@@ -498,9 +498,9 @@ export default function MessageStudioPage() {
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_400px]">
         <Card className="overflow-hidden p-0">
           <div className="grid gap-0 lg:grid-cols-[1.1fr_0.9fr]">
-            <section className="border-b border-[#E4E4E7] bg-white p-4 lg:border-b-0 lg:border-r">
-              <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-2.5">
-                <Send className="h-4 w-4 text-[#176B4D]" />
+            <section className="border-b border-[#E4E4E7] bg-white p-4 lg:border-b-0 lg:border-r dark:border-[#292C2F] dark:bg-[#121416]">
+              <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-2.5 dark:border-[#202326]">
+                <Send className="h-4 w-4 text-[#176B4D] dark:text-[#359B76]" />
                 <h3 className="text-sm font-semibold text-foreground">
                   Composer: {formatPreviewTitle(mode)}
                 </h3>
@@ -524,13 +524,13 @@ export default function MessageStudioPage() {
                     <div>
                       <label className="mb-1 block text-xs font-medium text-foreground">Message Body *</label>
                       <Textarea
-                        className="min-h-28 bg-[#FAFAFA] text-xs"
+                        className="min-h-28 text-xs"
                         onChange={(event) => setTextBody(event.target.value)}
                         placeholder="Enter text message content..."
                         value={textBody}
                       />
                     </div>
-                    <label className="flex items-center gap-2 rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-2.5 text-xs text-foreground">
+                    <label className="flex items-center gap-2 rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-2.5 text-xs text-foreground dark:border-[#292C2F] dark:bg-[#17191B]">
                       <input
                         checked={previewUrl}
                         onChange={(event) => setPreviewUrl(event.target.checked)}
@@ -546,7 +546,7 @@ export default function MessageStudioPage() {
                     <div>
                       <label className="mb-1 block text-xs font-medium text-foreground">Select Active Template *</label>
                       <select
-                        className="h-8.5 w-full rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none focus:border-primary"
+                        className="h-8.5 w-full rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none focus:border-primary dark:border-[#303438] dark:bg-[#17191B]"
                         onChange={(event) => {
                           const nextTemplate = findTemplateByOptionValue(activeTemplates, event.target.value);
                           setTemplateName(nextTemplate?.name ?? "");
@@ -571,10 +571,10 @@ export default function MessageStudioPage() {
                     </div>
 
                     {selectedTemplate ? (
-                      <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 text-xs space-y-1.5">
+                      <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 text-xs space-y-1.5 dark:border-[#292C2F] dark:bg-[#17191B]">
                         <p className="font-semibold text-foreground">{selectedTemplate.name}</p>
                         <p className="text-muted-foreground">
-                          Status: <span className="font-semibold text-[#16803C]">{selectedTemplate.status}</span> • Lang: {selectedTemplate.language}
+                          Status: <span className="font-semibold text-[#16803C] dark:text-[#3FA66F]">{selectedTemplate.status}</span> • Lang: {selectedTemplate.language}
                         </p>
                         {selectedTemplate.bodyText ? (
                           <p className="text-foreground">{selectedTemplate.bodyText}</p>
@@ -609,7 +609,7 @@ export default function MessageStudioPage() {
                     <div>
                       <label className="mb-1 block text-xs font-medium text-foreground">Stored Media Asset *</label>
                       <select
-                        className="h-8.5 w-full rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none focus:border-primary"
+                        className="h-8.5 w-full rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none focus:border-primary dark:border-[#303438] dark:bg-[#17191B]"
                         onChange={(event) => setSelectedMediaId(event.target.value)}
                         value={selectedMediaId}
                       >
@@ -625,7 +625,7 @@ export default function MessageStudioPage() {
                       <div>
                         <label className="mb-1 block text-xs font-medium text-foreground">Media Caption</label>
                         <Textarea
-                          className="min-h-16 bg-[#FAFAFA] text-xs"
+                          className="min-h-16 text-xs"
                           onChange={(event) => setMediaCaption(event.target.value)}
                           placeholder="Optional media caption..."
                           value={mediaCaption}
@@ -635,7 +635,7 @@ export default function MessageStudioPage() {
                   </>
                 ) : null}
 
-                <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 pt-3 mt-3">
+                <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 pt-3 mt-3 dark:border-[#292C2F] dark:bg-[#17191B]">
                   <div>
                     <p className="text-xs font-semibold text-foreground">Dispatch Destination</p>
                     <p className="font-mono text-xs text-muted-foreground">
@@ -654,20 +654,20 @@ export default function MessageStudioPage() {
                     {sendMutation.isPending ? "Dispatching..." : "Send Message"}
                   </Button>
                 </div>
-                {submitError ? <p className="text-xs font-medium text-[#C2413A]">{submitError}</p> : null}
+                {submitError ? <p className="text-xs font-medium text-[#C2413A] dark:text-[#D7685C]">{submitError}</p> : null}
               </div>
             </section>
 
-            <section className="bg-[#FAFAFA] p-4 border-t lg:border-t-0 border-[#E4E4E7]">
-              <div className="flex items-center justify-between border-b border-[#F0F0F2] pb-2">
+            <section className="bg-[#FAFAFA] p-4 border-t lg:border-t-0 border-[#E4E4E7] dark:border-[#292C2F] dark:bg-[#17191B]">
+              <div className="flex items-center justify-between border-b border-[#F0F0F2] pb-2 dark:border-[#202326]">
                 <div className="flex items-center gap-2">
-                  <Smartphone className="h-4 w-4 text-[#176B4D]" />
+                  <Smartphone className="h-4 w-4 text-[#176B4D] dark:text-[#359B76]" />
                   <p className="text-xs font-semibold text-foreground">
                     Device Preview & Telemetry
                   </p>
                 </div>
                 {responsePreview ? (
-                  <span className="inline-flex items-center rounded-full bg-[#EDF8F3] px-2.5 py-0.5 text-[10px] font-semibold text-[#16803C]">
+                  <span className="inline-flex items-center rounded-full bg-[#EDF8F3] px-2.5 py-0.5 text-[10px] font-semibold text-[#16803C] dark:bg-[#13251E] dark:text-[#3FA66F]">
                     <CheckCircle2 className="mr-1 h-3 w-3" />
                     Sent 200 OK
                   </span>
@@ -675,35 +675,35 @@ export default function MessageStudioPage() {
               </div>
 
               <div
-                className="mx-auto mt-4 max-w-[280px] rounded-xl border border-[#E4E4E7] p-3 shadow-subtle bg-repeat bg-center"
+                className="mx-auto mt-4 max-w-[280px] rounded-xl border border-[#E4E4E7] p-3 shadow-subtle bg-repeat bg-center dark:border-[#292C2F]"
                 style={{ backgroundImage: "url('/whatsapp-bg.png')", backgroundSize: "300px" }}
               >
-                <div className="rounded-lg border border-[#E4E4E7] bg-white p-2.5">
+                <div className="rounded-lg border border-[#E4E4E7] bg-white p-2.5 dark:border-[#282C2F] dark:bg-[#1C1F21]">
                   <p className="text-[10px] font-bold text-muted-foreground uppercase">WhatsApp Business</p>
                   <p className="font-mono text-xs font-semibold text-foreground">{commonTo || "+91..."}</p>
                 </div>
 
-                <div className="mt-3 min-h-[160px] rounded-lg bg-[#EDF8F3] p-3 border border-[#C4E8DA]">
-                  <p className="whitespace-pre-wrap text-xs text-foreground leading-relaxed">{previewSummary}</p>
+                <div className="mt-3 min-h-[160px] rounded-lg bg-[#EDF8F3] p-3 border border-[#C4E8DA] dark:border-[#203D31] dark:bg-[#14251E]">
+                  <p className="whitespace-pre-wrap text-xs text-foreground leading-relaxed dark:text-[#E8F3EE]">{previewSummary}</p>
                   {selectedMedia ? (
-                    <div className="mt-2 rounded bg-white p-2 text-[11px] border border-[#E4E4E7]">
+                    <div className="mt-2 rounded bg-white p-2 text-[11px] border border-[#E4E4E7] dark:border-[#282C2F] dark:bg-[#1C1F21]">
                       <span className="font-mono font-medium">{getMediaDisplayName(selectedMedia)}</span>
                     </div>
                   ) : null}
-                  <p className="mt-2 text-right text-[9px] text-[#34B7F1] font-semibold">12:00 PM ✓✓</p>
+                  <p className="mt-2 text-right text-[9px] text-[#34B7F1] dark:text-[#53BDEB] font-semibold">12:00 PM ✓✓</p>
                 </div>
               </div>
 
               <div className="mt-4 space-y-3">
                 <div>
                   <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Request JSON Payload</p>
-                  <pre className="overflow-x-auto rounded-md border border-[#27272A] bg-[#18181B] p-2.5 font-mono text-[10px] text-[#F4F4F5]">
+                  <pre className="overflow-x-auto rounded-md border border-[#292C2F] bg-[#0F1112] p-2.5 font-mono text-[10px] text-[#E4E4E7]">
                     {JSON.stringify(requestPreview, null, 2)}
                   </pre>
                 </div>
                 <div>
                   <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Meta Graph API Response</p>
-                  <pre className="overflow-x-auto rounded-md border border-[#27272A] bg-[#18181B] p-2.5 font-mono text-[10px] text-[#F4F4F5]">
+                  <pre className="overflow-x-auto rounded-md border border-[#292C2F] bg-[#0F1112] p-2.5 font-mono text-[10px] text-[#E4E4E7]">
                     {JSON.stringify(responsePreview, null, 2)}
                   </pre>
                 </div>

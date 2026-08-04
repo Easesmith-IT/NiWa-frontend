@@ -75,10 +75,10 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen w-full bg-[#F7F8FA]">
+    <main className="flex min-h-screen w-full bg-[#F7F8FA] dark:bg-[#0C0D0E]">
       <div className="grid w-full grid-cols-1 lg:grid-cols-12 min-h-screen">
         {/* Left Hero Panel (Desktop) */}
-        <div className="relative hidden lg:col-span-6 lg:flex flex-col justify-between border-r border-[#E4E4E7] bg-[#176B4D] p-10 text-white shadow-subtle">
+        <div className="relative hidden lg:col-span-6 lg:flex flex-col justify-between border-r border-[#E4E4E7] bg-[#176B4D] p-10 text-white shadow-subtle dark:border-[#292C2F] dark:bg-[#114E38]">
           {/* Top Brand Bar */}
           <div className="relative z-10 flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-md bg-white/10 p-2 border border-white/20">
@@ -160,7 +160,7 @@ export default function LoginPage() {
           <div className="w-full max-w-md space-y-5">
             {/* Header */}
             <div className="text-center space-y-1.5">
-              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-[#EDF8F3] text-[#176B4D] border border-[#C4E8DA]">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-[#EDF8F3] text-[#176B4D] border border-[#C4E8DA] dark:border-[#1F4D3C] dark:bg-[#13251E] dark:text-[#359B76]">
                 <KeyRound className="h-6 w-6" />
               </div>
               <h2 className="text-2xl font-bold tracking-tight text-foreground">
@@ -172,15 +172,15 @@ export default function LoginPage() {
             </div>
 
             {/* API Status Pill */}
-            <div className="flex items-center justify-center gap-2 rounded-md border border-[#E4E4E7] bg-white py-1.5 px-3 text-xs font-medium text-foreground shadow-subtle">
-              <span className="h-2 w-2 rounded-full bg-[#176B4D] animate-pulse" />
+            <div className="flex items-center justify-center gap-2 rounded-md border border-[#E4E4E7] bg-white py-1.5 px-3 text-xs font-medium text-foreground shadow-subtle dark:border-[#292C2F] dark:bg-[#121416]">
+              <span className="h-2 w-2 rounded-full bg-[#176B4D] animate-pulse dark:bg-[#359B76]" />
               <span>Meta Cloud API Connected & Operational</span>
             </div>
 
             {/* Form Card */}
-            <div className="rounded-lg border border-[#E4E4E7] bg-white p-6 shadow-subtle space-y-4">
+            <div className="rounded-lg border border-[#E4E4E7] bg-white p-6 shadow-subtle space-y-4 dark:border-[#292C2F] dark:bg-[#121416]">
               {submitError ? (
-                <div className="rounded-md border border-[#FEE2E2] bg-[#FEF2F2] p-3 text-xs font-medium text-[#C2413A]">
+                <div className="rounded-md border border-[#FEE2E2] bg-[#FEF2F2] p-3 text-xs font-medium text-[#C2413A] dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-[#D7685C]">
                   {submitError}
                 </div>
               ) : null}
@@ -202,7 +202,7 @@ export default function LoginPage() {
                     />
                   </div>
                   {errors.email ? (
-                    <p className="text-xs text-[#C2413A]">{errors.email.message}</p>
+                    <p className="text-xs text-[#C2413A] dark:text-[#D7685C]">{errors.email.message}</p>
                   ) : null}
                 </div>
 
@@ -230,7 +230,7 @@ export default function LoginPage() {
                     </button>
                   </div>
                   {errors.password ? (
-                    <p className="text-xs text-[#C2413A]">{errors.password.message}</p>
+                    <p className="text-xs text-[#C2413A] dark:text-[#D7685C]">{errors.password.message}</p>
                   ) : null}
                 </div>
 
@@ -254,9 +254,9 @@ export default function LoginPage() {
               </form>
 
               {/* Demo Helper Button */}
-              <div className="border-t border-[#F0F0F2] pt-3 text-center">
+              <div className="border-t border-[#F0F0F2] pt-3 text-center dark:border-[#202326]">
                 <button
-                  className="text-xs font-medium text-[#176B4D] hover:underline"
+                  className="text-xs font-medium text-[#176B4D] hover:underline dark:text-[#359B76]"
                   onClick={handleFillDemo}
                   type="button"
                 >
@@ -270,7 +270,7 @@ export default function LoginPage() {
               <p>
                 Data deletion instructions available at{" "}
                 <Link
-                  className="font-medium text-[#176B4D] underline-offset-4 hover:underline"
+                  className="font-medium text-[#176B4D] underline-offset-4 hover:underline dark:text-[#359B76]"
                   href="/data-deletion-instructions"
                 >
                   /data-deletion-instructions

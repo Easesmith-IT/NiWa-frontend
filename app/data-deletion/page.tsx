@@ -50,7 +50,7 @@ export default function DataDeletionPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#F7F8FA] px-4 py-8 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-[#F7F8FA] px-4 py-8 sm:px-6 lg:px-8 dark:bg-[#0C0D0E]">
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-4">
         <Card className="overflow-hidden p-0">
           <div className="grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
@@ -71,24 +71,24 @@ export default function DataDeletionPage() {
               </p>
 
               <div className="mt-6 grid gap-3 sm:grid-cols-3 text-xs">
-                <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 space-y-1">
-                  <p className="font-semibold text-[#176B4D]">Step 1: Details</p>
+                <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 space-y-1 dark:border-[#292C2F] dark:bg-[#17191B]">
+                  <p className="font-semibold text-[#176B4D] dark:text-[#359B76]">Step 1: Details</p>
                   <p className="text-muted-foreground">Submit identifying phone number or workspace record.</p>
                 </div>
-                <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 space-y-1">
-                  <p className="font-semibold text-[#176B4D]">Step 2: Reference</p>
+                <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 space-y-1 dark:border-[#292C2F] dark:bg-[#17191B]">
+                  <p className="font-semibold text-[#176B4D] dark:text-[#359B76]">Step 2: Reference</p>
                   <p className="text-muted-foreground">Receive a tracking confirmation code and status URL.</p>
                 </div>
-                <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 space-y-1">
-                  <p className="font-semibold text-[#176B4D]">Step 3: Audit</p>
+                <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 space-y-1 dark:border-[#292C2F] dark:bg-[#17191B]">
+                  <p className="font-semibold text-[#176B4D] dark:text-[#359B76]">Step 3: Audit</p>
                   <p className="text-muted-foreground">Review the compliance receipt for your records.</p>
                 </div>
               </div>
             </section>
 
-            <section className="border-t border-[#E4E4E7] bg-[#FAFAFA] p-6 sm:p-8 lg:border-l lg:border-t-0">
-              <div className="rounded-md border border-[#E4E4E7] bg-white p-5 shadow-subtle space-y-3">
-                <h3 className="text-sm font-semibold text-foreground border-b border-[#F0F0F2] pb-2">Deletion Request Form</h3>
+            <section className="border-t border-[#E4E4E7] bg-[#FAFAFA] p-6 sm:p-8 lg:border-l lg:border-t-0 dark:border-[#292C2F] dark:bg-[#17191B]">
+              <div className="rounded-md border border-[#E4E4E7] bg-white p-5 shadow-subtle space-y-3 dark:border-[#292C2F] dark:bg-[#121416]">
+                <h3 className="text-sm font-semibold text-foreground border-b border-[#F0F0F2] pb-2 dark:border-[#202326]">Deletion Request Form</h3>
                 <form className="space-y-3" onSubmit={handleSubmit}>
                   <div className="space-y-1">
                     <label className="text-xs font-medium text-foreground" htmlFor="fullName">
@@ -160,7 +160,7 @@ export default function DataDeletionPage() {
                       Reason for Deletion
                     </label>
                     <Textarea
-                      className="min-h-16 bg-[#FAFAFA] text-xs"
+                      className="min-h-16 text-xs"
                       id="deletionReason"
                       placeholder="Describe target records..."
                       value={formValues.deletionReason}
@@ -199,13 +199,13 @@ export default function DataDeletionPage() {
             <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Deletion Receipt & Status</h3>
             {response ? (
               <div className="space-y-2 text-xs">
-                <div className="rounded-md border border-[#C4E8DA] bg-[#EDF8F3] p-3 text-[#16803C] font-medium">
+                <div className="rounded-md border border-[#C4E8DA] bg-[#EDF8F3] p-3 text-[#16803C] font-medium dark:border-[#1F4D3C] dark:bg-[#13251E] dark:text-[#3FA66F]">
                   Request successfully logged for processing.
                 </div>
                 <div className="space-y-1 text-foreground">
                   <p>
                     <span className="text-muted-foreground">Confirmation Code:</span>{" "}
-                    <span className="font-mono font-semibold text-[#176B4D]">{response.confirmationCode}</span>
+                    <span className="font-mono font-semibold text-[#176B4D] dark:text-[#359B76]">{response.confirmationCode}</span>
                   </p>
                   <p>
                     <span className="text-muted-foreground">Status Endpoint:</span>{" "}

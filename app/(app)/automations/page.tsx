@@ -48,7 +48,7 @@ export default function AutomationsPage() {
   return (
     <div className="space-y-4">
       {/* Header Banner */}
-      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle">
+      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle dark:border-[#292C2F] dark:bg-[#121416]">
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px] lg:items-center">
           <div>
             <h1 className="text-xl font-semibold tracking-tight text-foreground">
@@ -58,13 +58,13 @@ export default function AutomationsPage() {
               Build operator automations that react to inbound WhatsApp messages, condition rules, wait steps, and audit execution trails.
             </p>
           </div>
-          <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3.5">
+          <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3.5 dark:border-[#292C2F] dark:bg-[#17191B]">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Run Telemetry</p>
             <p className="mt-1 text-xs text-muted-foreground">
               Monitor active runs, wait queues, and step execution logs.
             </p>
             <Link
-              className="mt-2.5 inline-flex h-8 items-center justify-center rounded-md border border-[#E4E4E7] bg-white px-3 text-xs font-medium text-foreground shadow-subtle transition-colors hover:bg-[#F4F4F5]"
+              className="mt-2.5 inline-flex h-8 items-center justify-center rounded-md border border-[#E4E4E7] bg-white px-3 text-xs font-medium text-foreground shadow-subtle transition-colors hover:bg-[#F4F4F5] dark:border-[#292C2F] dark:bg-[#121416] dark:hover:bg-[#1C1F21]"
               href="/automations/runs"
             >
               Open Runs Log
@@ -75,20 +75,20 @@ export default function AutomationsPage() {
 
       <section className="grid gap-4 lg:grid-cols-[430px_minmax(0,1fr)]">
         <Card className="space-y-3.5 p-4">
-          <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-2.5">
-            <Workflow className="h-4 w-4 text-[#176B4D]" />
+          <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-2.5 dark:border-[#202326]">
+            <Workflow className="h-4 w-4 text-[#176B4D] dark:text-[#359B76]" />
             <h2 className="text-sm font-semibold text-foreground">Create Automation</h2>
           </div>
           <Input placeholder="Automation name" value={name} onChange={(event) => setName(event.target.value)} />
           <Textarea
-            className="min-h-20 bg-[#FAFAFA]"
+            className="min-h-20 text-xs"
             placeholder="Describe what this automation does..."
             value={description}
             onChange={(event) => setDescription(event.target.value)}
           />
           <div className="grid gap-2 md:grid-cols-2">
             <select
-              className="h-8.5 rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none focus:border-primary"
+              className="h-8.5 rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none focus:border-primary dark:border-[#303438] dark:bg-[#17191B]"
               value={triggerType}
               onChange={(event) => setTriggerType(event.target.value as "incoming_message" | "manual")}
             >
@@ -102,7 +102,7 @@ export default function AutomationsPage() {
             />
           </div>
 
-          <div className="space-y-2.5 rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3">
+          <div className="space-y-2.5 rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 dark:border-[#292C2F] dark:bg-[#17191B]">
             <div className="flex items-center justify-between gap-3">
               <p className="text-xs font-semibold text-foreground">Conditions</p>
               <Button
@@ -118,7 +118,7 @@ export default function AutomationsPage() {
             {conditions.map((condition, index) => (
               <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_110px_minmax(0,1fr)]" key={index}>
                 <Input
-                  className="bg-white"
+                  className="bg-white dark:bg-[#121416]"
                   placeholder="Source path"
                   value={condition.source}
                   onChange={(event) =>
@@ -130,7 +130,7 @@ export default function AutomationsPage() {
                   }
                 />
                 <select
-                  className="h-8.5 rounded-md border border-[#D4D4D8] bg-white px-2 text-xs text-foreground outline-none"
+                  className="h-8.5 rounded-md border border-[#D4D4D8] bg-white px-2 text-xs text-foreground outline-none dark:border-[#303438] dark:bg-[#121416]"
                   value={condition.operator}
                   onChange={(event) =>
                     setConditions((current) =>
@@ -151,7 +151,7 @@ export default function AutomationsPage() {
                   <option value="exists">exists</option>
                 </select>
                 <Input
-                  className="bg-white"
+                  className="bg-white dark:bg-[#121416]"
                   placeholder="Match value"
                   value={condition.value ?? ""}
                   onChange={(event) =>
@@ -166,7 +166,7 @@ export default function AutomationsPage() {
             ))}
           </div>
 
-          <div className="space-y-2.5 rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3">
+          <div className="space-y-2.5 rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 dark:border-[#292C2F] dark:bg-[#17191B]">
             <div className="flex items-center justify-between gap-3">
               <p className="text-xs font-semibold text-foreground">Steps</p>
               <Button
@@ -180,9 +180,9 @@ export default function AutomationsPage() {
               </Button>
             </div>
             {steps.map((step, index) => (
-              <div className="space-y-2 rounded-md border border-[#E4E4E7] bg-white p-2.5" key={index}>
+              <div className="space-y-2 rounded-md border border-[#E4E4E7] bg-white p-2.5 dark:border-[#292C2F] dark:bg-[#121416]" key={index}>
                 <select
-                  className="h-8.5 w-full rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none"
+                  className="h-8.5 w-full rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none dark:border-[#303438] dark:bg-[#17191B]"
                   value={step.type}
                   onChange={(event) =>
                     setSteps((current) =>
@@ -212,7 +212,7 @@ export default function AutomationsPage() {
 
                 {step.type === "send_message" ? (
                   <Textarea
-                    className="min-h-16 bg-white text-xs"
+                    className="min-h-16 text-xs"
                     placeholder="Message body, supports {{contact.displayName}} and {{trigger.previewText}}"
                     value={String(step.config.body ?? "")}
                     onChange={(event) =>
@@ -228,7 +228,7 @@ export default function AutomationsPage() {
                 {step.type === "create_task" ? (
                   <div className="grid gap-2 md:grid-cols-[minmax(0,1fr)_100px_100px]">
                     <Input
-                      className="bg-white"
+                      className="bg-white dark:bg-[#17191B]"
                       placeholder="Task title"
                       value={String(step.config.title ?? "")}
                       onChange={(event) =>
@@ -242,7 +242,7 @@ export default function AutomationsPage() {
                       }
                     />
                     <Input
-                      className="bg-white"
+                      className="bg-white dark:bg-[#17191B]"
                       placeholder="Due in min"
                       type="number"
                       value={String(step.config.dueInMinutes ?? 60)}
@@ -263,7 +263,7 @@ export default function AutomationsPage() {
                       }
                     />
                     <select
-                      className="h-8.5 rounded-md border border-[#D4D4D8] bg-white px-2 text-xs text-foreground outline-none"
+                      className="h-8.5 rounded-md border border-[#D4D4D8] bg-white px-2 text-xs text-foreground outline-none dark:border-[#303438] dark:bg-[#17191B]"
                       value={String(step.config.priority ?? "medium")}
                       onChange={(event) =>
                         setSteps((current) =>
@@ -285,7 +285,7 @@ export default function AutomationsPage() {
                 {step.type === "create_note" ? (
                   <div className="space-y-2">
                     <Textarea
-                      className="min-h-16 bg-white text-xs"
+                      className="min-h-16 text-xs"
                       placeholder="Internal note body"
                       value={String(step.config.content ?? "")}
                       onChange={(event) =>
@@ -319,7 +319,7 @@ export default function AutomationsPage() {
 
                 {step.type === "wait" ? (
                   <Input
-                    className="bg-white"
+                    className="bg-white dark:bg-[#17191B]"
                     placeholder="Delay in minutes"
                     type="number"
                     value={String(step.config.delayMinutes ?? 5)}
@@ -384,7 +384,7 @@ export default function AutomationsPage() {
         </Card>
 
         <Card className="space-y-3.5 p-4">
-          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#F0F0F2] pb-2.5">
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#F0F0F2] pb-2.5 dark:border-[#202326]">
             <div className="flex items-center gap-2">
               <Bot className="h-4 w-4 text-muted-foreground" />
               <h2 className="text-sm font-semibold text-foreground">Automation Registry</h2>
@@ -416,7 +416,7 @@ export default function AutomationsPage() {
 
           <div className="space-y-3">
             {automations.map((automation) => (
-              <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3.5" key={automation._id}>
+              <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3.5 dark:border-[#292C2F] dark:bg-[#17191B]" key={automation._id}>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
                     <p className="text-sm font-semibold text-foreground">{automation.name}</p>
@@ -495,7 +495,7 @@ export default function AutomationsPage() {
                         <p className="text-xs text-muted-foreground">No conditions. Direct trigger.</p>
                       ) : (
                         automation.conditions.map((condition, index) => (
-                          <div className="rounded-md border border-[#E4E4E7] bg-white px-2.5 py-1.5 text-xs text-foreground font-mono" key={index}>
+                          <div className="rounded-md border border-[#E4E4E7] bg-white px-2.5 py-1.5 text-xs text-foreground font-mono dark:border-[#292C2F] dark:bg-[#121416]" key={index}>
                             {condition.source} {condition.operator}
                             {condition.value ? ` "${condition.value}"` : ""}
                           </div>
@@ -509,7 +509,7 @@ export default function AutomationsPage() {
                     </p>
                     <div className="mt-1.5 space-y-1.5">
                       {automation.steps.map((step, index) => (
-                        <div className="rounded-md border border-[#E4E4E7] bg-white px-2.5 py-1.5 text-xs text-foreground" key={index}>
+                        <div className="rounded-md border border-[#E4E4E7] bg-white px-2.5 py-1.5 text-xs text-foreground dark:border-[#292C2F] dark:bg-[#121416]" key={index}>
                           {index + 1}. {step.type}
                         </div>
                       ))}

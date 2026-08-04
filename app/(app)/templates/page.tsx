@@ -46,7 +46,7 @@ export default function TemplatesPage() {
   return (
     <div className="flex flex-col space-y-4">
       {/* Header & Controls Bar */}
-      <div className="flex flex-col gap-3.5 rounded-lg border border-[#E4E4E7] bg-white p-4 shadow-subtle md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-3.5 rounded-lg border border-[#E4E4E7] bg-white p-4 shadow-subtle md:flex-row md:items-center md:justify-between dark:border-[#292C2F] dark:bg-[#121416]">
         <div>
           <h1 className="text-xl font-semibold tracking-tight text-foreground">
             WhatsApp Template Studio
@@ -71,11 +71,11 @@ export default function TemplatesPage() {
       </div>
 
       {/* Filter Bar */}
-      <div className="flex flex-col gap-3 rounded-lg border border-[#E4E4E7] bg-white p-3.5 shadow-subtle md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-3 rounded-lg border border-[#E4E4E7] bg-white p-3.5 shadow-subtle md:flex-row md:items-center md:justify-between dark:border-[#292C2F] dark:bg-[#121416]">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
           <Input
-            className="h-8.5 rounded-md border-[#D4D4D8] bg-[#FAFAFA] pl-8.5 text-xs text-foreground placeholder:text-muted-foreground focus:bg-white"
+            className="h-8.5 rounded-md border-[#D4D4D8] bg-[#FAFAFA] pl-8.5 text-xs text-foreground placeholder:text-muted-foreground focus:bg-white dark:border-[#303438] dark:bg-[#17191B] dark:focus:bg-[#121416]"
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search templates by name..."
             value={query}
@@ -89,7 +89,7 @@ export default function TemplatesPage() {
           </div>
 
           <select
-            className="h-8.5 rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none focus:border-primary"
+            className="h-8.5 rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none focus:border-primary dark:border-[#303438] dark:bg-[#17191B]"
             onChange={(e) => setStatus(e.target.value)}
             value={status}
           >
@@ -100,7 +100,7 @@ export default function TemplatesPage() {
           </select>
 
           <select
-            className="h-8.5 rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none focus:border-primary"
+            className="h-8.5 rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none focus:border-primary dark:border-[#303438] dark:bg-[#17191B]"
             onChange={(e) => setCategory(e.target.value)}
             value={category}
           >
@@ -111,7 +111,7 @@ export default function TemplatesPage() {
           </select>
 
           <Input
-            className="h-8.5 w-24 rounded-md border-[#D4D4D8] bg-[#FAFAFA] text-xs text-foreground"
+            className="h-8.5 w-24 rounded-md border-[#D4D4D8] bg-[#FAFAFA] text-xs text-foreground dark:border-[#303438] dark:bg-[#17191B]"
             onChange={(e) => setLanguage(e.target.value)}
             placeholder="en_US"
             value={language}
@@ -130,7 +130,7 @@ export default function TemplatesPage() {
           </strong>
         </span>
         {typeof syncMutation.data?.count === "number" ? (
-          <span className="font-semibold text-[#176B4D]">
+          <span className="font-semibold text-[#176B4D] dark:text-[#359B76]">
             ✓ Synced {syncMutation.data.count} template(s) from Meta
           </span>
         ) : null}
@@ -143,7 +143,7 @@ export default function TemplatesPage() {
         ))}
 
         {!templatesQuery.isLoading && templates.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-[#E4E4E7] bg-white p-10 text-center text-muted-foreground">
+          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-[#E4E4E7] bg-white p-10 text-center text-muted-foreground dark:border-[#292C2F] dark:bg-[#121416]">
             <Sparkles className="h-8 w-8 text-muted-foreground/60" />
             <p className="mt-2 text-xs font-semibold text-foreground">No templates found</p>
             <p className="mt-0.5 text-xs">

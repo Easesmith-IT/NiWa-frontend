@@ -52,6 +52,13 @@
   /* FOCUS */
   --focus: #176B4D;
 
+  /* CODE / DEVELOPER UI */
+  --code-background: #F8F9FA;
+  --code-surface: #F1F3F5;
+  --code-border: #E4E4E7;
+  --code-foreground: #18181B;
+  --code-muted: #71717A;
+
   --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.03);
   --shadow-floating: 0 8px 24px rgba(0, 0, 0, 0.08);
   --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.12);
@@ -113,12 +120,33 @@
   /* FOCUS */
   --focus: #3A9B76;
 
+  /* CODE / DEVELOPER UI */
+  --code-background: #0F1112;
+  --code-surface: #141618;
+  --code-border: #292C2F;
+  --code-foreground: #E4E4E7;
+  --code-muted: #81868B;
+
   --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.20);
   --shadow-floating: 0 12px 32px rgba(0, 0, 0, 0.35);
   --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.50);
 
   /* CHAT WALLPAPER DARK SPEC: #101312 base with low-contrast doodle lines */
   --chat-bg-color: #101312;
+}
+
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark textarea:-webkit-autofill,
+.dark textarea:-webkit-autofill:hover,
+.dark textarea:-webkit-autofill:focus,
+.dark select:-webkit-autofill,
+.dark select:-webkit-autofill:hover,
+.dark select:-webkit-autofill:focus {
+  -webkit-text-fill-color: #F4F4F5 !important;
+  -webkit-box-shadow: 0 0 0px 1000px #17191B inset !important;
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 body {

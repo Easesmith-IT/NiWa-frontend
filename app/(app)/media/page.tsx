@@ -153,7 +153,7 @@ export default function MediaPage() {
   return (
     <div className="space-y-4">
       {/* Header Banner */}
-      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle">
+      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle dark:border-[#292C2F] dark:bg-[#121416]">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           Media Asset Vault
         </h1>
@@ -171,7 +171,7 @@ export default function MediaPage() {
             value={uploadCustomName}
           />
           <select
-            className="h-8.5 w-full rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none focus:border-primary"
+            className="h-8.5 w-full rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none focus:border-primary dark:border-[#303438] dark:bg-[#17191B]"
             onChange={(event) => setType(event.target.value)}
             value={type}
           >
@@ -184,7 +184,7 @@ export default function MediaPage() {
           </select>
           <Input onChange={(event) => setFolder(event.target.value)} placeholder="Folder..." value={folder} />
           <Input onChange={(event) => setTag(event.target.value)} placeholder="Tag..." value={tag} />
-          <label className="inline-flex cursor-pointer items-center justify-center rounded-md bg-[#176B4D] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#12563E]">
+          <label className="inline-flex cursor-pointer items-center justify-center rounded-md bg-[#176B4D] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#12563E] dark:bg-[#2D8A67] dark:hover:bg-[#26785B]">
             {uploadMutation.isPending ? "Uploading..." : "Upload File"}
             <input
               className="hidden"
@@ -204,8 +204,8 @@ export default function MediaPage() {
             />
           </label>
         </div>
-        {submitMessage ? <p className="text-xs font-medium text-[#16803C]">{submitMessage}</p> : null}
-        {submitError ? <p className="text-xs font-medium text-[#C2413A]">{submitError}</p> : null}
+        {submitMessage ? <p className="text-xs font-medium text-[#16803C] dark:text-[#3FA66F]">{submitMessage}</p> : null}
+        {submitError ? <p className="text-xs font-medium text-[#C2413A] dark:text-[#D7685C]">{submitError}</p> : null}
       </Card>
 
       <div className="grid gap-4 xl:grid-cols-[1fr_360px]">
@@ -264,21 +264,21 @@ export default function MediaPage() {
         </div>
 
         <Card className="space-y-3.5 p-4">
-          <div className="border-b border-[#F0F0F2] pb-2">
+          <div className="border-b border-[#F0F0F2] pb-2 dark:border-[#202326]">
             <h3 className="text-sm font-semibold text-foreground">Media Asset Detail</h3>
           </div>
           {mediaDetailQuery.data?.media ? (
             <div className="space-y-3 text-xs">
-              <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 space-y-1">
+              <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 space-y-1 dark:border-[#292C2F] dark:bg-[#17191B]">
                 <p className="font-semibold text-foreground">{getMediaDisplayName(mediaDetailQuery.data.media)}</p>
                 {mediaDetailQuery.data.media.customName ? (
                   <p className="text-muted-foreground">Original: {mediaDetailQuery.data.media.fileName}</p>
                 ) : null}
                 <p className="text-muted-foreground">{mediaDetailQuery.data.media.mediaType} • {mediaDetailQuery.data.media.mimeType}</p>
-                <p className="font-mono text-[11px] text-[#176B4D]">Media ID: {mediaDetailQuery.data.media.metaMediaId}</p>
+                <p className="font-mono text-[11px] text-[#176B4D] dark:text-[#359B76]">Media ID: {mediaDetailQuery.data.media.metaMediaId}</p>
               </div>
 
-              <div className="space-y-2 rounded-md border border-[#E4E4E7] bg-white p-3">
+              <div className="space-y-2 rounded-md border border-[#E4E4E7] bg-white p-3 dark:border-[#292C2F] dark:bg-[#121416]">
                 <p className="text-xs font-semibold text-foreground">Update Metadata</p>
                 <div>
                   <label className="mb-0.5 block text-[11px] text-muted-foreground">Custom Name</label>
@@ -334,7 +334,7 @@ export default function MediaPage() {
 
               <div>
                 <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Payload Technical Record</p>
-                <pre className="overflow-x-auto rounded-md border border-[#27272A] bg-[#18181B] p-2.5 font-mono text-[10px] text-[#F4F4F5]">
+                <pre className="overflow-x-auto rounded-md border border-[#292C2F] bg-[#0F1112] p-2.5 font-mono text-[10px] text-[#E4E4E7]">
                   {JSON.stringify(
                     {
                       requestPayload: mediaDetailQuery.data.media.requestPayload,

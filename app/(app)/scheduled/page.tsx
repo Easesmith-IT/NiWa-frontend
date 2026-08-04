@@ -61,7 +61,7 @@ export default function ScheduledPage() {
   return (
     <div className="space-y-4">
       {/* Header Banner */}
-      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle">
+      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle dark:border-[#292C2F] dark:bg-[#121416]">
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-center">
           <div>
             <h1 className="text-xl font-semibold tracking-tight text-foreground">
@@ -72,13 +72,13 @@ export default function ScheduledPage() {
             </p>
           </div>
           <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3">
+            <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 dark:border-[#292C2F] dark:bg-[#17191B]">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Active Queued</p>
               <p className="mt-1 text-xl font-bold text-foreground">{scheduledCounts.active}</p>
             </div>
-            <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3">
+            <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 dark:border-[#292C2F] dark:bg-[#17191B]">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Failed Delivery</p>
-              <p className="mt-1 text-xl font-bold text-[#C2413A]">{scheduledCounts.failed}</p>
+              <p className="mt-1 text-xl font-bold text-[#C2413A] dark:text-[#D7685C]">{scheduledCounts.failed}</p>
             </div>
           </div>
         </div>
@@ -86,8 +86,8 @@ export default function ScheduledPage() {
 
       <section className="grid gap-4 lg:grid-cols-[380px_minmax(0,1fr)]">
         <Card className="space-y-3.5 p-4">
-          <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-2.5">
-            <CalendarClock className="h-4 w-4 text-[#176B4D]" />
+          <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-2.5 dark:border-[#202326]">
+            <CalendarClock className="h-4 w-4 text-[#176B4D] dark:text-[#359B76]" />
             <h2 className="text-sm font-semibold text-foreground">Create Schedule</h2>
           </div>
           <Input
@@ -96,7 +96,7 @@ export default function ScheduledPage() {
             value={contactId}
           />
           <Textarea
-            className="min-h-24 bg-[#FAFAFA] text-xs"
+            className="min-h-24 text-xs"
             onChange={(event) => setBody(event.target.value)}
             placeholder="Scheduled message text..."
             value={body}
@@ -104,7 +104,7 @@ export default function ScheduledPage() {
           <div className="grid grid-cols-2 gap-2">
             <Input onChange={(event) => setScheduledFor(event.target.value)} type="date" value={scheduledFor} />
             <select
-              className="h-8.5 rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none focus:border-primary"
+              className="h-8.5 rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none focus:border-primary dark:border-[#303438] dark:bg-[#17191B]"
               onChange={(event) => setScheduleType(event.target.value as "one_time" | "recurring")}
               value={scheduleType}
             >
@@ -114,7 +114,7 @@ export default function ScheduledPage() {
           </div>
           {scheduleType === "recurring" ? (
             <select
-              className="h-8.5 w-full rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none focus:border-primary"
+              className="h-8.5 w-full rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none focus:border-primary dark:border-[#303438] dark:bg-[#17191B]"
               onChange={(event) => setRecurrenceRule(event.target.value as "daily" | "monthly" | "weekly")}
               value={recurrenceRule}
             >
@@ -156,7 +156,7 @@ export default function ScheduledPage() {
         </Card>
 
         <Card className="space-y-3.5 p-4">
-          <div className="flex flex-wrap gap-1.5 border-b border-[#F0F0F2] pb-2.5">
+          <div className="flex flex-wrap gap-1.5 border-b border-[#F0F0F2] pb-2.5 dark:border-[#202326]">
             {(["all", "upcoming", "queued", "paused", "sent", "failed", "cancelled"] as const).map((status) => (
               <Button
                 key={status}
@@ -171,7 +171,7 @@ export default function ScheduledPage() {
           </div>
           <div className="space-y-2.5">
             {scheduledMessages.map((item) => (
-              <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3.5" key={item._id}>
+              <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3.5 dark:border-[#292C2F] dark:bg-[#17191B]" key={item._id}>
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-xs font-semibold text-foreground">
@@ -187,7 +187,7 @@ export default function ScheduledPage() {
                       Next run: {item.nextRunAt ? new Date(item.nextRunAt).toLocaleString() : "None"}
                     </p>
                     {item.lastError ? (
-                      <p className="mt-1 text-xs text-[#C2413A]">{item.lastError}</p>
+                      <p className="mt-1 text-xs text-[#C2413A] dark:text-[#D7685C]">{item.lastError}</p>
                     ) : null}
                   </div>
                   <div className="flex flex-col gap-1.5">
@@ -252,7 +252,7 @@ export default function ScheduledPage() {
                       </Button>
                     ) : null}
                     {item.status === "sent" ? (
-                      <span className="inline-flex items-center rounded-full bg-[#EDF8F3] px-2.5 py-1 text-xs font-semibold text-[#16803C]">
+                      <span className="inline-flex items-center rounded-full bg-[#EDF8F3] px-2.5 py-1 text-xs font-semibold text-[#16803C] dark:bg-[#13251E] dark:text-[#3FA66F]">
                         <Send className="mr-1 h-3 w-3" />
                         Sent
                       </span>
@@ -260,9 +260,9 @@ export default function ScheduledPage() {
                   </div>
                 </div>
                 {editingScheduleId === item._id ? (
-                  <div className="mt-3 rounded-md border border-[#E4E4E7] bg-white p-3 space-y-2.5">
+                  <div className="mt-3 rounded-md border border-[#E4E4E7] bg-white p-3 space-y-2.5 dark:border-[#292C2F] dark:bg-[#121416]">
                     <Textarea
-                      className="min-h-20 bg-[#FAFAFA] text-xs"
+                      className="min-h-20 text-xs"
                       onChange={(event) => setEditingBody(event.target.value)}
                       value={editingBody}
                     />
@@ -270,7 +270,7 @@ export default function ScheduledPage() {
                       <Input onChange={(event) => setEditingDate(event.target.value)} type="date" value={editingDate} />
                       {item.scheduleType === "recurring" ? (
                         <select
-                          className="h-8.5 rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none"
+                          className="h-8.5 rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none dark:border-[#303438] dark:bg-[#17191B]"
                           onChange={(event) =>
                             setEditingRecurrenceRule(event.target.value as "daily" | "monthly" | "weekly")
                           }

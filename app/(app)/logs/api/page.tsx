@@ -59,7 +59,7 @@ export default function ApiLogsPage() {
   return (
     <div className="space-y-4">
       {/* Header Banner */}
-      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle">
+      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle dark:border-[#292C2F] dark:bg-[#121416]">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           API Request Telemetry Logs
         </h1>
@@ -82,14 +82,14 @@ export default function ApiLogsPage() {
 
         <div className="space-y-3">
           {(logsQuery.data?.logs ?? []).map((log) => (
-            <div key={log._id} className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3.5">
-              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E4E4E7] pb-2.5">
+            <div key={log._id} className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3.5 dark:border-[#292C2F] dark:bg-[#17191B]">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#E4E4E7] pb-2.5 dark:border-[#292C2F]">
                 <div>
                   <p className="font-mono text-xs font-semibold text-foreground">
-                    <span className="text-[#176B4D] font-bold mr-1.5">{log.method}</span> {log.endpoint}
+                    <span className="text-[#176B4D] dark:text-[#359B76] font-bold mr-1.5">{log.method}</span> {log.endpoint}
                   </p>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Status: <span className="font-mono font-medium text-foreground">{log.statusCode}</span> • {log.durationMs} ms • {log.success ? <span className="text-[#16803C] font-semibold">Success</span> : <span className="text-[#C2413A] font-semibold">Failure</span>}
+                    Status: <span className="font-mono font-medium text-foreground">{log.statusCode}</span> • {log.durationMs} ms • {log.success ? <span className="text-[#16803C] dark:text-[#3FA66F] font-semibold">Success</span> : <span className="text-[#C2413A] dark:text-[#D7685C] font-semibold">Failure</span>}
                   </p>
                 </div>
                 <p className="font-mono text-[11px] text-muted-foreground">
@@ -99,13 +99,13 @@ export default function ApiLogsPage() {
               <div className="mt-3 grid gap-3 lg:grid-cols-2">
                 <div>
                   <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Request Payload</p>
-                  <pre className="overflow-x-auto rounded-md border border-[#27272A] bg-[#18181B] p-3 font-mono text-[11px] text-[#F4F4F5]">
+                  <pre className="overflow-x-auto rounded-md border border-[#292C2F] bg-[#0F1112] p-3 font-mono text-[11px] text-[#E4E4E7]">
                     {JSON.stringify(log.requestBody, null, 2)}
                   </pre>
                 </div>
                 <div>
                   <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Response Payload</p>
-                  <pre className="overflow-x-auto rounded-md border border-[#27272A] bg-[#18181B] p-3 font-mono text-[11px] text-[#F4F4F5]">
+                  <pre className="overflow-x-auto rounded-md border border-[#292C2F] bg-[#0F1112] p-3 font-mono text-[11px] text-[#E4E4E7]">
                     {JSON.stringify(log.responseBody, null, 2)}
                   </pre>
                 </div>
@@ -117,7 +117,7 @@ export default function ApiLogsPage() {
           ) : null}
         </div>
 
-        <div className="flex items-center justify-between pt-2 border-t border-[#F0F0F2]">
+        <div className="flex items-center justify-between pt-2 border-t border-[#F0F0F2] dark:border-[#202326]">
           <p className="text-xs text-muted-foreground">
             Page {logsQuery.data?.pagination.page ?? page} of {logsQuery.data?.pagination.totalPages ?? 1}
           </p>

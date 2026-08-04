@@ -102,20 +102,20 @@ export function ContactImportModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-      <div className="w-full max-w-lg rounded-2xl border border-[#ddd2c3] bg-white p-6 shadow-2xl space-y-5">
-        <div className="flex items-center justify-between border-b border-[#eee4d8] pb-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+      <div className="w-full max-w-lg rounded-2xl border border-[#E4E4E7] bg-white p-6 shadow-modal space-y-5 dark:border-[#303438] dark:bg-[#17191B]">
+        <div className="flex items-center justify-between border-b border-[#F0F0F2] pb-4 dark:border-[#202326]">
           <div className="flex items-center gap-2.5">
-            <div className="rounded-xl bg-[#e6eee6] p-2 text-[#2d644d]">
+            <div className="rounded-xl bg-[#EDF8F3] p-2 text-[#176B4D] dark:bg-[#15271F] dark:text-[#359B76]">
               <Upload className="h-5 w-5" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-[#25342f]">Bulk import contacts</h3>
-              <p className="text-xs text-[#6f7f75]">Upload CSV or JSON file</p>
+              <h3 className="text-lg font-semibold text-foreground">Bulk import contacts</h3>
+              <p className="text-xs text-muted-foreground">Upload CSV or JSON file</p>
             </div>
           </div>
           <button
-            className="rounded-full p-1.5 text-[#6f7f75] hover:bg-[#efe7db] hover:text-[#25342f]"
+            className="rounded-full p-1.5 text-muted-foreground hover:bg-[#F4F4F5] hover:text-foreground dark:hover:bg-[#202326]"
             onClick={onClose}
             type="button"
           >
@@ -124,12 +124,12 @@ export function ContactImportModal({
         </div>
 
         {/* Dropzone */}
-        <div className="relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#ddd2c3] bg-[#fbf7f1] p-8 text-center transition hover:border-[#2d644d]">
-          <FileSpreadsheet className="h-10 w-10 text-[#2d644d]" />
-          <p className="mt-3 text-sm font-semibold text-[#25342f]">
+        <div className="relative flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#E4E4E7] bg-[#FAFAFA] p-8 text-center transition hover:border-[#176B4D] dark:border-[#303438] dark:bg-[#121416] dark:hover:border-[#359B76]">
+          <FileSpreadsheet className="h-10 w-10 text-[#176B4D] dark:text-[#359B76]" />
+          <p className="mt-3 text-sm font-semibold text-foreground">
             {fileName ? fileName : "Click to select a file (CSV or JSON)"}
           </p>
-          <p className="mt-1 text-xs text-[#7a8b82]">
+          <p className="mt-1 text-xs text-muted-foreground">
             Columns supported: Name, Phone, Company, Email
           </p>
           <input
@@ -141,18 +141,18 @@ export function ContactImportModal({
         </div>
 
         {error ? (
-          <div className="flex items-center gap-2 rounded-xl bg-[#fdeaea] px-4 py-3 text-xs text-[#9d3434]">
+          <div className="flex items-center gap-2 rounded-xl bg-rose-50 px-4 py-3 text-xs text-[#C2413A] border border-rose-200 dark:bg-rose-950/40 dark:border-rose-900/50 dark:text-[#D7685C]">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <span>{error}</span>
           </div>
         ) : null}
 
         {parsedContacts.length > 0 ? (
-          <div className="rounded-xl bg-[#f4efe6] p-4 space-y-2">
-            <p className="text-xs font-semibold text-[#2d644d]">
+          <div className="rounded-xl bg-[#EDF8F3] p-4 space-y-2 dark:bg-[#13251E]">
+            <p className="text-xs font-semibold text-[#16803C] dark:text-[#3FA66F]">
               ✓ Preview: Ready to import {parsedContacts.length} contact(s)
             </p>
-            <div className="max-h-32 overflow-y-auto divide-y divide-[#e2d8ca] text-xs text-[#44534d]">
+            <div className="max-h-32 overflow-y-auto divide-y divide-[#E4E4E7] text-xs text-foreground dark:divide-[#292C2F]">
               {parsedContacts.slice(0, 5).map((c, idx) => (
                 <div className="py-1 flex justify-between" key={idx}>
                   <span className="font-medium">{c.displayName}</span>
@@ -160,7 +160,7 @@ export function ContactImportModal({
                 </div>
               ))}
               {parsedContacts.length > 5 ? (
-                <p className="pt-1 text-[11px] text-[#7a8b82] text-center">
+                <p className="pt-1 text-[11px] text-muted-foreground text-center">
                   + {parsedContacts.length - 5} more contact(s)
                 </p>
               ) : null}
@@ -170,10 +170,11 @@ export function ContactImportModal({
 
         <div className="flex gap-3 pt-2">
           <Button
-            className="flex-1 bg-[#2d644d] text-white hover:bg-[#255440]"
+            className="flex-1"
             disabled={parsedContacts.length === 0 || isPending}
             onClick={() => onImport(parsedContacts)}
             type="button"
+            variant="primary"
           >
             {isPending ? "Importing..." : `Import ${parsedContacts.length} contacts`}
           </Button>

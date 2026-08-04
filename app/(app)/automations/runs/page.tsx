@@ -67,10 +67,10 @@ export default function AutomationRunsPage() {
         <div className="space-y-2.5">
           {runs.map((run) => (
             <Link href={`/automations/runs/${run._id}`} key={run._id}>
-              <div className="flex flex-wrap items-start justify-between gap-3 rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3.5 transition-colors hover:border-[#D4D4D8]">
+              <div className="flex flex-wrap items-start justify-between gap-3 rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3.5 transition-colors hover:border-[#D4D4D8] dark:border-[#292C2F] dark:bg-[#17191B] dark:hover:border-[#3A3E42]">
                 <div>
                   <div className="flex items-center gap-2">
-                    <Bot className="h-4 w-4 text-[#176B4D]" />
+                    <Bot className="h-4 w-4 text-[#176B4D] dark:text-[#359B76]" />
                     <p className="text-sm font-semibold text-foreground">{run.automationName}</p>
                   </div>
                   <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
@@ -83,7 +83,7 @@ export default function AutomationRunsPage() {
                     Step Index: {run.currentStepIndex}
                   </p>
                   {run.lastError ? (
-                    <p className="mt-1.5 text-xs text-[#C2413A]">{run.lastError}</p>
+                    <p className="mt-1.5 text-xs text-[#C2413A] dark:text-[#D7685C]">{run.lastError}</p>
                   ) : null}
                 </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground">

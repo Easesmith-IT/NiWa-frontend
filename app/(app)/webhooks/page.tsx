@@ -70,7 +70,7 @@ export default function WebhooksPage() {
   return (
     <div className="space-y-4">
       {/* Header Banner */}
-      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle">
+      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle dark:border-[#292C2F] dark:bg-[#121416]">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           Webhook Verification & Live Stream
         </h1>
@@ -80,12 +80,12 @@ export default function WebhooksPage() {
       </section>
 
       <Card className="space-y-4 p-4">
-        <div className="border-b border-[#F0F0F2] pb-2.5">
+        <div className="border-b border-[#F0F0F2] pb-2.5 dark:border-[#202326]">
           <h2 className="text-sm font-semibold text-foreground">Webhook Verification & Diagnostics</h2>
         </div>
 
         <div className="grid gap-3 lg:grid-cols-3">
-          <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3">
+          <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 dark:border-[#292C2F] dark:bg-[#17191B]">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               Meta Verification Endpoint
             </p>
@@ -93,7 +93,7 @@ export default function WebhooksPage() {
               {webhooksQuery.data?.metaWebhookEndpoint ?? "Loading..."}
             </p>
           </div>
-          <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3">
+          <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 dark:border-[#292C2F] dark:bg-[#17191B]">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               Verification State
             </p>
@@ -101,15 +101,15 @@ export default function WebhooksPage() {
               Verify token configured: <span className="font-semibold">{webhooksQuery.data?.verifyTokenConfigured ? "Yes" : "No"}</span>
             </p>
             <p className="mt-0.5 text-xs text-foreground">
-              Subscription health: <span className="font-semibold text-[#176B4D]">{webhooksQuery.data?.subscriptionHealth ?? "Unknown"}</span>
+              Subscription health: <span className="font-semibold text-[#176B4D] dark:text-[#359B76]">{webhooksQuery.data?.subscriptionHealth ?? "Unknown"}</span>
             </p>
             {missingFields.length ? (
-              <p className="mt-1 text-xs text-[#C2413A]">
+              <p className="mt-1 text-xs text-[#C2413A] dark:text-[#D7685C]">
                 Missing: {missingFields.join(", ")}
               </p>
             ) : null}
           </div>
-          <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3">
+          <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 dark:border-[#292C2F] dark:bg-[#17191B]">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               Callback Health
             </p>
@@ -123,19 +123,19 @@ export default function WebhooksPage() {
               Subscriptions: {subscriptionCount}
             </p>
             {webhooksQuery.data?.callbackUrlMatchesBackendEndpoint === false ? (
-              <p className="mt-1 text-xs text-[#C2413A]">
+              <p className="mt-1 text-xs text-[#C2413A] dark:text-[#D7685C]">
                 Meta callback URL does not match live backend.
               </p>
             ) : null}
             {webhooksQuery.data?.callbackUrlMatchesBackendEndpoint ? (
-              <p className="mt-1 text-xs text-[#16803C] font-semibold">
+              <p className="mt-1 text-xs text-[#16803C] dark:text-[#3FA66F] font-semibold">
                 Meta callback URL verified matching live backend.
               </p>
             ) : null}
           </div>
         </div>
 
-        <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-5 border-y border-[#F0F0F2] py-3">
+        <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-5 border-y border-[#F0F0F2] py-3 dark:border-[#202326]">
           <Input className="font-mono text-xs" onChange={(event) => setEventType(event.target.value)} placeholder="Event type..." value={eventType} />
           <Input onChange={(event) => setEventCategory(event.target.value)} placeholder="Category..." value={eventCategory} />
           <Input onChange={(event) => setProcessingState(event.target.value)} placeholder="Processing state..." value={processingState} />
@@ -157,20 +157,20 @@ export default function WebhooksPage() {
           </Button>
         </div>
         {reconcileMessage ? (
-          <p className={`text-xs font-medium ${reconcileWebhookMutation.data?.success ? "text-[#16803C]" : "text-[#C2413A]"}`}>
+          <p className={`text-xs font-medium ${reconcileWebhookMutation.data?.success ? "text-[#16803C] dark:text-[#3FA66F]" : "text-[#C2413A] dark:text-[#D7685C]"}`}>
             {reconcileMessage}
           </p>
         ) : null}
         {reconcileWebhookMutation.isError ? (
-          <p className="text-xs font-medium text-[#C2413A]">
+          <p className="text-xs font-medium text-[#C2413A] dark:text-[#D7685C]">
             Failed to repair Meta subscription. Check API logs for exact Graph response.
           </p>
         ) : null}
 
         <div className="space-y-2.5">
           {latestEvents.map((event) => (
-            <div key={event._id} className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3.5">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E4E4E7] pb-2">
+            <div key={event._id} className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3.5 dark:border-[#292C2F] dark:bg-[#17191B]">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E4E4E7] pb-2 dark:border-[#202326]">
                 <div>
                   <p className="text-xs font-semibold text-foreground">
                     {event.eventCategory ?? event.eventType}
@@ -184,13 +184,13 @@ export default function WebhooksPage() {
                 </p>
               </div>
               <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
-                <span className="font-mono text-[#176B4D]">Type: {event.eventType}</span>
+                <span className="font-mono text-[#176B4D] dark:text-[#359B76]">Type: {event.eventType}</span>
                 <span>• State: {event.processingState ?? (event.processed ? "processed" : "failed")}</span>
                 <span>• Retry: {event.retryStatus}</span>
                 <span>• Response: {event.responseCode}</span>
               </div>
               {event.errorMessage ? (
-                <p className="mt-1.5 text-xs text-[#C2413A]">{event.errorMessage}</p>
+                <p className="mt-1.5 text-xs text-[#C2413A] dark:text-[#D7685C]">{event.errorMessage}</p>
               ) : null}
               <div className="mt-2.5 flex flex-wrap gap-2">
                 <Button onClick={() => setSelectedEvent(event)} size="sm" type="button" variant="secondary">
@@ -225,10 +225,10 @@ export default function WebhooksPage() {
 
       {selectedEvent ? (
         <Card className="space-y-3.5 p-4">
-          <div className="flex items-center justify-between gap-3 border-b border-[#F0F0F2] pb-2.5">
+          <div className="flex items-center justify-between gap-3 border-b border-[#F0F0F2] pb-2.5 dark:border-[#202326]">
             <div>
               <h3 className="text-sm font-semibold text-foreground">Webhook Event Detail Payload</h3>
-              <p className="mt-0.5 font-mono text-xs text-[#176B4D]">
+              <p className="mt-0.5 font-mono text-xs text-[#176B4D] dark:text-[#359B76]">
                 {selectedEvent.eventCategory ?? selectedEvent.eventType}
               </p>
             </div>
@@ -236,7 +236,7 @@ export default function WebhooksPage() {
               Close
             </Button>
           </div>
-          <pre className="overflow-x-auto rounded-md border border-[#27272A] bg-[#18181B] p-3 font-mono text-[11px] text-[#F4F4F5]">
+          <pre className="overflow-x-auto rounded-md border border-[#292C2F] bg-[#0F1112] p-3 font-mono text-[11px] text-[#E4E4E7]">
             {JSON.stringify(selectedEvent.payload, null, 2)}
           </pre>
         </Card>

@@ -48,7 +48,7 @@ export default function TasksPage() {
   return (
     <div className="space-y-4">
       {/* Header Banner */}
-      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle">
+      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle dark:border-[#292C2F] dark:bg-[#121416]">
         <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_280px] lg:items-center">
           <div>
             <h1 className="text-xl font-semibold tracking-tight text-foreground">
@@ -59,13 +59,13 @@ export default function TasksPage() {
             </p>
           </div>
           <div className="grid grid-cols-2 gap-2 text-xs">
-            <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3">
+            <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 dark:border-[#292C2F] dark:bg-[#17191B]">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Visible</p>
               <p className="mt-1 text-xl font-bold text-foreground">{tasks.length}</p>
             </div>
-            <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3">
+            <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 dark:border-[#292C2F] dark:bg-[#17191B]">
               <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Overdue</p>
-              <p className="mt-1 text-xl font-bold text-[#C2413A]">{overdueTasks}</p>
+              <p className="mt-1 text-xl font-bold text-[#C2413A] dark:text-[#D7685C]">{overdueTasks}</p>
             </div>
           </div>
         </div>
@@ -73,8 +73,8 @@ export default function TasksPage() {
 
       <section className="grid gap-4 lg:grid-cols-[380px_minmax(0,1fr)]">
         <Card className="space-y-3.5 p-4">
-          <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-2.5">
-            <ListTodo className="h-4 w-4 text-[#176B4D]" />
+          <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-2.5 dark:border-[#202326]">
+            <ListTodo className="h-4 w-4 text-[#176B4D] dark:text-[#359B76]" />
             <h2 className="text-sm font-semibold text-foreground">Create Task</h2>
           </div>
           <Input
@@ -94,7 +94,7 @@ export default function TasksPage() {
               value={dueDate}
             />
             <select
-              className="h-8.5 rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none focus:border-primary"
+              className="h-8.5 rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none focus:border-primary dark:border-[#303438] dark:bg-[#17191B]"
               onChange={(event) => setPriority(event.target.value as "high" | "low" | "medium")}
               value={priority}
             >
@@ -132,7 +132,7 @@ export default function TasksPage() {
         </Card>
 
         <Card className="space-y-3.5 p-4">
-          <div className="flex flex-wrap gap-1.5 border-b border-[#F0F0F2] pb-2.5">
+          <div className="flex flex-wrap gap-1.5 border-b border-[#F0F0F2] pb-2.5 dark:border-[#202326]">
             {(["all", "todo", "completed", "cancelled"] as const).map((status) => (
               <Button
                 key={status}
@@ -147,7 +147,7 @@ export default function TasksPage() {
           </div>
           <div className="space-y-2.5">
             {tasks.map((task) => (
-              <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3.5" key={task._id}>
+              <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3.5 dark:border-[#292C2F] dark:bg-[#17191B]" key={task._id}>
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-xs font-semibold text-foreground">{task.title}</p>
@@ -170,7 +170,7 @@ export default function TasksPage() {
                         type="button"
                         variant="secondary"
                       >
-                        <CheckCircle2 className="h-3.5 w-3.5 text-[#16803C]" />
+                        <CheckCircle2 className="h-3.5 w-3.5 text-[#16803C] dark:text-[#3FA66F]" />
                         Complete
                       </Button>
                       <Button

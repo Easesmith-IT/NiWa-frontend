@@ -209,7 +209,7 @@ export default function SettingsPage() {
   return (
     <div className="space-y-4">
       {/* Header Banner */}
-      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle">
+      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle dark:border-[#292C2F] dark:bg-[#121416]">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           System Settings & Meta Cloud API Connectivity
         </h1>
@@ -220,13 +220,13 @@ export default function SettingsPage() {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="space-y-3.5 p-4">
-          <div className="border-b border-[#F0F0F2] pb-2.5">
+          <div className="border-b border-[#F0F0F2] pb-2.5 dark:border-[#202326]">
             <h2 className="text-sm font-semibold text-foreground">Operator Profile</h2>
             <p className="mt-0.5 text-xs text-muted-foreground">
               Manage operator identity attached to active sessions and audit logs.
             </p>
           </div>
-          <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 text-xs space-y-1">
+          <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 text-xs space-y-1 dark:border-[#292C2F] dark:bg-[#17191B]">
             <p className="text-muted-foreground">
               Email: <span className="font-mono font-medium text-foreground">{profileQuery.data?.user.email ?? "Loading..."}</span>
             </p>
@@ -249,13 +249,13 @@ export default function SettingsPage() {
             <Button disabled={profileMutation.isPending} type="submit" variant="primary">
               {profileMutation.isPending ? "Saving..." : "Update Profile"}
             </Button>
-            {profileMessage ? <p className="text-xs font-medium text-[#16803C]">{profileMessage}</p> : null}
-            {profileError ? <p className="text-xs font-medium text-[#C2413A]">{profileError}</p> : null}
+            {profileMessage ? <p className="text-xs font-medium text-[#16803C] dark:text-[#3FA66F]">{profileMessage}</p> : null}
+            {profileError ? <p className="text-xs font-medium text-[#C2413A] dark:text-[#D7685C]">{profileError}</p> : null}
           </form>
         </Card>
 
         <Card className="space-y-3.5 p-4">
-          <div className="border-b border-[#F0F0F2] pb-2.5">
+          <div className="border-b border-[#F0F0F2] pb-2.5 dark:border-[#202326]">
             <h2 className="text-sm font-semibold text-foreground">Security & Credentials</h2>
             <p className="mt-0.5 text-xs text-muted-foreground">
               Change account password and refresh security tokens.
@@ -296,14 +296,14 @@ export default function SettingsPage() {
             <Button disabled={passwordMutation.isPending} type="submit" variant="secondary">
               {passwordMutation.isPending ? "Updating..." : "Change Password"}
             </Button>
-            {passwordMessage ? <p className="text-xs font-medium text-[#16803C]">{passwordMessage}</p> : null}
-            {passwordError ? <p className="text-xs font-medium text-[#C2413A]">{passwordError}</p> : null}
+            {passwordMessage ? <p className="text-xs font-medium text-[#16803C] dark:text-[#3FA66F]">{passwordMessage}</p> : null}
+            {passwordError ? <p className="text-xs font-medium text-[#C2413A] dark:text-[#D7685C]">{passwordError}</p> : null}
           </form>
         </Card>
       </div>
 
       <Card className="space-y-4 p-4">
-        <div className="border-b border-[#F0F0F2] pb-2.5">
+        <div className="border-b border-[#F0F0F2] pb-2.5 dark:border-[#202326]">
           <h2 className="text-sm font-semibold text-foreground">Meta WABA Credentials</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
             Configure Meta Cloud API credentials and verify webhooks handshake endpoints.
@@ -311,7 +311,7 @@ export default function SettingsPage() {
         </div>
 
         <div className="grid gap-3 lg:grid-cols-2">
-          <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3">
+          <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 dark:border-[#292C2F] dark:bg-[#17191B]">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               Meta Webhook Callback URL
             </p>
@@ -319,15 +319,15 @@ export default function SettingsPage() {
               {settingsQuery.data?.metaWebhookEndpoint ?? "Loading..."}
             </p>
           </div>
-          <div className="rounded-md border border-[#C4E8DA] bg-[#EDF8F3] p-3">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#176B4D]">
+          <div className="rounded-md border border-[#C4E8DA] bg-[#EDF8F3] p-3 dark:border-[#1F4D3C] dark:bg-[#13251E]">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#176B4D] dark:text-[#359B76]">
               Connection Diagnostics
             </p>
             <p className="mt-1 text-xs text-foreground">
               {connectionTestMutation.data?.message ?? "No connection test executed."}
             </p>
             {connectionError ? (
-              <p className="mt-1 text-xs text-[#C2413A]">{connectionError}</p>
+              <p className="mt-1 text-xs text-[#C2413A] dark:text-[#D7685C]">{connectionError}</p>
             ) : null}
             {typeof connectionTestMutation.data?.statusCode === "number" ? (
               <p className="mt-1 font-mono text-xs text-muted-foreground">
@@ -335,22 +335,22 @@ export default function SettingsPage() {
               </p>
             ) : null}
             {connectionTestMutation.data?.missingFields.length ? (
-              <p className="mt-1 text-xs text-[#C2413A]">
+              <p className="mt-1 text-xs text-[#C2413A] dark:text-[#D7685C]">
                 Missing: {connectionTestMutation.data.missingFields.join(", ")}
               </p>
             ) : null}
           </div>
         </div>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-y border-[#F0F0F2] py-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-y border-[#F0F0F2] py-2.5 dark:border-[#202326]">
           <div className="flex flex-wrap gap-2 text-xs">
-            <span className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] px-2.5 py-1">
+            <span className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] px-2.5 py-1 dark:border-[#292C2F] dark:bg-[#17191B]">
               App Secret: <span className="font-semibold">{settingsQuery.data?.secretsConfigured?.appSecret ? "Stored" : "Missing"}</span>
             </span>
-            <span className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] px-2.5 py-1">
+            <span className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] px-2.5 py-1 dark:border-[#292C2F] dark:bg-[#17191B]">
               Access Token: <span className="font-semibold">{settingsQuery.data?.secretsConfigured?.accessToken ? "Stored" : "Missing"}</span>
             </span>
-            <span className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] px-2.5 py-1">
+            <span className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] px-2.5 py-1 dark:border-[#292C2F] dark:bg-[#17191B]">
               Verify Token: <span className="font-semibold">{settingsQuery.data?.secretsConfigured?.verifyToken ? "Stored" : "Missing"}</span>
             </span>
           </div>
@@ -390,7 +390,7 @@ export default function SettingsPage() {
             <label className="mb-1 block text-xs font-medium text-foreground">
               Permanent Access Token *
             </label>
-            <Textarea className="font-mono text-xs min-h-24 bg-[#FAFAFA]" placeholder="System User Access Token..." {...register("accessToken")} />
+            <Textarea className="font-mono text-xs min-h-24" placeholder="System User Access Token..." {...register("accessToken")} />
           </div>
 
           <div>
@@ -435,7 +435,7 @@ export default function SettingsPage() {
             <Input className="font-mono text-xs" placeholder="https://graph.facebook.com" {...register("cloudApiBaseUrl")} />
           </div>
 
-          <div className="md:col-span-2 pt-2 border-t border-[#F0F0F2]">
+          <div className="md:col-span-2 pt-2 border-t border-[#F0F0F2] dark:border-[#202326]">
             <div className="flex flex-wrap gap-2.5">
               <Button disabled={isSubmitting || saveMutation.isPending} type="submit" variant="primary">
                 {saveMutation.isPending ? "Saving..." : "Save Settings"}
@@ -452,13 +452,13 @@ export default function SettingsPage() {
                 {connectionTestMutation.isPending ? "Testing..." : "Test Connection"}
               </Button>
             </div>
-            {submitMessage ? <p className="mt-2 text-xs font-medium text-[#16803C]">{submitMessage}</p> : null}
-            {submitError ? <p className="mt-2 text-xs font-medium text-[#C2413A]">{submitError}</p> : null}
+            {submitMessage ? <p className="mt-2 text-xs font-medium text-[#16803C] dark:text-[#3FA66F]">{submitMessage}</p> : null}
+            {submitError ? <p className="mt-2 text-xs font-medium text-[#C2413A] dark:text-[#D7685C]">{submitError}</p> : null}
           </div>
         </form>
         {connectionTestMutation.data?.responseBody ? (
-          <div className="mt-4 rounded-md border border-[#27272A] bg-[#18181B] p-3 text-[#F4F4F5]">
-            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#A1A1AA]">
+          <div className="mt-4 rounded-md border border-[#292C2F] bg-[#0F1112] p-3 text-[#E4E4E7]">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               Meta Response JSON
             </p>
             <pre className="mt-2 overflow-x-auto font-mono text-[11px]">

@@ -89,17 +89,17 @@ export function ContactDetailDrawer({
   );
 
   return (
-    <div className="flex h-full flex-col border-l border-[#ddd2c3] bg-[#fbf7f1] shadow-xl">
+    <div className="flex h-full flex-col border-l border-[#E4E4E7] bg-white shadow-subtle dark:border-[#24272A] dark:bg-[#121416]">
       {/* Header */}
-      <div className="flex items-center justify-between border-b border-[#e5ddd3] px-6 py-5">
+      <div className="flex items-center justify-between border-b border-[#E4E4E7] px-6 py-5 dark:border-[#24272A]">
         <div>
-          <h2 className="text-lg font-semibold text-[#25342f]">Contact details</h2>
-          <p className="text-xs text-[#6f7f75]">CRM profile & notes context</p>
+          <h2 className="text-lg font-semibold text-foreground">Contact details</h2>
+          <p className="text-xs text-muted-foreground">CRM profile & notes context</p>
         </div>
         <div className="flex items-center gap-2">
           {onOpenChat ? (
             <Button
-              className="bg-[#2d644d] text-white hover:bg-[#255440]"
+              className="bg-primary text-primary-foreground hover:bg-primary-hover"
               onClick={() => onOpenChat(contact.phoneNumber)}
               size="sm"
               type="button"
@@ -109,7 +109,7 @@ export function ContactDetailDrawer({
             </Button>
           ) : null}
           <button
-            className="rounded-full p-2 text-[#6f7f75] transition hover:bg-[#efe7db] hover:text-[#25342f]"
+            className="rounded-full p-2 text-muted-foreground transition hover:bg-[#F4F4F5] hover:text-foreground dark:hover:bg-[#191C1E]"
             onClick={onClose}
             type="button"
           >
@@ -121,11 +121,11 @@ export function ContactDetailDrawer({
       {/* Body scroll */}
       <div className="niwa-scrollbar flex-1 overflow-y-auto p-6 space-y-6">
         {/* Profile Card */}
-        <div className="rounded-2xl border border-[#e2d8ca] bg-white p-5 shadow-sm text-center">
+        <div className="rounded-2xl border border-[#E4E4E7] bg-white p-5 shadow-subtle text-center dark:border-[#292C2F] dark:bg-[#17191B]">
           {isEditing ? (
             <div className="space-y-3 text-left">
               <div>
-                <label className="mb-1 block text-xs uppercase tracking-[0.12em] text-[#6f7f75]">
+                <label className="mb-1 block text-xs uppercase tracking-[0.12em] text-muted-foreground">
                   Display Name
                 </label>
                 <Input
@@ -134,7 +134,7 @@ export function ContactDetailDrawer({
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs uppercase tracking-[0.12em] text-[#6f7f75]">
+                <label className="mb-1 block text-xs uppercase tracking-[0.12em] text-muted-foreground">
                   Phone Number
                 </label>
                 <Input
@@ -143,7 +143,7 @@ export function ContactDetailDrawer({
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs uppercase tracking-[0.12em] text-[#6f7f75]">
+                <label className="mb-1 block text-xs uppercase tracking-[0.12em] text-muted-foreground">
                   Company
                 </label>
                 <Input
@@ -152,7 +152,7 @@ export function ContactDetailDrawer({
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs uppercase tracking-[0.12em] text-[#6f7f75]">
+                <label className="mb-1 block text-xs uppercase tracking-[0.12em] text-muted-foreground">
                   Email
                 </label>
                 <Input
@@ -162,7 +162,7 @@ export function ContactDetailDrawer({
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs uppercase tracking-[0.12em] text-[#6f7f75]">
+                <label className="mb-1 block text-xs uppercase tracking-[0.12em] text-muted-foreground">
                   WhatsApp Profile Name
                 </label>
                 <Input
@@ -171,7 +171,7 @@ export function ContactDetailDrawer({
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs uppercase tracking-[0.12em] text-[#6f7f75]">
+                <label className="mb-1 block text-xs uppercase tracking-[0.12em] text-muted-foreground">
                   Custom Avatar URL
                 </label>
                 <Input
@@ -182,11 +182,12 @@ export function ContactDetailDrawer({
               </div>
               <div className="flex gap-2 pt-2">
                 <Button
-                  className="flex-1 bg-[#2d644d] text-white hover:bg-[#255440]"
+                  className="flex-1"
                   disabled={!displayName.trim()}
                   onClick={handleSave}
                   size="sm"
                   type="button"
+                  variant="primary"
                 >
                   Save changes
                 </Button>
@@ -205,31 +206,31 @@ export function ContactDetailDrawer({
               {contact.avatarUrl ? (
                 <img
                   alt={contact.displayName}
-                  className="h-20 w-20 rounded-full object-cover shadow-sm"
+                  className="h-20 w-20 rounded-full object-cover shadow-xs"
                   referrerPolicy="no-referrer"
                   src={contact.avatarUrl}
                 />
               ) : (
-                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#dfe5dc] text-xl font-bold text-[#2d644d]">
+                <div className="flex h-20 w-20 items-center justify-center rounded-full bg-[#EDF8F3] text-xl font-bold text-[#176B4D] dark:bg-[#15271F] dark:text-[#63B592]">
                   {contact.displayName.slice(0, 2).toUpperCase()}
                 </div>
               )}
-              <h3 className="mt-3 text-xl font-semibold text-[#25342f]">
+              <h3 className="mt-3 text-xl font-semibold text-foreground">
                 {contact.displayName}
               </h3>
-              <p className="mt-1 text-sm font-medium text-[#2d644d]">
+              <p className="mt-1 text-sm font-medium text-[#176B4D] dark:text-[#359B76]">
                 {withDisplayPhoneNumber(contact.phoneNumber) ?? contact.phoneNumber}
               </p>
               {contact.company ? (
-                <p className="mt-1 text-xs text-[#6f7f75]">{contact.company}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{contact.company}</p>
               ) : null}
               {contact.email ? (
-                <p className="mt-0.5 text-xs text-[#6f7f75]">{contact.email}</p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{contact.email}</p>
               ) : null}
 
               <div className="mt-4 flex gap-2 w-full">
                 <Button
-                  className="flex-1 border-[#ddd2c3] bg-white text-[#25342f] hover:bg-[#f6f1e9]"
+                  className="flex-1"
                   onClick={() => setIsEditing(true)}
                   size="sm"
                   type="button"
@@ -238,11 +239,10 @@ export function ContactDetailDrawer({
                   Edit profile
                 </Button>
                 <Button
-                  className="border-[#f3d3d3] bg-white text-[#9d3434] hover:bg-[#fdeaea]"
                   onClick={() => onDeleteContact(contact._id)}
                   size="sm"
                   type="button"
-                  variant="secondary"
+                  variant="destructive"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -252,9 +252,9 @@ export function ContactDetailDrawer({
         </div>
 
         {/* Labels Section */}
-        <div className="rounded-2xl border border-[#e2d8ca] bg-white p-5 shadow-sm space-y-3">
+        <div className="rounded-2xl border border-[#E4E4E7] bg-white p-5 shadow-subtle space-y-3 dark:border-[#292C2F] dark:bg-[#17191B]">
           <div className="flex items-center justify-between">
-            <h4 className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6f7f75]">
+            <h4 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
               Labels & Tags
             </h4>
           </div>
@@ -281,12 +281,12 @@ export function ContactDetailDrawer({
               </span>
             ))}
             {contactLabels.length === 0 ? (
-              <p className="text-xs text-[#7a8b82]">No labels assigned yet.</p>
+              <p className="text-xs text-muted-foreground">No labels assigned yet.</p>
             ) : null}
           </div>
           <div className="flex gap-2 pt-2">
             <select
-              className="h-9 flex-1 rounded-lg border border-[#ddd2c3] bg-white px-3 text-xs text-[#25342f] outline-none"
+              className="h-9 flex-1 rounded-lg border border-[#D4D4D8] bg-white px-3 text-xs text-foreground outline-none dark:border-[#303438] dark:bg-[#121416]"
               onChange={(e) => setSelectedLabelId(e.target.value)}
               value={selectedLabelId}
             >
@@ -315,12 +315,12 @@ export function ContactDetailDrawer({
         </div>
 
         {/* Notes Section */}
-        <div className="rounded-2xl border border-[#e2d8ca] bg-white p-5 shadow-sm space-y-4">
-          <h4 className="text-xs font-semibold uppercase tracking-[0.14em] text-[#6f7f75]">
+        <div className="rounded-2xl border border-[#E4E4E7] bg-white p-5 shadow-subtle space-y-4 dark:border-[#292C2F] dark:bg-[#17191B]">
+          <h4 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
             Internal Notes
           </h4>
           <Textarea
-            className="min-h-20 border-[#ddd2c3] bg-[#fbf7f1] text-xs text-[#25342f]"
+            className="min-h-20 text-xs"
             onChange={(e) => setNoteContent(e.target.value)}
             placeholder="Add internal note for this contact..."
             value={noteContent}

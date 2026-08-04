@@ -47,7 +47,7 @@ export default function QuickRepliesPage() {
   return (
     <div className="space-y-4">
       {/* Header Banner */}
-      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle">
+      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle dark:border-[#292C2F] dark:bg-[#121416]">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
           Quick Reply Library
         </h1>
@@ -58,8 +58,8 @@ export default function QuickRepliesPage() {
 
       <section className="grid gap-4 lg:grid-cols-[400px_minmax(0,1fr)]">
         <Card className="space-y-3.5 p-4">
-          <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-2.5">
-            <Slash className="h-4 w-4 text-[#176B4D]" />
+          <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-2.5 dark:border-[#202326]">
+            <Slash className="h-4 w-4 text-[#176B4D] dark:text-[#359B76]" />
             <h2 className="text-sm font-semibold text-foreground">
               {editingId ? "Edit Quick Reply" : "Create Quick Reply"}
             </h2>
@@ -99,7 +99,7 @@ export default function QuickRepliesPage() {
           <div>
             <label className="mb-1 block text-xs font-medium text-foreground">Body Content *</label>
             <Textarea
-              className="min-h-32 bg-[#FAFAFA] text-xs"
+              className="min-h-32 text-xs"
               onChange={(event) => setDraft((current) => ({ ...current, body: event.target.value }))}
               placeholder="Hi {{firstName}}, sharing the latest pricing for {{company}}."
               value={draft.body}
@@ -168,7 +168,7 @@ export default function QuickRepliesPage() {
         <div className="space-y-3.5">
           {Object.entries(groupedQuickReplies).map(([group, items]) => (
             <Card className="space-y-3 p-4" key={group}>
-              <div className="border-b border-[#F0F0F2] pb-2">
+              <div className="border-b border-[#F0F0F2] pb-2 dark:border-[#202326]">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                   {group}
                 </p>
@@ -176,11 +176,11 @@ export default function QuickRepliesPage() {
               </div>
               <div className="space-y-2.5">
                 {items.map((quickReply) => (
-                  <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3.5" key={quickReply._id}>
+                  <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3.5 dark:border-[#292C2F] dark:bg-[#17191B]" key={quickReply._id}>
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <p className="text-xs font-semibold text-foreground">
-                          <span className="font-mono text-[#176B4D]">{quickReply.shortcut}</span> • {quickReply.title}
+                          <span className="font-mono text-[#176B4D] dark:text-[#359B76]">{quickReply.shortcut}</span> • {quickReply.title}
                         </p>
                         <p className="mt-1 whitespace-pre-wrap text-xs text-muted-foreground">
                           {quickReply.body}
@@ -219,7 +219,7 @@ export default function QuickRepliesPage() {
                           variant="secondary"
                         >
                           {quickReply.isActive ? (
-                            <ToggleRight className="h-3.5 w-3.5 text-[#16803C]" />
+                            <ToggleRight className="h-3.5 w-3.5 text-[#16803C] dark:text-[#3FA66F]" />
                           ) : (
                             <ToggleLeft className="h-3.5 w-3.5 text-muted-foreground" />
                           )}

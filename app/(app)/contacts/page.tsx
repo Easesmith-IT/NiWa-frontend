@@ -211,7 +211,7 @@ export default function ContactsPage() {
   return (
     <div className="flex flex-col space-y-4">
       {/* Control Header Bar */}
-      <div className="flex flex-col gap-3.5 rounded-lg border border-[#E4E4E7] bg-white p-4 shadow-subtle md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-3.5 rounded-lg border border-[#E4E4E7] bg-white p-4 shadow-subtle md:flex-row md:items-center md:justify-between dark:border-[#292C2F] dark:bg-[#121416]">
         <div>
           <h1 className="text-xl font-semibold tracking-tight text-foreground">
             Customer Registry
@@ -225,7 +225,7 @@ export default function ContactsPage() {
           <div className="relative min-w-[220px]">
             <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
             <Input
-              className="h-8.5 rounded-md border-[#D4D4D8] bg-[#FAFAFA] pl-8.5 text-xs text-foreground placeholder:text-muted-foreground focus:bg-white"
+              className="h-8.5 rounded-md border-[#D4D4D8] bg-[#FAFAFA] pl-8.5 text-xs text-foreground placeholder:text-muted-foreground focus:bg-white dark:border-[#303438] dark:bg-[#17191B] dark:focus:bg-[#121416]"
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search contacts..."
               value={search}
@@ -279,8 +279,8 @@ export default function ContactsPage() {
         <div
           className={`flex items-center justify-between rounded-md border px-3.5 py-2.5 text-xs font-medium ${
             feedback.tone === "success"
-              ? "border-emerald-200 bg-[#EDF8F3] text-[#16803C]"
-              : "border-rose-200 bg-rose-50 text-[#C2413A]"
+              ? "border-emerald-200 bg-[#EDF8F3] text-[#16803C] dark:border-[#24483A] dark:bg-[#13251E] dark:text-[#3FA66F]"
+              : "border-rose-200 bg-rose-50 text-[#C2413A] dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-[#D7685C]"
           }`}
         >
           <span>{feedback.message}</span>
@@ -316,7 +316,7 @@ export default function ContactsPage() {
               onSaveContact={handleSaveContact}
             />
           ) : (
-            <div className="flex h-full flex-col items-center justify-center rounded-lg border border-dashed border-[#E4E4E7] bg-white p-6 text-center text-muted-foreground">
+            <div className="flex h-full flex-col items-center justify-center rounded-lg border border-dashed border-[#E4E4E7] bg-white p-6 text-center text-muted-foreground dark:border-[#292C2F] dark:bg-[#121416]">
               <UserPlus className="h-8 w-8 text-muted-foreground/60" />
               <p className="mt-2 text-xs font-semibold text-foreground">
                 No contact selected
@@ -351,12 +351,12 @@ export default function ContactsPage() {
 
       {/* New Contact Creation Modal */}
       {createModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-xl border border-[#E4E4E7] bg-white p-5 shadow-modal space-y-3.5">
-            <div className="flex items-center justify-between border-b border-[#F0F0F2] pb-3">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-xl border border-[#E4E4E7] bg-white p-5 shadow-modal space-y-3.5 dark:border-[#303438] dark:bg-[#17191B]">
+            <div className="flex items-center justify-between border-b border-[#F0F0F2] pb-3 dark:border-[#202326]">
               <h3 className="text-sm font-semibold text-foreground">Create New Contact</h3>
               <button
-                className="rounded-md p-1 text-muted-foreground hover:bg-[#F4F4F5] hover:text-foreground"
+                className="rounded-md p-1 text-muted-foreground hover:bg-[#F4F4F5] hover:text-foreground dark:hover:bg-[#202326]"
                 onClick={() => setCreateModalOpen(false)}
                 type="button"
               >
