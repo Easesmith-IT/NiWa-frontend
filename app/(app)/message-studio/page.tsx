@@ -674,8 +674,10 @@ export default function MessageStudioPage() {
                 ) : null}
               </div>
 
-              {/* WhatsApp Mobile Bubble Preview */}
-              <div className="mx-auto mt-4 max-w-[280px] rounded-xl border border-[#E4E4E7] bg-[#F7F8FA] p-3 shadow-subtle">
+              <div
+                className="mx-auto mt-4 max-w-[280px] rounded-xl border border-[#E4E4E7] p-3 shadow-subtle bg-repeat bg-center"
+                style={{ backgroundImage: "url('/whatsapp-bg.png')", backgroundSize: "300px" }}
+              >
                 <div className="rounded-lg border border-[#E4E4E7] bg-white p-2.5">
                   <p className="text-[10px] font-bold text-muted-foreground uppercase">WhatsApp Business</p>
                   <p className="font-mono text-xs font-semibold text-foreground">{commonTo || "+91..."}</p>

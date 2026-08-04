@@ -692,7 +692,10 @@ export default function ConversationsPage() {
             </div>
           </div>
 
-          <div className="flex-1 space-y-3 overflow-y-auto p-4 bg-[#F7F8FA] min-h-[420px]">
+          <div
+            className="flex-1 space-y-3 overflow-y-auto p-4 min-h-[420px] bg-repeat bg-center"
+            style={{ backgroundImage: "url('/whatsapp-bg.png')", backgroundSize: "450px" }}
+          >
             {conversationMessages.map((message) => {
               const isOutgoing = message.direction === "outgoing";
 

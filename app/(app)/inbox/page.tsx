@@ -1234,9 +1234,10 @@ export default function InboxPage() {
               </div>
 
               <div
-                className="niwa-scrollbar min-h-0 flex-1 overflow-y-auto bg-[#F7F8FA] px-6 py-4 relative"
+                className="niwa-scrollbar min-h-0 flex-1 overflow-y-auto px-6 py-4 relative bg-repeat bg-center"
                 onScroll={handleMessageContainerScroll}
                 ref={messagesContainerRef}
+                style={{ backgroundImage: "url('/whatsapp-bg.png')", backgroundSize: "450px" }}
               >
                 {detailQuery.isLoading ? (
                   <div className="space-y-3">
