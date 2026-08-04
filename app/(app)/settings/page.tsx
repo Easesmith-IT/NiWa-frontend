@@ -243,7 +243,15 @@ export default function SettingsPage() {
               profileMutation.mutate(values);
             })}
           >
-            <Input placeholder="Operator name" {...profileForm.register("name")} />
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Operator Display Name
+              </label>
+              <p className="text-xs text-muted-foreground">
+                Name attached to your active console session and internal action logs.
+              </p>
+              <Input placeholder="Operator name" {...profileForm.register("name")} />
+            </div>
             <Button disabled={profileMutation.isPending} type="submit">
               {profileMutation.isPending ? "Saving..." : "Update Profile"}
             </Button>
@@ -270,21 +278,36 @@ export default function SettingsPage() {
               passwordMutation.mutate(values);
             })}
           >
-            <Input
-              placeholder="Current password"
-              type="password"
-              {...passwordForm.register("currentPassword")}
-            />
-            <Input
-              placeholder="New password"
-              type="password"
-              {...passwordForm.register("newPassword")}
-            />
-            <Input
-              placeholder="Confirm new password"
-              type="password"
-              {...passwordForm.register("confirmPassword")}
-            />
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Current Password
+              </label>
+              <Input
+                placeholder="Current password"
+                type="password"
+                {...passwordForm.register("currentPassword")}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                New Password
+              </label>
+              <Input
+                placeholder="New password"
+                type="password"
+                {...passwordForm.register("newPassword")}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Confirm New Password
+              </label>
+              <Input
+                placeholder="Confirm new password"
+                type="password"
+                {...passwordForm.register("confirmPassword")}
+              />
+            </div>
             <Button disabled={passwordMutation.isPending} type="submit" variant="secondary">
               {passwordMutation.isPending ? "Updating..." : "Change Password"}
             </Button>
@@ -354,16 +377,97 @@ export default function SettingsPage() {
             saveMutation.mutate(values);
           })}
         >
-          <Input placeholder="App ID" {...register("appId")} />
-          <Input placeholder="App Secret" {...register("appSecret")} />
-          <Textarea className="md:col-span-2" placeholder="Access Token" {...register("accessToken")} />
-          <Input placeholder="Business Account ID" {...register("businessAccountId")} />
-          <Input placeholder="Phone Number ID" {...register("phoneNumberId")} />
-          <Input placeholder="Verify Token" {...register("verifyToken")} />
-          <Input placeholder="Saved Meta callback URL (should match the endpoint above)" {...register("webhookUrl")} />
-          <Input placeholder="API Version" {...register("apiVersion")} />
-          <Input placeholder="Cloud API Base URL" {...register("cloudApiBaseUrl")} />
-          <div className="md:col-span-2">
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              App ID
+            </label>
+            <p className="text-xs text-muted-foreground">
+              Meta Developer Application numeric ID assigned in your Meta App Dashboard.
+            </p>
+            <Input placeholder="e.g. 27900924049538288" {...register("appId")} />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              App Secret
+            </label>
+            <p className="text-xs text-muted-foreground">
+              Confidential secret used to compute HMAC-SHA256 signatures for webhook verification.
+            </p>
+            <Input placeholder="Enter Meta App Secret" {...register("appSecret")} />
+          </div>
+
+          <div className="space-y-1.5 md:col-span-2">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Access Token
+            </label>
+            <p className="text-xs text-muted-foreground">
+              System User Permanent Access Token with whatsapp_business_messaging & whatsapp_business_management permissions.
+            </p>
+            <Textarea className="md:col-span-2" placeholder="System User Access Token" {...register("accessToken")} />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Business Account ID (WABA ID)
+            </label>
+            <p className="text-xs text-muted-foreground">
+              WhatsApp Business Account ID in Meta Manager hosting message templates and phone numbers.
+            </p>
+            <Input placeholder="e.g. 4433978036814896" {...register("businessAccountId")} />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Phone Number ID
+            </label>
+            <p className="text-xs text-muted-foreground">
+              Numeric ID assigned by Meta to your registered sender phone number for Graph API endpoints.
+            </p>
+            <Input placeholder="e.g. 1295455696976455" {...register("phoneNumberId")} />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Verify Token
+            </label>
+            <p className="text-xs text-muted-foreground">
+              Custom secret token passed during Meta Webhook GET verification handshake challenge.
+            </p>
+            <Input placeholder="Enter Verify Token" {...register("verifyToken")} />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Saved Webhook Callback URL
+            </label>
+            <p className="text-xs text-muted-foreground">
+              Public HTTPS URL where Meta delivers incoming messages and status receipts.
+            </p>
+            <Input placeholder="https://niwaapi.easesmith.com/webhook" {...register("webhookUrl")} />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              API Version
+            </label>
+            <p className="text-xs text-muted-foreground">
+              Meta Graph API release version string targeted for API operations (e.g. v22.0 or v25.0).
+            </p>
+            <Input placeholder="e.g. v22.0" {...register("apiVersion")} />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+              Cloud API Base URL
+            </label>
+            <p className="text-xs text-muted-foreground">
+              Primary endpoint host domain for Meta Graph API services.
+            </p>
+            <Input placeholder="https://graph.facebook.com" {...register("cloudApiBaseUrl")} />
+          </div>
+
+          <div className="md:col-span-2 pt-2">
             <div className="flex flex-wrap gap-3">
               <Button disabled={isSubmitting || saveMutation.isPending} type="submit">
                 {saveMutation.isPending ? "Saving..." : "Save Settings"}
