@@ -9,6 +9,7 @@ import {
   Clock3,
   MessageSquareText,
   Search,
+  Send,
   ShieldCheck,
   Sparkles,
   TrendingUp,
@@ -53,23 +54,27 @@ export default function DashboardPage() {
       <section className="rounded-[2rem] border border-white/60 bg-[linear-gradient(120deg,rgba(21,47,41,0.98),rgba(237,225,193,0.92))] p-6 text-[#f8f1de] shadow-[0_18px_50px_rgba(44,56,38,0.14)]">
         <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_360px] xl:items-end">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#e7ddc7]">
-              Dashboard
-            </p>
-            <h1 className="mt-3 text-3xl font-semibold">Operations pulse for the WhatsApp desk</h1>
-            <p className="mt-3 max-w-2xl text-sm text-[#efe6d2]">
-              Watch reply pressure, scheduled load, automation backlog, and recent account motion
-              from one V1 control surface.
+            <div className="flex items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-medium text-emerald-300 border border-emerald-400/30">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                Meta API Live
+              </span>
+              <span className="text-xs text-[#e7ddc7]">Cloud API v25.0</span>
+            </div>
+            <h1 className="mt-3 text-3xl font-bold tracking-tight">Operations Desk & Telemetry</h1>
+            <p className="mt-2 max-w-2xl text-sm text-[#efe6d2]">
+              Watch reply pressure, scheduled load, automation backlog, and live account telemetry
+              from one control surface.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
               <Link href="/search">
-                <Button className="rounded-full bg-[#f8f1de] text-[#16302b] hover:bg-[#fff7e8]" type="button">
+                <Button className="rounded-full bg-[#f8f1de] text-[#16302b] hover:bg-[#fff7e8] font-medium" type="button">
                   <Search className="mr-2 h-4 w-4" />
                   Open search
                 </Button>
               </Link>
               <Link href="/inbox">
-                <Button className="rounded-full border border-[#f8f1de]/35 bg-transparent text-[#f8f1de] hover:bg-white/10" type="button" variant="ghost">
+                <Button className="rounded-full border border-[#f8f1de]/35 bg-transparent text-[#f8f1de] hover:bg-white/10 font-medium" type="button" variant="ghost">
                   <MessageSquareText className="mr-2 h-4 w-4" />
                   Open inbox
                 </Button>
@@ -81,19 +86,19 @@ export default function DashboardPage() {
             <div className="grid grid-cols-2 gap-3">
               <div className="rounded-[1.3rem] bg-[rgba(255,255,255,0.12)] px-4 py-4">
                 <p className="text-xs uppercase tracking-[0.18em] text-[#eadfca]">Awaiting team</p>
-                <p className="mt-3 text-3xl font-semibold">{data?.inbox.awaitingBusinessReply ?? 0}</p>
+                <p className="mt-3 text-3xl font-bold">{data?.inbox.awaitingBusinessReply ?? 0}</p>
               </div>
               <div className="rounded-[1.3rem] bg-[rgba(255,255,255,0.12)] px-4 py-4">
                 <p className="text-xs uppercase tracking-[0.18em] text-[#eadfca]">Service windows</p>
-                <p className="mt-3 text-3xl font-semibold">{data?.inbox.expiringServiceWindows ?? 0}</p>
+                <p className="mt-3 text-3xl font-bold">{data?.inbox.expiringServiceWindows ?? 0}</p>
               </div>
               <div className="rounded-[1.3rem] bg-[rgba(255,255,255,0.12)] px-4 py-4">
                 <p className="text-xs uppercase tracking-[0.18em] text-[#eadfca]">Queued sends</p>
-                <p className="mt-3 text-3xl font-semibold">{data?.schedules.queued ?? 0}</p>
+                <p className="mt-3 text-3xl font-bold">{data?.schedules.queued ?? 0}</p>
               </div>
               <div className="rounded-[1.3rem] bg-[rgba(255,255,255,0.12)] px-4 py-4">
                 <p className="text-xs uppercase tracking-[0.18em] text-[#eadfca]">Waiting runs</p>
-                <p className="mt-3 text-3xl font-semibold">{data?.automations.waitingRuns ?? 0}</p>
+                <p className="mt-3 text-3xl font-bold">{data?.automations.waitingRuns ?? 0}</p>
               </div>
             </div>
           </div>
