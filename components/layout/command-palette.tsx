@@ -72,9 +72,9 @@ export const CommandPalette = ({ onClose, open }: CommandPaletteProps) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 px-4 pb-6 pt-[10vh] backdrop-blur-xs">
-      <div className="w-full max-w-2xl overflow-hidden rounded-xl border border-[#E4E4E7] bg-white shadow-modal">
-        <div className="border-b border-[#E4E4E7] px-4 py-3">
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 px-4 pb-6 pt-[10vh] backdrop-blur-xs">
+      <div className="w-full max-w-2xl overflow-hidden rounded-xl border border-[#E4E4E7] bg-white shadow-modal dark:border-[#303438] dark:bg-[#17191B]">
+        <div className="border-b border-[#E4E4E7] px-4 py-3 dark:border-[#303438]">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -88,14 +88,14 @@ export const CommandPalette = ({ onClose, open }: CommandPaletteProps) => {
         </div>
 
         <div className="grid max-h-[65vh] gap-0 overflow-hidden md:grid-cols-[0.95fr_1.05fr]">
-          <div className="border-b border-[#E4E4E7] md:border-b-0 md:border-r">
+          <div className="border-b border-[#E4E4E7] dark:border-[#303438] md:border-b-0 md:border-r">
             <div className="px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
               Actions & Navigation
             </div>
             <div className="niwa-scrollbar max-h-[50vh] overflow-y-auto px-2 pb-2">
               {filteredActions.map((action) => (
                 <button
-                  className="flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-xs font-medium text-foreground transition-colors hover:bg-[#F4F4F5] focus:bg-[#F4F4F5] focus:outline-none"
+                  className="flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-xs font-medium text-foreground transition-colors hover:bg-[#F4F4F5] focus:bg-[#F4F4F5] focus:outline-none dark:hover:bg-[#202326] dark:focus:bg-[#202326]"
                   key={`${action.href}-${action.label}`}
                   onClick={() => goTo(action.href)}
                   type="button"
@@ -114,13 +114,13 @@ export const CommandPalette = ({ onClose, open }: CommandPaletteProps) => {
             <div className="niwa-scrollbar max-h-[50vh] overflow-y-auto px-2 pb-2">
               {!query.trim() ? (
                 <div className="px-3 py-6 text-xs text-muted-foreground">
-                  Use <kbd className="rounded border border-[#E4E4E7] bg-[#FAFAFA] px-1 py-0.5 font-medium text-foreground">Ctrl + K</kbd> to jump between modules.
+                  Use <kbd className="rounded border border-[#E4E4E7] bg-[#FAFAFA] px-1 py-0.5 font-medium text-foreground dark:border-[#303438] dark:bg-[#1B1D20]">Ctrl + K</kbd> to jump between modules.
                 </div>
               ) : null}
 
               {(searchQuery.data?.data.conversations ?? []).map((item) => (
                 <button
-                  className="block w-full rounded-md px-2.5 py-2.5 text-left transition-colors hover:bg-[#F4F4F5]"
+                  className="block w-full rounded-md px-2.5 py-2.5 text-left transition-colors hover:bg-[#F4F4F5] dark:hover:bg-[#202326]"
                   key={item.conversation._id}
                   onClick={() => goTo(`/inbox?conversationId=${encodeURIComponent(item.conversation._id)}`)}
                   type="button"
@@ -139,7 +139,7 @@ export const CommandPalette = ({ onClose, open }: CommandPaletteProps) => {
 
               {(searchQuery.data?.data.contacts ?? []).map((item) => (
                 <button
-                  className="block w-full rounded-md px-2.5 py-2.5 text-left transition-colors hover:bg-[#F4F4F5]"
+                  className="block w-full rounded-md px-2.5 py-2.5 text-left transition-colors hover:bg-[#F4F4F5] dark:hover:bg-[#202326]"
                   key={item.contact._id}
                   onClick={() => goTo("/contacts")}
                   type="button"
@@ -178,7 +178,7 @@ export const CommandPalette = ({ onClose, open }: CommandPaletteProps) => {
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-t border-[#E4E4E7] bg-[#FAFAFA] px-4 py-2 text-[11px] text-muted-foreground">
+        <div className="flex items-center justify-between border-t border-[#E4E4E7] bg-[#FAFAFA] px-4 py-2 text-[11px] text-muted-foreground dark:border-[#303438] dark:bg-[#1B1D20]">
           <span className="inline-flex items-center gap-1.5">
             <Command className="h-3 w-3" />
             Operational search console

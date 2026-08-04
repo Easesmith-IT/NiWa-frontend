@@ -604,7 +604,7 @@ export default function ConversationsPage() {
             </div>
           </div>
 
-          <div className="max-h-[72vh] space-y-1 overflow-y-auto p-2 bg-white">
+          <div className="max-h-[72vh] space-y-1 overflow-y-auto p-2 bg-white dark:bg-[#121416]">
             {conversations.map((conversation) => {
               const isActive = conversation._id === selectedConversationId;
               const title = conversation.contactName || conversation.contactPhoneNumber;
@@ -614,15 +614,15 @@ export default function ConversationsPage() {
                 <button
                   className={`w-full rounded-md p-3 text-left transition-colors ${
                     isActive
-                      ? "border border-[#C4E8DA] bg-[#EDF8F3]"
-                      : "border border-transparent hover:bg-[#FAFAFA]"
+                      ? "border border-[#C4E8DA] bg-[#EDF8F3] dark:border-[#203D31] dark:bg-[#14251E]"
+                      : "border border-transparent hover:bg-[#FAFAFA] dark:hover:bg-[#191C1E]"
                   }`}
                   key={conversation._id}
                   onClick={() => setSelectedConversationId(conversation._id)}
                   type="button"
                 >
                   <div className="flex items-start gap-2.5">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#176B4D] text-xs font-semibold text-white">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#176B4D] text-xs font-semibold text-white dark:bg-[#2D8A67]">
                       {getInitials(conversation.contactName, conversation.contactPhoneNumber)}
                     </div>
                     <div className="min-w-0 flex-1">
@@ -638,7 +638,7 @@ export default function ConversationsPage() {
                             {formatShortDate(conversation.lastActivityAt)}
                           </p>
                           {conversation.unreadCount > 0 ? (
-                            <span className="mt-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#176B4D] px-1 text-[10px] font-bold text-white">
+                            <span className="mt-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#176B4D] px-1 text-[10px] font-bold text-white dark:bg-[#2D8A67]">
                               {conversation.unreadCount}
                             </span>
                           ) : null}
@@ -662,9 +662,9 @@ export default function ConversationsPage() {
 
         {/* Central Chat Window */}
         <Card className="overflow-hidden p-0 flex flex-col">
-          <div className="border-b border-[#E4E4E7] bg-[#FAFAFA] p-3.5 flex flex-wrap items-center justify-between gap-3">
+          <div className="border-b border-[#E4E4E7] bg-[#FAFAFA] p-3.5 flex flex-wrap items-center justify-between gap-3 dark:border-[#24272A] dark:bg-[#151719]">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#176B4D] text-xs font-semibold text-white">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#176B4D] text-xs font-semibold text-white dark:bg-[#2D8A67]">
                 {getInitials(
                   workspaceConversation?.contactName,
                   workspaceConversation?.contactPhoneNumber,
@@ -693,7 +693,7 @@ export default function ConversationsPage() {
           </div>
 
           <div
-            className="flex-1 space-y-3 overflow-y-auto p-4 min-h-[420px] bg-repeat bg-center"
+            className="flex-1 space-y-3 overflow-y-auto p-4 min-h-[420px] bg-repeat bg-center bg-[#F7F8FA] dark:bg-[#101312] dark:bg-blend-multiply"
             style={{ backgroundImage: "url('/whatsapp-bg.png')", backgroundSize: "450px" }}
           >
             {conversationMessages.map((message) => {
@@ -707,8 +707,8 @@ export default function ConversationsPage() {
                   <div
                     className={`max-w-[85%] rounded-lg p-3 text-xs shadow-subtle ${
                       isOutgoing
-                        ? "border border-[#C4E8DA] bg-[#EDF8F3] text-foreground"
-                        : "border border-[#E4E4E7] bg-white text-foreground"
+                        ? "border border-[#C4E8DA] bg-[#EDF8F3] text-foreground dark:border-[#203D31] dark:bg-[#14251E] dark:text-[#E8F3EE]"
+                        : "border border-[#E4E4E7] bg-white text-foreground dark:border-[#282C2F] dark:bg-[#1C1F21] dark:text-[#ECEDEE]"
                     }`}
                   >
                     <div className="flex items-center justify-between gap-2 mb-1.5">
@@ -724,13 +724,13 @@ export default function ConversationsPage() {
                         {isOutgoing ? message.status : "incoming"}
                       </span>
                     </div>
-                    <p className="whitespace-pre-wrap leading-relaxed text-foreground">{renderMessageBody(message)}</p>
+                    <p className="whitespace-pre-wrap leading-relaxed">{renderMessageBody(message)}</p>
                     <div className="mt-2 flex items-center justify-end gap-1 text-[10px] text-muted-foreground font-mono">
                       <span>{formatShortTime(message.timestamp)}</span>
                       {isOutgoing ? (
-                        <CheckCheck className="h-3 w-3 text-[#34B7F1]" />
+                        <CheckCheck className="h-3 w-3 text-[#34B7F1] dark:text-[#53BDEB]" />
                       ) : (
-                        <CircleDot className="h-3 w-3 text-[#7A8B82]" />
+                        <CircleDot className="h-3 w-3 text-[#7A8B82] dark:text-[#8D9691]" />
                       )}
                     </div>
                   </div>

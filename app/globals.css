@@ -3,57 +3,134 @@
 @tailwind utilities;
 
 :root {
-  --background: 220 14% 97%; /* #F7F8FA */
-  --foreground: 240 6% 10%;  /* #18181B */
-  --card: 0 0% 100%;         /* #FFFFFF */
-  --card-foreground: 240 6% 10%; /* #18181B */
-  --surface-secondary: 0 0% 98%;  /* #FAFAFA */
-  --surface-tertiary: 240 5% 96%; /* #F4F4F5 */
-  
-  --primary: 160 65% 26%;        /* #176B4D */
-  --primary-hover: 160 65% 20%;  /* #12563E */
-  --primary-soft: 154 45% 95%;   /* #EDF8F3 */
-  --primary-foreground: 0 0% 100%; /* #FFFFFF */
-  
-  --muted: 240 5% 96%;           /* #F4F4F5 */
-  --muted-foreground: 240 4% 46%; /* #71717A */
-  --foreground-secondary: 240 5% 34%; /* #52525B */
+  /* FOUNDATION */
+  --background: #F7F8FA;
+  --foreground: #18181B;
 
-  --border: 240 6% 90%;          /* #E4E4E7 */
-  --border-subtle: 240 5% 94%;   /* #F0F0F2 */
-  --input: 240 6% 90%;           /* #E4E4E7 */
-  --accent: 240 5% 96%;          /* #F4F4F5 */
-  --accent-foreground: 240 6% 10%; /* #18181B */
-  
-  --success: 142 71% 30%;        /* #16803C */
-  --warning: 37 71% 42%;         /* #B7791F */
-  --danger: 3 53% 49%;           /* #C2413A */
-  --info: 221 83% 53%;           /* #2563EB */
-  --focus: 160 65% 26%;          /* #176B4D */
+  /* SURFACES */
+  --surface: #FFFFFF;
+  --surface-secondary: #FAFAFA;
+  --surface-tertiary: #F4F4F5;
+  --surface-hover: #F4F4F5;
+  --surface-active: #E4E4E7;
 
+  /* TEXT */
+  --foreground-secondary: #52525B;
+  --muted: #F4F4F5;
+  --muted-foreground: #71717A;
+  --foreground-disabled: #A1A1AA;
+
+  /* NIWA BRAND */
+  --primary: #176B4D;
+  --primary-hover: #12563E;
+  --primary-active: #0F4532;
+
+  --primary-soft: #EDF8F3;
+  --primary-soft-hover: #D8F0E5;
+  --primary-border: #C4E8DA;
+
+  --primary-foreground: #FFFFFF;
+
+  /* STRUCTURE */
+  --border: #E4E4E7;
+  --border-subtle: #F0F0F2;
+  --input: #E4E4E7;
+  --accent: #F4F4F5;
+  --accent-foreground: #18181B;
+
+  /* SEMANTIC */
+  --success: #16803C;
+  --warning: #B7791F;
+  --danger: #C2413A;
+  --info: #2563EB;
+
+  /* WHATSAPP */
   --whatsapp: #25D366;
   --whatsapp-read: #34B7F1;
   --whatsapp-delivered: #7A8B82;
 
+  /* FOCUS */
+  --focus: #176B4D;
+
   --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.03);
   --shadow-floating: 0 8px 24px rgba(0, 0, 0, 0.08);
   --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.12);
+
+  /* CHAT WALLPAPER */
+  --chat-bg-color: #F7F8FA;
+  --chat-wallpaper-url: url('/whatsapp-bg.png');
 }
 
-html {
-  color-scheme: light;
+.dark {
+  color-scheme: dark;
+
+  /* FOUNDATION */
+  --background: #0C0D0E;
+  --foreground: #F4F4F5;
+
+  /* SURFACES */
+  --surface: #121416;
+  --surface-secondary: #17191B;
+  --surface-tertiary: #1B1D20;
+  --surface-hover: #202326;
+  --surface-active: #25282B;
+
+  /* TEXT */
+  --foreground-secondary: #B4B7BA;
+  --muted: #1B1D20;
+  --muted-foreground: #81868B;
+  --foreground-disabled: #5F6468;
+
+  /* NIWA BRAND */
+  --primary: #2D8A67;
+  --primary-hover: #359B76;
+  --primary-active: #26785B;
+
+  --primary-soft: #13251E;
+  --primary-soft-hover: #183027;
+  --primary-border: #24483A;
+
+  --primary-foreground: #FFFFFF;
+
+  /* STRUCTURE */
+  --border: #292C2F;
+  --border-subtle: #202326;
+  --input: #303438;
+  --accent: #1B1D20;
+  --accent-foreground: #F4F4F5;
+
+  /* SEMANTIC */
+  --success: #3FA66F;
+  --warning: #D59A3A;
+  --danger: #D7685C;
+  --info: #5794E8;
+
+  /* WHATSAPP */
+  --whatsapp: #25D366;
+  --whatsapp-read: #53BDEB;
+  --whatsapp-delivered: #8D9691;
+
+  /* FOCUS */
+  --focus: #3A9B76;
+
+  --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.20);
+  --shadow-floating: 0 12px 32px rgba(0, 0, 0, 0.35);
+  --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.50);
+
+  /* CHAT WALLPAPER DARK SPEC: #101312 base with low-contrast doodle lines */
+  --chat-bg-color: #101312;
 }
 
 body {
   min-height: 100vh;
-  background-color: hsl(var(--background));
-  color: hsl(var(--foreground));
+  background-color: var(--background);
+  color: var(--foreground);
   font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   font-feature-settings: "ss01" 1, "cv02" 1;
 }
 
 * {
-  border-color: hsl(var(--border));
+  border-color: var(--border);
 }
 
 *,

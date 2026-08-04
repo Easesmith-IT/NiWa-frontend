@@ -61,10 +61,10 @@ export function ContactsDataTable({
   selectedContactId,
 }: ContactsDataTableProps) {
   return (
-    <div className="overflow-hidden rounded-lg border border-[#E4E4E7] bg-white shadow-subtle">
+    <div className="overflow-hidden rounded-lg border border-[#E4E4E7] bg-white shadow-subtle dark:border-[#24272A] dark:bg-[#121416]">
       <div className="niwa-scrollbar overflow-x-auto">
         <table className="w-full text-left text-xs">
-          <thead className="border-b border-[#E4E4E7] bg-[#FAFAFA] text-[11px] font-medium text-muted-foreground">
+          <thead className="border-b border-[#E4E4E7] bg-[#FAFAFA] text-[11px] font-medium text-muted-foreground dark:border-[#24272A] dark:bg-[#151719]">
             <tr>
               <th className="py-3 pl-4 pr-3">Contact</th>
               <th className="px-3 py-3">Phone Number</th>
@@ -74,7 +74,7 @@ export function ContactsDataTable({
               <th className="py-3 pl-3 pr-4 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#F0F0F2]">
+          <tbody className="divide-y divide-[#F0F0F2] dark:divide-[#24272A]">
             {contacts.map((contact) => {
               const isSelected = contact._id === selectedContactId;
               const formattedPhone =
@@ -84,8 +84,8 @@ export function ContactsDataTable({
                 <tr
                   className={`group cursor-pointer transition-colors ${
                     isSelected
-                      ? "bg-[#EDF8F3] font-medium"
-                      : "hover:bg-[#FAFAFA]"
+                      ? "bg-[#EDF8F3] font-medium dark:bg-[#14251E]"
+                      : "hover:bg-[#FAFAFA] dark:hover:bg-[#191B1D]"
                   }`}
                   key={contact._id}
                   onClick={() => onSelectContact(contact._id)}

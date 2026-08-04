@@ -988,19 +988,19 @@ export default function InboxPage() {
             : "xl:grid-cols-[340px_minmax(0,1fr)]",
         )}
       >
-        <aside className="flex min-h-0 flex-col border-r border-[#E4E4E7] bg-white">
-          <div className="border-b border-[#E4E4E7] px-4 py-3.5">
+        <aside className="flex min-h-0 flex-col border-r border-[#E4E4E7] bg-white dark:border-[#24272A] dark:bg-[#101214]">
+          <div className="border-b border-[#E4E4E7] px-4 py-3.5 dark:border-[#24272A]">
             <div className="flex items-center justify-between">
               <h1 className="text-base font-semibold text-foreground">Inbox</h1>
               <div className="flex items-center gap-1">
                 <button
-                  className="rounded-md p-1.5 text-muted-foreground transition hover:bg-[#F4F4F5] hover:text-foreground"
+                  className="rounded-md p-1.5 text-muted-foreground transition hover:bg-[#F4F4F5] hover:text-foreground dark:hover:bg-[#191C1E]"
                   type="button"
                 >
                   <Plus className="h-4 w-4" />
                 </button>
                 <button
-                  className="rounded-md p-1.5 text-muted-foreground transition hover:bg-[#F4F4F5] hover:text-foreground"
+                  className="rounded-md p-1.5 text-muted-foreground transition hover:bg-[#F4F4F5] hover:text-foreground dark:hover:bg-[#191C1E]"
                   type="button"
                 >
                   <MoreHorizontal className="h-4 w-4" />
@@ -1011,7 +1011,7 @@ export default function InboxPage() {
             <div className="relative mt-3">
               <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
               <Input
-                className="h-9 rounded-md border-[#D4D4D8] bg-[#FAFAFA] pl-9 text-xs text-foreground placeholder:text-muted-foreground focus:bg-white focus:ring-2 focus:ring-primary/15"
+                className="h-9 rounded-md border-[#D4D4D8] bg-[#FAFAFA] pl-9 text-xs text-foreground placeholder:text-muted-foreground focus:bg-white focus:ring-2 focus:ring-primary/15 dark:border-[#303438] dark:bg-[#17191B] dark:focus:bg-[#121416]"
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Search conversations..."
                 value={search}
@@ -1025,7 +1025,7 @@ export default function InboxPage() {
                     "rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
                     filter === item.key
                       ? "border-primary bg-primary text-primary-foreground shadow-xs"
-                      : "border-[#E4E4E7] bg-white text-muted-foreground hover:bg-[#F4F4F5] hover:text-foreground",
+                      : "border-[#E4E4E7] bg-white text-muted-foreground hover:bg-[#F4F4F5] hover:text-foreground dark:border-[#303438] dark:bg-[#17191B] dark:hover:bg-[#202326]",
                   )}
                   key={item.key}
                   onClick={() => setFilter(item.key)}
@@ -1035,7 +1035,7 @@ export default function InboxPage() {
                 </button>
               ))}
               <button
-                className="rounded-md border border-[#E4E4E7] bg-white px-2 py-1 text-muted-foreground transition-colors hover:bg-[#F4F4F5] hover:text-foreground"
+                className="rounded-md border border-[#E4E4E7] bg-white px-2 py-1 text-muted-foreground transition-colors hover:bg-[#F4F4F5] hover:text-foreground dark:border-[#303438] dark:bg-[#17191B] dark:hover:bg-[#202326]"
                 type="button"
               >
                 <ChevronDown className="h-3.5 w-3.5" />
@@ -1060,8 +1060,10 @@ export default function InboxPage() {
                 return (
                   <button
                     className={cn(
-                      "flex w-full items-start gap-3 border-b border-[#F0F0F2] px-4 py-3 text-left transition-colors",
-                      isActive ? "bg-[#EDF8F3] border-l-2 border-l-[#176B4D]" : "hover:bg-[#FAFAFA]",
+                      "flex w-full items-start gap-3 border-b border-[#F0F0F2] px-4 py-3 text-left transition-colors dark:border-[#202326]",
+                      isActive
+                        ? "bg-[#EDF8F3] border-l-2 border-l-[#176B4D] dark:bg-[#14251E] dark:border-l-[#3B9B77]"
+                        : "hover:bg-[#FAFAFA] dark:hover:bg-[#191C1E]",
                     )}
                     key={thread.conversation._id}
                     onClick={() => setSelectedConversationId(thread.conversation._id)}
@@ -1131,9 +1133,9 @@ export default function InboxPage() {
             </div>
           ) : (
             <>
-              <div className="relative flex h-14 items-center justify-between border-b border-[#E4E4E7] bg-white px-4">
+              <div className="relative flex h-14 items-center justify-between border-b border-[#E4E4E7] bg-white px-4 dark:border-[#24272A] dark:bg-[#121416]">
                 <button
-                  className="flex min-w-0 items-center gap-2.5 rounded-md px-2 py-1 text-left transition-colors hover:bg-[#F4F4F5]"
+                  className="flex min-w-0 items-center gap-2.5 rounded-md px-2 py-1 text-left transition-colors hover:bg-[#F4F4F5] dark:hover:bg-[#191C1E]"
                   onClick={() => setContactInfoOpen(true)}
                   type="button"
                 >
@@ -1234,7 +1236,7 @@ export default function InboxPage() {
               </div>
 
               <div
-                className="niwa-scrollbar min-h-0 flex-1 overflow-y-auto px-6 py-4 relative bg-repeat bg-center"
+                className="niwa-scrollbar min-h-0 flex-1 overflow-y-auto px-6 py-4 relative bg-repeat bg-center bg-[#F7F8FA] dark:bg-[#101312] dark:bg-blend-multiply"
                 onScroll={handleMessageContainerScroll}
                 ref={messagesContainerRef}
                 style={{ backgroundImage: "url('/whatsapp-bg.png')", backgroundSize: "450px" }}
@@ -1244,7 +1246,7 @@ export default function InboxPage() {
                     {Array.from({ length: 6 }).map((_, index) => (
                       <div
                         className={cn(
-                          "h-16 w-[60%] animate-pulse rounded-lg bg-[#E4E4E7]",
+                          "h-16 w-[60%] animate-pulse rounded-lg bg-[#E4E4E7] dark:bg-[#1B1D20]",
                           index % 2 === 0 ? "ml-auto" : "",
                         )}
                         key={index}
@@ -1255,7 +1257,7 @@ export default function InboxPage() {
 
                 {!detailQuery.isLoading && messageGroups.length === 0 ? (
                   <div className="flex h-full min-h-[200px] items-center justify-center">
-                    <div className="rounded-lg border border-[#E4E4E7] bg-white px-5 py-4 text-center">
+                    <div className="rounded-lg border border-[#E4E4E7] bg-white px-5 py-4 text-center dark:border-[#303438] dark:bg-[#121416]">
                       <p className="text-xs font-medium text-foreground">No messages in this thread yet.</p>
                       <p className="mt-0.5 text-xs text-muted-foreground">
                         Messages will appear here in real-time.
@@ -1267,7 +1269,7 @@ export default function InboxPage() {
                 {messageGroups.map((group) => (
                   <div className="mb-5" key={group.day}>
                     <div className="mb-3 flex justify-center">
-                      <span className="rounded-full border border-[#E4E4E7] bg-white px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground shadow-subtle">
+                      <span className="rounded-full border border-[#E4E4E7] bg-white px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground shadow-subtle dark:border-[#292C2F] dark:bg-[#121416]">
                         {group.day}
                       </span>
                     </div>
@@ -1293,8 +1295,8 @@ export default function InboxPage() {
                               className={cn(
                                 "max-w-[65%] rounded-xl px-3.5 py-2.5 border shadow-subtle",
                                 outgoing
-                                  ? "rounded-br-xs bg-[#EDF8F3] border-[#C4E8DA] text-[#176B4D]"
-                                  : "rounded-bl-xs bg-white border-[#E4E4E7] text-foreground",
+                                  ? "rounded-br-xs bg-[#EDF8F3] border-[#C4E8DA] text-foreground dark:bg-[#14251E] dark:border-[#203D31] dark:text-[#E8F3EE]"
+                                  : "rounded-bl-xs bg-white border-[#E4E4E7] text-foreground dark:bg-[#1C1F21] dark:border-[#282C2F] dark:text-[#ECEDEE]",
                               )}
                             >
                               {message.replyTo ? (
@@ -1351,7 +1353,7 @@ export default function InboxPage() {
                 ))}
               </div>
 
-              <div className="border-t border-[#E4E4E7] bg-white px-4 py-2.5">
+              <div className="border-t border-[#E4E4E7] bg-white px-4 py-2.5 dark:border-[#24272A] dark:bg-[#121416]">
                 {(selectedQuickReply && quickReplyPanelOpen) ? (
                   <div className="mb-2.5 rounded-lg border border-[#E4E4E7] bg-[#FAFAFA] p-3">
                     <div className="mb-2 flex items-center justify-between">

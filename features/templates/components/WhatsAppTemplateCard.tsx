@@ -175,22 +175,22 @@ export function WhatsAppTemplateCard({ template }: WhatsAppTemplateCardProps) {
           WhatsApp Preview
         </div>
 
-        <div className="overflow-hidden rounded-lg border border-[#E4E4E7] bg-white shadow-subtle p-3.5 space-y-2.5">
+        <div className="rounded-lg border border-[#E4E4E7] bg-white p-3 space-y-2 shadow-subtle dark:border-[#282C2F] dark:bg-[#1C1F21]">
           {headerFormat ? (
-            <div className="rounded-md bg-[#FAFAFA] p-2 text-xs font-medium text-muted-foreground flex items-center gap-2">
+            <div className="rounded-md bg-[#FAFAFA] p-2 text-xs font-medium text-muted-foreground flex items-center gap-2 dark:bg-[#151719]">
               {headerFormat === "IMAGE" ? (
                 <>
-                  <ImageIcon className="h-4 w-4 text-[#176B4D]" />
+                  <ImageIcon className="h-4 w-4 text-[#176B4D] dark:text-[#359B76]" />
                   <span>Header Image</span>
                 </>
               ) : headerFormat === "VIDEO" ? (
                 <>
-                  <Video className="h-4 w-4 text-[#176B4D]" />
+                  <Video className="h-4 w-4 text-[#176B4D] dark:text-[#359B76]" />
                   <span>Header Video</span>
                 </>
               ) : headerFormat === "DOCUMENT" ? (
                 <>
-                  <FileText className="h-4 w-4 text-[#176B4D]" />
+                  <FileText className="h-4 w-4 text-[#176B4D] dark:text-[#359B76]" />
                   <span>Header Document</span>
                 </>
               ) : (
@@ -204,16 +204,16 @@ export function WhatsAppTemplateCard({ template }: WhatsAppTemplateCardProps) {
           </div>
 
           {footerText ? (
-            <p className="text-[11px] text-muted-foreground border-t border-[#F0F0F2] pt-2">
+            <p className="text-[11px] text-muted-foreground border-t border-[#F0F0F2] pt-2 dark:border-[#282C2F]">
               {footerText}
             </p>
           ) : null}
 
           {(buttons.length > 0 || template.urlButtons?.length) ? (
-            <div className="space-y-1 border-t border-[#F0F0F2] pt-2">
+            <div className="space-y-1 border-t border-[#F0F0F2] pt-2 dark:border-[#282C2F]">
               {buttons.map((btn, idx) => (
                 <div
-                  className="flex items-center justify-center gap-1.5 rounded-md border border-[#E4E4E7] bg-white py-1 px-2.5 text-center text-xs font-medium text-[#176B4D]"
+                  className="flex items-center justify-center gap-1.5 rounded-md border border-[#E4E4E7] bg-white py-1 px-2.5 text-center text-xs font-medium text-[#176B4D] dark:border-[#303438] dark:bg-[#121416] dark:text-[#359B76]"
                   key={idx}
                 >
                   {btn.type === "URL" ? (
@@ -228,7 +228,7 @@ export function WhatsAppTemplateCard({ template }: WhatsAppTemplateCardProps) {
               ))}
               {template.urlButtons?.map((btn) => (
                 <div
-                  className="flex items-center justify-center gap-1.5 rounded-md border border-[#E4E4E7] bg-white py-1 px-2.5 text-center text-xs font-medium text-[#176B4D]"
+                  className="flex items-center justify-center gap-1.5 rounded-md border border-[#E4E4E7] bg-white py-1 px-2.5 text-center text-xs font-medium text-[#176B4D] dark:border-[#303438] dark:bg-[#121416] dark:text-[#359B76]"
                   key={btn.index}
                 >
                   <Globe className="h-3.5 w-3.5" />
@@ -242,4 +242,3 @@ export function WhatsAppTemplateCard({ template }: WhatsAppTemplateCardProps) {
     </div>
   );
 }
-
