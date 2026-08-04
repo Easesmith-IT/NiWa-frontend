@@ -31,8 +31,8 @@ export const AppShell = ({ children }: { children: ReactNode }) => {
             onOpenCommandPalette={() => setCommandPaletteOpen(true)}
             onToggleSidebar={() => setSidebarCollapsed((current) => !current)}
           />
-          <div className="min-h-0 flex-1 px-4 pb-4 md:px-5 lg:px-6 lg:pb-6">
-            <div className="h-full rounded-2xl border border-white/70 bg-[rgba(255,255,255,0.62)] shadow-[var(--shadow-soft)] backdrop-blur-sm">
+          <div className="flex flex-1 flex-col min-h-0 px-4 pb-4 md:px-5 lg:px-6 lg:pb-6">
+            <div className="flex flex-1 flex-col min-h-0 h-full rounded-2xl border border-white/70 bg-[rgba(255,255,255,0.62)] shadow-[var(--shadow-soft)] backdrop-blur-sm overflow-hidden">
               {children}
             </div>
           </div>

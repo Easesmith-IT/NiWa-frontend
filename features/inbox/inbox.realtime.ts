@@ -21,7 +21,10 @@ const resolveRealtimeUrl = () => {
   return apiUrl.replace(/\/api\/?$/, "");
 };
 
-export const useInboxRealtime = (activeConversationId: string | null) => {
+export const useInboxRealtime = (
+  activeConversationId: string | null,
+  onActiveMessageReceived?: (conversationId: string) => void,
+) => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -56,12 +59,18 @@ export const useInboxRealtime = (activeConversationId: string | null) => {
       const conversationId = event?.payload?.conversationId;
       invalidateInbox();
       invalidateActiveThread(conversationId);
+      if (activeConversationId && conversationId === activeConversationId) {
+        onActiveMessageReceived?.(conversationId);
+      }
     });
 
     socket.on("message.created", (event: { payload?: { conversationId?: string } }) => {
       const conversationId = event?.payload?.conversationId;
       invalidateInbox();
       invalidateActiveThread(conversationId);
+      if (activeConversationId && conversationId === activeConversationId) {
+        onActiveMessageReceived?.(conversationId);
+      }
     });
 
     socket.on(
@@ -76,5 +85,5 @@ export const useInboxRealtime = (activeConversationId: string | null) => {
     return () => {
       socket.disconnect();
     };
-  }, [activeConversationId, queryClient]);
+  }, [activeConversationId, onActiveMessageReceived, queryClient]);
 };

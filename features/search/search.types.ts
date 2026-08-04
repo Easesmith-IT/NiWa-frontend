@@ -98,6 +98,18 @@ export interface DashboardSummaryResponseV1 {
       queued: number;
       upcoming: number;
     };
+    metaAnalytics?: {
+      accountStatus: string;
+      deliveryRate: number;
+      messagingTier: string;
+      messagingTierLimit: string;
+      qualityRating: string;
+      readRate: number;
+      totalDelivered: number;
+      totalFailed: number;
+      totalRead: number;
+      totalSent: number;
+    };
     snapshot: {
       activeAutomations: number;
       contactsTotal: number;

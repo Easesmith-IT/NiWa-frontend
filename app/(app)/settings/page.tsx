@@ -319,7 +319,7 @@ export default function SettingsPage() {
 
       <Card className="p-6">
         <div className="mb-6 grid gap-4 lg:grid-cols-2">
-          <div className="rounded-2xl bg-[#f7f1e4] p-4">
+          <div className="rounded-2xl border border-border/50 bg-muted/40 p-4">
             <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
               Meta Callback Endpoint
             </p>
@@ -327,8 +327,8 @@ export default function SettingsPage() {
               {settingsQuery.data?.metaWebhookEndpoint ?? "Loading..."}
             </p>
           </div>
-          <div className="rounded-2xl bg-[#eef4ef] p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          <div className="rounded-2xl border border-emerald-200/60 bg-emerald-50/50 p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-800">
               Connection Check
             </p>
             <p className="mt-3 text-sm text-foreground">

@@ -1,7 +1,7 @@
 "use client";
 
 import { AxiosError } from "axios";
-import { KeyboardEvent, ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import { KeyboardEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Archive,
@@ -89,13 +89,27 @@ const formatConversationTime = (value?: string) => {
   }
 
   const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return "--";
+  }
+
   const now = new Date();
 
   if (date.toDateString() === now.toDateString()) {
     return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
   }
 
-  return date.toLocaleDateString([], { day: "numeric", month: "short" });
+  const yesterday = new Date();
+  yesterday.setDate(now.getDate() - 1);
+  if (date.toDateString() === yesterday.toDateString()) {
+    return "Yesterday";
+  }
+
+  if (date.getFullYear() === now.getFullYear()) {
+    return date.toLocaleDateString([], { day: "numeric", month: "short" });
+  }
+
+  return date.toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" });
 };
 
 const formatDateTime = (value?: string | null) => {
@@ -196,11 +210,18 @@ const ContactAvatar = ({
   className?: string;
   name?: string | null;
 }) => {
-  if (avatarUrl) {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [avatarUrl]);
+
+  if (avatarUrl && !imageFailed) {
     return (
       <img
         alt={name ?? "Contact"}
-        className={cn("rounded-full object-cover", className)}
+        className={cn("rounded-full object-cover shrink-0", className)}
+        onError={() => setImageFailed(true)}
         referrerPolicy="no-referrer"
         src={avatarUrl}
       />
@@ -210,7 +231,7 @@ const ContactAvatar = ({
   return (
     <div
       className={cn(
-        "flex items-center justify-center rounded-full font-semibold transition-colors",
+        "flex items-center justify-center rounded-full font-semibold transition-colors shrink-0",
         getAvatarColorStyle(name),
         className,
       )}
@@ -303,19 +324,20 @@ const getErrorMessage = (error: unknown, fallback: string) =>
 const renderOutgoingStatusIcon = (status?: string) => {
   switch ((status ?? "").toLowerCase()) {
     case "read":
-      return <CheckCheck className="h-3.5 w-3.5 text-[#53bdeb]" />;
+    case "seen":
+      return <CheckCheck className="h-4 w-4 text-[#34b7f1]" title="Read / Seen by customer" />;
     case "delivered":
-      return <CheckCheck className="h-3.5 w-3.5 text-[#7a8b82]" />;
+      return <CheckCheck className="h-4 w-4 text-[#7a8b82]" title="Delivered to recipient's phone" />;
     case "sent":
     case "submitted":
-      return <Check className="h-3.5 w-3.5 text-[#7a8b82]" />;
+      return <Check className="h-4 w-4 text-[#7a8b82]" title="Sent to WhatsApp servers" />;
     case "queued":
     case "accepted":
-      return <Clock3 className="h-3.5 w-3.5 text-[#7a8b82]" />;
+      return <Clock3 className="h-4 w-4 text-[#7a8b82] animate-pulse" title="Sending / Queued in dispatch" />;
     case "failed":
-      return <X className="h-3.5 w-3.5 text-[#bf5b4b]" />;
+      return <X className="h-4 w-4 text-[#bf5b4b]" title="Failed to send" />;
     default:
-      return <Check className="h-3.5 w-3.5 text-[#7a8b82]" />;
+      return <Check className="h-4 w-4 text-[#7a8b82]" title="Sent" />;
   }
 };
 
@@ -335,15 +357,17 @@ const buildMessageStatusDetails = (message: {
     sentAt?: string | null;
   };
 }) => {
+  const currentStatus = (message.status ?? "sent").toUpperCase();
   const parts = [
+    `Current Status: ${currentStatus}`,
     message.statusTimestamps?.queuedAt ? `Queued: ${formatDateTime(message.statusTimestamps.queuedAt)}` : null,
     message.statusTimestamps?.sentAt ? `Sent: ${formatDateTime(message.statusTimestamps.sentAt)}` : null,
     message.statusTimestamps?.deliveredAt
       ? `Delivered: ${formatDateTime(message.statusTimestamps.deliveredAt)}`
       : null,
-    message.statusTimestamps?.readAt ? `Read: ${formatDateTime(message.statusTimestamps.readAt)}` : null,
+    message.statusTimestamps?.readAt ? `Read / Seen: ${formatDateTime(message.statusTimestamps.readAt)}` : null,
     message.statusTimestamps?.failedAt ? `Failed: ${formatDateTime(message.statusTimestamps.failedAt)}` : null,
-    message.status === "failed" && message.errorDetails ? `Reason: ${message.errorDetails}` : null,
+    message.status === "failed" && message.errorDetails ? `Failure Reason: ${message.errorDetails}` : null,
   ].filter(Boolean);
 
   return parts.join("\n");
@@ -509,7 +533,27 @@ export default function InboxPage() {
   const patchQuickReplyMutation = usePatchQuickReplyV1Mutation();
   const createScheduledMessageMutation = useCreateScheduledMessageV1Mutation();
 
-  const threads = threadsQuery.data?.data ?? [];
+  const rawThreads = threadsQuery.data?.data ?? [];
+  const threads = useMemo(() => {
+    return [...rawThreads].sort((left, right) => {
+      const leftPinned = left.conversation.pinnedAt ? new Date(left.conversation.pinnedAt).getTime() : 0;
+      const rightPinned = right.conversation.pinnedAt ? new Date(right.conversation.pinnedAt).getTime() : 0;
+
+      if (leftPinned !== rightPinned) {
+        return rightPinned - leftPinned;
+      }
+
+      const leftTime = new Date(
+        left.conversation.lastMessageAt || left.conversation.updatedAt || left.conversation.createdAt || 0,
+      ).getTime();
+      const rightTime = new Date(
+        right.conversation.lastMessageAt || right.conversation.updatedAt || right.conversation.createdAt || 0,
+      ).getTime();
+
+      return rightTime - leftTime;
+    });
+  }, [rawThreads]);
+
   const quickReplies = (quickRepliesQuery.data?.data ?? []).filter((item) => item.isActive);
 
   useEffect(() => {
@@ -544,7 +588,17 @@ export default function InboxPage() {
   );
 
   const activeConversationId = selectedThread?.conversation._id ?? null;
-  useInboxRealtime(activeConversationId);
+  const handleActiveMessageReceived = useCallback(
+    (conversationId: string) => {
+      threadMutation.mutate({
+        action: "read",
+        conversationId,
+      });
+    },
+    [threadMutation],
+  );
+
+  useInboxRealtime(activeConversationId, handleActiveMessageReceived);
 
   const detailQuery = useInboxThreadDetailV1Query(activeConversationId, { messageLimit: 1000 });
   const syncHistoryMutation = useSyncInboxThreadHistoryV1Mutation();
@@ -737,15 +791,18 @@ export default function InboxPage() {
   }, [detail, displayedMessages, optimisticMessages.length]);
 
   useEffect(() => {
-    if (!activeConversationId || !detail?.conversation || detail.conversation.unreadCount <= 0) {
+    if (!activeConversationId) {
       return;
     }
 
-    threadMutation.mutate({
-      action: "read",
-      conversationId: activeConversationId,
-    });
-  }, [activeConversationId, detail?.conversation, threadMutation]);
+    const currentThread = threads.find((t) => t.conversation._id === activeConversationId);
+    if (currentThread && currentThread.conversation.unreadCount > 0) {
+      threadMutation.mutate({
+        action: "read",
+        conversationId: activeConversationId,
+      });
+    }
+  }, [activeConversationId, threads, threadMutation]);
 
   useEffect(() => {
     if (!selectedQuickReply) {
@@ -895,10 +952,10 @@ export default function InboxPage() {
   };
 
   return (
-    <div className="h-[calc(100vh-6.75rem)] min-h-[720px] bg-[#f6f1e9] text-[#25342f]">
+    <div className="flex h-full min-h-0 flex-1 flex-col bg-background text-foreground">
       <div
         className={cn(
-          "grid h-full min-h-0",
+          "grid h-full min-h-0 flex-1",
           detail
             ? contactInfoOpen
               ? "xl:grid-cols-[340px_minmax(0,1fr)_360px]"
@@ -906,19 +963,19 @@ export default function InboxPage() {
             : "xl:grid-cols-[340px_minmax(0,1fr)]",
         )}
       >
-        <aside className="flex min-h-0 flex-col border-r border-[#ddd2c3] bg-[#f9f4ec]">
-          <div className="border-b border-[#e5ddd3] px-6 py-5">
+        <aside className="flex min-h-0 flex-col border-r border-border/80 bg-muted/30">
+          <div className="border-b border-border/70 px-6 py-5">
             <div className="flex items-center justify-between">
-              <h1 className="text-[18px] font-semibold text-[#25342f]">Inbox</h1>
+              <h1 className="text-[18px] font-semibold text-foreground">Inbox</h1>
               <div className="flex items-center gap-1">
                 <button
-                  className="rounded-full p-2 text-[#6e7d74] transition hover:bg-[#efe7db] hover:text-[#25342f]"
+                  className="rounded-full p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground"
                   type="button"
                 >
                   <Plus className="h-4 w-4" />
                 </button>
                 <button
-                  className="rounded-full p-2 text-[#6e7d74] transition hover:bg-[#efe7db] hover:text-[#25342f]"
+                  className="rounded-full p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground"
                   type="button"
                 >
                   <MoreHorizontal className="h-4 w-4" />
@@ -927,9 +984,9 @@ export default function InboxPage() {
             </div>
 
             <div className="relative mt-4">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-[#7a8b82]" />
+              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
-                className="h-12 rounded-full border-[#ddd2c3] bg-[#fffdf9] pl-11 text-[15px] text-[#25342f] placeholder:text-[#7a8b82]"
+                className="h-12 rounded-full border-border bg-card pl-11 text-[15px] text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20"
                 onChange={(event) => setSearch(event.target.value)}
                 placeholder="Search conversations"
                 value={search}
@@ -942,8 +999,8 @@ export default function InboxPage() {
                   className={cn(
                     "rounded-full border px-4 py-2 text-sm font-medium transition",
                     filter === item.key
-                      ? "border-[#2d644d] bg-[#2d644d] text-white"
-                      : "border-[#ddd2c3] bg-[#fffdf9] text-[#65766d] hover:text-[#25342f]",
+                      ? "border-primary bg-primary text-primary-foreground shadow-sm"
+                      : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
                   )}
                   key={item.key}
                   onClick={() => setFilter(item.key)}
@@ -953,7 +1010,7 @@ export default function InboxPage() {
                 </button>
               ))}
               <button
-                className="rounded-full border border-[#ddd2c3] bg-[#fffdf9] px-3 py-2 text-[#65766d] transition hover:text-[#25342f]"
+                className="rounded-full border border-border bg-card px-3 py-2 text-muted-foreground transition hover:bg-muted hover:text-foreground"
                 type="button"
               >
                 <ChevronDown className="h-4 w-4" />
@@ -967,6 +1024,7 @@ export default function InboxPage() {
             ) : (
               threads.map((thread) => {
                 const isActive = thread.conversation._id === activeConversationId;
+                const effectiveUnreadCount = isActive ? 0 : thread.conversation.unreadCount;
                 const rawName =
                   thread.contact?.displayName ||
                   thread.contact?.profileName ||
@@ -995,7 +1053,7 @@ export default function InboxPage() {
                           <p
                             className={cn(
                               "truncate text-[15px]",
-                              thread.conversation.unreadCount > 0 ? "font-semibold" : "font-medium",
+                              effectiveUnreadCount > 0 ? "font-semibold" : "font-medium",
                             )}
                           >
                             {displayName}
@@ -1008,9 +1066,9 @@ export default function InboxPage() {
                           <span className="text-[12px] text-[#7a8b82]">
                             {formatConversationTime(thread.conversation.lastMessageAt || thread.conversation.updatedAt)}
                           </span>
-                          {thread.conversation.unreadCount > 0 ? (
+                          {effectiveUnreadCount > 0 ? (
                             <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-[#2d644d] px-2 py-0.5 text-[11px] font-semibold text-white">
-                              {thread.conversation.unreadCount}
+                              {effectiveUnreadCount}
                             </span>
                           ) : null}
                         </div>

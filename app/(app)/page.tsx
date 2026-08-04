@@ -5,10 +5,13 @@ import {
   Activity,
   Bot,
   CalendarClock,
+  CheckCheck,
   Clock3,
   MessageSquareText,
   Search,
+  ShieldCheck,
   Sparkles,
+  TrendingUp,
   TriangleAlert,
 } from "lucide-react";
 
@@ -112,6 +115,71 @@ export default function DashboardPage() {
         ))}
       </div>
 
+      {/* Meta Analytics & Messaging Volume Tiers Card */}
+      <Card className="border-white/60 bg-[linear-gradient(135deg,rgba(255,255,255,0.92),rgba(238,244,239,0.85))] p-6 backdrop-blur shadow-sm">
+        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-black/10 pb-4">
+          <div className="flex items-center gap-2.5">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#2d644d] text-white">
+              <ShieldCheck className="h-5 w-5" />
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold text-foreground">Meta Analytics & Messaging Tiers</h3>
+              <p className="text-xs text-muted-foreground">
+                WhatsApp Business Cloud API health, delivery telemetry, and daily tier limits.
+              </p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2 text-xs">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#16302b] px-3 py-1 font-medium text-[#f8f1de]">
+              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              {data?.metaAnalytics?.messagingTier ?? "Tier 1K"} ({data?.metaAnalytics?.messagingTierLimit ?? "1,000 / 24h"})
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 font-medium text-emerald-800">
+              {data?.metaAnalytics?.qualityRating ?? "GREEN (High Quality)"}
+            </span>
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 font-medium text-blue-800">
+              {data?.metaAnalytics?.accountStatus ?? "CONNECTED (Live / Published)"}
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-2xl border border-black/5 bg-white/80 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Total Outbound Sent</p>
+            <p className="mt-2 text-2xl font-bold text-foreground">{data?.metaAnalytics?.totalSent ?? 0}</p>
+            <p className="mt-1 text-xs text-muted-foreground">Dispatched to Meta Cloud API</p>
+          </div>
+
+          <div className="rounded-2xl border border-black/5 bg-white/80 p-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Delivered</p>
+              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-800">
+                {data?.metaAnalytics?.deliveryRate ?? 100}% rate
+              </span>
+            </div>
+            <p className="mt-2 text-2xl font-bold text-foreground">{data?.metaAnalytics?.totalDelivered ?? 0}</p>
+            <p className="mt-1 text-xs text-muted-foreground">Received on recipient phones</p>
+          </div>
+
+          <div className="rounded-2xl border border-black/5 bg-white/80 p-4">
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Read / Seen</p>
+              <span className="rounded-full bg-cyan-100 px-2 py-0.5 text-[11px] font-semibold text-cyan-800">
+                {data?.metaAnalytics?.readRate ?? 0}% open rate
+              </span>
+            </div>
+            <p className="mt-2 text-2xl font-bold text-[#0284c7]">{data?.metaAnalytics?.totalRead ?? 0}</p>
+            <p className="mt-1 text-xs text-muted-foreground">Opened by WhatsApp users</p>
+          </div>
+
+          <div className="rounded-2xl border border-black/5 bg-white/80 p-4">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Failed Delivery</p>
+            <p className="mt-2 text-2xl font-bold text-rose-600">{data?.metaAnalytics?.totalFailed ?? 0}</p>
+            <p className="mt-1 text-xs text-muted-foreground">Blocked or delivery errors</p>
+          </div>
+        </div>
+      </Card>
+
       <div className="grid gap-4 xl:grid-cols-[1fr_1fr_1fr]">
         <Card className="border-white/60 bg-white/78 p-6 backdrop-blur">
           <div className="flex items-center gap-2">
@@ -125,7 +193,7 @@ export default function DashboardPage() {
               { label: "Starred conversations", value: data?.inbox.starredConversations ?? 0 },
               { label: "Archived conversations", value: data?.inbox.archivedConversations ?? 0 },
             ].map((item) => (
-              <div className="flex items-center justify-between rounded-2xl bg-[#faf7ef] px-4 py-3" key={item.label}>
+              <div className="flex items-center justify-between rounded-2xl border border-border/40 bg-muted/40 px-4 py-3" key={item.label}>
                 <p className="text-sm text-muted-foreground">{item.label}</p>
                 <p className="text-lg font-semibold text-foreground">{item.value}</p>
               </div>
@@ -145,7 +213,7 @@ export default function DashboardPage() {
               { label: "Queued schedules", value: data?.schedules.queued ?? 0 },
               { label: "Failed schedules", value: data?.schedules.failed ?? 0 },
             ].map((item) => (
-              <div className="flex items-center justify-between rounded-2xl bg-[#faf7ef] px-4 py-3" key={item.label}>
+              <div className="flex items-center justify-between rounded-2xl border border-border/40 bg-muted/40 px-4 py-3" key={item.label}>
                 <p className="text-sm text-muted-foreground">{item.label}</p>
                 <p className="text-lg font-semibold text-foreground">{item.value}</p>
               </div>
@@ -165,7 +233,7 @@ export default function DashboardPage() {
               { label: "Failed runs today", value: data?.automations.failedRunsToday ?? 0 },
               { label: "Paused schedules", value: data?.schedules.paused ?? 0 },
             ].map((item) => (
-              <div className="flex items-center justify-between rounded-2xl bg-[#faf7ef] px-4 py-3" key={item.label}>
+              <div className="flex items-center justify-between rounded-2xl border border-border/40 bg-muted/40 px-4 py-3" key={item.label}>
                 <p className="text-sm text-muted-foreground">{item.label}</p>
                 <p className="text-lg font-semibold text-foreground">{item.value}</p>
               </div>
@@ -187,7 +255,7 @@ export default function DashboardPage() {
           </div>
           <div className="mt-4 space-y-3">
             {(data?.recentActivity ?? []).map((item) => (
-              <div className="rounded-2xl bg-[#faf7ef] p-4" key={item.activity._id}>
+              <div className="rounded-2xl border border-border/40 bg-muted/40 p-4" key={item.activity._id}>
                 <div className="flex items-center justify-between gap-3">
                   <p className="font-medium text-foreground">
                     {item.contact?.displayName || item.contact?.phoneNumber || "Unknown contact"}
@@ -221,12 +289,12 @@ export default function DashboardPage() {
             </div>
             <div className="mt-4 space-y-3">
               {(data?.hotThreads ?? []).map((item) => (
-                <Link className="block rounded-2xl bg-[#faf7ef] p-4 transition hover:bg-white" href={`/inbox?conversationId=${encodeURIComponent(item.conversation._id)}`} key={item.conversation._id}>
+                <Link className="block rounded-2xl border border-border/40 bg-muted/40 p-4 transition hover:bg-card hover:shadow-xs" href={`/inbox?conversationId=${encodeURIComponent(item.conversation._id)}`} key={item.conversation._id}>
                   <div className="flex items-center justify-between gap-3">
                     <p className="font-medium text-foreground">
                       {item.contact?.displayName || item.contact?.phoneNumber || item.conversation.waId}
                     </p>
-                    <span className="rounded-full bg-[#ecf3ec] px-2 py-1 text-xs font-medium text-[#1f513e]">
+                    <span className="rounded-full bg-emerald-100/70 border border-emerald-200 px-2 py-0.5 text-xs font-medium text-emerald-800">
                       unread {item.conversation.unreadCount}
                     </span>
                   </div>
@@ -255,17 +323,17 @@ export default function DashboardPage() {
               </Link>
             </div>
             <div className="mt-4 grid gap-3 md:grid-cols-3">
-              <div className="rounded-2xl bg-[#fff4e7] p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Overdue tasks</p>
-                <p className="mt-2 text-2xl font-semibold">{data?.tasks.overdue ?? 0}</p>
+              <div className="rounded-2xl border border-amber-200/60 bg-amber-50/70 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-800/80">Overdue tasks</p>
+                <p className="mt-2 text-2xl font-semibold text-amber-950">{data?.tasks.overdue ?? 0}</p>
               </div>
-              <div className="rounded-2xl bg-[#fff4e7] p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Failed schedules</p>
-                <p className="mt-2 text-2xl font-semibold">{data?.schedules.failed ?? 0}</p>
+              <div className="rounded-2xl border border-amber-200/60 bg-amber-50/70 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-800/80">Failed schedules</p>
+                <p className="mt-2 text-2xl font-semibold text-amber-950">{data?.schedules.failed ?? 0}</p>
               </div>
-              <div className="rounded-2xl bg-[#fff4e7] p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">Failed runs</p>
-                <p className="mt-2 text-2xl font-semibold">{data?.automations.failedRunsToday ?? 0}</p>
+              <div className="rounded-2xl border border-amber-200/60 bg-amber-50/70 p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-800/80">Failed runs</p>
+                <p className="mt-2 text-2xl font-semibold text-amber-950">{data?.automations.failedRunsToday ?? 0}</p>
               </div>
             </div>
           </Card>
