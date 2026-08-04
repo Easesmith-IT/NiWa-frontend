@@ -7,12 +7,12 @@ import { withDisplayPhoneNumber } from "../../shared/mappers";
 import type { ContactRecordV1 } from "../contact.types";
 
 const avatarColorStyles = [
-  "bg-[#dfe5dc] text-[#2d644d]",
-  "bg-[#e0e8f5] text-[#2b5288]",
-  "bg-[#f5e6e0] text-[#883d2b]",
-  "bg-[#eee0f5] text-[#632b88]",
-  "bg-[#f5f2e0] text-[#70642b]",
-  "bg-[#e0f5f2] text-[#2b7d70]",
+  "bg-[#EDF8F3] text-[#176B4D]",
+  "bg-[#F4F4F5] text-[#3F3F46]",
+  "bg-[#F0F0F2] text-[#27272A]",
+  "bg-[#EDF8F3] text-[#12563E]",
+  "bg-[#F4F4F5] text-[#18181B]",
+  "bg-[#EDF8F3] text-[#176B4D]",
 ];
 
 const getAvatarColorStyle = (name?: string | null) => {
@@ -61,20 +61,20 @@ export function ContactsDataTable({
   selectedContactId,
 }: ContactsDataTableProps) {
   return (
-    <div className="overflow-hidden rounded-2xl border border-[#e5ddd3] bg-white shadow-sm">
+    <div className="overflow-hidden rounded-lg border border-[#E4E4E7] bg-white shadow-subtle">
       <div className="niwa-scrollbar overflow-x-auto">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-[#eee4d8] bg-[#fbf7f1] text-[11px] font-semibold uppercase tracking-[0.14em] text-[#6f7f75]">
+        <table className="w-full text-left text-xs">
+          <thead className="border-b border-[#E4E4E7] bg-[#FAFAFA] text-[11px] font-medium text-muted-foreground">
             <tr>
-              <th className="py-3.5 pl-6 pr-4">Contact</th>
-              <th className="px-4 py-3.5">Phone Number</th>
-              <th className="px-4 py-3.5">Company</th>
-              <th className="px-4 py-3.5">Email</th>
-              <th className="px-4 py-3.5">WhatsApp Profile</th>
-              <th className="py-3.5 pl-4 pr-6 text-right">Actions</th>
+              <th className="py-3 pl-4 pr-3">Contact</th>
+              <th className="px-3 py-3">Phone Number</th>
+              <th className="px-3 py-3">Company</th>
+              <th className="px-3 py-3">Email</th>
+              <th className="px-3 py-3">WhatsApp Profile</th>
+              <th className="py-3 pl-3 pr-4 text-right">Actions</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-[#f2ebe2]">
+          <tbody className="divide-y divide-[#F0F0F2]">
             {contacts.map((contact) => {
               const isSelected = contact._id === selectedContactId;
               const formattedPhone =
@@ -82,26 +82,26 @@ export function ContactsDataTable({
 
               return (
                 <tr
-                  className={`group cursor-pointer transition ${
+                  className={`group cursor-pointer transition-colors ${
                     isSelected
-                      ? "bg-[#f4efe6] font-medium"
-                      : "hover:bg-[#fcf9f4]"
+                      ? "bg-[#EDF8F3] font-medium"
+                      : "hover:bg-[#FAFAFA]"
                   }`}
                   key={contact._id}
                   onClick={() => onSelectContact(contact._id)}
                 >
-                  <td className="py-3.5 pl-6 pr-4">
-                    <div className="flex items-center gap-3">
+                  <td className="py-3 pl-4 pr-3">
+                    <div className="flex items-center gap-2.5">
                       {contact.avatarUrl ? (
                         <img
                           alt={contact.displayName}
-                          className="h-9 w-9 rounded-full object-cover shadow-sm"
+                          className="h-8 w-8 rounded-full object-cover"
                           referrerPolicy="no-referrer"
                           src={contact.avatarUrl}
                         />
                       ) : (
                         <div
-                          className={`flex h-9 w-9 items-center justify-center rounded-full text-xs font-semibold shadow-sm ${getAvatarColorStyle(
+                          className={`flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold ${getAvatarColorStyle(
                             contact.displayName,
                           )}`}
                         >
@@ -109,60 +109,60 @@ export function ContactsDataTable({
                         </div>
                       )}
                       <div>
-                        <p className="font-semibold text-[#25342f] group-hover:text-[#1e4535]">
+                        <p className="font-semibold text-foreground">
                           {contact.displayName}
                         </p>
                       </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3.5 text-[#44534d]">
-                    <span className="inline-flex items-center rounded-md bg-[#f4efe6] px-2.5 py-1 text-xs font-medium text-[#2d644d]">
+                  <td className="px-3 py-3 text-muted-foreground">
+                    <span className="inline-flex items-center rounded-md bg-[#F4F4F5] border border-[#E4E4E7] px-2 py-0.5 text-[11px] font-medium text-foreground">
                       {formattedPhone}
                     </span>
                   </td>
-                  <td className="px-4 py-3.5 text-[#56675d]">
-                    {contact.company || <span className="text-[#a0aca4]">—</span>}
+                  <td className="px-3 py-3 text-muted-foreground">
+                    {contact.company || <span className="text-muted-foreground/40">—</span>}
                   </td>
-                  <td className="px-4 py-3.5 text-[#56675d]">
-                    {contact.email || <span className="text-[#a0aca4]">—</span>}
+                  <td className="px-3 py-3 text-muted-foreground">
+                    {contact.email || <span className="text-muted-foreground/40">—</span>}
                   </td>
-                  <td className="px-4 py-3.5 text-[#56675d]">
+                  <td className="px-3 py-3 text-muted-foreground">
                     {contact.profileName ? (
-                      <span className="text-xs text-[#6f7f75]">{contact.profileName}</span>
+                      <span className="text-xs text-muted-foreground">{contact.profileName}</span>
                     ) : (
-                      <span className="text-[#a0aca4]">—</span>
+                      <span className="text-muted-foreground/40">—</span>
                     )}
                   </td>
-                  <td className="py-3.5 pl-4 pr-6 text-right">
+                  <td className="py-3 pl-3 pr-4 text-right">
                     <div
-                      className="flex items-center justify-end gap-1.5"
+                      className="flex items-center justify-end gap-1"
                       onClick={(e) => e.stopPropagation()}
                     >
                       {onOpenChat ? (
                         <button
-                          className="rounded-lg p-1.5 text-[#6f7f75] transition hover:bg-[#e6eee6] hover:text-[#2d644d]"
+                          className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-[#EDF8F3] hover:text-[#176B4D]"
                           onClick={() => onOpenChat(contact.phoneNumber)}
                           title="Open WhatsApp Chat"
                           type="button"
                         >
-                          <MessageSquare className="h-4 w-4" />
+                          <MessageSquare className="h-3.5 w-3.5" />
                         </button>
                       ) : null}
                       <button
-                        className="rounded-lg p-1.5 text-[#6f7f75] transition hover:bg-[#efe7db] hover:text-[#25342f]"
+                        className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-[#F4F4F5] hover:text-foreground"
                         onClick={() => onEditContact(contact)}
                         title="Edit Contact"
                         type="button"
                       >
-                        <Pencil className="h-4 w-4" />
+                        <Pencil className="h-3.5 w-3.5" />
                       </button>
                       <button
-                        className="rounded-lg p-1.5 text-[#6f7f75] transition hover:bg-[#fdeaea] hover:text-[#9d3434]"
+                        className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-rose-50 hover:text-rose-600"
                         onClick={() => onDeleteContact(contact._id)}
                         title="Delete Contact"
                         type="button"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        <Trash2 className="h-3.5 w-3.5" />
                       </button>
                     </div>
                   </td>
@@ -171,8 +171,8 @@ export function ContactsDataTable({
             })}
             {contacts.length === 0 ? (
               <tr>
-                <td className="py-12 text-center text-[#7a8b82]" colSpan={6}>
-                  No contacts found matching your criteria.
+                <td className="py-10 text-center text-xs text-muted-foreground" colSpan={6}>
+                  No contacts found matching your search.
                 </td>
               </tr>
             ) : null}
@@ -182,3 +182,4 @@ export function ContactsDataTable({
     </div>
   );
 }
+

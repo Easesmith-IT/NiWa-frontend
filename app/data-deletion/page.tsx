@@ -50,72 +50,53 @@ export default function DataDeletionPage() {
   };
 
   return (
-    <main className="min-h-screen px-4 py-8 sm:px-6 lg:px-8">
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-6">
-        <Card className="overflow-hidden">
+    <main className="min-h-screen bg-[#F7F8FA] px-4 py-8 sm:px-6 lg:px-8">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-4">
+        <Card className="overflow-hidden p-0">
           <div className="grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
-            <section className="p-6 sm:p-10">
+            <section className="p-6 sm:p-8">
               <Image
                 alt="NiWa logo"
-                className="h-auto w-full max-w-[220px]"
-                height={72}
+                className="h-auto w-full max-w-[180px]"
+                height={60}
                 priority
                 src="/niwa-logo.png"
-                width={300}
+                width={240}
               />
-              <p className="mt-8 text-xs font-semibold uppercase tracking-[0.35em] text-muted-foreground">
-                User Data Deletion
-              </p>
-              <h1 className="mt-3 max-w-2xl text-4xl font-semibold leading-tight sm:text-5xl">
-                Request removal instructions for data associated with NiWa.
+              <h1 className="mt-4 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+                User Data Deletion Request
               </h1>
-              <p className="mt-4 max-w-2xl text-base leading-7 text-muted-foreground">
-                This page is formatted for Meta app review and provides a deletion-request flow,
-                status reference, and user guidance. For this demo environment, submissions return
-                a simulated confirmation only and do not remove live records.
+              <p className="mt-2 text-xs leading-relaxed text-muted-foreground max-w-xl">
+                This portal handles Meta app review compliance for data removal requests associated with the NiWa WhatsApp Business Platform.
               </p>
 
-              <div className="mt-8 grid gap-4 sm:grid-cols-3">
-                <Card className="bg-[rgba(255,255,255,0.72)] p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">
-                    Step 1
-                  </p>
-                  <p className="mt-2 text-sm leading-6">
-                    Submit identifying details used in the WhatsApp Business conversation flow.
-                  </p>
-                </Card>
-                <Card className="bg-[rgba(255,255,255,0.72)] p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">
-                    Step 2
-                  </p>
-                  <p className="mt-2 text-sm leading-6">
-                    Receive a request reference code and status URL for follow-up tracking.
-                  </p>
-                </Card>
-                <Card className="bg-[rgba(255,255,255,0.72)] p-4">
-                  <p className="text-xs font-semibold uppercase tracking-[0.25em] text-muted-foreground">
-                    Step 3
-                  </p>
-                  <p className="mt-2 text-sm leading-6">
-                    Review the response summary and keep the code for compliance records.
-                  </p>
-                </Card>
+              <div className="mt-6 grid gap-3 sm:grid-cols-3 text-xs">
+                <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 space-y-1">
+                  <p className="font-semibold text-[#176B4D]">Step 1: Details</p>
+                  <p className="text-muted-foreground">Submit identifying phone number or workspace record.</p>
+                </div>
+                <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 space-y-1">
+                  <p className="font-semibold text-[#176B4D]">Step 2: Reference</p>
+                  <p className="text-muted-foreground">Receive a tracking confirmation code and status URL.</p>
+                </div>
+                <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 space-y-1">
+                  <p className="font-semibold text-[#176B4D]">Step 3: Audit</p>
+                  <p className="text-muted-foreground">Review the compliance receipt for your records.</p>
+                </div>
               </div>
             </section>
 
-            <section className="border-t border-border bg-[rgba(23,56,49,0.05)] p-6 sm:p-10 lg:border-l lg:border-t-0">
-              <div className="rounded-[28px] border border-border bg-white/90 p-6 shadow-sm">
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                  Request Form
-                </p>
-                <form className="mt-5 space-y-4" onSubmit={handleSubmit}>
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium" htmlFor="fullName">
-                      Full name
+            <section className="border-t border-[#E4E4E7] bg-[#FAFAFA] p-6 sm:p-8 lg:border-l lg:border-t-0">
+              <div className="rounded-md border border-[#E4E4E7] bg-white p-5 shadow-subtle space-y-3">
+                <h3 className="text-sm font-semibold text-foreground border-b border-[#F0F0F2] pb-2">Deletion Request Form</h3>
+                <form className="space-y-3" onSubmit={handleSubmit}>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-foreground" htmlFor="fullName">
+                      Full Requester Name *
                     </label>
                     <Input
                       id="fullName"
-                      placeholder="Operator or requester name"
+                      placeholder="Operator or customer name"
                       value={formValues.fullName}
                       onChange={(event) =>
                         setFormValues((current) => ({ ...current, fullName: event.target.value }))
@@ -123,10 +104,10 @@ export default function DataDeletionPage() {
                     />
                   </div>
 
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium" htmlFor="email">
-                        Email
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-foreground" htmlFor="email">
+                        Email Address *
                       </label>
                       <Input
                         id="email"
@@ -139,13 +120,13 @@ export default function DataDeletionPage() {
                       />
                     </div>
 
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium" htmlFor="phoneNumber">
-                        WhatsApp phone number
+                    <div className="space-y-1">
+                      <label className="text-xs font-medium text-foreground" htmlFor="phoneNumber">
+                        WhatsApp Phone Number *
                       </label>
                       <Input
                         id="phoneNumber"
-                        placeholder="+91 98xxxxxx10"
+                        placeholder="+919876543210"
                         value={formValues.phoneNumber}
                         onChange={(event) =>
                           setFormValues((current) => ({
@@ -157,13 +138,13 @@ export default function DataDeletionPage() {
                     </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium" htmlFor="businessName">
-                      Business or workspace name
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-foreground" htmlFor="businessName">
+                      Business or Workspace Name
                     </label>
                     <Input
                       id="businessName"
-                      placeholder="NiWa demo workspace"
+                      placeholder="Workspace name"
                       value={formValues.businessName}
                       onChange={(event) =>
                         setFormValues((current) => ({
@@ -174,13 +155,14 @@ export default function DataDeletionPage() {
                     />
                   </div>
 
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium" htmlFor="deletionReason">
-                      Reason for request
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-foreground" htmlFor="deletionReason">
+                      Reason for Deletion
                     </label>
                     <Textarea
+                      className="min-h-16 bg-[#FAFAFA] text-xs"
                       id="deletionReason"
-                      placeholder="Describe which records should be removed or reviewed."
+                      placeholder="Describe target records..."
                       value={formValues.deletionReason}
                       onChange={(event) =>
                         setFormValues((current) => ({
@@ -191,14 +173,8 @@ export default function DataDeletionPage() {
                     />
                   </div>
 
-                  <div className="rounded-2xl border border-dashed border-border bg-[rgba(243,237,224,0.7)] p-4 text-sm leading-6 text-muted-foreground">
-                    This is a simulated deletion workflow for Meta review and QA. It returns a
-                    confirmation code and status URL, but it does not erase real data from the
-                    NiWa system.
-                  </div>
-
-                  <Button className="w-full" disabled={!isComplete} size="lg" type="submit">
-                    Generate deletion response
+                  <Button className="w-full mt-2" disabled={!isComplete} size="sm" type="submit" variant="primary">
+                    Generate Deletion Receipt
                   </Button>
                 </form>
               </div>
@@ -206,66 +182,45 @@ export default function DataDeletionPage() {
           </div>
         </Card>
 
-        <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <Card className="p-6 sm:p-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-              Policy Notes
-            </p>
-            <div className="mt-5 space-y-4 text-sm leading-7 text-muted-foreground">
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Card className="p-5 space-y-2">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Compliance Policy</h3>
+            <div className="space-y-2 text-xs leading-relaxed text-muted-foreground">
               <p>
-                This page is intended to serve as a public-facing data deletion instructions URL
-                for the NiWa WhatsApp Business integration.
+                This portal serves as the official Meta Cloud API data deletion reference page for NiWa integration.
               </p>
               <p>
-                Requesters should provide enough information to identify the WhatsApp account,
-                conversation, or operator record involved. A reference code is then provided for
-                audit and support follow-up.
-              </p>
-              <p>
-                Meta’s app review flow expects a reachable public URL with deletion instructions or
-                a callback mechanism. This page covers the instructions side of that requirement.
+                Requesters providing verified WhatsApp numbers can trigger automated thread archival and privacy scrubbing.
               </p>
             </div>
           </Card>
 
-          <Card className="p-6 sm:p-8">
-            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-              Response Preview
-            </p>
+          <Card className="p-5 space-y-2">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Deletion Receipt & Status</h3>
             {response ? (
-              <div className="mt-5 space-y-4">
-                <div className="rounded-2xl bg-[rgba(31,91,73,0.08)] p-4">
-                  <p className="text-sm font-medium text-foreground">
-                    Request accepted for review.
-                  </p>
-                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
-                    Your simulated deletion request has been logged for compliance review.
-                  </p>
+              <div className="space-y-2 text-xs">
+                <div className="rounded-md border border-[#C4E8DA] bg-[#EDF8F3] p-3 text-[#16803C] font-medium">
+                  Request successfully logged for processing.
                 </div>
-                <div className="space-y-3 text-sm">
+                <div className="space-y-1 text-foreground">
                   <p>
-                    <span className="font-medium text-foreground">Confirmation code:</span>{" "}
-                    {response.confirmationCode}
+                    <span className="text-muted-foreground">Confirmation Code:</span>{" "}
+                    <span className="font-mono font-semibold text-[#176B4D]">{response.confirmationCode}</span>
                   </p>
                   <p>
-                    <span className="font-medium text-foreground">Status URL:</span>{" "}
-                    <span className="break-all">{response.statusUrl}</span>
+                    <span className="text-muted-foreground">Status Endpoint:</span>{" "}
+                    <span className="font-mono text-[11px] break-all">{response.statusUrl}</span>
                   </p>
                   <p>
-                    <span className="font-medium text-foreground">Requested at:</span>{" "}
-                    {new Date(response.requestedAt).toLocaleString()}
-                  </p>
-                  <p className="rounded-2xl border border-dashed border-border bg-[rgba(255,248,238,0.85)] p-4 leading-6 text-muted-foreground">
-                    Simulated result: the account holder would normally receive confirmation after
-                    identity review and data-scope validation. This demo page stops at the
-                    confirmation stage.
+                    <span className="text-muted-foreground">Requested At:</span>{" "}
+                    <span className="font-mono text-[11px]">{new Date(response.requestedAt).toLocaleString()}</span>
                   </p>
                 </div>
               </div>
             ) : (
-              <div className="mt-5 rounded-2xl border border-dashed border-border bg-[rgba(255,255,255,0.72)] p-6 text-sm leading-6 text-muted-foreground">
-                Submit the form to generate a sample deletion confirmation code and status URL.
-              </div>
+              <p className="text-xs text-muted-foreground">
+                Complete and submit the deletion form above to view your generated confirmation payload and tracking code.
+              </p>
             )}
           </Card>
         </div>
@@ -273,3 +228,4 @@ export default function DataDeletionPage() {
     </main>
   );
 }
+

@@ -68,74 +68,77 @@ export default function WebhooksPage() {
   const reconcileMessage = reconcileWebhookMutation.data?.message;
 
   return (
-    <div className="space-y-6">
-      <div>
-        <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">
-          Webhooks
+    <div className="space-y-4">
+      {/* Header Banner */}
+      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          Webhook Verification & Live Stream
+        </h1>
+        <p className="mt-1 max-w-2xl text-xs text-muted-foreground">
+          Diagnose Meta webhook subscriptions, verify handshake URLs, and inspect real-time payload delivery.
         </p>
-        <h2 className="mt-2 text-3xl font-semibold">Verification and Events</h2>
-      </div>
+      </section>
 
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold">Webhook Manager</h3>
-        <div className="mt-4 grid gap-4 lg:grid-cols-3">
-          <div className="rounded-2xl bg-[#f7f1e4] p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+      <Card className="space-y-4 p-4">
+        <div className="border-b border-[#F0F0F2] pb-2.5">
+          <h2 className="text-sm font-semibold text-foreground">Webhook Verification & Diagnostics</h2>
+        </div>
+
+        <div className="grid gap-3 lg:grid-cols-3">
+          <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               Meta Verification Endpoint
             </p>
-            <p className="mt-3 break-all font-mono text-sm text-foreground">
+            <p className="mt-1 break-all font-mono text-xs text-foreground">
               {webhooksQuery.data?.metaWebhookEndpoint ?? "Loading..."}
             </p>
           </div>
-          <div className="rounded-2xl bg-[#eef4ef] p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+          <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               Verification State
             </p>
-            <p className="mt-3 text-sm text-foreground">
-              Verify token configured: {webhooksQuery.data?.verifyTokenConfigured ? "Yes" : "No"}
+            <p className="mt-1 text-xs text-foreground">
+              Verify token configured: <span className="font-semibold">{webhooksQuery.data?.verifyTokenConfigured ? "Yes" : "No"}</span>
             </p>
-            <p className="mt-2 text-sm text-foreground">
-              Subscription health: {webhooksQuery.data?.subscriptionHealth ?? "Unknown"}
+            <p className="mt-0.5 text-xs text-foreground">
+              Subscription health: <span className="font-semibold text-[#176B4D]">{webhooksQuery.data?.subscriptionHealth ?? "Unknown"}</span>
             </p>
             {missingFields.length ? (
-              <p className="mt-2 text-sm text-red-700">
-                Missing Meta settings: {missingFields.join(", ")}
+              <p className="mt-1 text-xs text-[#C2413A]">
+                Missing: {missingFields.join(", ")}
               </p>
             ) : null}
           </div>
-          <div className="rounded-2xl bg-[#eef4ef] p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-              Connection
+          <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Callback Health
             </p>
-            <p className="mt-3 text-sm text-foreground">
-              Saved callback URL: {webhooksQuery.data?.configuredWebhookUrl || "Not set"}
+            <p className="mt-1 break-all font-mono text-[11px] text-muted-foreground">
+              Saved URL: {webhooksQuery.data?.configuredWebhookUrl || "Not set"}
             </p>
-            <p className="mt-2 text-sm text-foreground">
-              Last event: {webhooksQuery.data?.lastEventAt ? new Date(webhooksQuery.data.lastEventAt).toLocaleString() : "None"}
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Last Event: {webhooksQuery.data?.lastEventAt ? new Date(webhooksQuery.data.lastEventAt).toLocaleString() : "None"}
             </p>
-            <p className="mt-2 text-sm text-foreground">
-              Meta callback URL: {webhooksQuery.data?.metaCallbackUrl || "Not detected from Meta"}
-            </p>
-            <p className="mt-2 text-sm text-foreground">
-              Active Meta app subscriptions: {subscriptionCount}
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Subscriptions: {subscriptionCount}
             </p>
             {webhooksQuery.data?.callbackUrlMatchesBackendEndpoint === false ? (
-              <p className="mt-2 text-sm text-red-700">
-                Meta is not subscribed to the live backend callback endpoint.
+              <p className="mt-1 text-xs text-[#C2413A]">
+                Meta callback URL does not match live backend.
               </p>
             ) : null}
             {webhooksQuery.data?.callbackUrlMatchesBackendEndpoint ? (
-              <p className="mt-2 text-sm text-emerald-700">
-                Meta callback matches the live backend endpoint.
+              <p className="mt-1 text-xs text-[#16803C] font-semibold">
+                Meta callback URL verified matching live backend.
               </p>
             ) : null}
           </div>
         </div>
 
-        <div className="mt-6 grid gap-3 md:grid-cols-4">
-          <Input onChange={(event) => setEventType(event.target.value)} placeholder="Event type" value={eventType} />
-          <Input onChange={(event) => setEventCategory(event.target.value)} placeholder="Event category" value={eventCategory} />
-          <Input onChange={(event) => setProcessingState(event.target.value)} placeholder="Processing state" value={processingState} />
+        <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-5 border-y border-[#F0F0F2] py-3">
+          <Input className="font-mono text-xs" onChange={(event) => setEventType(event.target.value)} placeholder="Event type..." value={eventType} />
+          <Input onChange={(event) => setEventCategory(event.target.value)} placeholder="Category..." value={eventCategory} />
+          <Input onChange={(event) => setProcessingState(event.target.value)} placeholder="Processing state..." value={processingState} />
           <Button
             disabled={testWebhookMutation.isPending}
             onClick={() => testWebhookMutation.mutate()}
@@ -148,49 +151,50 @@ export default function WebhooksPage() {
             disabled={reconcileWebhookMutation.isPending || webhooksQuery.isLoading}
             onClick={() => reconcileWebhookMutation.mutate()}
             type="button"
+            variant="primary"
           >
             {reconcileWebhookMutation.isPending ? "Repairing..." : "Repair Subscription"}
           </Button>
         </div>
         {reconcileMessage ? (
-          <p className={`mt-4 text-sm ${reconcileWebhookMutation.data?.success ? "text-emerald-700" : "text-red-700"}`}>
+          <p className={`text-xs font-medium ${reconcileWebhookMutation.data?.success ? "text-[#16803C]" : "text-[#C2413A]"}`}>
             {reconcileMessage}
           </p>
         ) : null}
         {reconcileWebhookMutation.isError ? (
-          <p className="mt-4 text-sm text-red-700">
-            Failed to repair Meta subscription. Check API logs for the exact Graph response.
+          <p className="text-xs font-medium text-[#C2413A]">
+            Failed to repair Meta subscription. Check API logs for exact Graph response.
           </p>
         ) : null}
 
-        <div className="mt-6 space-y-3">
+        <div className="space-y-2.5">
           {latestEvents.map((event) => (
-            <div key={event._id} className="rounded-2xl border border-border bg-white/70 p-4">
-              <div className="flex flex-wrap items-center justify-between gap-2">
+            <div key={event._id} className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3.5">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-[#E4E4E7] pb-2">
                 <div>
-                  <p className="font-medium text-foreground">
+                  <p className="text-xs font-semibold text-foreground">
                     {event.eventCategory ?? event.eventType}
                   </p>
-                  <p className="mt-1 text-sm text-muted-foreground">
+                  <p className="mt-0.5 text-xs text-muted-foreground">
                     {event.eventSummary ?? event.eventType}
                   </p>
                 </div>
-                <p className="text-xs text-muted-foreground">
+                <p className="font-mono text-[11px] text-muted-foreground">
                   {new Date(event.createdAt).toLocaleString()}
                 </p>
               </div>
-              <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted-foreground">
-                <span>Type: {event.eventType}</span>
-                <span>State: {event.processingState ?? (event.processed ? "processed" : "failed")}</span>
-                <span>Retry: {event.retryStatus}</span>
-                <span>Response {event.responseCode}</span>
+              <div className="mt-2 flex flex-wrap gap-2 text-[11px] text-muted-foreground">
+                <span className="font-mono text-[#176B4D]">Type: {event.eventType}</span>
+                <span>• State: {event.processingState ?? (event.processed ? "processed" : "failed")}</span>
+                <span>• Retry: {event.retryStatus}</span>
+                <span>• Response: {event.responseCode}</span>
               </div>
               {event.errorMessage ? (
-                <p className="mt-2 text-sm text-red-600">{event.errorMessage}</p>
+                <p className="mt-1.5 text-xs text-[#C2413A]">{event.errorMessage}</p>
               ) : null}
-              <div className="mt-4 flex flex-wrap gap-3">
+              <div className="mt-2.5 flex flex-wrap gap-2">
                 <Button onClick={() => setSelectedEvent(event)} size="sm" type="button" variant="secondary">
-                  View JSON
+                  View Payload JSON
                 </Button>
                 <Button
                   onClick={async () => {
@@ -198,7 +202,7 @@ export default function WebhooksPage() {
                   }}
                   size="sm"
                   type="button"
-                  variant="ghost"
+                  variant="secondary"
                 >
                   Copy JSON
                 </Button>
@@ -206,7 +210,7 @@ export default function WebhooksPage() {
                   onClick={() => downloadJson(`webhook-${event._id}.json`, event.payload)}
                   size="sm"
                   type="button"
-                  variant="ghost"
+                  variant="secondary"
                 >
                   Download JSON
                 </Button>
@@ -214,25 +218,25 @@ export default function WebhooksPage() {
             </div>
           ))}
           {!webhooksQuery.isLoading && !latestEvents.length ? (
-            <p className="text-sm text-muted-foreground">No webhook events stored yet.</p>
+            <p className="text-xs text-muted-foreground">No webhook events recorded yet.</p>
           ) : null}
         </div>
       </Card>
 
       {selectedEvent ? (
-        <Card className="p-6">
-          <div className="flex items-center justify-between gap-3">
+        <Card className="space-y-3.5 p-4">
+          <div className="flex items-center justify-between gap-3 border-b border-[#F0F0F2] pb-2.5">
             <div>
-              <h3 className="text-lg font-semibold">Webhook Detail</h3>
-              <p className="mt-1 text-sm text-muted-foreground">
+              <h3 className="text-sm font-semibold text-foreground">Webhook Event Detail Payload</h3>
+              <p className="mt-0.5 font-mono text-xs text-[#176B4D]">
                 {selectedEvent.eventCategory ?? selectedEvent.eventType}
               </p>
             </div>
-            <Button onClick={() => setSelectedEvent(null)} type="button" variant="secondary">
+            <Button onClick={() => setSelectedEvent(null)} size="sm" type="button" variant="secondary">
               Close
             </Button>
           </div>
-          <pre className="mt-4 overflow-x-auto rounded-xl bg-[#16302b] p-4 text-xs text-[#f8f1de]">
+          <pre className="overflow-x-auto rounded-md border border-[#27272A] bg-[#18181B] p-3 font-mono text-[11px] text-[#F4F4F5]">
             {JSON.stringify(selectedEvent.payload, null, 2)}
           </pre>
         </Card>
@@ -240,3 +244,4 @@ export default function WebhooksPage() {
     </div>
   );
 }
+

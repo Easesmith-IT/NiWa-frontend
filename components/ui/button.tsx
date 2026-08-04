@@ -4,18 +4,21 @@ import { ButtonHTMLAttributes, forwardRef } from "react";
 import { cn } from "../../lib/utils";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 rounded-lg text-sm font-medium transition-[background-color,border-color,color,box-shadow] duration-150 ease-out focus:outline-none focus:ring-2 focus:ring-[hsl(var(--focus))] focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center gap-2 rounded-md text-sm font-medium transition-[background-color,border-color,color,box-shadow] duration-150 ease-out focus:outline-none focus:ring-2 focus:ring-[hsl(var(--focus))] focus:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 select-none",
   {
     variants: {
       variant: {
-        primary: "bg-primary text-primary-foreground hover:bg-[hsl(154,38%,20%)]",
-        secondary: "border border-border/80 bg-white text-foreground hover:bg-accent",
-        ghost: "text-foreground hover:bg-accent",
+        primary: "bg-primary text-primary-foreground hover:bg-[hsl(var(--primary-hover))] shadow-xs",
+        secondary: "border border-[#D4D4D8] bg-white text-[#27272A] hover:bg-[#FAFAFA] hover:border-[#A1A1AA] shadow-xs",
+        ghost: "text-foreground-secondary hover:bg-[hsl(var(--surface-tertiary))] hover:text-foreground",
+        destructive: "bg-[hsl(var(--danger))] text-white hover:bg-[#B03932] shadow-xs",
+        outline: "border border-border bg-transparent text-foreground hover:bg-muted",
       },
       size: {
-        sm: "h-8 px-3 text-[13px]",
-        md: "h-10 px-4",
-        lg: "h-11 px-5",
+        sm: "h-8 px-3 text-xs rounded-md",
+        md: "h-9 px-4 text-[13px] rounded-md",
+        lg: "h-10 px-5 text-sm rounded-md",
+        icon: "h-9 w-9 p-0 rounded-md",
       },
     },
     defaultVariants: {
@@ -34,3 +37,4 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
 );
 
 Button.displayName = "Button";
+

@@ -30,37 +30,37 @@ export default function SearchPage() {
     0;
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-[2rem] border border-white/60 bg-[linear-gradient(125deg,rgba(20,49,42,0.96),rgba(215,196,142,0.88))] p-6 text-[#f8f1de] shadow-[0_18px_50px_rgba(44,56,38,0.16)]">
-        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-[#e8dcc0]">
-          Search
-        </p>
-        <div className="mt-4 grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_320px] xl:items-end">
+    <div className="space-y-4">
+      {/* Header Search Banner */}
+      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle">
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px] xl:items-center">
           <div>
-            <h1 className="text-3xl font-semibold">Find the thread before the customer waits</h1>
-            <p className="mt-3 max-w-2xl text-sm text-[#efe6d2]">
-              Search across contacts, inbox threads, messages, and notes from one operator surface.
+            <h1 className="text-xl font-semibold tracking-tight text-foreground">
+              Omni-Search Hub
+            </h1>
+            <p className="mt-1 max-w-2xl text-xs text-muted-foreground">
+              Search across contacts, inbox threads, WhatsApp message content, and internal team notes.
             </p>
-            <div className="mt-5 flex items-center gap-3 rounded-[1.6rem] bg-[rgba(255,248,234,0.16)] px-4 py-3 backdrop-blur">
-              <Search className="h-4 w-4 text-[#f8f1de]" />
+            <div className="mt-3 flex items-center gap-2 rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-3 py-1.5 focus-within:border-primary focus-within:ring-1 focus-within:ring-primary">
+              <Search className="h-4 w-4 text-muted-foreground" />
               <Input
-                className="border-0 bg-transparent px-0 text-[#f8f1de] placeholder:text-[#f1e6cf] focus-visible:ring-0"
+                className="border-0 bg-transparent px-0 text-xs text-foreground placeholder:text-muted-foreground focus-visible:ring-0"
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search by name, phone, message text, waId, or note content"
+                placeholder="Search by name, phone number (+91...), message text, WABA ID, or note..."
                 value={query}
               />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-4 xl:grid-cols-2 gap-2 text-xs">
             {[
               { label: "Contacts", value: totals?.contacts ?? 0 },
               { label: "Threads", value: inboxSearchQuery.data?.metadata.total ?? 0 },
               { label: "Messages", value: totals?.messages ?? 0 },
               { label: "Notes", value: totals?.notes ?? 0 },
             ].map((item) => (
-              <div className="rounded-[1.5rem] bg-[rgba(255,248,234,0.14)] px-4 py-4" key={item.label}>
-                <p className="text-xs uppercase tracking-[0.2em] text-[#eadfca]">{item.label}</p>
-                <p className="mt-3 text-2xl font-semibold">{item.value}</p>
+              <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-2.5" key={item.label}>
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">{item.label}</p>
+                <p className="mt-0.5 text-lg font-bold text-foreground">{item.value}</p>
               </div>
             ))}
           </div>
@@ -68,129 +68,120 @@ export default function SearchPage() {
       </section>
 
       {!query.trim() ? (
-        <Card className="border-white/60 bg-white/78 p-6 backdrop-blur">
-          <p className="text-sm text-muted-foreground">
-            Enter a search term to load cross-module results.
+        <Card className="p-4">
+          <p className="text-xs text-muted-foreground">
+            Enter a search term above to query all records across the system.
           </p>
         </Card>
       ) : null}
       {query.trim().length === 1 ? (
-        <Card className="border-white/60 bg-white/78 p-6 backdrop-blur">
-          <p className="text-sm text-muted-foreground">
-            Add one more character to search across the inbox and customer records.
+        <Card className="p-4">
+          <p className="text-xs text-muted-foreground">
+            Enter at least 2 characters to initiate global search.
           </p>
         </Card>
       ) : null}
       {hasError ? (
-        <Card className="border-white/60 bg-white/78 p-6 backdrop-blur">
-          <p className="text-sm text-red-600">
-            Search failed. Check the API connection and try again.
+        <Card className="p-4 space-y-3">
+          <p className="text-xs font-medium text-[#C2413A]">
+            Search query failed. Please verify API backend connection.
           </p>
-          <div className="mt-4 flex gap-3">
-            <Button onClick={() => void globalSearchQuery.refetch()} type="button" variant="secondary">
-              Retry global search
+          <div className="flex gap-2">
+            <Button onClick={() => void globalSearchQuery.refetch()} size="sm" type="button" variant="secondary">
+              Retry Global Search
             </Button>
-            <Button onClick={() => void inboxSearchQuery.refetch()} type="button" variant="secondary">
-              Retry inbox search
+            <Button onClick={() => void inboxSearchQuery.refetch()} size="sm" type="button" variant="secondary">
+              Retry Inbox Search
             </Button>
           </div>
         </Card>
       ) : null}
       {canSearch && !isLoading && !hasError && !hasResults ? (
-        <Card className="border-white/60 bg-white/78 p-6 backdrop-blur">
-          <p className="text-sm text-muted-foreground">
-            No contacts, threads, messages, or notes matched this search.
+        <Card className="p-4">
+          <p className="text-xs text-muted-foreground">
+            No contacts, threads, messages, or notes matched your search query.
           </p>
         </Card>
       ) : null}
 
       <section className="grid gap-4 xl:grid-cols-[1.1fr_0.9fr]">
         <div className="space-y-4">
-          <Card className="border-white/60 bg-white/78 p-5 backdrop-blur">
-            <div className="flex items-center gap-2">
-              <Inbox className="h-4 w-4 text-muted-foreground" />
+          <Card className="space-y-3.5 p-4">
+            <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-2">
+              <Inbox className="h-4 w-4 text-[#176B4D]" />
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                  Inbox matches
-                </p>
-                <h2 className="mt-1 text-lg font-semibold">Threads to reopen</h2>
+                <h2 className="text-sm font-semibold text-foreground">Inbox Threads</h2>
               </div>
             </div>
-            <div className="mt-4 space-y-3">
+            <div className="space-y-2.5">
               {isLoading ? (
                 Array.from({ length: 2 }).map((_, index) => (
-                  <div className="rounded-[1.4rem] bg-[#faf7ef] p-4" key={`thread-loading-${index}`}>
-                    <div className="h-4 w-40 animate-pulse rounded bg-[#e8dcc4]" />
-                    <div className="mt-3 h-3 w-24 animate-pulse rounded bg-[#efe4cf]" />
-                    <div className="mt-4 h-3 w-full animate-pulse rounded bg-[#efe4cf]" />
+                  <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 animate-pulse space-y-2" key={`thread-loading-${index}`}>
+                    <div className="h-3.5 w-36 rounded bg-[#E4E4E7]" />
+                    <div className="h-3 w-full rounded bg-[#E4E4E7]" />
                   </div>
                 ))
               ) : null}
               {(inboxSearchQuery.data?.data ?? []).map((item) => (
                 <Link
-                  className="block rounded-[1.4rem] border border-transparent bg-[#faf7ef] p-4 transition hover:border-[#d8ccb2] hover:bg-white"
+                  className="block rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 transition-colors hover:border-[#D4D4D8]"
                   href={`/inbox?conversationId=${encodeURIComponent(item.conversation._id)}`}
                   key={item.conversation._id}
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-foreground">
+                      <p className="text-xs font-semibold text-foreground">
                         {item.contact?.displayName || item.contact?.phoneNumber || item.conversation.waId}
                       </p>
-                      <p className="mt-1 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                        {item.conversation.status} | unread {item.conversation.unreadCount}
+                      <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        {item.conversation.status} • unread: {item.conversation.unreadCount}
                       </p>
                     </div>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="font-mono text-[10px] text-muted-foreground">
                       {formatTimestamp(item.conversation.updatedAt)}
                     </p>
                   </div>
-                  <p className="mt-3 text-sm text-muted-foreground">
-                    {item.conversation.lastMessageText || "No last message text stored"}
+                  <p className="mt-1.5 text-xs text-muted-foreground line-clamp-2">
+                    {item.conversation.lastMessageText || "No last message preview"}
                   </p>
                 </Link>
               ))}
               {query.trim() && (inboxSearchQuery.data?.data.length ?? 0) === 0 ? (
-                <p className="text-sm text-muted-foreground">No inbox threads matched this query.</p>
+                <p className="text-xs text-muted-foreground">No inbox threads matched.</p>
               ) : null}
             </div>
           </Card>
 
-          <Card className="border-white/60 bg-white/78 p-5 backdrop-blur">
-            <div className="flex items-center gap-2">
-              <MessageSquareText className="h-4 w-4 text-muted-foreground" />
+          <Card className="space-y-3.5 p-4">
+            <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-2">
+              <MessageSquareText className="h-4 w-4 text-[#176B4D]" />
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                  Messages
-                </p>
-                <h2 className="mt-1 text-lg font-semibold">Content hits</h2>
+                <h2 className="text-sm font-semibold text-foreground">Message Content Hits</h2>
               </div>
             </div>
-            <div className="mt-4 space-y-3">
+            <div className="space-y-2.5">
               {isLoading ? (
                 Array.from({ length: 2 }).map((_, index) => (
-                  <div className="rounded-[1.4rem] bg-[#faf7ef] p-4" key={`message-loading-${index}`}>
-                    <div className="h-4 w-36 animate-pulse rounded bg-[#e8dcc4]" />
-                    <div className="mt-3 h-3 w-32 animate-pulse rounded bg-[#efe4cf]" />
-                    <div className="mt-4 h-3 w-full animate-pulse rounded bg-[#efe4cf]" />
-                    <div className="mt-2 h-3 w-4/5 animate-pulse rounded bg-[#efe4cf]" />
+                  <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 animate-pulse space-y-2" key={`message-loading-${index}`}>
+                    <div className="h-3.5 w-32 rounded bg-[#E4E4E7]" />
+                    <div className="h-3 w-full rounded bg-[#E4E4E7]" />
                   </div>
                 ))
               ) : null}
               {(globalSearchQuery.data?.data.messages ?? []).map((item) => (
-                <div className="rounded-[1.4rem] bg-[#faf7ef] p-4" key={item.message._id}>
+                <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3" key={item.message._id}>
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-foreground">
+                      <p className="text-xs font-semibold text-foreground">
                         {item.contact?.displayName || item.message.from || item.message.to || "Unknown contact"}
                       </p>
-                      <p className="mt-1 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                        {item.message.direction} | {item.message.messageType} | {item.message.status}
+                      <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        {item.message.direction} • {item.message.messageType} • {item.message.status}
                       </p>
                     </div>
-                    <p className="text-xs text-muted-foreground">{formatTimestamp(item.message.createdAt)}</p>
+                    <p className="font-mono text-[10px] text-muted-foreground">{formatTimestamp(item.message.createdAt)}</p>
                   </div>
-                  <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">
+                  <p className="mt-1.5 whitespace-pre-wrap text-xs text-foreground">
                     {item.message.previewText || "No preview text"}
                   </p>
                 </div>
@@ -200,71 +191,64 @@ export default function SearchPage() {
         </div>
 
         <div className="space-y-4">
-          <Card className="border-white/60 bg-white/78 p-5 backdrop-blur">
-            <div className="flex items-center gap-2">
-              <ContactRound className="h-4 w-4 text-muted-foreground" />
+          <Card className="space-y-3.5 p-4">
+            <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-2">
+              <ContactRound className="h-4 w-4 text-[#176B4D]" />
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                  Contacts
-                </p>
-                <h2 className="mt-1 text-lg font-semibold">People and accounts</h2>
+                <h2 className="text-sm font-semibold text-foreground">Contacts</h2>
               </div>
             </div>
-            <div className="mt-4 space-y-3">
+            <div className="space-y-2.5">
               {isLoading ? (
-                <div className="rounded-[1.4rem] bg-[#faf7ef] p-4">
-                  <div className="h-4 w-40 animate-pulse rounded bg-[#e8dcc4]" />
-                  <div className="mt-3 h-3 w-32 animate-pulse rounded bg-[#efe4cf]" />
+                <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 animate-pulse space-y-2">
+                  <div className="h-3.5 w-36 rounded bg-[#E4E4E7]" />
+                  <div className="h-3 w-28 rounded bg-[#E4E4E7]" />
                 </div>
               ) : null}
               {(globalSearchQuery.data?.data.contacts ?? []).map((item) => (
                 <Link
-                  className="block rounded-[1.4rem] bg-[#faf7ef] p-4 transition hover:bg-white"
+                  className="block rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 transition-colors hover:border-[#D4D4D8]"
                   href="/contacts"
                   key={item.contact._id}
                 >
-                  <p className="text-sm font-semibold text-foreground">{item.contact.displayName}</p>
-                  <p className="mt-1 text-sm text-muted-foreground">{item.contact.phoneNumber}</p>
-                  <p className="mt-1 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                    {item.contact.company || "No company"} | {item.contact.waId}
+                  <p className="text-xs font-semibold text-foreground">{item.contact.displayName}</p>
+                  <p className="mt-0.5 font-mono text-xs text-muted-foreground">{item.contact.phoneNumber}</p>
+                  <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                    {item.contact.company || "No company"} • <span className="font-mono">{item.contact.waId}</span>
                   </p>
                 </Link>
               ))}
             </div>
           </Card>
 
-          <Card className="border-white/60 bg-white/78 p-5 backdrop-blur">
-            <div className="flex items-center gap-2">
-              <NotebookPen className="h-4 w-4 text-muted-foreground" />
+          <Card className="space-y-3.5 p-4">
+            <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-2">
+              <NotebookPen className="h-4 w-4 text-[#176B4D]" />
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                  Notes
-                </p>
-                <h2 className="mt-1 text-lg font-semibold">Internal context</h2>
+                <h2 className="text-sm font-semibold text-foreground">Internal Notes</h2>
               </div>
             </div>
-            <div className="mt-4 space-y-3">
+            <div className="space-y-2.5">
               {isLoading ? (
-                <div className="rounded-[1.4rem] bg-[#faf7ef] p-4">
-                  <div className="h-4 w-32 animate-pulse rounded bg-[#e8dcc4]" />
-                  <div className="mt-3 h-3 w-full animate-pulse rounded bg-[#efe4cf]" />
-                  <div className="mt-2 h-3 w-4/5 animate-pulse rounded bg-[#efe4cf]" />
+                <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 animate-pulse space-y-2">
+                  <div className="h-3.5 w-32 rounded bg-[#E4E4E7]" />
+                  <div className="h-3 w-full rounded bg-[#E4E4E7]" />
                 </div>
               ) : null}
               {(globalSearchQuery.data?.data.notes ?? []).map((item) => (
-                <div className="rounded-[1.4rem] bg-[#faf7ef] p-4" key={item.note._id}>
+                <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3" key={item.note._id}>
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-sm font-semibold text-foreground">
+                      <p className="text-xs font-semibold text-foreground">
                         {item.contact?.displayName || "Unknown contact"}
                       </p>
-                      <p className="mt-1 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                        {item.note.pinned ? "Pinned" : "Standard"} | {item.note.authorName}
+                      <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                        {item.note.pinned ? "Pinned" : "Standard"} • {item.note.authorName}
                       </p>
                     </div>
-                    <p className="text-xs text-muted-foreground">{formatTimestamp(item.note.updatedAt)}</p>
+                    <p className="font-mono text-[10px] text-muted-foreground">{formatTimestamp(item.note.updatedAt)}</p>
                   </div>
-                  <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">{item.note.content}</p>
+                  <p className="mt-1.5 whitespace-pre-wrap text-xs text-foreground">{item.note.content}</p>
                 </div>
               ))}
             </div>
@@ -274,3 +258,4 @@ export default function SearchPage() {
     </div>
   );
 }
+

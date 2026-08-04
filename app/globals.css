@@ -3,26 +3,41 @@
 @tailwind utilities;
 
 :root {
-  --background: 42 20% 96%;
-  --foreground: 158 18% 14%;
-  --card: 0 0% 100%;
-  --card-foreground: 158 18% 14%;
-  --primary: 154 38% 24%;
-  --primary-foreground: 48 33% 97%;
-  --muted: 42 18% 92%;
-  --muted-foreground: 158 10% 38%;
-  --border: 38 14% 84%;
-  --input: 38 14% 84%;
-  --accent: 150 20% 93%;
-  --accent-foreground: 158 18% 14%;
-  --surface-subtle: 42 22% 94%;
-  --surface-elevated: 0 0% 100%;
-  --success: 145 45% 32%;
-  --warning: 35 70% 46%;
-  --danger: 8 65% 45%;
-  --info: 198 52% 42%;
-  --focus: 154 55% 34%;
-  --shadow-soft: 0 20px 48px rgba(31, 41, 35, 0.08);
+  --background: 220 14% 97%; /* #F7F8FA */
+  --foreground: 240 6% 10%;  /* #18181B */
+  --card: 0 0% 100%;         /* #FFFFFF */
+  --card-foreground: 240 6% 10%; /* #18181B */
+  --surface-secondary: 0 0% 98%;  /* #FAFAFA */
+  --surface-tertiary: 240 5% 96%; /* #F4F4F5 */
+  
+  --primary: 160 65% 26%;        /* #176B4D */
+  --primary-hover: 160 65% 20%;  /* #12563E */
+  --primary-soft: 154 45% 95%;   /* #EDF8F3 */
+  --primary-foreground: 0 0% 100%; /* #FFFFFF */
+  
+  --muted: 240 5% 96%;           /* #F4F4F5 */
+  --muted-foreground: 240 4% 46%; /* #71717A */
+  --foreground-secondary: 240 5% 34%; /* #52525B */
+
+  --border: 240 6% 90%;          /* #E4E4E7 */
+  --border-subtle: 240 5% 94%;   /* #F0F0F2 */
+  --input: 240 6% 90%;           /* #E4E4E7 */
+  --accent: 240 5% 96%;          /* #F4F4F5 */
+  --accent-foreground: 240 6% 10%; /* #18181B */
+  
+  --success: 142 71% 30%;        /* #16803C */
+  --warning: 37 71% 42%;         /* #B7791F */
+  --danger: 3 53% 49%;           /* #C2413A */
+  --info: 221 83% 53%;           /* #2563EB */
+  --focus: 160 65% 26%;          /* #176B4D */
+
+  --whatsapp: #25D366;
+  --whatsapp-read: #34B7F1;
+  --whatsapp-delivered: #7A8B82;
+
+  --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-floating: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.12);
 }
 
 html {
@@ -31,11 +46,9 @@ html {
 
 body {
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top left, rgba(79, 124, 102, 0.08), transparent 28%),
-    radial-gradient(circle at top right, rgba(201, 165, 113, 0.07), transparent 24%),
-    linear-gradient(180deg, #f7f5f0 0%, #f2efe8 100%);
+  background-color: hsl(var(--background));
   color: hsl(var(--foreground));
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
   font-feature-settings: "ss01" 1, "cv02" 1;
 }
 
@@ -57,12 +70,12 @@ select {
 }
 
 ::selection {
-  background: rgba(46, 104, 76, 0.18);
+  background: rgba(23, 107, 77, 0.18);
 }
 
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 8px;
+  height: 8px;
 }
 
 ::-webkit-scrollbar-track {
@@ -72,17 +85,17 @@ select {
 ::-webkit-scrollbar-thumb {
   border: 2px solid transparent;
   border-radius: 999px;
-  background: rgba(71, 87, 78, 0.24);
+  background: rgba(113, 113, 122, 0.24);
   background-clip: padding-box;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(71, 87, 78, 0.38);
+  background: rgba(113, 113, 122, 0.38);
   background-clip: padding-box;
 }
 
 .niwa-scrollbar {
-  scrollbar-color: rgba(71, 87, 78, 0.28) transparent;
+  scrollbar-color: rgba(113, 113, 122, 0.28) transparent;
   scrollbar-width: thin;
 }
 
@@ -96,3 +109,4 @@ select {
     transition-duration: 0.01ms !important;
   }
 }
+

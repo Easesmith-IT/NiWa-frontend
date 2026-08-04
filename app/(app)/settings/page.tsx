@@ -207,101 +207,86 @@ export default function SettingsPage() {
   });
 
   return (
-    <div className="space-y-6">
-      <div>
-        <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">
-          Settings
+    <div className="space-y-4">
+      {/* Header Banner */}
+      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          System Settings & Meta Cloud API Connectivity
+        </h1>
+        <p className="mt-1 max-w-2xl text-xs text-muted-foreground">
+          Configure WABA credentials, phone number IDs, permanent access tokens, and operator access controls.
         </p>
-        <h2 className="mt-2 text-3xl font-semibold">Meta Connectivity</h2>
-      </div>
+      </section>
 
-      <div className="grid gap-6 xl:grid-cols-[1.1fr_0.9fr]">
-        <Card className="p-6">
-          <div className="mb-6">
-            <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Operator Account
-            </p>
-            <h3 className="mt-2 text-2xl font-semibold">Profile</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Manage the current NiWa operator identity used for this console.
+      <div className="grid gap-4 lg:grid-cols-2">
+        <Card className="space-y-3.5 p-4">
+          <div className="border-b border-[#F0F0F2] pb-2.5">
+            <h2 className="text-sm font-semibold text-foreground">Operator Profile</h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Manage operator identity attached to active sessions and audit logs.
             </p>
           </div>
-          <div className="mb-5 grid gap-3 rounded-2xl bg-[#eef4ef] p-4 text-sm text-foreground">
-            <p>
-              <span className="font-semibold">Email:</span>{" "}
-              {profileQuery.data?.user.email ?? "Loading..."}
+          <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 text-xs space-y-1">
+            <p className="text-muted-foreground">
+              Email: <span className="font-mono font-medium text-foreground">{profileQuery.data?.user.email ?? "Loading..."}</span>
             </p>
-            <p>
-              <span className="font-semibold">Role:</span> {profileQuery.data?.user.role ?? "..."}
+            <p className="text-muted-foreground">
+              Role: <span className="font-semibold text-foreground capitalize">{profileQuery.data?.user.role ?? "..."}</span>
             </p>
           </div>
           <form
-            className="space-y-4"
+            className="space-y-3"
             onSubmit={profileForm.handleSubmit((values) => {
               setProfileError(null);
               setProfileMessage(null);
               profileMutation.mutate(values);
             })}
           >
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Operator Display Name
-              </label>
-              <p className="text-xs text-muted-foreground">
-                Name attached to your active console session and internal action logs.
-              </p>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-foreground">Operator Display Name</label>
               <Input placeholder="Operator name" {...profileForm.register("name")} />
             </div>
-            <Button disabled={profileMutation.isPending} type="submit">
+            <Button disabled={profileMutation.isPending} type="submit" variant="primary">
               {profileMutation.isPending ? "Saving..." : "Update Profile"}
             </Button>
-            {profileMessage ? <p className="text-sm text-green-700">{profileMessage}</p> : null}
-            {profileError ? <p className="text-sm text-red-600">{profileError}</p> : null}
+            {profileMessage ? <p className="text-xs font-medium text-[#16803C]">{profileMessage}</p> : null}
+            {profileError ? <p className="text-xs font-medium text-[#C2413A]">{profileError}</p> : null}
           </form>
         </Card>
 
-        <Card className="p-6">
-          <div className="mb-6">
-            <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">
-              Security
-            </p>
-            <h3 className="mt-2 text-2xl font-semibold">Password Change</h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              Changing the password invalidates the current refresh token and requires sign-in again.
+        <Card className="space-y-3.5 p-4">
+          <div className="border-b border-[#F0F0F2] pb-2.5">
+            <h2 className="text-sm font-semibold text-foreground">Security & Credentials</h2>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              Change account password and refresh security tokens.
             </p>
           </div>
           <form
-            className="space-y-4"
+            className="space-y-3"
             onSubmit={passwordForm.handleSubmit((values) => {
               setPasswordError(null);
               setPasswordMessage(null);
               passwordMutation.mutate(values);
             })}
           >
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Current Password
-              </label>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-foreground">Current Password</label>
               <Input
                 placeholder="Current password"
                 type="password"
                 {...passwordForm.register("currentPassword")}
               />
             </div>
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                New Password
-              </label>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-foreground">New Password</label>
               <Input
                 placeholder="New password"
                 type="password"
                 {...passwordForm.register("newPassword")}
               />
             </div>
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Confirm New Password
-              </label>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-foreground">Confirm New Password</label>
               <Input
                 placeholder="Confirm new password"
                 type="password"
@@ -311,57 +296,67 @@ export default function SettingsPage() {
             <Button disabled={passwordMutation.isPending} type="submit" variant="secondary">
               {passwordMutation.isPending ? "Updating..." : "Change Password"}
             </Button>
-            {passwordMessage ? <p className="text-sm text-green-700">{passwordMessage}</p> : null}
-            {passwordError ? <p className="text-sm text-red-600">{passwordError}</p> : null}
+            {passwordMessage ? <p className="text-xs font-medium text-[#16803C]">{passwordMessage}</p> : null}
+            {passwordError ? <p className="text-xs font-medium text-[#C2413A]">{passwordError}</p> : null}
           </form>
         </Card>
       </div>
 
-      <Card className="p-6">
-        <div className="mb-6 grid gap-4 lg:grid-cols-2">
-          <div className="rounded-2xl border border-border/50 bg-muted/40 p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-              Meta Callback Endpoint
+      <Card className="space-y-4 p-4">
+        <div className="border-b border-[#F0F0F2] pb-2.5">
+          <h2 className="text-sm font-semibold text-foreground">Meta WABA Credentials</h2>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Configure Meta Cloud API credentials and verify webhooks handshake endpoints.
+          </p>
+        </div>
+
+        <div className="grid gap-3 lg:grid-cols-2">
+          <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Meta Webhook Callback URL
             </p>
-            <p className="mt-3 break-all font-mono text-sm text-foreground">
+            <p className="mt-1 break-all font-mono text-xs text-foreground">
               {settingsQuery.data?.metaWebhookEndpoint ?? "Loading..."}
             </p>
           </div>
-          <div className="rounded-2xl border border-emerald-200/60 bg-emerald-50/50 p-4">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-800">
-              Connection Check
+          <div className="rounded-md border border-[#C4E8DA] bg-[#EDF8F3] p-3">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#176B4D]">
+              Connection Diagnostics
             </p>
-            <p className="mt-3 text-sm text-foreground">
-              {connectionTestMutation.data?.message ?? "No connection test run yet."}
+            <p className="mt-1 text-xs text-foreground">
+              {connectionTestMutation.data?.message ?? "No connection test executed."}
             </p>
             {connectionError ? (
-              <p className="mt-2 text-sm text-red-700">{connectionError}</p>
+              <p className="mt-1 text-xs text-[#C2413A]">{connectionError}</p>
             ) : null}
             {typeof connectionTestMutation.data?.statusCode === "number" ? (
-              <p className="mt-2 text-sm text-foreground">
-                Meta status code: {connectionTestMutation.data.statusCode}
+              <p className="mt-1 font-mono text-xs text-muted-foreground">
+                Meta Status: {connectionTestMutation.data.statusCode}
               </p>
             ) : null}
             {connectionTestMutation.data?.missingFields.length ? (
-              <p className="mt-2 text-sm text-red-700">
+              <p className="mt-1 text-xs text-[#C2413A]">
                 Missing: {connectionTestMutation.data.missingFields.join(", ")}
               </p>
             ) : null}
           </div>
         </div>
 
-        <div className="mb-6 grid gap-3 md:grid-cols-4">
-          <div className="rounded-2xl bg-white/80 p-4 text-sm text-foreground">
-            App secret: {settingsQuery.data?.secretsConfigured?.appSecret ? "Stored" : "Missing"}
-          </div>
-          <div className="rounded-2xl bg-white/80 p-4 text-sm text-foreground">
-            Access token: {settingsQuery.data?.secretsConfigured?.accessToken ? "Stored" : "Missing"}
-          </div>
-          <div className="rounded-2xl bg-white/80 p-4 text-sm text-foreground">
-            Verify token: {settingsQuery.data?.secretsConfigured?.verifyToken ? "Stored" : "Missing"}
+        <div className="flex flex-wrap items-center justify-between gap-3 border-y border-[#F0F0F2] py-2.5">
+          <div className="flex flex-wrap gap-2 text-xs">
+            <span className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] px-2.5 py-1">
+              App Secret: <span className="font-semibold">{settingsQuery.data?.secretsConfigured?.appSecret ? "Stored" : "Missing"}</span>
+            </span>
+            <span className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] px-2.5 py-1">
+              Access Token: <span className="font-semibold">{settingsQuery.data?.secretsConfigured?.accessToken ? "Stored" : "Missing"}</span>
+            </span>
+            <span className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] px-2.5 py-1">
+              Verify Token: <span className="font-semibold">{settingsQuery.data?.secretsConfigured?.verifyToken ? "Stored" : "Missing"}</span>
+            </span>
           </div>
           <Button
             onClick={() => setShowStoredSecrets((current) => !current)}
+            size="sm"
             type="button"
             variant="secondary"
           >
@@ -370,106 +365,79 @@ export default function SettingsPage() {
         </div>
 
         <form
-          className="grid gap-4 md:grid-cols-2"
+          className="grid gap-3.5 md:grid-cols-2"
           onSubmit={handleSubmit((values) => {
             setSubmitError(null);
             setSubmitMessage(null);
             saveMutation.mutate(values);
           })}
         >
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              App ID
+          <div>
+            <label className="mb-1 block text-xs font-medium text-foreground">
+              App ID *
             </label>
-            <p className="text-xs text-muted-foreground">
-              Meta Developer Application numeric ID assigned in your Meta App Dashboard.
-            </p>
-            <Input placeholder="e.g. 27900924049538288" {...register("appId")} />
+            <Input className="font-mono text-xs" placeholder="e.g. 27900924049538288" {...register("appId")} />
           </div>
 
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              App Secret
+          <div>
+            <label className="mb-1 block text-xs font-medium text-foreground">
+              App Secret *
             </label>
-            <p className="text-xs text-muted-foreground">
-              Confidential secret used to compute HMAC-SHA256 signatures for webhook verification.
-            </p>
-            <Input placeholder="Enter Meta App Secret" {...register("appSecret")} />
+            <Input className="font-mono text-xs" placeholder="Meta App Secret" {...register("appSecret")} />
           </div>
 
-          <div className="space-y-1.5 md:col-span-2">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Access Token
+          <div className="md:col-span-2">
+            <label className="mb-1 block text-xs font-medium text-foreground">
+              Permanent Access Token *
             </label>
-            <p className="text-xs text-muted-foreground">
-              System User Permanent Access Token with whatsapp_business_messaging & whatsapp_business_management permissions.
-            </p>
-            <Textarea className="md:col-span-2" placeholder="System User Access Token" {...register("accessToken")} />
+            <Textarea className="font-mono text-xs min-h-24 bg-[#FAFAFA]" placeholder="System User Access Token..." {...register("accessToken")} />
           </div>
 
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Business Account ID (WABA ID)
+          <div>
+            <label className="mb-1 block text-xs font-medium text-foreground">
+              Business Account ID (WABA ID) *
             </label>
-            <p className="text-xs text-muted-foreground">
-              WhatsApp Business Account ID in Meta Manager hosting message templates and phone numbers.
-            </p>
-            <Input placeholder="e.g. 4433978036814896" {...register("businessAccountId")} />
+            <Input className="font-mono text-xs" placeholder="e.g. 4433978036814896" {...register("businessAccountId")} />
           </div>
 
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Phone Number ID
+          <div>
+            <label className="mb-1 block text-xs font-medium text-foreground">
+              Phone Number ID *
             </label>
-            <p className="text-xs text-muted-foreground">
-              Numeric ID assigned by Meta to your registered sender phone number for Graph API endpoints.
-            </p>
-            <Input placeholder="e.g. 1295455696976455" {...register("phoneNumberId")} />
+            <Input className="font-mono text-xs" placeholder="e.g. 1295455696976455" {...register("phoneNumberId")} />
           </div>
 
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Verify Token
+          <div>
+            <label className="mb-1 block text-xs font-medium text-foreground">
+              Verify Token *
             </label>
-            <p className="text-xs text-muted-foreground">
-              Custom secret token passed during Meta Webhook GET verification handshake challenge.
-            </p>
-            <Input placeholder="Enter Verify Token" {...register("verifyToken")} />
+            <Input className="font-mono text-xs" placeholder="Handshake verify token..." {...register("verifyToken")} />
           </div>
 
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Saved Webhook Callback URL
+          <div>
+            <label className="mb-1 block text-xs font-medium text-foreground">
+              Webhook Callback URL *
             </label>
-            <p className="text-xs text-muted-foreground">
-              Public HTTPS URL where Meta delivers incoming messages and status receipts.
-            </p>
-            <Input placeholder="https://niwaapi.easesmith.com/webhook" {...register("webhookUrl")} />
+            <Input className="font-mono text-xs" placeholder="https://niwaapi.easesmith.com/webhook" {...register("webhookUrl")} />
           </div>
 
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              API Version
+          <div>
+            <label className="mb-1 block text-xs font-medium text-foreground">
+              Meta API Version
             </label>
-            <p className="text-xs text-muted-foreground">
-              Meta Graph API release version string targeted for API operations (e.g. v22.0 or v25.0).
-            </p>
-            <Input placeholder="e.g. v22.0" {...register("apiVersion")} />
+            <Input className="font-mono text-xs" placeholder="v22.0" {...register("apiVersion")} />
           </div>
 
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-foreground">
               Cloud API Base URL
             </label>
-            <p className="text-xs text-muted-foreground">
-              Primary endpoint host domain for Meta Graph API services.
-            </p>
-            <Input placeholder="https://graph.facebook.com" {...register("cloudApiBaseUrl")} />
+            <Input className="font-mono text-xs" placeholder="https://graph.facebook.com" {...register("cloudApiBaseUrl")} />
           </div>
 
-          <div className="md:col-span-2 pt-2">
-            <div className="flex flex-wrap gap-3">
-              <Button disabled={isSubmitting || saveMutation.isPending} type="submit">
+          <div className="md:col-span-2 pt-2 border-t border-[#F0F0F2]">
+            <div className="flex flex-wrap gap-2.5">
+              <Button disabled={isSubmitting || saveMutation.isPending} type="submit" variant="primary">
                 {saveMutation.isPending ? "Saving..." : "Save Settings"}
               </Button>
               <Button
@@ -484,16 +452,16 @@ export default function SettingsPage() {
                 {connectionTestMutation.isPending ? "Testing..." : "Test Connection"}
               </Button>
             </div>
-            {submitMessage ? <p className="mt-3 text-sm text-green-700">{submitMessage}</p> : null}
-            {submitError ? <p className="mt-3 text-sm text-red-600">{submitError}</p> : null}
+            {submitMessage ? <p className="mt-2 text-xs font-medium text-[#16803C]">{submitMessage}</p> : null}
+            {submitError ? <p className="mt-2 text-xs font-medium text-[#C2413A]">{submitError}</p> : null}
           </div>
         </form>
         {connectionTestMutation.data?.responseBody ? (
-          <div className="mt-6 rounded-2xl bg-[#16302b] p-4 text-[#f8f1de]">
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#e5dcc5]">
-              Meta Response
+          <div className="mt-4 rounded-md border border-[#27272A] bg-[#18181B] p-3 text-[#F4F4F5]">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-[#A1A1AA]">
+              Meta Response JSON
             </p>
-            <pre className="mt-3 overflow-x-auto text-xs">
+            <pre className="mt-2 overflow-x-auto font-mono text-[11px]">
               {JSON.stringify(connectionTestMutation.data.responseBody, null, 2)}
             </pre>
           </div>
@@ -502,3 +470,4 @@ export default function SettingsPage() {
     </div>
   );
 }
+

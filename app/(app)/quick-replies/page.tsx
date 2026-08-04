@@ -45,55 +45,69 @@ export default function QuickRepliesPage() {
       .filter(Boolean);
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-[2rem] border border-white/60 bg-[linear-gradient(135deg,rgba(255,255,255,0.88),rgba(246,240,226,0.94))] p-6 shadow-[0_18px_50px_rgba(44,56,38,0.08)]">
-        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-muted-foreground">
-          Quick replies
-        </p>
-        <h1 className="mt-2 text-3xl font-semibold">Slash command library</h1>
-        <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-          Quick replies now carry reusable variables so the inbox composer can resolve contact-aware
-          copy before send.
+    <div className="space-y-4">
+      {/* Header Banner */}
+      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          Quick Reply Library
+        </h1>
+        <p className="mt-1 max-w-2xl text-xs text-muted-foreground">
+          Slash commands and dynamic variable shortcuts for rapid customer conversation management.
         </p>
       </section>
 
-      <section className="grid gap-4 lg:grid-cols-[420px_minmax(0,1fr)]">
-        <Card className="space-y-4 border-white/60 bg-white/78 p-5 backdrop-blur">
-          <div className="flex items-center gap-2">
-            <Slash className="h-4 w-4 text-muted-foreground" />
-            <h2 className="text-lg font-semibold">
-              {editingId ? "Edit quick reply" : "Create quick reply"}
+      <section className="grid gap-4 lg:grid-cols-[400px_minmax(0,1fr)]">
+        <Card className="space-y-3.5 p-4">
+          <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-2.5">
+            <Slash className="h-4 w-4 text-[#176B4D]" />
+            <h2 className="text-sm font-semibold text-foreground">
+              {editingId ? "Edit Quick Reply" : "Create Quick Reply"}
             </h2>
           </div>
-          <Input
-            onChange={(event) => setDraft((current) => ({ ...current, shortcut: event.target.value }))}
-            placeholder="/pricing"
-            value={draft.shortcut}
-          />
-          <Input
-            onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
-            placeholder="Pricing follow-up"
-            value={draft.title}
-          />
-          <Input
-            onChange={(event) => setDraft((current) => ({ ...current, category: event.target.value }))}
-            placeholder="sales"
-            value={draft.category}
-          />
-          <Input
-            onChange={(event) => setDraft((current) => ({ ...current, variables: event.target.value }))}
-            placeholder="firstName, company, phoneNumber"
-            value={draft.variables}
-          />
-          <Textarea
-            className="min-h-36 rounded-[1.4rem] bg-[#faf7ef]"
-            onChange={(event) => setDraft((current) => ({ ...current, body: event.target.value }))}
-            placeholder="Hi {{firstName}}, sharing the latest pricing for {{company}}."
-            value={draft.body}
-          />
-          <div className="flex gap-2">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-foreground">Shortcut *</label>
+            <Input
+              onChange={(event) => setDraft((current) => ({ ...current, shortcut: event.target.value }))}
+              placeholder="e.g. /pricing"
+              value={draft.shortcut}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-foreground">Title *</label>
+            <Input
+              onChange={(event) => setDraft((current) => ({ ...current, title: event.target.value }))}
+              placeholder="e.g. Pricing follow-up"
+              value={draft.title}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-foreground">Category</label>
+            <Input
+              onChange={(event) => setDraft((current) => ({ ...current, category: event.target.value }))}
+              placeholder="e.g. sales"
+              value={draft.category}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-foreground">Variables (comma-separated)</label>
+            <Input
+              onChange={(event) => setDraft((current) => ({ ...current, variables: event.target.value }))}
+              placeholder="e.g. firstName, company"
+              value={draft.variables}
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-foreground">Body Content *</label>
+            <Textarea
+              className="min-h-32 bg-[#FAFAFA] text-xs"
+              onChange={(event) => setDraft((current) => ({ ...current, body: event.target.value }))}
+              placeholder="Hi {{firstName}}, sharing the latest pricing for {{company}}."
+              value={draft.body}
+            />
+          </div>
+          <div className="flex gap-2 pt-1">
             <Button
-              className="flex-1 rounded-full"
+              className="flex-1 font-medium"
               disabled={
                 !draft.shortcut.trim() ||
                 !draft.title.trim() ||
@@ -133,12 +147,12 @@ export default function QuickRepliesPage() {
                 });
               }}
               type="button"
+              variant="primary"
             >
-              <PencilLine className="mr-2 h-4 w-4" />
-              {editingId ? "Save quick reply" : "Create quick reply"}
+              <PencilLine className="h-3.5 w-3.5" />
+              {editingId ? "Save Quick Reply" : "Create Quick Reply"}
             </Button>
             <Button
-              className="rounded-full"
               onClick={() => {
                 setEditingId(null);
                 setDraft(defaultDraft);
@@ -151,92 +165,76 @@ export default function QuickRepliesPage() {
           </div>
         </Card>
 
-        <div className="space-y-4">
+        <div className="space-y-3.5">
           {Object.entries(groupedQuickReplies).map(([group, items]) => (
-            <Card className="space-y-4 border-white/60 bg-white/78 p-5 backdrop-blur" key={group}>
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+            <Card className="space-y-3 p-4" key={group}>
+              <div className="border-b border-[#F0F0F2] pb-2">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
                   {group}
                 </p>
-                <h2 className="mt-1 text-lg font-semibold">Stored quick replies</h2>
+                <h2 className="text-sm font-semibold text-foreground">Quick Replies</h2>
               </div>
-              {items.map((quickReply) => (
-                <div className="rounded-[1.4rem] bg-[#faf7ef] p-4" key={quickReply._id}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="text-sm font-semibold">
-                        {quickReply.shortcut} | {quickReply.title}
-                      </p>
-                      <p className="mt-2 whitespace-pre-wrap text-sm text-muted-foreground">
-                        {quickReply.body}
-                      </p>
-                      <p className="mt-3 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                        Variables: {quickReply.variables.length > 0 ? quickReply.variables.join(", ") : "none"}
-                      </p>
-                    </div>
-                    <div className="flex flex-col gap-2">
-                      <Button
-                        className="rounded-full"
-                        onClick={() => {
-                          setEditingId(quickReply._id);
-                          setDraft({
-                            body: quickReply.body,
-                            category: quickReply.category ?? "",
-                            shortcut: quickReply.shortcut,
-                            title: quickReply.title,
-                            variables: quickReply.variables.join(", "),
-                          });
-                        }}
-                        size="sm"
-                        type="button"
-                        variant="secondary"
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        className="rounded-full"
-                        onClick={() =>
-                          patchQuickReplyMutation.mutate({
-                            payload: { isActive: !quickReply.isActive },
-                            quickReplyId: quickReply._id,
-                          })
-                        }
-                        size="sm"
-                        type="button"
-                        variant="secondary"
-                      >
-                        {quickReply.isActive ? (
-                          <ToggleRight className="mr-2 h-4 w-4" />
-                        ) : (
-                          <ToggleLeft className="mr-2 h-4 w-4" />
-                        )}
-                        {quickReply.isActive ? "Active" : "Inactive"}
-                      </Button>
-                      <Button
-                        className="rounded-full"
-                        onClick={() =>
-                          patchQuickReplyMutation.mutate({
-                            payload: {
-                              body: `${quickReply.body}`,
-                            },
-                            quickReplyId: quickReply._id,
-                          })
-                        }
-                        size="sm"
-                        type="button"
-                        variant="secondary"
-                      >
-                        Sync
-                      </Button>
+              <div className="space-y-2.5">
+                {items.map((quickReply) => (
+                  <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3.5" key={quickReply._id}>
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-xs font-semibold text-foreground">
+                          <span className="font-mono text-[#176B4D]">{quickReply.shortcut}</span> • {quickReply.title}
+                        </p>
+                        <p className="mt-1 whitespace-pre-wrap text-xs text-muted-foreground">
+                          {quickReply.body}
+                        </p>
+                        <p className="mt-2 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
+                          Variables: {quickReply.variables.length > 0 ? quickReply.variables.join(", ") : "none"}
+                        </p>
+                      </div>
+                      <div className="flex flex-col gap-1.5">
+                        <Button
+                          onClick={() => {
+                            setEditingId(quickReply._id);
+                            setDraft({
+                              body: quickReply.body,
+                              category: quickReply.category ?? "",
+                              shortcut: quickReply.shortcut,
+                              title: quickReply.title,
+                              variables: quickReply.variables.join(", "),
+                            });
+                          }}
+                          size="sm"
+                          type="button"
+                          variant="secondary"
+                        >
+                          Edit
+                        </Button>
+                        <Button
+                          onClick={() =>
+                            patchQuickReplyMutation.mutate({
+                              payload: { isActive: !quickReply.isActive },
+                              quickReplyId: quickReply._id,
+                            })
+                          }
+                          size="sm"
+                          type="button"
+                          variant="secondary"
+                        >
+                          {quickReply.isActive ? (
+                            <ToggleRight className="h-3.5 w-3.5 text-[#16803C]" />
+                          ) : (
+                            <ToggleLeft className="h-3.5 w-3.5 text-muted-foreground" />
+                          )}
+                          {quickReply.isActive ? "Active" : "Inactive"}
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </Card>
           ))}
           {quickReplies.length === 0 ? (
-            <Card className="border-white/60 bg-white/78 p-5 text-sm text-muted-foreground backdrop-blur">
-              No quick replies exist yet.
+            <Card className="p-4 text-xs text-muted-foreground">
+              No quick replies created yet.
             </Card>
           ) : null}
         </div>
@@ -244,3 +242,4 @@ export default function QuickRepliesPage() {
     </div>
   );
 }
+

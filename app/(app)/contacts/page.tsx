@@ -209,69 +209,66 @@ export default function ContactsPage() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] flex-col space-y-4">
-      {/* Top Enterprise Control Bar */}
-      <div className="flex flex-col gap-4 rounded-2xl border border-[#e5ddd3] bg-[#fbf7f1] p-5 shadow-sm md:flex-row md:items-center md:justify-between">
+    <div className="flex flex-col space-y-4">
+      {/* Control Header Bar */}
+      <div className="flex flex-col gap-3.5 rounded-lg border border-[#E4E4E7] bg-white p-4 shadow-subtle md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#25342f]">
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">
             Customer Registry
           </h1>
-          <p className="text-xs text-[#6f7f75]">
-            Enterprise CRM for WhatsApp business contacts, tags, and notes
+          <p className="text-xs text-muted-foreground">
+            WhatsApp business contacts, labels, and customer metadata.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative min-w-[240px]">
-            <Search className="absolute left-3.5 top-2.5 h-4 w-4 text-[#7a8b82]" />
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="relative min-w-[220px]">
+            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
             <Input
-              className="rounded-xl border-[#ddd2c3] bg-white pl-9 text-xs text-[#25342f] placeholder:text-[#7a8b82]"
+              className="h-8.5 rounded-md border-[#D4D4D8] bg-[#FAFAFA] pl-8.5 text-xs text-foreground placeholder:text-muted-foreground focus:bg-white"
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search by name, phone, company..."
+              placeholder="Search contacts..."
               value={search}
             />
           </div>
 
           <Button
-            className="bg-[#2d644d] text-white hover:bg-[#255440]"
             onClick={() => setCreateModalOpen(true)}
             size="sm"
             type="button"
+            variant="primary"
           >
-            <Plus className="mr-1.5 h-4 w-4" />
+            <Plus className="h-3.5 w-3.5" />
             New Contact
           </Button>
 
           <Button
-            className="border-[#ddd2c3] bg-white text-[#25342f] hover:bg-[#f6f1e9]"
             onClick={() => setImportModalOpen(true)}
             size="sm"
             type="button"
             variant="secondary"
           >
-            <Upload className="mr-1.5 h-3.5 w-3.5 text-[#2d644d]" />
+            <Upload className="h-3.5 w-3.5 text-muted-foreground" />
             Import
           </Button>
 
           <Button
-            className="border-[#ddd2c3] bg-white text-[#25342f] hover:bg-[#f6f1e9]"
             onClick={() => setMergeModalOpen(true)}
             size="sm"
             type="button"
             variant="secondary"
           >
-            <GitMerge className="mr-1.5 h-3.5 w-3.5 text-[#2d644d]" />
-            Merge Duplicates ({duplicateGroups.length})
+            <GitMerge className="h-3.5 w-3.5 text-muted-foreground" />
+            Merge ({duplicateGroups.length})
           </Button>
 
           <Button
-            className="border-[#ddd2c3] bg-white text-[#25342f] hover:bg-[#f6f1e9]"
             onClick={handleExport}
             size="sm"
             type="button"
             variant="secondary"
           >
-            <ArrowDownToLine className="mr-1.5 h-3.5 w-3.5" />
+            <ArrowDownToLine className="h-3.5 w-3.5" />
             Export CSV
           </Button>
         </div>
@@ -280,22 +277,21 @@ export default function ContactsPage() {
       {/* Global Feedback Banner */}
       {feedback ? (
         <div
-          className={`flex items-center justify-between rounded-xl border px-4 py-3 text-xs font-medium ${
+          className={`flex items-center justify-between rounded-md border px-3.5 py-2.5 text-xs font-medium ${
             feedback.tone === "success"
-              ? "border-[#bfd8c6] bg-[#eef8f0] text-[#244b42]"
-              : "border-[#e6c2bc] bg-[#fdf0ee] text-[#9a3d33]"
+              ? "border-emerald-200 bg-[#EDF8F3] text-[#16803C]"
+              : "border-rose-200 bg-rose-50 text-[#C2413A]"
           }`}
         >
           <span>{feedback.message}</span>
           <button onClick={() => setFeedback(null)} type="button">
-            <X className="h-4 w-4" />
+            <X className="h-3.5 w-3.5" />
           </button>
         </div>
       ) : null}
 
-      {/* Main Workspace Area: Table + Sliding Detail Drawer */}
-      <div className="grid min-h-0 flex-1 gap-4 grid-cols-1 xl:grid-cols-[minmax(0,1fr)_420px]">
-        {/* Contacts Data Table */}
+      {/* Main Workspace Area */}
+      <div className="grid min-h-0 flex-1 gap-4 grid-cols-1 xl:grid-cols-[minmax(0,1fr)_400px]">
         <div className="min-h-0 overflow-y-auto">
           <ContactsDataTable
             contacts={contacts}
@@ -309,7 +305,6 @@ export default function ContactsPage() {
           />
         </div>
 
-        {/* Selected Contact Inspector Drawer */}
         <div className="min-h-0">
           {selectedContact ? (
             <ContactDetailDrawer
@@ -321,13 +316,13 @@ export default function ContactsPage() {
               onSaveContact={handleSaveContact}
             />
           ) : (
-            <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-[#ddd2c3] bg-[#fbf7f1] p-8 text-center text-[#7a8b82]">
-              <UserPlus className="h-10 w-10 text-[#a0aca4]" />
-              <p className="mt-3 text-sm font-semibold text-[#25342f]">
+            <div className="flex h-full flex-col items-center justify-center rounded-lg border border-dashed border-[#E4E4E7] bg-white p-6 text-center text-muted-foreground">
+              <UserPlus className="h-8 w-8 text-muted-foreground/60" />
+              <p className="mt-2 text-xs font-semibold text-foreground">
                 No contact selected
               </p>
-              <p className="mt-1 text-xs">
-                Select a contact from the registry table to view details & notes.
+              <p className="mt-0.5 text-xs">
+                Select a contact from the registry table to view details.
               </p>
             </div>
           )}
@@ -356,22 +351,22 @@ export default function ContactsPage() {
 
       {/* New Contact Creation Modal */}
       {createModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-2xl border border-[#ddd2c3] bg-white p-6 shadow-2xl space-y-4">
-            <div className="flex items-center justify-between border-b border-[#eee4d8] pb-3">
-              <h3 className="text-lg font-semibold text-[#25342f]">Create new contact</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-xs">
+          <div className="w-full max-w-md rounded-xl border border-[#E4E4E7] bg-white p-5 shadow-modal space-y-3.5">
+            <div className="flex items-center justify-between border-b border-[#F0F0F2] pb-3">
+              <h3 className="text-sm font-semibold text-foreground">Create New Contact</h3>
               <button
-                className="rounded-full p-1.5 text-[#6f7f75] hover:bg-[#efe7db] hover:text-[#25342f]"
+                className="rounded-md p-1 text-muted-foreground hover:bg-[#F4F4F5] hover:text-foreground"
                 onClick={() => setCreateModalOpen(false)}
                 type="button"
               >
-                <X className="h-5 w-5" />
+                <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-[#6f7f75]">
+                <label className="mb-1 block text-xs font-medium text-foreground">
                   Display Name *
                 </label>
                 <Input
@@ -383,7 +378,7 @@ export default function ContactsPage() {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-[#6f7f75]">
+                <label className="mb-1 block text-xs font-medium text-foreground">
                   Phone Number (E.164) *
                 </label>
                 <Input
@@ -395,7 +390,7 @@ export default function ContactsPage() {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-[#6f7f75]">
+                <label className="mb-1 block text-xs font-medium text-foreground">
                   Company Name
                 </label>
                 <Input
@@ -407,7 +402,7 @@ export default function ContactsPage() {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-[#6f7f75]">
+                <label className="mb-1 block text-xs font-medium text-foreground">
                   Email Address
                 </label>
                 <Input
@@ -421,9 +416,9 @@ export default function ContactsPage() {
               </div>
             </div>
 
-            <div className="flex gap-3 pt-2">
+            <div className="flex gap-2 pt-2">
               <Button
-                className="flex-1 bg-[#2d644d] text-white hover:bg-[#255440]"
+                className="flex-1"
                 disabled={
                   !newContactDraft.displayName.trim() ||
                   !newContactDraft.phoneNumber.trim() ||
@@ -431,6 +426,7 @@ export default function ContactsPage() {
                 }
                 onClick={handleCreateContact}
                 type="button"
+                variant="primary"
               >
                 {createContactMutation.isPending ? "Creating..." : "Save Contact"}
               </Button>
@@ -444,3 +440,4 @@ export default function ContactsPage() {
     </div>
   );
 }
+

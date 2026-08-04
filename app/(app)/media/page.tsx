@@ -151,24 +151,27 @@ export default function MediaPage() {
   }, [mediaDetailQuery.data]);
 
   return (
-    <div className="space-y-6">
-      <div>
-        <p className="text-sm font-medium uppercase tracking-[0.2em] text-muted-foreground">
-          Media Library
+    <div className="space-y-4">
+      {/* Header Banner */}
+      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          Media Asset Vault
+        </h1>
+        <p className="mt-1 max-w-2xl text-xs text-muted-foreground">
+          Upload, manage, and reuse Meta Cloud API media attachments (Images, Documents, Audio, Video).
         </p>
-        <h2 className="mt-2 text-3xl font-semibold">Upload and Reuse Media IDs</h2>
-      </div>
+      </section>
 
-      <Card className="space-y-4 p-6">
-        <div className="grid gap-4 lg:grid-cols-[1fr_1fr_160px_160px_160px_auto]">
-          <Input onChange={(event) => setQuery(event.target.value)} placeholder="Search by file name" value={query} />
+      <Card className="space-y-3.5 p-4">
+        <div className="grid gap-2.5 sm:grid-cols-2 lg:grid-cols-6">
+          <Input onChange={(event) => setQuery(event.target.value)} placeholder="Search by file name..." value={query} />
           <Input
             onChange={(event) => setUploadCustomName(event.target.value)}
-            placeholder="Custom name for next upload"
+            placeholder="Custom upload name"
             value={uploadCustomName}
           />
           <select
-            className="flex h-11 w-full rounded-xl border border-input bg-white px-3 py-2 text-sm text-foreground outline-none focus:border-primary"
+            className="h-8.5 w-full rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none focus:border-primary"
             onChange={(event) => setType(event.target.value)}
             value={type}
           >
@@ -179,9 +182,9 @@ export default function MediaPage() {
             <option value="document">Document</option>
             <option value="sticker">Sticker</option>
           </select>
-          <Input onChange={(event) => setFolder(event.target.value)} placeholder="Folder" value={folder} />
-          <Input onChange={(event) => setTag(event.target.value)} placeholder="Tag" value={tag} />
-          <label className="inline-flex cursor-pointer items-center justify-center rounded-xl bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90">
+          <Input onChange={(event) => setFolder(event.target.value)} placeholder="Folder..." value={folder} />
+          <Input onChange={(event) => setTag(event.target.value)} placeholder="Tag..." value={tag} />
+          <label className="inline-flex cursor-pointer items-center justify-center rounded-md bg-[#176B4D] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#12563E]">
             {uploadMutation.isPending ? "Uploading..." : "Upload File"}
             <input
               className="hidden"
@@ -201,34 +204,34 @@ export default function MediaPage() {
             />
           </label>
         </div>
-        {submitMessage ? <p className="text-sm text-green-700">{submitMessage}</p> : null}
-        {submitError ? <p className="text-sm text-red-600">{submitError}</p> : null}
+        {submitMessage ? <p className="text-xs font-medium text-[#16803C]">{submitMessage}</p> : null}
+        {submitError ? <p className="text-xs font-medium text-[#C2413A]">{submitError}</p> : null}
       </Card>
 
-      <div className="grid gap-4 xl:grid-cols-[1fr_0.9fr]">
-        <div className="grid gap-4">
+      <div className="grid gap-4 xl:grid-cols-[1fr_360px]">
+        <div className="grid gap-3">
           {media.map((item: MediaRecord) => (
-            <Card className="p-6" key={item._id}>
+            <Card className="p-4" key={item._id}>
               <div className="flex flex-wrap items-start justify-between gap-4">
-                <div className="space-y-2">
-                  <h3 className="text-lg font-semibold">{getMediaDisplayName(item)}</h3>
+                <div className="space-y-1">
+                  <h3 className="text-sm font-semibold text-foreground">{getMediaDisplayName(item)}</h3>
                   {item.customName ? (
-                    <p className="text-xs text-muted-foreground">Original file: {item.fileName}</p>
+                    <p className="text-[11px] text-muted-foreground">Original: {item.fileName}</p>
                   ) : null}
-                  <p className="text-sm text-muted-foreground">
-                    {item.mediaType} | {item.mimeType} | {formatSize(item.fileSize)}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    Folder: {item.folder || "Unsorted"} | Tags: {(item.tags ?? []).length ? item.tags?.join(", ") : "None"}
-                  </p>
-                  <p className="break-all font-mono text-xs text-foreground">
-                    Media ID: {item.metaMediaId}
+                  <p className="text-xs text-muted-foreground">
+                    {item.mediaType} • {item.mimeType} • {formatSize(item.fileSize)}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    Uploaded {new Date(item.uploadedAt).toLocaleString()}
+                    Folder: {item.folder || "Unsorted"} • Tags: {(item.tags ?? []).length ? item.tags?.join(", ") : "None"}
+                  </p>
+                  <p className="font-mono text-xs font-medium text-foreground">
+                    Media ID: {item.metaMediaId}
+                  </p>
+                  <p className="font-mono text-[10px] text-muted-foreground">
+                    Uploaded: {new Date(item.uploadedAt).toLocaleString()}
                   </p>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-1.5">
                   <Button onClick={() => setSelectedId(item._id)} size="sm" type="button" variant="secondary">
                     Details
                   </Button>
@@ -239,12 +242,12 @@ export default function MediaPage() {
                     }}
                     size="sm"
                     type="button"
-                    variant="ghost"
+                    variant="secondary"
                   >
                     Copy ID
                   </Button>
                   <Link href={`/message-studio?mode=${encodeURIComponent(item.mediaType)}&mediaId=${encodeURIComponent(item.metaMediaId)}`}>
-                    <Button size="sm" type="button" variant="ghost">
+                    <Button size="sm" type="button" variant="secondary">
                       Reuse
                     </Button>
                   </Link>
@@ -256,45 +259,53 @@ export default function MediaPage() {
             </Card>
           ))}
           {!mediaQuery.isLoading && media.length === 0 ? (
-            <p className="text-sm text-muted-foreground">No media stored yet.</p>
+            <Card className="p-4 text-xs text-muted-foreground">No media files stored.</Card>
           ) : null}
         </div>
 
-        <Card className="p-6">
-          <h3 className="text-lg font-semibold">Media Detail</h3>
+        <Card className="space-y-3.5 p-4">
+          <div className="border-b border-[#F0F0F2] pb-2">
+            <h3 className="text-sm font-semibold text-foreground">Media Asset Detail</h3>
+          </div>
           {mediaDetailQuery.data?.media ? (
-            <div className="mt-4 space-y-4">
-              <div className="rounded-2xl bg-[#f7f1e4] p-4 text-sm text-foreground">
-                <p>{getMediaDisplayName(mediaDetailQuery.data.media)}</p>
+            <div className="space-y-3 text-xs">
+              <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 space-y-1">
+                <p className="font-semibold text-foreground">{getMediaDisplayName(mediaDetailQuery.data.media)}</p>
                 {mediaDetailQuery.data.media.customName ? (
-                  <p className="mt-2 text-muted-foreground">Original file: {mediaDetailQuery.data.media.fileName}</p>
+                  <p className="text-muted-foreground">Original: {mediaDetailQuery.data.media.fileName}</p>
                 ) : null}
-                <p className="mt-2">{mediaDetailQuery.data.media.mediaType} | {mediaDetailQuery.data.media.mimeType}</p>
-                <p className="mt-2 text-muted-foreground">
-                  Folder: {mediaDetailQuery.data.media.folder || "Unsorted"} | Tags: {(mediaDetailQuery.data.media.tags ?? []).length ? mediaDetailQuery.data.media.tags?.join(", ") : "None"}
-                </p>
+                <p className="text-muted-foreground">{mediaDetailQuery.data.media.mediaType} • {mediaDetailQuery.data.media.mimeType}</p>
+                <p className="font-mono text-[11px] text-[#176B4D]">Media ID: {mediaDetailQuery.data.media.metaMediaId}</p>
               </div>
-              <div className="space-y-3 rounded-2xl border border-[#eadbbf] bg-[#fff8ea] p-4">
-                <p className="text-sm font-medium text-foreground">Metadata</p>
-                <Input
-                  className="rounded-[20px] bg-[#faf7f1]"
-                  onChange={(event) => setMetadataCustomName(event.target.value)}
-                  placeholder="Custom media name"
-                  value={metadataCustomName}
-                />
-                <Input
-                  className="rounded-[20px] bg-[#faf7f1]"
-                  onChange={(event) => setMetadataFolder(event.target.value)}
-                  placeholder="Folder name"
-                  value={metadataFolder}
-                />
-                <Input
-                  className="rounded-[20px] bg-[#faf7f1]"
-                  onChange={(event) => setMetadataTags(event.target.value)}
-                  placeholder="Tags, comma separated"
-                  value={metadataTags}
-                />
+
+              <div className="space-y-2 rounded-md border border-[#E4E4E7] bg-white p-3">
+                <p className="text-xs font-semibold text-foreground">Update Metadata</p>
+                <div>
+                  <label className="mb-0.5 block text-[11px] text-muted-foreground">Custom Name</label>
+                  <Input
+                    onChange={(event) => setMetadataCustomName(event.target.value)}
+                    placeholder="Custom name"
+                    value={metadataCustomName}
+                  />
+                </div>
+                <div>
+                  <label className="mb-0.5 block text-[11px] text-muted-foreground">Folder</label>
+                  <Input
+                    onChange={(event) => setMetadataFolder(event.target.value)}
+                    placeholder="Folder name"
+                    value={metadataFolder}
+                  />
+                </div>
+                <div>
+                  <label className="mb-0.5 block text-[11px] text-muted-foreground">Tags (comma separated)</label>
+                  <Input
+                    onChange={(event) => setMetadataTags(event.target.value)}
+                    placeholder="tag1, tag2"
+                    value={metadataTags}
+                  />
+                </div>
                 <Button
+                  className="w-full mt-1"
                   disabled={metadataMutation.isPending}
                   onClick={() => {
                     if (!mediaDetailQuery.data?.media?._id) {
@@ -313,26 +324,31 @@ export default function MediaPage() {
                         .filter(Boolean),
                     });
                   }}
+                  size="sm"
                   type="button"
-                  variant="secondary"
+                  variant="primary"
                 >
-                  {metadataMutation.isPending ? "Saving..." : "Save metadata"}
+                  {metadataMutation.isPending ? "Saving..." : "Save Metadata"}
                 </Button>
               </div>
-              <pre className="overflow-x-auto rounded-xl bg-[#16302b] p-4 text-xs text-[#f8f1de]">
-                {JSON.stringify(
-                  {
-                    requestPayload: mediaDetailQuery.data.media.requestPayload,
-                    responsePayload: mediaDetailQuery.data.media.responsePayload,
-                  },
-                  null,
-                  2,
-                )}
-              </pre>
+
+              <div>
+                <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Payload Technical Record</p>
+                <pre className="overflow-x-auto rounded-md border border-[#27272A] bg-[#18181B] p-2.5 font-mono text-[10px] text-[#F4F4F5]">
+                  {JSON.stringify(
+                    {
+                      requestPayload: mediaDetailQuery.data.media.requestPayload,
+                      responsePayload: mediaDetailQuery.data.media.responsePayload,
+                    },
+                    null,
+                    2,
+                  )}
+                </pre>
+              </div>
             </div>
           ) : (
-            <p className="mt-4 text-sm text-muted-foreground">
-              Select a media asset to inspect its stored metadata and Meta response.
+            <p className="text-xs text-muted-foreground">
+              Select a media asset from the list to view metadata and technical API payloads.
             </p>
           )}
         </Card>
@@ -340,3 +356,4 @@ export default function MediaPage() {
     </div>
   );
 }
+

@@ -44,37 +44,38 @@ export default function TemplatesPage() {
   const templates = useMemo(() => templatesQuery.data?.templates ?? [], [templatesQuery.data]);
 
   return (
-    <div className="flex flex-col space-y-6">
+    <div className="flex flex-col space-y-4">
       {/* Header & Controls Bar */}
-      <div className="flex flex-col gap-4 rounded-2xl border border-[#e5ddd3] bg-[#fbf7f1] p-6 shadow-sm md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-3.5 rounded-lg border border-[#E4E4E7] bg-white p-4 shadow-subtle md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-[#25342f]">
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">
             WhatsApp Template Studio
           </h1>
-          <p className="text-xs text-[#6f7f75]">
-            Meta-approved message templates, variable schemas, and interactive previews
+          <p className="text-xs text-muted-foreground">
+            Meta-approved message templates, schemas, and live message preview canvas.
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2">
           <Button
-            className="bg-[#2d644d] text-white hover:bg-[#255440]"
             disabled={syncMutation.isPending}
             onClick={() => syncMutation.mutate()}
+            size="sm"
             type="button"
+            variant="primary"
           >
-            <RefreshCw className={`mr-2 h-4 w-4 ${syncMutation.isPending ? "animate-spin" : ""}`} />
+            <RefreshCw className={`h-3.5 w-3.5 ${syncMutation.isPending ? "animate-spin" : ""}`} />
             {syncMutation.isPending ? "Syncing..." : "Sync From Meta"}
           </Button>
         </div>
       </div>
 
       {/* Filter Bar */}
-      <div className="flex flex-col gap-3 rounded-2xl border border-[#e5ddd3] bg-white p-4 shadow-sm md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-3 rounded-lg border border-[#E4E4E7] bg-white p-3.5 shadow-subtle md:flex-row md:items-center md:justify-between">
         <div className="relative flex-1">
-          <Search className="absolute left-3.5 top-2.5 h-4 w-4 text-[#7a8b82]" />
+          <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
           <Input
-            className="rounded-xl border-[#ddd2c3] bg-[#fbf7f1] pl-9 text-xs text-[#25342f] placeholder:text-[#7a8b82]"
+            className="h-8.5 rounded-md border-[#D4D4D8] bg-[#FAFAFA] pl-8.5 text-xs text-foreground placeholder:text-muted-foreground focus:bg-white"
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search templates by name..."
             value={query}
@@ -82,13 +83,13 @@ export default function TemplatesPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1.5 text-xs text-[#6f7f75] px-2">
+          <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground px-1">
             <SlidersHorizontal className="h-3.5 w-3.5" />
-            <span>Filters:</span>
+            <span>Filter:</span>
           </div>
 
           <select
-            className="h-9 rounded-xl border border-[#ddd2c3] bg-[#fbf7f1] px-3 text-xs text-[#25342f] outline-none"
+            className="h-8.5 rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none focus:border-primary"
             onChange={(e) => setStatus(e.target.value)}
             value={status}
           >
@@ -99,7 +100,7 @@ export default function TemplatesPage() {
           </select>
 
           <select
-            className="h-9 rounded-xl border border-[#ddd2c3] bg-[#fbf7f1] px-3 text-xs text-[#25342f] outline-none"
+            className="h-8.5 rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none focus:border-primary"
             onChange={(e) => setCategory(e.target.value)}
             value={category}
           >
@@ -110,7 +111,7 @@ export default function TemplatesPage() {
           </select>
 
           <Input
-            className="h-9 w-28 rounded-xl border-[#ddd2c3] bg-[#fbf7f1] text-xs text-[#25342f]"
+            className="h-8.5 w-24 rounded-md border-[#D4D4D8] bg-[#FAFAFA] text-xs text-foreground"
             onChange={(e) => setLanguage(e.target.value)}
             placeholder="en_US"
             value={language}
@@ -119,34 +120,34 @@ export default function TemplatesPage() {
       </div>
 
       {/* Sync Timestamp Banner */}
-      <div className="flex items-center justify-between text-xs text-[#7a8b82] px-2">
+      <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
         <span>
           Last synced:{" "}
-          <strong className="text-[#25342f]">
+          <strong className="font-semibold text-foreground">
             {templatesQuery.data?.lastSyncedAt
               ? new Date(templatesQuery.data.lastSyncedAt).toLocaleString()
               : "Not synced yet"}
           </strong>
         </span>
         {typeof syncMutation.data?.count === "number" ? (
-          <span className="font-semibold text-[#2d644d]">
+          <span className="font-semibold text-[#176B4D]">
             ✓ Synced {syncMutation.data.count} template(s) from Meta
           </span>
         ) : null}
       </div>
 
       {/* Template Card List */}
-      <div className="space-y-4">
+      <div className="space-y-3.5">
         {templates.map((template) => (
           <WhatsAppTemplateCard key={template._id} template={template} />
         ))}
 
         {!templatesQuery.isLoading && templates.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-[#ddd2c3] bg-[#fbf7f1] p-12 text-center text-[#7a8b82]">
-            <Sparkles className="h-10 w-10 text-[#a0aca4]" />
-            <p className="mt-3 text-sm font-semibold text-[#25342f]">No templates found</p>
-            <p className="mt-1 text-xs">
-              No Meta templates match your filters. Click "Sync From Meta" to pull the latest templates.
+          <div className="flex flex-col items-center justify-center rounded-lg border border-dashed border-[#E4E4E7] bg-white p-10 text-center text-muted-foreground">
+            <Sparkles className="h-8 w-8 text-muted-foreground/60" />
+            <p className="mt-2 text-xs font-semibold text-foreground">No templates found</p>
+            <p className="mt-0.5 text-xs">
+              No Meta templates match your filters. Click "Sync From Meta" to update catalog.
             </p>
           </div>
         ) : null}
@@ -154,3 +155,4 @@ export default function TemplatesPage() {
     </div>
   );
 }
+

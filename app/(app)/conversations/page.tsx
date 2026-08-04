@@ -73,19 +73,19 @@ const parseTemplateVariables = (value?: string) =>
 
 const statusTone = (status: string, direction: "incoming" | "outgoing") => {
   if (direction === "incoming") {
-    return "bg-[#e7f5ec] text-[#1f5b43]";
+    return "bg-[#EDF8F3] text-[#16803C]";
   }
   if (status === "read") {
-    return "bg-[#d6efff] text-[#0e5575]";
+    return "bg-[#E0F2FE] text-[#0284C7]";
   }
   if (status === "delivered") {
-    return "bg-[#ddefd9] text-[#355f2c]";
+    return "bg-[#F4F4F5] text-[#7A8B82]";
   }
   if (status === "failed") {
-    return "bg-[#ffe0e0] text-[#8f2323]";
+    return "bg-[#FEE2E2] text-[#C2413A]";
   }
 
-  return "bg-[#efe4c9] text-[#725324]";
+  return "bg-[#FAFAFA] text-muted-foreground";
 };
 
 const renderMessageBody = (message: ConversationMessageRecord) => {
@@ -540,64 +540,54 @@ export default function ConversationsPage() {
     labelsMutation.isPending || addNoteMutation.isPending || updateNoteMutation.isPending;
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col gap-4 rounded-[2rem] border border-white/60 bg-[linear-gradient(135deg,rgba(255,255,255,0.84),rgba(250,244,230,0.9))] p-5 shadow-[0_18px_50px_rgba(44,56,38,0.08)] lg:flex-row lg:items-end lg:justify-between">
+    <div className="space-y-4">
+      {/* Header Banner */}
+      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <p className="text-sm font-medium uppercase tracking-[0.26em] text-muted-foreground">
-            Conversations
-          </p>
-          <h2 className="mt-2 text-3xl font-semibold">Operator Inbox</h2>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Reworked into a WhatsApp-style workspace with faster scanning, cleaner message bubbles,
-            and a reply area that stays anchored to the active thread.
+          <h1 className="text-xl font-semibold tracking-tight text-foreground">
+            WhatsApp Operator Inbox
+          </h1>
+          <p className="mt-1 max-w-2xl text-xs text-muted-foreground">
+            High-concurrency chat workspace for live customer communications, template dispatch, internal notes, and labels.
           </p>
         </div>
-        <div className="grid grid-cols-3 gap-3 text-sm lg:min-w-[360px]">
-          <div className="rounded-2xl bg-white/80 p-3">
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Threads</p>
-            <p className="mt-2 text-xl font-semibold">{conversations.length}</p>
+        <div className="flex gap-2 text-xs">
+          <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] px-3 py-2 text-center">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Total Threads</p>
+            <p className="font-mono text-base font-semibold text-foreground">{conversations.length}</p>
           </div>
-          <div className="rounded-2xl bg-white/80 p-3">
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Unread</p>
-            <p className="mt-2 text-xl font-semibold">
+          <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] px-3 py-2 text-center">
+            <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Unread</p>
+            <p className="font-mono text-base font-semibold text-[#176B4D]">
               {conversations.reduce((total, item) => total + item.unreadCount, 0)}
             </p>
           </div>
-          <div className="rounded-2xl bg-white/80 p-3">
-            <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">Selected</p>
-            <p className="mt-2 truncate text-sm font-semibold">
-              {workspaceConversation?.contactName || workspaceConversation?.contactPhoneNumber || "None"}
-            </p>
-          </div>
         </div>
-      </div>
+      </section>
 
-      <div className="grid gap-4 xl:grid-cols-[340px_minmax(0,1fr)_350px]">
+      <div className="grid gap-4 xl:grid-cols-[320px_minmax(0,1fr)_320px]">
+        {/* Threads List Sidebar */}
         <Card className="overflow-hidden p-0">
-          <div className="border-b border-border bg-[rgba(255,255,255,0.7)] px-5 py-4">
-            <div className="flex items-center justify-between gap-3">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-muted-foreground">
-                  Chat List
-                </p>
-                <h3 className="mt-1 text-lg font-semibold">Recent conversations</h3>
-              </div>
-              <div className="rounded-full bg-[#16302b] px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-[#f8f1de]">
+          <div className="border-b border-[#E4E4E7] bg-[#FAFAFA] p-3.5">
+            <div className="flex items-center justify-between gap-2 mb-2.5">
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">Active Threads</h3>
+              <span className="rounded bg-[#E4E4E7] px-2 py-0.5 text-[10px] font-semibold text-foreground uppercase">
                 {filterMode}
-              </div>
+              </span>
             </div>
-            <div className="mt-4 flex gap-2">
+            <div className="flex gap-1.5">
               <div className="relative flex-1">
-                <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  className="pl-10"
+                  className="pl-8 text-xs"
                   onChange={(event) => setSearchQuery(event.target.value)}
-                  placeholder="Search contact or last message"
+                  placeholder="Search contacts..."
                   value={searchQuery}
                 />
               </div>
               <Button
                 onClick={() => setFilterMode("all")}
+                size="sm"
                 type="button"
                 variant={filterMode === "all" ? "primary" : "secondary"}
               >
@@ -605,6 +595,7 @@ export default function ConversationsPage() {
               </Button>
               <Button
                 onClick={() => setFilterMode("unread")}
+                size="sm"
                 type="button"
                 variant={filterMode === "unread" ? "primary" : "secondary"}
               >
@@ -613,7 +604,7 @@ export default function ConversationsPage() {
             </div>
           </div>
 
-          <div className="max-h-[76vh] space-y-2 overflow-y-auto bg-[rgba(255,255,255,0.45)] p-3">
+          <div className="max-h-[72vh] space-y-1 overflow-y-auto p-2 bg-white">
             {conversations.map((conversation) => {
               const isActive = conversation._id === selectedConversationId;
               const title = conversation.contactName || conversation.contactPhoneNumber;
@@ -621,51 +612,39 @@ export default function ConversationsPage() {
 
               return (
                 <button
-                  className={
+                  className={`w-full rounded-md p-3 text-left transition-colors ${
                     isActive
-                      ? "w-full rounded-[26px] border border-[#d2e8dc] bg-[linear-gradient(135deg,#ffffff,#eef7f0)] px-4 py-4 text-left shadow-[0_10px_30px_rgba(32,73,58,0.08)]"
-                      : "w-full rounded-[26px] border border-transparent bg-white/80 px-4 py-4 text-left transition hover:border-[#e6dcc7] hover:bg-white"
-                  }
+                      ? "border border-[#C4E8DA] bg-[#EDF8F3]"
+                      : "border border-transparent hover:bg-[#FAFAFA]"
+                  }`}
                   key={conversation._id}
                   onClick={() => setSelectedConversationId(conversation._id)}
                   type="button"
                 >
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[linear-gradient(135deg,#d6f0df,#8ec5a1)] text-sm font-semibold text-[#16302b]">
+                  <div className="flex items-start gap-2.5">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#176B4D] text-xs font-semibold text-white">
                       {getInitials(conversation.contactName, conversation.contactPhoneNumber)}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start justify-between gap-1.5">
                         <div className="min-w-0">
-                          <p className="truncate font-semibold text-foreground">{title}</p>
-                          <p className="mt-1 truncate text-xs text-muted-foreground">
+                          <p className="truncate text-xs font-semibold text-foreground">{title}</p>
+                          <p className="truncate font-mono text-[11px] text-muted-foreground">
                             {conversation.contactPhoneNumber}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-[11px] font-medium text-muted-foreground">
+                          <p className="text-[10px] text-muted-foreground">
                             {formatShortDate(conversation.lastActivityAt)}
                           </p>
                           {conversation.unreadCount > 0 ? (
-                            <span className="mt-2 inline-flex h-6 min-w-6 items-center justify-center rounded-full bg-primary px-2 text-xs font-semibold text-primary-foreground">
+                            <span className="mt-1 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-[#176B4D] px-1 text-[10px] font-bold text-white">
                               {conversation.unreadCount}
                             </span>
                           ) : null}
                         </div>
                       </div>
-                      {labels.length > 0 ? (
-                        <div className="mt-3 flex flex-wrap gap-2">
-                          {labels.slice(0, 2).map((label) => (
-                            <span
-                              className="rounded-full bg-[#f7efe0] px-2.5 py-1 text-[11px] font-medium text-[#7a5929]"
-                              key={label}
-                            >
-                              {label}
-                            </span>
-                          ))}
-                        </div>
-                      ) : null}
-                      <p className="mt-3 line-clamp-2 text-sm text-muted-foreground">
+                      <p className="mt-1 line-clamp-1 text-xs text-muted-foreground">
                         {conversation.lastMessageText || `[${messageTypeLabel(conversation.lastMessageType)}]`}
                       </p>
                     </div>
@@ -674,606 +653,281 @@ export default function ConversationsPage() {
               );
             })}
             {!conversationsQuery.isLoading && conversations.length === 0 ? (
-              <div className="rounded-[26px] bg-white/85 p-6 text-sm text-muted-foreground">
-                No conversations available yet.
+              <div className="p-4 text-xs text-muted-foreground text-center">
+                No active conversations.
               </div>
             ) : null}
           </div>
         </Card>
 
-        <Card className="overflow-hidden p-0">
-          <div className="border-b border-border bg-[linear-gradient(180deg,rgba(255,255,255,0.88),rgba(245,239,225,0.9))] px-5 py-4">
-            <div className="flex flex-wrap items-center justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[linear-gradient(135deg,#d6f0df,#8ec5a1)] font-semibold text-[#16302b]">
-                  {getInitials(
-                    workspaceConversation?.contactName,
-                    workspaceConversation?.contactPhoneNumber,
-                  )}
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold">
-                    {workspaceConversation?.contactName || "Conversation"}
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {workspaceConversation?.contactPhoneNumber || "Select a conversation"}
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  disabled={!selectedConversationId || clearUnreadMutation.isPending}
-                  onClick={() => clearUnreadMutation.mutate()}
-                  size="sm"
-                  type="button"
-                  variant="secondary"
-                >
-                  {clearUnreadMutation.isPending ? "Clearing..." : "Clear unread"}
-                </Button>
-                {lastIncomingMessageId ? (
-                  <Button
-                    disabled={markAsReadMutation.isPending}
-                    onClick={() => markAsReadMutation.mutate(lastIncomingMessageId)}
-                    size="sm"
-                    type="button"
-                    variant="ghost"
-                  >
-                    {markAsReadMutation.isPending ? "Marking..." : "Sync read"}
-                  </Button>
-                ) : null}
-              </div>
-            </div>
-            {selectedConversationLabels.length > 0 ? (
-              <div className="mt-4 flex flex-wrap gap-2">
-                {selectedConversationLabels.map((label) => (
-                  <span
-                    className="rounded-full bg-[#efe5cf] px-3 py-1 text-xs font-medium text-[#735327]"
-                    key={label}
-                  >
-                    {label}
-                  </span>
-                ))}
-              </div>
-            ) : null}
-          </div>
-
-          <div className="relative flex min-h-[76vh] flex-col">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_left,rgba(37,102,76,0.08),transparent_24%),radial-gradient(circle_at_bottom_right,rgba(214,155,76,0.12),transparent_26%),linear-gradient(180deg,#efe7d7_0%,#e8decb_100%)]" />
-            <div className="relative flex-1 space-y-4 overflow-y-auto px-5 py-5">
-              {conversationMessages.map((message) => {
-                const isOutgoing = message.direction === "outgoing";
-
-                return (
-                  <div
-                    className={isOutgoing ? "flex justify-end" : "flex justify-start"}
-                    key={message._id}
-                  >
-                    <div
-                      className={
-                        isOutgoing
-                          ? "max-w-[82%] rounded-[24px] rounded-br-md bg-[linear-gradient(180deg,#d8f5cf,#c7edb8)] px-4 py-3 text-[#16302b] shadow-[0_10px_28px_rgba(57,110,51,0.12)]"
-                          : "max-w-[82%] rounded-[24px] rounded-bl-md bg-white px-4 py-3 text-foreground shadow-[0_10px_28px_rgba(85,67,31,0.08)]"
-                      }
-                    >
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-[11px] font-semibold uppercase tracking-[0.18em] opacity-70">
-                          {messageTypeLabel(message.messageType)}
-                        </span>
-                        <span
-                          className={`rounded-full px-2 py-1 text-[10px] font-medium ${statusTone(
-                            message.status,
-                            message.direction,
-                          )}`}
-                        >
-                          {isOutgoing ? message.status : "incoming"}
-                        </span>
-                      </div>
-                      <p className="mt-3 whitespace-pre-wrap text-sm leading-6">
-                        {renderMessageBody(message)}
-                      </p>
-                      {message.direction === "incoming" &&
-                      message.waMessageId &&
-                      message.status !== "read" ? (
-                        <div className="mt-3 flex justify-end">
-                          <Button
-                            disabled={markAsReadMutation.isPending}
-                            onClick={() => markAsReadMutation.mutate(message.waMessageId!)}
-                            size="sm"
-                            type="button"
-                            variant="secondary"
-                          >
-                            {markAsReadMutation.isPending ? "Marking..." : "Mark read"}
-                          </Button>
-                        </div>
-                      ) : null}
-                      <div className="mt-3 flex items-center justify-end gap-2 text-[11px] opacity-70">
-                        <span>{formatShortTime(message.timestamp)}</span>
-                        {isOutgoing ? (
-                          <CheckCheck className="h-3.5 w-3.5" />
-                        ) : (
-                          <CircleDot className="h-3.5 w-3.5" />
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-
-              {!detailQuery.isLoading && conversationMessages.length === 0 ? (
-                <div className="flex h-full min-h-[260px] items-center justify-center">
-                  <div className="rounded-[28px] bg-white/85 px-8 py-10 text-center shadow-[0_16px_40px_rgba(90,70,26,0.08)]">
-                    <MessageCircleMore className="mx-auto h-10 w-10 text-muted-foreground" />
-                    <p className="mt-4 text-sm text-muted-foreground">
-                      No messages in this conversation yet.
-                    </p>
-                  </div>
-                </div>
-              ) : null}
-            </div>
-
-            <div className="relative border-t border-border bg-white/85 px-5 py-5 backdrop-blur">
-              <form
-                className="space-y-4"
-                onSubmit={replyForm.handleSubmit((values) => {
-                  setReplyError(null);
-                  replyMutation.mutate(values);
-                })}
-              >
-                <div className="flex flex-wrap gap-2">
-                  <button
-                    className={
-                      selectedReplyType === "text"
-                        ? "rounded-full bg-[#16302b] px-4 py-2 text-sm font-medium text-[#f8f1de]"
-                        : "rounded-full bg-[#f4ecdb] px-4 py-2 text-sm font-medium text-[#6e5632]"
-                    }
-                    onClick={() => replyForm.reset({ type: "text", body: "" })}
-                    type="button"
-                  >
-                    Text
-                  </button>
-                  <button
-                    className={
-                      selectedReplyType === "template"
-                        ? "rounded-full bg-[#16302b] px-4 py-2 text-sm font-medium text-[#f8f1de]"
-                        : "rounded-full bg-[#f4ecdb] px-4 py-2 text-sm font-medium text-[#6e5632]"
-                    }
-                    onClick={() =>
-                      replyForm.reset({
-                        type: "template",
-                        templateName: "",
-                        languageCode: "",
-                        bodyVariables: "",
-                      })
-                    }
-                    type="button"
-                  >
-                    Template
-                  </button>
-                  <button
-                    className={
-                      ["image", "video", "audio", "document", "sticker"].includes(selectedReplyType)
-                        ? "rounded-full bg-[#16302b] px-4 py-2 text-sm font-medium text-[#f8f1de]"
-                        : "rounded-full bg-[#f4ecdb] px-4 py-2 text-sm font-medium text-[#6e5632]"
-                    }
-                    onClick={() =>
-                      replyForm.reset({
-                        type: "image",
-                        mediaId: "",
-                        caption: "",
-                        filename: "",
-                      })
-                    }
-                    type="button"
-                  >
-                    Media
-                  </button>
-                </div>
-
-                {selectedReplyType === "text" ? (
-                  <div className="space-y-3">
-                    <Textarea
-                      className="min-h-24 rounded-[24px] bg-[#f9f6ef]"
-                      placeholder="Write a message"
-                      {...replyForm.register("body")}
-                    />
-                    {"body" in replyForm.formState.errors && replyForm.formState.errors.body ? (
-                      <p className="text-sm text-red-600">
-                        {replyForm.formState.errors.body.message}
-                      </p>
-                    ) : null}
-                  </div>
-                ) : selectedReplyType === "template" ? (
-                  <div className="grid gap-3">
-                    <select
-                      className="flex h-12 w-full rounded-[20px] border border-input bg-[#f9f6ef] px-4 py-2 text-sm text-foreground outline-none focus:border-primary"
-                      onChange={(event) => {
-                        const nextValue = event.target.value;
-                        const nextTemplate = findTemplateByOptionValue(activeTemplates, nextValue);
-
-                        replyForm.setValue("templateName", nextTemplate?.name ?? "");
-                        replyForm.setValue("languageCode", nextTemplate?.language ?? "");
-                      }}
-                      value={
-                        selectedTemplateName && selectedTemplateLanguage
-                          ? `${selectedTemplateName}::${selectedTemplateLanguage}`
-                          : ""
-                      }
-                    >
-                      <option value="">
-                        {activeTemplates.length > 0
-                          ? "Select active template"
-                          : "No active templates available"}
-                      </option>
-                      {activeTemplates.map((template) => (
-                        <option
-                          key={template._id}
-                          value={buildTemplateOptionValue(template)}
-                        >
-                          {template.name} ({template.language})
-                        </option>
-                      ))}
-                    </select>
-                    <div className="rounded-[20px] border border-[#eadbbf] bg-[#fffaf0] px-4 py-3 text-sm text-muted-foreground">
-                      {activeTemplates.length > 0
-                        ? `Active catalog: ${activeTemplates.length} approved Meta templates available for this workspace.`
-                        : "No approved sendable templates are available for this workspace right now. Run template sync after checking the active Meta account settings."}
-                    </div>
-                    <Textarea
-                      className="min-h-24 rounded-[24px] bg-[#f9f6ef]"
-                      placeholder={
-                        selectedTemplate
-                          ? "Template body variables, one per line"
-                          : "Choose a template first to see whether variables are needed"
-                      }
-                      {...replyForm.register("bodyVariables")}
-                    />
-                    {selectedTemplate ? (
-                      <div className="rounded-[24px] border border-[#eadbbf] bg-[#fffaf0] p-4">
-                        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                          <Sparkles className="h-4 w-4" />
-                          Template snapshot
-                        </div>
-                        <p className="mt-3 text-sm text-foreground">
-                          {selectedTemplateVariables.length
-                            ? `Variables: ${selectedTemplateVariables.join(", ")}`
-                            : "No variables"}
-                        </p>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          Status: {selectedTemplate.status}
-                        </p>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          Language: {selectedTemplate.language}
-                        </p>
-                        {selectedTemplate.bodyText ? (
-                          <p className="mt-2 text-sm text-foreground">{selectedTemplate.bodyText}</p>
-                        ) : null}
-                      </div>
-                    ) : (
-                      <div className="rounded-[24px] border border-dashed border-[#eadbbf] bg-[#fffdf7] p-4 text-sm text-muted-foreground">
-                        {activeTemplates.length > 0
-                          ? "Choose an active template to load its language, variable requirements, and preview text before sending."
-                          : "No template preview is available because the active template catalog is empty."}
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="grid gap-3">
-                    <select
-                      className="flex h-12 w-full rounded-[20px] border border-input bg-[#f9f6ef] px-4 py-2 text-sm text-foreground outline-none focus:border-primary"
-                      {...replyForm.register("type")}
-                    >
-                      <option value="image">Image</option>
-                      <option value="video">Video</option>
-                      <option value="audio">Audio</option>
-                      <option value="document">Document</option>
-                      <option value="sticker">Sticker</option>
-                    </select>
-                    <select
-                      className="flex h-12 w-full rounded-[20px] border border-input bg-[#f9f6ef] px-4 py-2 text-sm text-foreground outline-none focus:border-primary"
-                      {...replyForm.register("mediaId")}
-                    >
-                      <option value="">Select stored media</option>
-                      {allMedia
-                        .filter((item) =>
-                          selectedReplyType === "document"
-                            ? item.mediaType === "document"
-                            : selectedReplyType === "sticker"
-                              ? item.mediaType === "sticker"
-                              : item.mediaType === selectedReplyType,
-                        )
-                        .map((item) => (
-                          <option key={item._id} value={item.metaMediaId}>
-                            {getMediaDisplayName(item)} ({item.mediaType})
-                          </option>
-                        ))}
-                    </select>
-                    {(selectedReplyType === "image" ||
-                      selectedReplyType === "video" ||
-                      selectedReplyType === "document") ? (
-                      <Textarea
-                        className="min-h-20 rounded-[24px] bg-[#f9f6ef]"
-                        placeholder="Optional caption"
-                        {...replyForm.register("caption")}
-                      />
-                    ) : null}
-                    {selectedReplyType === "document" ? (
-                      <Input
-                        className="rounded-[20px] bg-[#f9f6ef]"
-                        placeholder="Optional filename override"
-                        {...replyForm.register("filename")}
-                      />
-                    ) : null}
-                    {selectedMedia ? (
-                      <div className="rounded-[24px] border border-[#eadbbf] bg-[#fffaf0] p-4 text-sm">
-                        {getMediaDisplayName(selectedMedia)} | {selectedMedia.mediaType} |{" "}
-                        {selectedMedia.metaMediaId}
-                      </div>
-                    ) : null}
-                  </div>
+        {/* Central Chat Window */}
+        <Card className="overflow-hidden p-0 flex flex-col">
+          <div className="border-b border-[#E4E4E7] bg-[#FAFAFA] p-3.5 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#176B4D] text-xs font-semibold text-white">
+                {getInitials(
+                  workspaceConversation?.contactName,
+                  workspaceConversation?.contactPhoneNumber,
                 )}
-
-                {readError ? <p className="text-sm text-red-600">{readError}</p> : null}
-                {replyError ? <p className="text-sm text-red-600">{replyError}</p> : null}
-
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <p className="text-sm text-muted-foreground">
-                    Messages are stored in the active conversation thread after send.
-                  </p>
-                  <Button disabled={!selectedConversationId || replyMutation.isPending} type="submit">
-                    {replyMutation.isPending ? "Sending..." : "Send reply"}
-                  </Button>
-                </div>
-              </form>
-            </div>
-          </div>
-        </Card>
-
-        <div className="space-y-4">
-          <Card className="space-y-4 p-5">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#edf4ef] text-[#16302b]">
-                <UserRound className="h-5 w-5" />
               </div>
               <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                  Contact
-                </p>
-                <h3 className="mt-1 text-lg font-semibold">
-                  {workspaceConversation?.contactName || "Select a conversation"}
+                <h3 className="text-xs font-semibold text-foreground">
+                  {workspaceConversation?.contactName || "Select Thread"}
                 </h3>
+                <p className="font-mono text-[11px] text-muted-foreground">
+                  {workspaceConversation?.contactPhoneNumber || "No contact selected"}
+                </p>
               </div>
             </div>
-            <div className="grid gap-3 text-sm">
-              <div className="rounded-2xl bg-white/80 p-3">
-                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">Phone</p>
-                <p className="mt-1 font-medium">
-                  {workspaceConversation?.contactPhoneNumber || "Not available"}
-                </p>
+            <div className="flex gap-1.5">
+              <Button
+                disabled={!selectedConversationId || clearUnreadMutation.isPending}
+                onClick={() => clearUnreadMutation.mutate()}
+                size="sm"
+                type="button"
+                variant="secondary"
+              >
+                Clear Unread
+              </Button>
+            </div>
+          </div>
+
+          <div className="flex-1 space-y-3 overflow-y-auto p-4 bg-[#F7F8FA] min-h-[420px]">
+            {conversationMessages.map((message) => {
+              const isOutgoing = message.direction === "outgoing";
+
+              return (
+                <div
+                  className={isOutgoing ? "flex justify-end" : "flex justify-start"}
+                  key={message._id}
+                >
+                  <div
+                    className={`max-w-[85%] rounded-lg p-3 text-xs shadow-subtle ${
+                      isOutgoing
+                        ? "border border-[#C4E8DA] bg-[#EDF8F3] text-foreground"
+                        : "border border-[#E4E4E7] bg-white text-foreground"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between gap-2 mb-1.5">
+                      <span className="text-[10px] font-semibold uppercase text-muted-foreground">
+                        {messageTypeLabel(message.messageType)}
+                      </span>
+                      <span
+                        className={`rounded px-1.5 py-0.5 text-[9px] font-semibold uppercase ${statusTone(
+                          message.status,
+                          message.direction,
+                        )}`}
+                      >
+                        {isOutgoing ? message.status : "incoming"}
+                      </span>
+                    </div>
+                    <p className="whitespace-pre-wrap leading-relaxed text-foreground">{renderMessageBody(message)}</p>
+                    <div className="mt-2 flex items-center justify-end gap-1 text-[10px] text-muted-foreground font-mono">
+                      <span>{formatShortTime(message.timestamp)}</span>
+                      {isOutgoing ? (
+                        <CheckCheck className="h-3 w-3 text-[#34B7F1]" />
+                      ) : (
+                        <CircleDot className="h-3 w-3 text-[#7A8B82]" />
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {!detailQuery.isLoading && conversationMessages.length === 0 ? (
+              <div className="flex h-full min-h-[200px] items-center justify-center">
+                <div className="text-center text-xs text-muted-foreground">
+                  <MessageCircleMore className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
+                  No messages in this conversation yet.
+                </div>
               </div>
-              <div className="rounded-2xl bg-white/80 p-3">
-                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                  WhatsApp ID
-                </p>
-                <p className="mt-1 font-medium">{workspaceConversation?.waId || "Not available"}</p>
+            ) : null}
+          </div>
+
+          {/* Quick Reply Form Anchor */}
+          <div className="border-t border-[#E4E4E7] bg-white p-3.5">
+            <form
+              className="space-y-3"
+              onSubmit={replyForm.handleSubmit((values) => {
+                setReplyError(null);
+                replyMutation.mutate(values);
+              })}
+            >
+              <div className="flex gap-1.5">
+                <button
+                  className={`rounded-md px-2.5 py-1 text-xs font-medium ${
+                    selectedReplyType === "text"
+                      ? "bg-[#176B4D] text-white"
+                      : "border border-[#E4E4E7] bg-[#FAFAFA] text-foreground"
+                  }`}
+                  onClick={() => replyForm.reset({ type: "text", body: "" })}
+                  type="button"
+                >
+                  Text
+                </button>
+                <button
+                  className={`rounded-md px-2.5 py-1 text-xs font-medium ${
+                    selectedReplyType === "template"
+                      ? "bg-[#176B4D] text-white"
+                      : "border border-[#E4E4E7] bg-[#FAFAFA] text-foreground"
+                  }`}
+                  onClick={() =>
+                    replyForm.reset({
+                      type: "template",
+                      templateName: "",
+                      languageCode: "",
+                      bodyVariables: "",
+                    })
+                  }
+                  type="button"
+                >
+                  Template
+                </button>
               </div>
-              <div className="rounded-2xl bg-white/80 p-3">
-                <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                  Last activity
-                </p>
-                <p className="mt-1 font-medium">
-                  {workspaceConversation
-                    ? formatDateTime(workspaceConversation.lastActivityAt)
-                    : "Not available"}
-                </p>
+
+              {selectedReplyType === "text" ? (
+                <Textarea
+                  className="min-h-20 bg-[#FAFAFA] text-xs"
+                  placeholder="Type a message reply..."
+                  {...replyForm.register("body")}
+                />
+              ) : (
+                <div className="space-y-2">
+                  <select
+                    className="h-8.5 w-full rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none focus:border-primary"
+                    onChange={(event) => {
+                      const nextValue = event.target.value;
+                      const nextTemplate = findTemplateByOptionValue(activeTemplates, nextValue);
+
+                      replyForm.setValue("templateName", nextTemplate?.name ?? "");
+                      replyForm.setValue("languageCode", nextTemplate?.language ?? "");
+                    }}
+                    value={
+                      selectedTemplateName && selectedTemplateLanguage
+                        ? `${selectedTemplateName}::${selectedTemplateLanguage}`
+                        : ""
+                    }
+                  >
+                    <option value="">Select active template</option>
+                    {activeTemplates.map((template) => (
+                      <option
+                        key={template._id}
+                        value={buildTemplateOptionValue(template)}
+                      >
+                        {template.name} ({template.language})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {replyError ? <p className="text-xs text-[#C2413A]">{replyError}</p> : null}
+
+              <div className="flex justify-end">
+                <Button disabled={!selectedConversationId || replyMutation.isPending} type="submit" variant="primary">
+                  {replyMutation.isPending ? "Sending..." : "Send Reply"}
+                </Button>
+              </div>
+            </form>
+          </div>
+        </Card>
+
+        {/* Right Info Pane (Contact Details, Labels, Notes) */}
+        <div className="space-y-4">
+          <Card className="space-y-3 p-4">
+            <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-2">
+              <UserRound className="h-4 w-4 text-[#176B4D]" />
+              <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">Contact Profile</h3>
+            </div>
+            <div className="space-y-2 text-xs">
+              <div>
+                <p className="text-muted-foreground text-[11px]">Contact Name</p>
+                <p className="font-semibold text-foreground">{workspaceConversation?.contactName || "Not set"}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-[11px]">Phone Number</p>
+                <p className="font-mono text-xs text-foreground">{workspaceConversation?.contactPhoneNumber || "N/A"}</p>
+              </div>
+              <div>
+                <p className="text-muted-foreground text-[11px]">WhatsApp ID (waId)</p>
+                <p className="font-mono text-xs text-foreground">{workspaceConversation?.waId || "N/A"}</p>
               </div>
             </div>
           </Card>
 
-          <Card className="space-y-4 p-5">
-            <div className="flex items-center justify-between gap-3">
+          <Card className="space-y-3 p-4">
+            <div className="flex items-center justify-between gap-2 border-b border-[#F0F0F2] pb-2">
               <div className="flex items-center gap-2">
-                <Tag className="h-4 w-4 text-muted-foreground" />
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                    Labels
-                  </p>
-                  <h3 className="mt-1 text-lg font-semibold">Conversation tags</h3>
-                </div>
+                <Tag className="h-4 w-4 text-[#176B4D]" />
+                <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground">Labels & Tags</h3>
               </div>
               <Button
                 disabled={!selectedConversationId || isWorkspaceBusy}
                 onClick={() => labelsMutation.mutate(draftLabels)}
                 size="sm"
                 type="button"
+                variant="primary"
               >
-                {labelsMutation.isPending ? "Saving..." : "Save"}
+                Save
               </Button>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {draftLabels.map((label) => (
                 <span
-                  className="inline-flex items-center gap-2 rounded-full bg-[#f7f1e4] px-3 py-1 text-sm text-[#6b4f2a]"
+                  className="inline-flex items-center gap-1 rounded bg-[#EDF8F3] px-2 py-0.5 text-xs text-[#16803C] border border-[#C4E8DA]"
                   key={label}
                 >
                   {label}
-                  <button className="text-xs" onClick={() => removeDraftLabel(label)} type="button">
-                    Remove
+                  <button className="text-[10px] font-bold" onClick={() => removeDraftLabel(label)} type="button">
+                    ×
                   </button>
                 </span>
               ))}
-              {draftLabels.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No labels assigned yet.</p>
-              ) : null}
             </div>
-            <div className="flex gap-2">
+            <div className="flex gap-1.5">
               <Input
                 onChange={(event) => setLabelInput(event.target.value)}
-                onKeyDown={(event) => {
-                  if (event.key === "Enter") {
-                    event.preventDefault();
-                    addDraftLabel();
-                  }
-                }}
-                placeholder="Add label"
+                placeholder="Add label..."
                 value={labelInput}
               />
-              <Button disabled={!selectedConversationId} onClick={addDraftLabel} type="button" variant="secondary">
+              <Button disabled={!selectedConversationId} onClick={addDraftLabel} size="sm" type="button" variant="secondary">
                 Add
               </Button>
             </div>
           </Card>
 
-          <Card className="space-y-4 p-5">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                Notes
-              </p>
-              <h3 className="mt-1 text-lg font-semibold">Internal workspace</h3>
-            </div>
-            <div className="space-y-3">
-              <Textarea
-                onChange={(event) => setNoteContent(event.target.value)}
-                placeholder="Add an internal note for this conversation"
-                value={noteContent}
-              />
-              <label className="flex items-center gap-2 text-sm text-muted-foreground">
-                <input
-                  checked={notePinned}
-                  onChange={(event) => setNotePinned(event.target.checked)}
-                  type="checkbox"
-                />
-                Pin this note
-              </label>
-              <Button
-                disabled={!selectedConversationId || !noteContent.trim() || addNoteMutation.isPending}
-                onClick={() => addNoteMutation.mutate()}
-                type="button"
-              >
-                {addNoteMutation.isPending ? "Adding..." : "Add note"}
-              </Button>
-            </div>
-            <div className="space-y-3">
+          <Card className="space-y-3 p-4">
+            <h3 className="text-xs font-semibold uppercase tracking-wider text-foreground border-b border-[#F0F0F2] pb-2">Internal Notes</h3>
+            <Textarea
+              className="min-h-16 bg-[#FAFAFA] text-xs"
+              onChange={(event) => setNoteContent(event.target.value)}
+              placeholder="Add internal note..."
+              value={noteContent}
+            />
+            <Button
+              className="w-full"
+              disabled={!selectedConversationId || !noteContent.trim() || addNoteMutation.isPending}
+              onClick={() => addNoteMutation.mutate()}
+              size="sm"
+              type="button"
+              variant="secondary"
+            >
+              Add Note
+            </Button>
+            <div className="space-y-2 mt-2">
               {sortedNotes.map((note) => (
-                <div className="rounded-2xl bg-white/80 p-4" key={note._id}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div>
-                      <p className="text-sm font-medium">{note.authorName}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {formatDateTime(note.updatedAt)}
-                        {getNoteHistory(note).length
-                          ? ` | ${getNoteHistory(note).length} edit${getNoteHistory(note).length === 1 ? "" : "s"}`
-                          : ""}
-                      </p>
-                    </div>
-                    <Button
-                      disabled={updateNoteMutation.isPending}
-                      onClick={() =>
-                        updateNoteMutation.mutate({
-                          noteId: note._id,
-                          pinned: !note.pinned,
-                        })
-                      }
-                      size="sm"
-                      type="button"
-                      variant="secondary"
-                    >
-                      {note.pinned ? "Unpin" : "Pin"}
-                    </Button>
-                  </div>
-                  {editingNoteId === note._id ? (
-                    <div className="mt-3 space-y-3">
-                      <Textarea
-                        onChange={(event) => setEditingNoteContent(event.target.value)}
-                        value={editingNoteContent}
-                      />
-                      <div className="flex gap-2">
-                        <Button
-                          disabled={!editingNoteContent.trim() || updateNoteMutation.isPending}
-                          onClick={() =>
-                            updateNoteMutation.mutate({
-                              noteId: note._id,
-                              content: editingNoteContent,
-                            })
-                          }
-                          size="sm"
-                          type="button"
-                        >
-                          Save
-                        </Button>
-                        <Button
-                          onClick={() => {
-                            setEditingNoteId(null);
-                            setEditingNoteContent("");
-                          }}
-                          size="sm"
-                          type="button"
-                          variant="ghost"
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <>
-                      <p className="mt-3 whitespace-pre-wrap text-sm text-foreground">{note.content}</p>
-                      <div className="mt-3 flex items-center justify-between gap-3">
-                        <p className="text-xs text-muted-foreground">
-                          {note.pinned ? "Pinned note" : "Standard note"}
-                        </p>
-                        <Button
-                          onClick={() => {
-                            setEditingNoteId(note._id);
-                            setEditingNoteContent(note.content);
-                          }}
-                          size="sm"
-                          type="button"
-                          variant="ghost"
-                        >
-                          Edit
-                        </Button>
-                      </div>
-                    </>
-                  )}
+                <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-2.5 text-xs" key={note._id}>
+                  <p className="font-semibold text-foreground">{note.authorName}</p>
+                  <p className="text-[10px] text-muted-foreground">{formatDateTime(note.updatedAt)}</p>
+                  <p className="mt-1.5 text-foreground leading-relaxed">{note.content}</p>
                 </div>
               ))}
-              {sortedNotes.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No internal notes added yet.</p>
-              ) : null}
             </div>
           </Card>
-
-          <Card className="space-y-4 p-5">
-            <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                Activity feed
-              </p>
-              <h3 className="mt-1 text-lg font-semibold">Audit trail</h3>
-            </div>
-            <div className="space-y-3">
-              {activityFeed.map((entry: ConversationActivityRecord) => (
-                <div className="rounded-2xl bg-white/80 p-4" key={entry._id}>
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-medium">{entry.description}</p>
-                    <span className="rounded-full bg-accent px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-accent-foreground">
-                      {entry.type}
-                    </span>
-                  </div>
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    {entry.actorName} | {formatDateTime(entry.createdAt)}
-                  </p>
-                </div>
-              ))}
-              {activityFeed.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No activity recorded yet.</p>
-              ) : null}
-            </div>
-          </Card>
-
-          {workspaceError ? (
-            <Card className="border border-red-200 p-4 text-sm text-red-600">{workspaceError}</Card>
-          ) : null}
         </div>
       </div>
     </div>
   );
 }
+

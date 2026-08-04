@@ -24,21 +24,20 @@ export const AppShell = ({ children }: { children: ReactNode }) => {
 
   return (
     <>
-      <div className="flex min-h-screen bg-transparent">
+      <div className="flex h-screen w-screen overflow-hidden bg-background text-foreground">
         <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed((current) => !current)} />
-        <div className="flex min-w-0 flex-1 flex-col">
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
           <Topbar
             onOpenCommandPalette={() => setCommandPaletteOpen(true)}
             onToggleSidebar={() => setSidebarCollapsed((current) => !current)}
           />
-          <div className="flex flex-1 flex-col min-h-0 px-4 pb-4 md:px-5 lg:px-6 lg:pb-6">
-            <div className="flex flex-1 flex-col min-h-0 h-full rounded-2xl border border-white/70 bg-[rgba(255,255,255,0.62)] shadow-[var(--shadow-soft)] backdrop-blur-sm overflow-hidden">
-              {children}
-            </div>
-          </div>
+          <main className="flex flex-1 flex-col min-h-0 overflow-y-auto p-4 md:p-5 lg:p-6">
+            {children}
+          </main>
         </div>
       </div>
       <CommandPalette onClose={() => setCommandPaletteOpen(false)} open={commandPaletteOpen} />
     </>
   );
 };
+

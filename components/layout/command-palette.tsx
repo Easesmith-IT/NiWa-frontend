@@ -72,67 +72,66 @@ export const CommandPalette = ({ onClose, open }: CommandPaletteProps) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center bg-[rgba(17,24,21,0.36)] px-4 pb-6 pt-[8vh] backdrop-blur-sm">
-      <div className="w-full max-w-2xl overflow-hidden rounded-2xl border border-border/80 bg-white shadow-[0_24px_90px_rgba(25,34,29,0.18)]">
-        <div className="border-b border-border/80 px-5 py-4">
+    <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/40 px-4 pb-6 pt-[10vh] backdrop-blur-xs">
+      <div className="w-full max-w-2xl overflow-hidden rounded-xl border border-[#E4E4E7] bg-white shadow-modal">
+        <div className="border-b border-[#E4E4E7] px-4 py-3">
           <div className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               autoFocus
-              className="h-11 border-0 bg-transparent pl-10 text-[15px] shadow-none focus:border-0"
+              className="h-10 border-0 bg-transparent pl-10 text-sm shadow-none focus:border-0 focus:ring-0"
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search contacts, conversations, notes, or jump to a page"
+              placeholder="Search contacts, conversations, notes, or jump to a page..."
               value={query}
             />
           </div>
         </div>
 
-        <div className="grid max-h-[70vh] gap-0 overflow-hidden md:grid-cols-[0.95fr_1.05fr]">
-          <div className="border-b border-border/80 md:border-b-0 md:border-r">
-            <div className="px-5 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Actions
+        <div className="grid max-h-[65vh] gap-0 overflow-hidden md:grid-cols-[0.95fr_1.05fr]">
+          <div className="border-b border-[#E4E4E7] md:border-b-0 md:border-r">
+            <div className="px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Actions & Navigation
             </div>
-            <div className="niwa-scrollbar max-h-[56vh] overflow-y-auto px-2 pb-3">
+            <div className="niwa-scrollbar max-h-[50vh] overflow-y-auto px-2 pb-2">
               {filteredActions.map((action) => (
                 <button
-                  className="flex w-full items-center justify-between rounded-xl px-3 py-2.5 text-left text-sm transition hover:bg-accent focus:bg-accent focus:outline-none"
+                  className="flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-xs font-medium text-foreground transition-colors hover:bg-[#F4F4F5] focus:bg-[#F4F4F5] focus:outline-none"
                   key={`${action.href}-${action.label}`}
                   onClick={() => goTo(action.href)}
                   type="button"
                 >
                   <span>{action.label}</span>
-                  <ArrowRight className="h-4 w-4 text-muted-foreground" />
+                  <ArrowRight className="h-3.5 w-3.5 text-muted-foreground" />
                 </button>
               ))}
             </div>
           </div>
 
           <div>
-            <div className="px-5 py-3 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-              Search Results
+            <div className="px-4 py-2.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+              Search Records
             </div>
-            <div className="niwa-scrollbar max-h-[56vh] overflow-y-auto px-2 pb-3">
+            <div className="niwa-scrollbar max-h-[50vh] overflow-y-auto px-2 pb-2">
               {!query.trim() ? (
-                <div className="px-3 py-8 text-sm text-muted-foreground">
-                  Use <span className="font-medium text-foreground">Ctrl/Cmd + K</span> to jump
-                  between modules or search operational records.
+                <div className="px-3 py-6 text-xs text-muted-foreground">
+                  Use <kbd className="rounded border border-[#E4E4E7] bg-[#FAFAFA] px-1 py-0.5 font-medium text-foreground">Ctrl + K</kbd> to jump between modules.
                 </div>
               ) : null}
 
               {(searchQuery.data?.data.conversations ?? []).map((item) => (
                 <button
-                  className="block w-full rounded-xl px-3 py-3 text-left transition hover:bg-accent"
+                  className="block w-full rounded-md px-2.5 py-2.5 text-left transition-colors hover:bg-[#F4F4F5]"
                   key={item.conversation._id}
                   onClick={() => goTo(`/inbox?conversationId=${encodeURIComponent(item.conversation._id)}`)}
                   type="button"
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-medium text-foreground">
+                    <p className="text-xs font-semibold text-foreground">
                       {item.contact?.displayName || item.contact?.phoneNumber || item.conversation.waId}
                     </p>
-                    <span className="text-xs text-muted-foreground">Conversation</span>
+                    <span className="text-[11px] text-muted-foreground">Conversation</span>
                   </div>
-                  <p className="mt-1 text-sm text-muted-foreground">
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
                     {item.conversation.lastMessageText || "No recent message"}
                   </p>
                 </button>
@@ -140,16 +139,16 @@ export const CommandPalette = ({ onClose, open }: CommandPaletteProps) => {
 
               {(searchQuery.data?.data.contacts ?? []).map((item) => (
                 <button
-                  className="block w-full rounded-xl px-3 py-3 text-left transition hover:bg-accent"
+                  className="block w-full rounded-md px-2.5 py-2.5 text-left transition-colors hover:bg-[#F4F4F5]"
                   key={item.contact._id}
                   onClick={() => goTo("/contacts")}
                   type="button"
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <p className="text-sm font-medium text-foreground">{item.contact.displayName}</p>
-                    <span className="text-xs text-muted-foreground">Contact</span>
+                    <p className="text-xs font-semibold text-foreground">{item.contact.displayName}</p>
+                    <span className="text-[11px] text-muted-foreground">Contact</span>
                   </div>
-                  <p className="mt-1 text-sm text-muted-foreground">
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
                     {item.contact.phoneNumber}
                     {item.contact.company ? ` • ${item.contact.company}` : ""}
                   </p>
@@ -159,7 +158,7 @@ export const CommandPalette = ({ onClose, open }: CommandPaletteProps) => {
               {query.trim() && !searchQuery.isPending && searchQuery.data && (
                 <div
                   className={cn(
-                    "px-3 py-6 text-sm text-muted-foreground",
+                    "px-3 py-6 text-xs text-muted-foreground",
                     searchQuery.data.data.contacts.length === 0 &&
                       searchQuery.data.data.conversations.length === 0 &&
                       searchQuery.data.data.messages.length === 0 &&
@@ -173,22 +172,23 @@ export const CommandPalette = ({ onClose, open }: CommandPaletteProps) => {
               )}
 
               {searchQuery.isPending ? (
-                <div className="px-3 py-6 text-sm text-muted-foreground">Searching…</div>
+                <div className="px-3 py-6 text-xs text-muted-foreground">Searching…</div>
               ) : null}
             </div>
           </div>
         </div>
 
-        <div className="flex items-center justify-between border-t border-border/80 px-5 py-3 text-xs text-muted-foreground">
-          <span className="inline-flex items-center gap-2">
-            <Command className="h-3.5 w-3.5" />
-            Quick navigation and record lookup
+        <div className="flex items-center justify-between border-t border-[#E4E4E7] bg-[#FAFAFA] px-4 py-2 text-[11px] text-muted-foreground">
+          <span className="inline-flex items-center gap-1.5">
+            <Command className="h-3 w-3" />
+            Operational search console
           </span>
-          <button className="font-medium text-foreground" onClick={onClose} type="button">
-            Close
+          <button className="font-medium text-foreground hover:underline" onClick={onClose} type="button">
+            Close (Esc)
           </button>
         </div>
       </div>
     </div>
   );
 };
+

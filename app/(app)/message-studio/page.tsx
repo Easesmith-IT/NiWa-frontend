@@ -56,22 +56,22 @@ type ComposerMode =
   | "location_request"
   | "typing_indicator";
 
-const messageModes: Array<{ key: ComposerMode; label: string; tone: string }> = [
-  { key: "text", label: "Text", tone: "bg-[#16302b] text-[#f8f1de]" },
-  { key: "template", label: "Template", tone: "bg-[#efe3c8] text-[#6f5024]" },
-  { key: "image", label: "Image", tone: "bg-[#e6f1ec] text-[#1f5942]" },
-  { key: "video", label: "Video", tone: "bg-[#e6f1ec] text-[#1f5942]" },
-  { key: "audio", label: "Audio", tone: "bg-[#e6f1ec] text-[#1f5942]" },
-  { key: "document", label: "Document", tone: "bg-[#e6f1ec] text-[#1f5942]" },
-  { key: "sticker", label: "Sticker", tone: "bg-[#e6f1ec] text-[#1f5942]" },
-  { key: "contact", label: "Contact", tone: "bg-[#f1ebff] text-[#5e4287]" },
-  { key: "location", label: "Location", tone: "bg-[#fce9db] text-[#8b5220]" },
-  { key: "button", label: "Buttons", tone: "bg-[#f8f0de] text-[#755524]" },
-  { key: "list", label: "List", tone: "bg-[#f8f0de] text-[#755524]" },
-  { key: "reaction", label: "Reaction", tone: "bg-[#fff0da] text-[#8b5b1d]" },
-  { key: "cta_url", label: "CTA URL", tone: "bg-[#fff0da] text-[#8b5b1d]" },
-  { key: "location_request", label: "Location Request", tone: "bg-[#f1ebff] text-[#5e4287]" },
-  { key: "typing_indicator", label: "Typing Indicator", tone: "bg-[#edf1f7] text-[#42597c]" },
+const messageModes: Array<{ key: ComposerMode; label: string }> = [
+  { key: "text", label: "Text" },
+  { key: "template", label: "Template" },
+  { key: "image", label: "Image" },
+  { key: "video", label: "Video" },
+  { key: "audio", label: "Audio" },
+  { key: "document", label: "Document" },
+  { key: "sticker", label: "Sticker" },
+  { key: "contact", label: "Contact" },
+  { key: "location", label: "Location" },
+  { key: "button", label: "Buttons" },
+  { key: "list", label: "List" },
+  { key: "reaction", label: "Reaction" },
+  { key: "cta_url", label: "CTA URL" },
+  { key: "location_request", label: "Location Request" },
+  { key: "typing_indicator", label: "Typing Indicator" },
 ];
 
 const formatPreviewTitle = (mode: ComposerMode) =>
@@ -465,177 +465,128 @@ export default function MessageStudioPage() {
   );
 
   return (
-    <div className="space-y-6">
-      <div className="rounded-[2rem] border border-white/60 bg-[linear-gradient(135deg,rgba(255,255,255,0.85),rgba(250,244,230,0.92))] p-5 shadow-[0_18px_50px_rgba(44,56,38,0.08)]">
-        <p className="text-sm font-medium uppercase tracking-[0.22em] text-muted-foreground">
-          Message Studio
+    <div className="space-y-4">
+      {/* Header Banner */}
+      <section className="rounded-lg border border-[#E4E4E7] bg-white p-5 shadow-subtle">
+        <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          Message Studio & Dispatch Workbench
+        </h1>
+        <p className="mt-1 max-w-2xl text-xs text-muted-foreground">
+          Compose, validate, preview, and send Meta Cloud API message payloads (Templates, Text, Interactive, Media).
         </p>
-        <div className="mt-3 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <h2 className="text-3xl font-semibold">Compose and Send</h2>
-            <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-              The studio is now organized around a WhatsApp-like device preview, with the actual
-              API form beside it instead of a raw developer-only layout.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {messageModes.map((item) => (
-              <button
-                className={`rounded-full px-3.5 py-2 text-sm font-medium transition ${
-                  item.key === mode
-                    ? item.tone
-                    : "bg-white/80 text-muted-foreground hover:bg-white hover:text-foreground"
-                }`}
-                key={item.key}
-                onClick={() => {
-                  setMode(item.key);
-                  setSubmitError(null);
-                }}
-                type="button"
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
+        <div className="mt-3 flex flex-wrap gap-1.5 border-t border-[#F0F0F2] pt-3">
+          {messageModes.map((item) => (
+            <button
+              className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors ${
+                item.key === mode
+                  ? "bg-[#176B4D] text-white"
+                  : "border border-[#E4E4E7] bg-[#FAFAFA] text-foreground hover:bg-[#F4F4F5]"
+              }`}
+              key={item.key}
+              onClick={() => {
+                setMode(item.key);
+                setSubmitError(null);
+              }}
+              type="button"
+            >
+              {item.label}
+            </button>
+          ))}
         </div>
-      </div>
+      </section>
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_420px]">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_400px]">
         <Card className="overflow-hidden p-0">
           <div className="grid gap-0 lg:grid-cols-[1.1fr_0.9fr]">
-            <section className="border-b border-border bg-[rgba(255,255,255,0.75)] p-5 lg:border-b-0 lg:border-r">
-              <div className="flex items-center gap-3">
-                <div className="flex h-11 w-11 items-center justify-center rounded-full bg-[#16302b] text-[#f8f1de]">
-                  <Send className="h-5 w-5" />
-                </div>
-                <div>
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                    Active composer
-                  </p>
-                  <h3 className="mt-1 text-xl font-semibold">{formatPreviewTitle(mode)}</h3>
-                </div>
+            <section className="border-b border-[#E4E4E7] bg-white p-4 lg:border-b-0 lg:border-r">
+              <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-2.5">
+                <Send className="h-4 w-4 text-[#176B4D]" />
+                <h3 className="text-sm font-semibold text-foreground">
+                  Composer: {formatPreviewTitle(mode)}
+                </h3>
               </div>
 
-              <div className="mt-6 grid gap-4">
+              <div className="mt-3.5 space-y-3">
                 {mode !== "typing_indicator" ? (
-                  <Input
-                    className="rounded-[20px] bg-[#faf7f1]"
-                    onChange={(event) => setCommonTo(event.target.value)}
-                    placeholder="Recipient phone number with country code"
-                    value={commonTo}
-                  />
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-foreground">Recipient Number *</label>
+                    <Input
+                      className="font-mono text-xs"
+                      onChange={(event) => setCommonTo(event.target.value)}
+                      placeholder="e.g. +919876543210"
+                      value={commonTo}
+                    />
+                  </div>
                 ) : null}
 
                 {mode === "text" ? (
                   <>
-                    <Textarea
-                      className="min-h-28 rounded-[26px] bg-[#faf7f1]"
-                      onChange={(event) => setTextBody(event.target.value)}
-                      placeholder="Message body"
-                      value={textBody}
-                    />
-                    <label className="flex items-center gap-3 rounded-[20px] bg-[#f8f1de] px-4 py-3 text-sm text-foreground">
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-foreground">Message Body *</label>
+                      <Textarea
+                        className="min-h-28 bg-[#FAFAFA] text-xs"
+                        onChange={(event) => setTextBody(event.target.value)}
+                        placeholder="Enter text message content..."
+                        value={textBody}
+                      />
+                    </div>
+                    <label className="flex items-center gap-2 rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-2.5 text-xs text-foreground">
                       <input
                         checked={previewUrl}
                         onChange={(event) => setPreviewUrl(event.target.checked)}
                         type="checkbox"
                       />
-                      Enable URL previews
+                      Enable URL preview link cards
                     </label>
                   </>
                 ) : null}
 
                 {mode === "template" ? (
                   <>
-                    <select
-                      className="flex h-12 w-full rounded-[20px] border border-input bg-[#faf7f1] px-4 py-2 text-sm text-foreground outline-none focus:border-primary"
-                      onChange={(event) => {
-                        const nextTemplate = findTemplateByOptionValue(activeTemplates, event.target.value);
-                        setTemplateName(nextTemplate?.name ?? "");
-                        setTemplateLanguage(nextTemplate?.language ?? "");
-                      }}
-                      value={templateName ? `${templateName}::${templateLanguage}` : ""}
-                    >
-                      <option value="">
-                        {activeTemplates.length > 0
-                          ? "Select active template"
-                          : "No active templates available"}
-                      </option>
-                      {activeTemplates.map((template) => (
-                        <option
-                          key={template._id}
-                          value={buildTemplateOptionValue(template)}
-                        >
-                          {template.name} ({template.language})
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-foreground">Select Active Template *</label>
+                      <select
+                        className="h-8.5 w-full rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none focus:border-primary"
+                        onChange={(event) => {
+                          const nextTemplate = findTemplateByOptionValue(activeTemplates, event.target.value);
+                          setTemplateName(nextTemplate?.name ?? "");
+                          setTemplateLanguage(nextTemplate?.language ?? "");
+                        }}
+                        value={templateName ? `${templateName}::${templateLanguage}` : ""}
+                      >
+                        <option value="">
+                          {activeTemplates.length > 0
+                            ? "Select approved Meta template"
+                            : "No active templates available"}
                         </option>
-                      ))}
-                    </select>
-                    <div className="rounded-[20px] border border-[#eadbbf] bg-[#fff8ea] px-4 py-3 text-sm text-muted-foreground">
-                      {activeTemplates.length > 0
-                        ? `Active catalog: ${activeTemplates.length} approved Meta templates available. Stale templates from earlier syncs are hidden.`
-                        : "No approved sendable templates are available for this Meta workspace yet. Run template sync after confirming the active WABA settings."}
+                        {activeTemplates.map((template) => (
+                          <option
+                            key={template._id}
+                            value={buildTemplateOptionValue(template)}
+                          >
+                            {template.name} ({template.language})
+                          </option>
+                        ))}
+                      </select>
                     </div>
-                    <Textarea
-                      className="min-h-24 rounded-[26px] bg-[#faf7f1]"
-                      onChange={(event) => {
-                        const nextValue = event.target.value;
-                        const nextLines = nextValue.split("\n");
-                        setTemplateVariables(nextValue);
-                        setTemplateBodyVariableValues(
-                          getBodyVariableKeys(selectedTemplate).map((_, index) => nextLines[index]?.trim() ?? ""),
-                        );
-                      }}
-                      placeholder="Body variables, one per line"
-                      value={templateVariables}
-                    />
+
                     {selectedTemplate ? (
-                      <div className="rounded-[24px] border border-[#eadbbf] bg-[#fff8ea] p-4">
-                        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                          <LayoutTemplate className="h-4 w-4" />
-                          Template details
-                        </div>
-                        <p className="mt-3 text-sm font-medium text-foreground">
-                          {selectedTemplate.name}
-                        </p>
-                        <p className="mt-1 text-sm text-muted-foreground">
-                          {selectedTemplate.status} | {selectedTemplate.language}
+                      <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 text-xs space-y-1.5">
+                        <p className="font-semibold text-foreground">{selectedTemplate.name}</p>
+                        <p className="text-muted-foreground">
+                          Status: <span className="font-semibold text-[#16803C]">{selectedTemplate.status}</span> • Lang: {selectedTemplate.language}
                         </p>
                         {selectedTemplate.bodyText ? (
-                          <p className="mt-2 text-sm text-foreground">{selectedTemplate.bodyText}</p>
-                        ) : null}
-                        {selectedTemplate.headerText ? (
-                          <p className="mt-2 text-sm text-muted-foreground">
-                            Header text: {selectedTemplate.headerText}
-                          </p>
-                        ) : null}
-                        {templateHeaderFormat ? (
-                          <p className="mt-1 text-sm text-muted-foreground">
-                            Header media required: {templateHeaderFormat}
-                          </p>
-                        ) : null}
-                        {templateUrlButtons.length > 0 ? (
-                          <p className="mt-1 text-sm text-muted-foreground">
-                            Dynamic URL buttons: {templateUrlButtons.length}
-                          </p>
-                        ) : null}
-                        {!selectedTemplate.isSendable && selectedTemplate.sendabilityReason ? (
-                          <p className="mt-2 rounded-2xl bg-[#fff2df] px-3 py-2 text-sm text-[#8a4b12]">
-                            {selectedTemplate.sendabilityReason}
-                          </p>
+                          <p className="text-foreground">{selectedTemplate.bodyText}</p>
                         ) : null}
                       </div>
-                    ) : (
-                      <div className="rounded-[24px] border border-dashed border-[#eadbbf] bg-[#fffdf7] p-4 text-sm text-muted-foreground">
-                        {activeTemplates.length > 0
-                          ? "Choose an active template to load its language, body preview, variables, and any media or URL-button requirements."
-                          : "No template preview is available because the active template catalog is empty."}
-                      </div>
-                    )}
+                    ) : null}
+
                     {getBodyVariableKeys(selectedTemplate).length > 0 ? (
-                      <div className="grid gap-3">
+                      <div className="space-y-2">
+                        <label className="block text-xs font-medium text-foreground">Body Variables</label>
                         {getBodyVariableKeys(selectedTemplate).map((variable, index) => (
                           <Input
-                            className="rounded-[20px] bg-[#faf7f1]"
                             key={`${variable}-${index}`}
                             onChange={(event) =>
                               setTemplateBodyVariableValues((current) => {
@@ -644,80 +595,9 @@ export default function MessageStudioPage() {
                                 return next;
                               })
                             }
-                            placeholder={variable}
+                            placeholder={`Variable {{${index + 1}}}: ${variable}`}
                             value={templateBodyVariableValues[index] ?? ""}
                           />
-                        ))}
-                      </div>
-                    ) : selectedTemplate ? (
-                      <div className="rounded-[20px] border border-dashed border-[#eadbbf] bg-[#fffdf7] px-4 py-3 text-sm text-muted-foreground">
-                        This template does not require body variables.
-                      </div>
-                    ) : null}
-                    {(selectedTemplate?.headerVariables?.length ?? 0) > 0 ? (
-                      <div className="grid gap-3">
-                        {selectedTemplate?.headerVariables?.map((variable, index) => (
-                          <Input
-                            className="rounded-[20px] bg-[#faf7f1]"
-                            key={`${variable}-${index}`}
-                            onChange={(event) =>
-                              setTemplateHeaderVariableValues((current) => {
-                                const next = [...current];
-                                next[index] = event.target.value;
-                                return next;
-                              })
-                            }
-                            placeholder={`Header variable: ${variable}`}
-                            value={templateHeaderVariableValues[index] ?? ""}
-                          />
-                        ))}
-                      </div>
-                    ) : selectedTemplate?.headerFormat === "TEXT" ? (
-                      <div className="rounded-[20px] border border-dashed border-[#eadbbf] bg-[#fffdf7] px-4 py-3 text-sm text-muted-foreground">
-                        This template uses a fixed text header and does not require header variables.
-                      </div>
-                    ) : null}
-                    {templateHeaderFormat ? (
-                      <select
-                        className="flex h-12 w-full rounded-[20px] border border-input bg-[#faf7f1] px-4 py-2 text-sm text-foreground outline-none focus:border-primary"
-                        onChange={(event) => setTemplateHeaderMediaId(event.target.value)}
-                        value={templateHeaderMediaId}
-                      >
-                        <option value="">Select {templateHeaderFormat.toLowerCase()} header media</option>
-                        {filteredTemplateHeaderMedia.map((media) => (
-                          <option key={media._id} value={media.metaMediaId}>
-                            {getMediaDisplayName(media)} ({media.mediaType})
-                          </option>
-                        ))}
-                      </select>
-                    ) : null}
-                    {templateUrlButtons.length > 0 ? (
-                      <div className="grid gap-3">
-                        {templateUrlButtons.map((button, index) => (
-                          <div
-                            className="rounded-[24px] border border-[#eadbbf] bg-[#fff8ea] p-4"
-                            key={`${button.index}-${button.text}`}
-                          >
-                            <p className="text-sm font-medium text-foreground">{button.text}</p>
-                            <p className="mt-1 text-xs text-muted-foreground">
-                              URL button #{button.index + 1} requires a Meta template parameter.
-                            </p>
-                            <p className="mt-1 text-xs text-muted-foreground">
-                              Template URL: {button.url}
-                            </p>
-                            <Input
-                              className="mt-3 rounded-[20px] bg-[#faf7f1]"
-                              onChange={(event) =>
-                                setTemplateButtonVariables((current) => {
-                                  const next = [...current];
-                                  next[index] = event.target.value;
-                                  return next;
-                                })
-                              }
-                              placeholder={`Button ${button.index + 1} parameter value`}
-                              value={templateButtonVariables[index] ?? ""}
-                            />
-                          </div>
                         ))}
                       </div>
                     ) : null}
@@ -726,242 +606,40 @@ export default function MessageStudioPage() {
 
                 {["image", "video", "audio", "document", "sticker"].includes(mode) ? (
                   <>
-                    <select
-                      className="flex h-12 w-full rounded-[20px] border border-input bg-[#faf7f1] px-4 py-2 text-sm text-foreground outline-none focus:border-primary"
-                      onChange={(event) => setSelectedMediaId(event.target.value)}
-                      value={selectedMediaId}
-                    >
-                      <option value="">Select stored media</option>
-                      {filteredMedia.map((media) => (
-                        <option key={media._id} value={media.metaMediaId}>
-                          {getMediaDisplayName(media)} ({media.mediaType})
-                        </option>
-                      ))}
-                    </select>
+                    <div>
+                      <label className="mb-1 block text-xs font-medium text-foreground">Stored Media Asset *</label>
+                      <select
+                        className="h-8.5 w-full rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none focus:border-primary"
+                        onChange={(event) => setSelectedMediaId(event.target.value)}
+                        value={selectedMediaId}
+                      >
+                        <option value="">Select stored media asset</option>
+                        {filteredMedia.map((media) => (
+                          <option key={media._id} value={media.metaMediaId}>
+                            {getMediaDisplayName(media)} ({media.mediaType})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
                     {["image", "video", "document"].includes(mode) ? (
-                      <Textarea
-                        className="min-h-20 rounded-[26px] bg-[#faf7f1]"
-                        onChange={(event) => setMediaCaption(event.target.value)}
-                        placeholder="Optional caption"
-                        value={mediaCaption}
-                      />
-                    ) : null}
-                    {mode === "document" ? (
-                      <Input
-                        className="rounded-[20px] bg-[#faf7f1]"
-                        onChange={(event) => setDocumentFilename(event.target.value)}
-                        placeholder="Optional filename override"
-                        value={documentFilename}
-                      />
+                      <div>
+                        <label className="mb-1 block text-xs font-medium text-foreground">Media Caption</label>
+                        <Textarea
+                          className="min-h-16 bg-[#FAFAFA] text-xs"
+                          onChange={(event) => setMediaCaption(event.target.value)}
+                          placeholder="Optional media caption..."
+                          value={mediaCaption}
+                        />
+                      </div>
                     ) : null}
                   </>
                 ) : null}
 
-                {mode === "location" ? (
-                  <>
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <Input
-                        className="rounded-[20px] bg-[#faf7f1]"
-                        onChange={(event) => setLatitude(event.target.value)}
-                        placeholder="Latitude"
-                        value={latitude}
-                      />
-                      <Input
-                        className="rounded-[20px] bg-[#faf7f1]"
-                        onChange={(event) => setLongitude(event.target.value)}
-                        placeholder="Longitude"
-                        value={longitude}
-                      />
-                    </div>
-                    <Input
-                      className="rounded-[20px] bg-[#faf7f1]"
-                      onChange={(event) => setLocationName(event.target.value)}
-                      placeholder="Optional location name"
-                      value={locationName}
-                    />
-                    <Input
-                      className="rounded-[20px] bg-[#faf7f1]"
-                      onChange={(event) => setLocationAddress(event.target.value)}
-                      placeholder="Optional address"
-                      value={locationAddress}
-                    />
-                  </>
-                ) : null}
-
-                {mode === "contact" ? (
-                  <>
-                    <Input
-                      className="rounded-[20px] bg-[#faf7f1]"
-                      onChange={(event) => setContactFormattedName(event.target.value)}
-                      placeholder="Formatted contact name"
-                      value={contactFormattedName}
-                    />
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <Input
-                        className="rounded-[20px] bg-[#faf7f1]"
-                        onChange={(event) => setContactFirstName(event.target.value)}
-                        placeholder="First name"
-                        value={contactFirstName}
-                      />
-                      <Input
-                        className="rounded-[20px] bg-[#faf7f1]"
-                        onChange={(event) => setContactLastName(event.target.value)}
-                        placeholder="Optional last name"
-                        value={contactLastName}
-                      />
-                    </div>
-                    <Input
-                      className="rounded-[20px] bg-[#faf7f1]"
-                      onChange={(event) => setContactPhone(event.target.value)}
-                      placeholder="Contact phone number"
-                      value={contactPhone}
-                    />
-                  </>
-                ) : null}
-
-                {mode === "button" ? (
-                  <>
-                    <Input
-                      className="rounded-[20px] bg-[#faf7f1]"
-                      onChange={(event) => setButtonHeader(event.target.value)}
-                      placeholder="Optional header text"
-                      value={buttonHeader}
-                    />
-                    <Textarea
-                      className="min-h-24 rounded-[26px] bg-[#faf7f1]"
-                      onChange={(event) => setButtonBody(event.target.value)}
-                      placeholder="Body text"
-                      value={buttonBody}
-                    />
-                    <Input
-                      className="rounded-[20px] bg-[#faf7f1]"
-                      onChange={(event) => setButtonFooter(event.target.value)}
-                      placeholder="Optional footer text"
-                      value={buttonFooter}
-                    />
-                    <Textarea
-                      className="min-h-24 rounded-[26px] bg-[#faf7f1]"
-                      onChange={(event) => setButtonRows(event.target.value)}
-                      placeholder="Buttons, one per line: id|title"
-                      value={buttonRows}
-                    />
-                  </>
-                ) : null}
-
-                {mode === "list" ? (
-                  <>
-                    <Input
-                      className="rounded-[20px] bg-[#faf7f1]"
-                      onChange={(event) => setListHeader(event.target.value)}
-                      placeholder="Optional header text"
-                      value={listHeader}
-                    />
-                    <Textarea
-                      className="min-h-24 rounded-[26px] bg-[#faf7f1]"
-                      onChange={(event) => setListBody(event.target.value)}
-                      placeholder="Body text"
-                      value={listBody}
-                    />
-                    <Input
-                      className="rounded-[20px] bg-[#faf7f1]"
-                      onChange={(event) => setListFooter(event.target.value)}
-                      placeholder="Optional footer text"
-                      value={listFooter}
-                    />
-                    <Input
-                      className="rounded-[20px] bg-[#faf7f1]"
-                      onChange={(event) => setListButtonText(event.target.value)}
-                      placeholder="List button text"
-                      value={listButtonText}
-                    />
-                    <Textarea
-                      className="min-h-24 rounded-[26px] bg-[#faf7f1]"
-                      onChange={(event) => setListRows(event.target.value)}
-                      placeholder="Rows, one per line: id|title|description"
-                      value={listRows}
-                    />
-                  </>
-                ) : null}
-
-                {mode === "reaction" ? (
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <Input
-                      className="rounded-[20px] bg-[#faf7f1]"
-                      onChange={(event) => setReactionMessageId(event.target.value)}
-                      placeholder="Incoming message ID to react to"
-                      value={reactionMessageId}
-                    />
-                    <Input
-                      className="rounded-[20px] bg-[#faf7f1]"
-                      onChange={(event) => setReactionEmoji(event.target.value)}
-                      placeholder="Emoji"
-                      value={reactionEmoji}
-                    />
-                  </div>
-                ) : null}
-
-                {mode === "cta_url" ? (
-                  <>
-                    <Input
-                      className="rounded-[20px] bg-[#faf7f1]"
-                      onChange={(event) => setCtaHeader(event.target.value)}
-                      placeholder="Optional header text"
-                      value={ctaHeader}
-                    />
-                    <Textarea
-                      className="min-h-24 rounded-[26px] bg-[#faf7f1]"
-                      onChange={(event) => setCtaBody(event.target.value)}
-                      placeholder="Body text"
-                      value={ctaBody}
-                    />
-                    <Input
-                      className="rounded-[20px] bg-[#faf7f1]"
-                      onChange={(event) => setCtaFooter(event.target.value)}
-                      placeholder="Optional footer text"
-                      value={ctaFooter}
-                    />
-                    <div className="grid gap-3 sm:grid-cols-2">
-                      <Input
-                        className="rounded-[20px] bg-[#faf7f1]"
-                        onChange={(event) => setCtaDisplayText(event.target.value)}
-                        placeholder="Button label"
-                        value={ctaDisplayText}
-                      />
-                      <Input
-                        className="rounded-[20px] bg-[#faf7f1]"
-                        onChange={(event) => setCtaUrl(event.target.value)}
-                        placeholder="https://example.com"
-                        value={ctaUrl}
-                      />
-                    </div>
-                  </>
-                ) : null}
-
-                {mode === "location_request" ? (
-                  <Textarea
-                    className="min-h-24 rounded-[26px] bg-[#faf7f1]"
-                    onChange={(event) => setLocationRequestBody(event.target.value)}
-                    placeholder="Location request body text"
-                    value={locationRequestBody}
-                  />
-                ) : null}
-
-                {mode === "typing_indicator" ? (
-                  <Input
-                    className="rounded-[20px] bg-[#faf7f1]"
-                    onChange={(event) => setTypingMessageId(event.target.value)}
-                    placeholder="Incoming message ID to mark read and show typing"
-                    value={typingMessageId}
-                  />
-                ) : null}
-
-                <div className="flex flex-wrap items-center justify-between gap-3 rounded-[24px] bg-[#fff8ea] px-4 py-4">
+                <div className="flex flex-wrap items-center justify-between gap-2.5 rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 pt-3 mt-3">
                   <div>
-                    <p className="text-sm font-medium text-foreground">
-                      Recipient
-                    </p>
-                    <p className="mt-1 text-sm text-muted-foreground">
-                      {commonTo || "Enter a target number to prepare the request"}
+                    <p className="text-xs font-semibold text-foreground">Dispatch Destination</p>
+                    <p className="font-mono text-xs text-muted-foreground">
+                      {commonTo || "No target number set"}
                     </p>
                   </div>
                   <Button
@@ -971,88 +649,59 @@ export default function MessageStudioPage() {
                       sendMutation.mutate();
                     }}
                     type="button"
+                    variant="primary"
                   >
-                    {sendMutation.isPending ? "Sending..." : "Send request"}
+                    {sendMutation.isPending ? "Dispatching..." : "Send Message"}
                   </Button>
                 </div>
-                {submitError ? <p className="text-sm text-red-600">{submitError}</p> : null}
+                {submitError ? <p className="text-xs font-medium text-[#C2413A]">{submitError}</p> : null}
               </div>
             </section>
 
-            <section className="bg-[linear-gradient(180deg,#e3ddd1_0%,#d8d0c0_100%)] p-5">
-              <div className="flex items-center justify-between">
+            <section className="bg-[#FAFAFA] p-4 border-t lg:border-t-0 border-[#E4E4E7]">
+              <div className="flex items-center justify-between border-b border-[#F0F0F2] pb-2">
                 <div className="flex items-center gap-2">
-                  <Smartphone className="h-4 w-4 text-muted-foreground" />
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                    Device preview
+                  <Smartphone className="h-4 w-4 text-[#176B4D]" />
+                  <p className="text-xs font-semibold text-foreground">
+                    Device Preview & Telemetry
                   </p>
                 </div>
                 {responsePreview ? (
-                  <div className="flex items-center gap-2 rounded-full bg-[#d9efda] px-3 py-1 text-xs font-medium text-[#28552a]">
-                    <CheckCircle2 className="h-3.5 w-3.5" />
-                    Last request sent
-                  </div>
+                  <span className="inline-flex items-center rounded-full bg-[#EDF8F3] px-2.5 py-0.5 text-[10px] font-semibold text-[#16803C]">
+                    <CheckCircle2 className="mr-1 h-3 w-3" />
+                    Sent 200 OK
+                  </span>
                 ) : null}
               </div>
 
-              <div className="mx-auto mt-5 max-w-[320px] rounded-[36px] border border-[#0f2f28] bg-[#0f2f28] p-3 shadow-[0_24px_50px_rgba(35,43,34,0.18)]">
-                <div className="rounded-[30px] bg-[linear-gradient(180deg,#e8d7b5_0%,#f5efe4_38%,#e6f3eb_100%)] p-4">
-                  <div className="mb-4 rounded-[22px] bg-[#f6fbf7] px-4 py-3 shadow-sm">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-sm font-semibold text-foreground">NiWa sender</p>
-                        <p className="text-[11px] text-muted-foreground">
-                          {commonTo || "Recipient preview"}
-                        </p>
-                      </div>
-                      <MessageSquareText className="h-4 w-4 text-muted-foreground" />
-                    </div>
-                  </div>
+              {/* WhatsApp Mobile Bubble Preview */}
+              <div className="mx-auto mt-4 max-w-[280px] rounded-xl border border-[#E4E4E7] bg-[#F7F8FA] p-3 shadow-subtle">
+                <div className="rounded-lg border border-[#E4E4E7] bg-white p-2.5">
+                  <p className="text-[10px] font-bold text-muted-foreground uppercase">WhatsApp Business</p>
+                  <p className="font-mono text-xs font-semibold text-foreground">{commonTo || "+91..."}</p>
+                </div>
 
-                  <div className="min-h-[360px] space-y-4 rounded-[26px] bg-[rgba(255,255,255,0.5)] p-4 backdrop-blur">
-                    <div className="flex justify-start">
-                      <div className="max-w-[82%] rounded-[20px] rounded-bl-md bg-white px-4 py-3 text-sm text-foreground shadow-sm">
-                        Incoming reference message
-                      </div>
+                <div className="mt-3 min-h-[160px] rounded-lg bg-[#EDF8F3] p-3 border border-[#C4E8DA]">
+                  <p className="whitespace-pre-wrap text-xs text-foreground leading-relaxed">{previewSummary}</p>
+                  {selectedMedia ? (
+                    <div className="mt-2 rounded bg-white p-2 text-[11px] border border-[#E4E4E7]">
+                      <span className="font-mono font-medium">{getMediaDisplayName(selectedMedia)}</span>
                     </div>
-                    <div className="flex justify-end">
-                      <div className="max-w-[86%] rounded-[20px] rounded-br-md bg-[#d8f6cb] px-4 py-3 text-sm text-[#16302b] shadow-sm">
-                        <p className="whitespace-pre-wrap leading-6">{previewSummary}</p>
-                        {selectedMedia ? (
-                          <div className="mt-3 rounded-2xl bg-[rgba(22,48,43,0.08)] px-3 py-2 text-xs">
-                            <div className="flex items-center gap-2">
-                              <Paperclip className="h-3.5 w-3.5" />
-                              {getMediaDisplayName(selectedMedia)}
-                            </div>
-                          </div>
-                        ) : null}
-                        {selectedTemplate ? (
-                          <div className="mt-3 rounded-2xl bg-[rgba(22,48,43,0.08)] px-3 py-2 text-xs">
-                            Template: {selectedTemplate.name}
-                          </div>
-                        ) : null}
-                        <p className="mt-3 text-right text-[11px] opacity-70">Preview</p>
-                      </div>
-                    </div>
-                  </div>
+                  ) : null}
+                  <p className="mt-2 text-right text-[9px] text-[#34B7F1] font-semibold">12:00 PM ✓✓</p>
                 </div>
               </div>
 
-              <div className="mt-5 space-y-4">
-                <div className="rounded-[24px] bg-[#17362f] p-4 text-[#f8f1de]">
-                  <p className="text-xs font-semibold uppercase tracking-[0.2em] text-[#c8bfa8]">
-                    Request payload
-                  </p>
-                  <pre className="mt-3 overflow-x-auto text-xs">
+              <div className="mt-4 space-y-3">
+                <div>
+                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Request JSON Payload</p>
+                  <pre className="overflow-x-auto rounded-md border border-[#27272A] bg-[#18181B] p-2.5 font-mono text-[10px] text-[#F4F4F5]">
                     {JSON.stringify(requestPreview, null, 2)}
                   </pre>
                 </div>
-                <div className="rounded-[24px] bg-[#17362f] p-4 text-[#f8f1de]">
-                  <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.2em] text-[#c8bfa8]">
-                    <Sparkles className="h-4 w-4" />
-                    Meta response
-                  </div>
-                  <pre className="mt-3 overflow-x-auto text-xs">
+                <div>
+                  <p className="mb-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Meta Graph API Response</p>
+                  <pre className="overflow-x-auto rounded-md border border-[#27272A] bg-[#18181B] p-2.5 font-mono text-[10px] text-[#F4F4F5]">
                     {JSON.stringify(responsePreview, null, 2)}
                   </pre>
                 </div>
@@ -1064,3 +713,4 @@ export default function MessageStudioPage() {
     </div>
   );
 }
+

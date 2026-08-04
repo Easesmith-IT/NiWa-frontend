@@ -75,80 +75,70 @@ export default function LoginPage() {
   };
 
   return (
-    <main className="flex min-h-screen w-full bg-[#fbf7f1]">
+    <main className="flex min-h-screen w-full bg-[#F7F8FA]">
       <div className="grid w-full grid-cols-1 lg:grid-cols-12 min-h-screen">
         {/* Left Hero Panel (Desktop) */}
-        <div className="relative hidden lg:col-span-6 lg:flex flex-col justify-between overflow-hidden bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-[#1e4535] via-[#16362f] to-[#0a1b15] p-12 text-white shadow-2xl">
-          {/* Subtle Ambient Background Light */}
-          <div className="absolute -left-20 -top-20 h-96 w-96 rounded-full bg-[#2d644d]/30 blur-3xl" />
-          <div className="absolute -bottom-20 -right-20 h-96 w-96 rounded-full bg-[#3b8266]/20 blur-3xl" />
-
+        <div className="relative hidden lg:col-span-6 lg:flex flex-col justify-between border-r border-[#E4E4E7] bg-[#176B4D] p-10 text-white shadow-subtle">
           {/* Top Brand Bar */}
           <div className="relative z-10 flex items-center gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white/10 p-2.5 backdrop-blur-md border border-white/15 shadow-inner">
+            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-white/10 p-2 border border-white/20">
               <Image
                 alt="NiWa logo"
                 className="h-auto w-full object-contain"
-                height={40}
+                height={32}
                 priority
                 src="/niwa-logo.png"
-                width={160}
+                width={120}
               />
             </div>
             <div>
-              <span className="text-xl font-bold tracking-tight text-white">NiWa Console</span>
-              <p className="text-xs text-[#a0c4b5]">WhatsApp Business Platform</p>
+              <span className="text-base font-bold tracking-tight text-white">NiWa Console v2.0</span>
+              <p className="text-[11px] text-[#A3E2C9]">Meta WhatsApp Cloud Platform</p>
             </div>
           </div>
 
           {/* Center Showcase Content */}
-          <div className="relative z-10 my-auto max-w-lg space-y-8 py-10">
-            <div className="space-y-3">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3.5 py-1 text-xs font-semibold uppercase tracking-[0.14em] text-[#86dfb6] backdrop-blur-md">
-                <Zap className="h-3.5 w-3.5 fill-[#86dfb6]" /> Enterprise Operator Desk
+          <div className="relative z-10 my-auto max-w-lg space-y-6 py-8">
+            <div className="space-y-2">
+              <span className="inline-flex items-center gap-1.5 rounded-md border border-white/20 bg-white/10 px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-wider text-white">
+                <Zap className="h-3 w-3 fill-white" /> Enterprise Operator Console
               </span>
-              <h1 className="text-4xl font-extrabold tracking-tight text-white leading-tight">
-                Powerful WhatsApp Business Platform for Every Stage
+              <h1 className="text-3xl font-extrabold tracking-tight text-white leading-tight">
+                WhatsApp Business Cloud Operating System
               </h1>
-              <p className="text-sm leading-relaxed text-[#c3ded2]">
-                Inbox, Customer CRM, Automation, AI Analytics, and Meta Cloud API integration built for scale.
+              <p className="text-xs leading-relaxed text-[#D2F2E5]">
+                Inbox, CRM, Template Studio, Automation Engine, and Meta API Telemetry.
               </p>
             </div>
 
             {/* Feature Highlights Grid */}
-            <div className="space-y-4 pt-2">
-              <div className="flex items-start gap-3.5 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md transition hover:bg-white/10">
-                <div className="rounded-xl bg-[#2d644d] p-2.5 text-white">
-                  <MessageSquare className="h-5 w-5" />
-                </div>
+            <div className="space-y-3 pt-2">
+              <div className="flex items-start gap-3 rounded-md border border-white/15 bg-white/10 p-3">
+                <MessageSquare className="h-4 w-4 mt-0.5 text-white shrink-0" />
                 <div>
-                  <h4 className="text-sm font-semibold text-white">Real-Time Ingestion & History Sync</h4>
-                  <p className="text-xs text-[#a0c4b5] mt-0.5">
+                  <h4 className="text-xs font-semibold text-white">Real-Time Ingestion & History Sync</h4>
+                  <p className="text-[11px] text-[#D2F2E5] mt-0.5">
                     Instant Meta webhook handling with full thread reconciliation and status tracking.
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3.5 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md transition hover:bg-white/10">
-                <div className="rounded-xl bg-[#2d644d] p-2.5 text-white">
-                  <ShieldCheck className="h-5 w-5" />
-                </div>
+              <div className="flex items-start gap-3 rounded-md border border-white/15 bg-white/10 p-3">
+                <ShieldCheck className="h-4 w-4 mt-0.5 text-white shrink-0" />
                 <div>
-                  <h4 className="text-sm font-semibold text-white">Meta Cloud API Compliance</h4>
-                  <p className="text-xs text-[#a0c4b5] mt-0.5">
+                  <h4 className="text-xs font-semibold text-white">Meta Cloud API Compliance</h4>
+                  <p className="text-[11px] text-[#D2F2E5] mt-0.5">
                     Official Meta Cloud API endpoints, token rotation, and 24h customer window tracking.
                   </p>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3.5 rounded-2xl border border-white/10 bg-white/5 p-4 backdrop-blur-md transition hover:bg-white/10">
-                <div className="rounded-xl bg-[#2d644d] p-2.5 text-white">
-                  <Bot className="h-5 w-5" />
-                </div>
+              <div className="flex items-start gap-3 rounded-md border border-white/15 bg-white/10 p-3">
+                <Bot className="h-4 w-4 mt-0.5 text-white shrink-0" />
                 <div>
-                  <h4 className="text-sm font-semibold text-white">Customer CRM & Data Table Desk</h4>
-                  <p className="text-xs text-[#a0c4b5] mt-0.5">
-                    CSV/JSON bulk import, duplicate detection, label tagging, and contact merging.
+                  <h4 className="text-xs font-semibold text-white">Customer CRM & Automation Desk</h4>
+                  <p className="text-[11px] text-[#D2F2E5] mt-0.5">
+                    CSV/JSON bulk import, duplicate detection, label tagging, and rule engine.
                   </p>
                 </div>
               </div>
@@ -156,55 +146,55 @@ export default function LoginPage() {
           </div>
 
           {/* Bottom Security Footer */}
-          <div className="relative z-10 flex items-center justify-between border-t border-white/10 pt-6 text-xs text-[#a0c4b5]">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-[#86dfb6]" />
-              <span>Production-grade single account operator desk</span>
+          <div className="relative z-10 flex items-center justify-between border-t border-white/20 pt-4 text-xs text-[#D2F2E5]">
+            <div className="flex items-center gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5 text-white" />
+              <span>Production Operator Console</span>
             </div>
-            <span>v1.0.0</span>
+            <span className="font-mono text-[10px]">v2.0.0</span>
           </div>
         </div>
 
         {/* Right Operator Login Form Panel */}
-        <div className="flex lg:col-span-6 items-center justify-center p-6 sm:p-12 md:p-16">
-          <div className="w-full max-w-md space-y-6">
+        <div className="flex lg:col-span-6 items-center justify-center p-6 sm:p-12">
+          <div className="w-full max-w-md space-y-5">
             {/* Header */}
-            <div className="text-center space-y-2">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-[#e6eee6] text-[#2d644d] shadow-sm">
-                <KeyRound className="h-7 w-7" />
+            <div className="text-center space-y-1.5">
+              <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-lg bg-[#EDF8F3] text-[#176B4D] border border-[#C4E8DA]">
+                <KeyRound className="h-6 w-6" />
               </div>
-              <h2 className="text-3xl font-bold tracking-tight text-[#25342f]">
-                Operator Login
+              <h2 className="text-2xl font-bold tracking-tight text-foreground">
+                Operator Sign In
               </h2>
-              <p className="text-xs text-[#6f7f75]">
-                Sign in to manage your connected WhatsApp Business account
+              <p className="text-xs text-muted-foreground">
+                Sign in to manage your connected WhatsApp Business workspace
               </p>
             </div>
 
             {/* API Status Pill */}
-            <div className="flex items-center justify-center gap-2 rounded-full border border-[#bfd8c6] bg-[#eef8f0] py-1.5 px-4 text-xs font-medium text-[#244b42]">
-              <span className="h-2 w-2 rounded-full bg-[#2d644d] animate-pulse" />
+            <div className="flex items-center justify-center gap-2 rounded-md border border-[#E4E4E7] bg-white py-1.5 px-3 text-xs font-medium text-foreground shadow-subtle">
+              <span className="h-2 w-2 rounded-full bg-[#176B4D] animate-pulse" />
               <span>Meta Cloud API Connected & Operational</span>
             </div>
 
             {/* Form Card */}
-            <div className="rounded-3xl border border-[#e5ddd3] bg-white p-8 shadow-xl space-y-6">
+            <div className="rounded-lg border border-[#E4E4E7] bg-white p-6 shadow-subtle space-y-4">
               {submitError ? (
-                <div className="rounded-xl border border-[#e6c2bc] bg-[#fdf0ee] p-3.5 text-xs font-medium text-[#9a3d33]">
+                <div className="rounded-md border border-[#FEE2E2] bg-[#FEF2F2] p-3 text-xs font-medium text-[#C2413A]">
                   {submitError}
                 </div>
               ) : null}
 
-              <form className="space-y-4" onSubmit={handleSubmit(onSubmit)}>
+              <form className="space-y-3.5" onSubmit={handleSubmit(onSubmit)}>
                 {/* Email Field */}
-                <div className="space-y-1.5">
-                  <label className="text-xs font-semibold uppercase tracking-[0.12em] text-[#6f7f75]" htmlFor="email">
+                <div className="space-y-1">
+                  <label className="text-xs font-medium text-foreground" htmlFor="email">
                     Email Address
                   </label>
                   <div className="relative">
-                    <Mail className="absolute left-3.5 top-3 h-4 w-4 text-[#7a8b82]" />
+                    <Mail className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                      className="h-11 rounded-xl border-[#ddd2c3] bg-[#fbf7f1] pl-10 text-xs text-[#25342f] outline-none transition focus:border-[#2d644d] focus:bg-white focus:ring-2 focus:ring-[#2d644d]/20"
+                      className="pl-9 text-xs"
                       id="email"
                       placeholder="operator@niwa.local"
                       type="email"
@@ -212,27 +202,27 @@ export default function LoginPage() {
                     />
                   </div>
                   {errors.email ? (
-                    <p className="text-xs text-[#9a3d33]">{errors.email.message}</p>
+                    <p className="text-xs text-[#C2413A]">{errors.email.message}</p>
                   ) : null}
                 </div>
 
                 {/* Password Field */}
-                <div className="space-y-1.5">
+                <div className="space-y-1">
                   <div className="flex items-center justify-between">
-                    <label className="text-xs font-semibold uppercase tracking-[0.12em] text-[#6f7f75]" htmlFor="password">
+                    <label className="text-xs font-medium text-foreground" htmlFor="password">
                       Password
                     </label>
                   </div>
                   <div className="relative">
-                    <Lock className="absolute left-3.5 top-3 h-4 w-4 text-[#7a8b82]" />
+                    <Lock className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
                     <Input
-                      className="h-11 rounded-xl border-[#ddd2c3] bg-[#fbf7f1] pl-10 pr-10 text-xs text-[#25342f] outline-none transition focus:border-[#2d644d] focus:bg-white focus:ring-2 focus:ring-[#2d644d]/20"
+                      className="pl-9 pr-9 text-xs"
                       id="password"
                       type={showPassword ? "text" : "password"}
                       {...register("password")}
                     />
                     <button
-                      className="absolute right-3.5 top-3 text-[#7a8b82] transition hover:text-[#25342f]"
+                      className="absolute right-3 top-2.5 text-muted-foreground hover:text-foreground"
                       onClick={() => setShowPassword((prev) => !prev)}
                       type="button"
                     >
@@ -240,20 +230,22 @@ export default function LoginPage() {
                     </button>
                   </div>
                   {errors.password ? (
-                    <p className="text-xs text-[#9a3d33]">{errors.password.message}</p>
+                    <p className="text-xs text-[#C2413A]">{errors.password.message}</p>
                   ) : null}
                 </div>
 
                 {/* Submit Button */}
                 <Button
-                  className="h-11 w-full rounded-xl bg-[#2d644d] text-sm font-semibold text-white transition hover:bg-[#23503d] shadow-md disabled:opacity-50"
+                  className="w-full mt-2"
                   disabled={isSubmitting}
+                  size="md"
                   type="submit"
+                  variant="primary"
                 >
                   {isSubmitting ? (
                     <span>Signing in...</span>
                   ) : (
-                    <span className="flex items-center justify-center gap-2">
+                    <span className="flex items-center justify-center gap-1.5">
                       Sign in to Console
                       <ArrowRight className="h-4 w-4" />
                     </span>
@@ -262,9 +254,9 @@ export default function LoginPage() {
               </form>
 
               {/* Demo Helper Button */}
-              <div className="border-t border-[#eee4d8] pt-4 text-center">
+              <div className="border-t border-[#F0F0F2] pt-3 text-center">
                 <button
-                  className="text-xs font-medium text-[#2d644d] hover:underline"
+                  className="text-xs font-medium text-[#176B4D] hover:underline"
                   onClick={handleFillDemo}
                   type="button"
                 >
@@ -274,11 +266,11 @@ export default function LoginPage() {
             </div>
 
             {/* Footer Notice */}
-            <div className="text-center text-xs text-[#7a8b82]">
+            <div className="text-center text-xs text-muted-foreground">
               <p>
                 Data deletion instructions available at{" "}
                 <Link
-                  className="font-medium text-[#2d644d] underline-offset-4 hover:underline"
+                  className="font-medium text-[#176B4D] underline-offset-4 hover:underline"
                   href="/data-deletion-instructions"
                 >
                   /data-deletion-instructions
@@ -292,3 +284,4 @@ export default function LoginPage() {
     </main>
   );
 }
+

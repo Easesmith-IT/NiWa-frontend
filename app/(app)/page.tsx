@@ -27,11 +27,11 @@ export default function DashboardPage() {
 
   if (dashboardQuery.isError) {
     return (
-      <Card className="border-white/60 bg-white/78 p-6 backdrop-blur">
-        <p className="text-sm text-red-600">
+      <Card className="p-6">
+        <p className="text-sm font-medium text-[hsl(var(--danger))]">
           Dashboard summary failed to load. Check the V1 API and retry.
         </p>
-        <Button className="mt-4 rounded-full" onClick={() => void dashboardQuery.refetch()} type="button" variant="secondary">
+        <Button className="mt-4" onClick={() => void dashboardQuery.refetch()} type="button" variant="secondary">
           Retry dashboard
         </Button>
       </Card>
@@ -50,295 +50,297 @@ export default function DashboardPage() {
   ];
 
   return (
-    <div className="space-y-6">
-      <section className="rounded-[2rem] border border-white/60 bg-[linear-gradient(120deg,rgba(21,47,41,0.98),rgba(237,225,193,0.92))] p-6 text-[#f8f1de] shadow-[0_18px_50px_rgba(44,56,38,0.14)]">
-        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_360px] xl:items-end">
+    <div className="space-y-5">
+      {/* Operational Header Hero */}
+      <section className="rounded-lg border border-[#E4E4E7] bg-white p-6 shadow-subtle">
+        <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_340px] xl:items-center">
           <div>
             <div className="flex items-center gap-2">
-              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 px-3 py-1 text-xs font-medium text-emerald-300 border border-emerald-400/30">
-                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EDF8F3] px-2.5 py-0.5 text-xs font-semibold text-[#176B4D] border border-emerald-200">
+                <span className="h-1.5 w-1.5 rounded-full bg-[#176B4D] animate-pulse" />
                 Meta API Live
               </span>
-              <span className="text-xs text-[#e7ddc7]">Cloud API v25.0</span>
+              <span className="text-xs text-muted-foreground">Cloud API v25.0</span>
             </div>
-            <h1 className="mt-3 text-3xl font-bold tracking-tight">Operations Desk & Telemetry</h1>
-            <p className="mt-2 max-w-2xl text-sm text-[#efe6d2]">
-              Watch reply pressure, scheduled load, automation backlog, and live account telemetry
-              from one control surface.
+            <h1 className="mt-2.5 text-2xl font-semibold tracking-tight text-foreground">
+              Operations Desk & Telemetry
+            </h1>
+            <p className="mt-1.5 max-w-xl text-xs leading-5 text-muted-foreground">
+              Monitor response pressure, scheduled load, automation queues, and real-time WhatsApp account status.
             </p>
-            <div className="mt-5 flex flex-wrap gap-3">
+            <div className="mt-4 flex flex-wrap gap-2.5">
               <Link href="/search">
-                <Button className="rounded-full bg-[#f8f1de] text-[#16302b] hover:bg-[#fff7e8] font-medium" type="button">
-                  <Search className="mr-2 h-4 w-4" />
+                <Button size="sm" type="button" variant="primary">
+                  <Search className="h-3.5 w-3.5" />
                   Open search
                 </Button>
               </Link>
               <Link href="/inbox">
-                <Button className="rounded-full border border-[#f8f1de]/35 bg-transparent text-[#f8f1de] hover:bg-white/10 font-medium" type="button" variant="ghost">
-                  <MessageSquareText className="mr-2 h-4 w-4" />
+                <Button size="sm" type="button" variant="secondary">
+                  <MessageSquareText className="h-3.5 w-3.5" />
                   Open inbox
                 </Button>
               </Link>
             </div>
           </div>
 
-          <div className="rounded-[1.8rem] bg-[rgba(248,241,222,0.14)] p-5 backdrop-blur">
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-[1.3rem] bg-[rgba(255,255,255,0.12)] px-4 py-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-[#eadfca]">Awaiting team</p>
-                <p className="mt-3 text-3xl font-bold">{data?.inbox.awaitingBusinessReply ?? 0}</p>
+          <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-4">
+            <div className="grid grid-cols-2 gap-2.5">
+              <div className="rounded-md border border-[#E4E4E7] bg-white p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Awaiting team</p>
+                <p className="mt-1 text-2xl font-bold text-foreground">{data?.inbox.awaitingBusinessReply ?? 0}</p>
               </div>
-              <div className="rounded-[1.3rem] bg-[rgba(255,255,255,0.12)] px-4 py-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-[#eadfca]">Service windows</p>
-                <p className="mt-3 text-3xl font-bold">{data?.inbox.expiringServiceWindows ?? 0}</p>
+              <div className="rounded-md border border-[#E4E4E7] bg-white p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">24h Windows</p>
+                <p className="mt-1 text-2xl font-bold text-foreground">{data?.inbox.expiringServiceWindows ?? 0}</p>
               </div>
-              <div className="rounded-[1.3rem] bg-[rgba(255,255,255,0.12)] px-4 py-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-[#eadfca]">Queued sends</p>
-                <p className="mt-3 text-3xl font-bold">{data?.schedules.queued ?? 0}</p>
+              <div className="rounded-md border border-[#E4E4E7] bg-white p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Queued sends</p>
+                <p className="mt-1 text-2xl font-bold text-foreground">{data?.schedules.queued ?? 0}</p>
               </div>
-              <div className="rounded-[1.3rem] bg-[rgba(255,255,255,0.12)] px-4 py-4">
-                <p className="text-xs uppercase tracking-[0.18em] text-[#eadfca]">Waiting runs</p>
-                <p className="mt-3 text-3xl font-bold">{data?.automations.waitingRuns ?? 0}</p>
+              <div className="rounded-md border border-[#E4E4E7] bg-white p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Waiting runs</p>
+                <p className="mt-1 text-2xl font-bold text-foreground">{data?.automations.waitingRuns ?? 0}</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      {/* Metrics Grid */}
+      <div className="grid gap-3.5 sm:grid-cols-2 lg:grid-cols-4">
         {(isLoading ? Array.from({ length: 8 }).map((_, index) => ({
           href: "/",
           label: `Loading ${index + 1}`,
           value: "…",
         })) : stats).map((stat) => (
           <Link href={stat.href} key={stat.label}>
-            <Card className="h-full border-white/60 bg-white/78 p-5 transition hover:-translate-y-0.5 hover:shadow-sm">
-              <p className="text-sm text-muted-foreground">{stat.label}</p>
-              <p className="mt-4 text-2xl font-semibold">{stat.value}</p>
+            <Card className="h-full p-4 transition-colors hover:border-[#A1A1AA]">
+              <p className="text-xs font-medium text-muted-foreground">{stat.label}</p>
+              <p className="mt-3 text-2xl font-semibold text-foreground tracking-tight">{stat.value}</p>
             </Card>
           </Link>
         ))}
       </div>
 
-      {/* Meta Analytics & Messaging Volume Tiers Card */}
-      <Card className="border-white/60 bg-[linear-gradient(135deg,rgba(255,255,255,0.92),rgba(238,244,239,0.85))] p-6 backdrop-blur shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-black/10 pb-4">
+      {/* Meta Telemetry Card */}
+      <Card className="p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#F0F0F2] pb-3.5">
           <div className="flex items-center gap-2.5">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#2d644d] text-white">
-              <ShieldCheck className="h-5 w-5" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-md bg-[#EDF8F3] text-[#176B4D]">
+              <ShieldCheck className="h-4 w-4" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold text-foreground">Meta Analytics & Messaging Tiers</h3>
+              <h2 className="text-sm font-semibold text-foreground">Meta Analytics & Channel Tiers</h2>
               <p className="text-xs text-muted-foreground">
-                WhatsApp Business Cloud API health, delivery telemetry, and daily tier limits.
+                WhatsApp Business Cloud API health, message telemetry, and tier limits.
               </p>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2 text-xs">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#16302b] px-3 py-1 font-medium text-[#f8f1de]">
-              <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+          <div className="flex flex-wrap gap-1.5 text-xs">
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FAFAFA] border border-[#E4E4E7] px-2.5 py-0.5 font-medium text-foreground">
+              <span className="h-1.5 w-1.5 rounded-full bg-[#25D366]" />
               {data?.metaAnalytics?.messagingTier ?? "Tier 1K"} ({data?.metaAnalytics?.messagingTierLimit ?? "1,000 / 24h"})
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-100 px-3 py-1 font-medium text-emerald-800">
+            <span className="inline-flex items-center gap-1 rounded-full bg-[#EDF8F3] px-2.5 py-0.5 text-xs font-medium text-[#16803C]">
               {data?.metaAnalytics?.qualityRating ?? "GREEN (High Quality)"}
             </span>
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 font-medium text-blue-800">
-              {data?.metaAnalytics?.accountStatus ?? "CONNECTED (Live / Published)"}
+            <span className="inline-flex items-center gap-1 rounded-full bg-blue-50 px-2.5 py-0.5 text-xs font-medium text-blue-700">
+              {data?.metaAnalytics?.accountStatus ?? "CONNECTED (Live)"}
             </span>
           </div>
         </div>
 
-        <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-2xl border border-black/5 bg-white/80 p-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Total Outbound Sent</p>
-            <p className="mt-2 text-2xl font-bold text-foreground">{data?.metaAnalytics?.totalSent ?? 0}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Dispatched to Meta Cloud API</p>
+        <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3.5">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Outbound Dispatched</p>
+            <p className="mt-1.5 text-xl font-bold text-foreground">{data?.metaAnalytics?.totalSent ?? 0}</p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">Sent to Meta Cloud API</p>
           </div>
 
-          <div className="rounded-2xl border border-black/5 bg-white/80 p-4">
+          <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3.5">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Delivered</p>
-              <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-800">
-                {data?.metaAnalytics?.deliveryRate ?? 100}% rate
+              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Delivered</p>
+              <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-semibold text-[#16803C]">
+                {data?.metaAnalytics?.deliveryRate ?? 100}%
               </span>
             </div>
-            <p className="mt-2 text-2xl font-bold text-foreground">{data?.metaAnalytics?.totalDelivered ?? 0}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Received on recipient phones</p>
+            <p className="mt-1.5 text-xl font-bold text-foreground">{data?.metaAnalytics?.totalDelivered ?? 0}</p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">Confirmed on handsets</p>
           </div>
 
-          <div className="rounded-2xl border border-black/5 bg-white/80 p-4">
+          <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3.5">
             <div className="flex items-center justify-between">
-              <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Read / Seen</p>
-              <span className="rounded-full bg-cyan-100 px-2 py-0.5 text-[11px] font-semibold text-cyan-800">
-                {data?.metaAnalytics?.readRate ?? 0}% open rate
+              <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Read / Seen</p>
+              <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[10px] font-semibold text-[#2563EB]">
+                {data?.metaAnalytics?.readRate ?? 0}%
               </span>
             </div>
-            <p className="mt-2 text-2xl font-bold text-[#0284c7]">{data?.metaAnalytics?.totalRead ?? 0}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Opened by WhatsApp users</p>
+            <p className="mt-1.5 text-xl font-bold text-[#2563EB]">{data?.metaAnalytics?.totalRead ?? 0}</p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">Opened by customers</p>
           </div>
 
-          <div className="rounded-2xl border border-black/5 bg-white/80 p-4">
-            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Failed Delivery</p>
-            <p className="mt-2 text-2xl font-bold text-rose-600">{data?.metaAnalytics?.totalFailed ?? 0}</p>
-            <p className="mt-1 text-xs text-muted-foreground">Blocked or delivery errors</p>
+          <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3.5">
+            <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Failed Delivery</p>
+            <p className="mt-1.5 text-xl font-bold text-[#C2413A]">{data?.metaAnalytics?.totalFailed ?? 0}</p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">Blocked or Meta errors</p>
           </div>
         </div>
       </Card>
 
-      <div className="grid gap-4 xl:grid-cols-[1fr_1fr_1fr]">
-        <Card className="border-white/60 bg-white/78 p-6 backdrop-blur">
-          <div className="flex items-center gap-2">
+      {/* Operational Breakdown */}
+      <div className="grid gap-3.5 lg:grid-cols-3">
+        <Card className="p-5">
+          <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-3">
             <Clock3 className="h-4 w-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold">Inbox pressure</h3>
+            <h2 className="text-sm font-semibold text-foreground">Inbox pressure</h2>
           </div>
-          <div className="mt-4 space-y-3">
+          <div className="mt-3 space-y-2">
             {[
               { label: "Awaiting team reply", value: data?.inbox.awaitingBusinessReply ?? 0 },
               { label: "Awaiting customer reply", value: data?.inbox.awaitingCustomerReply ?? 0 },
               { label: "Starred conversations", value: data?.inbox.starredConversations ?? 0 },
               { label: "Archived conversations", value: data?.inbox.archivedConversations ?? 0 },
             ].map((item) => (
-              <div className="flex items-center justify-between rounded-2xl border border-border/40 bg-muted/40 px-4 py-3" key={item.label}>
-                <p className="text-sm text-muted-foreground">{item.label}</p>
-                <p className="text-lg font-semibold text-foreground">{item.value}</p>
+              <div className="flex items-center justify-between rounded-md border border-[#F0F0F2] bg-[#FAFAFA] px-3 py-2" key={item.label}>
+                <p className="text-xs text-muted-foreground">{item.label}</p>
+                <p className="text-sm font-semibold text-foreground">{item.value}</p>
               </div>
             ))}
           </div>
         </Card>
 
-        <Card className="border-white/60 bg-white/78 p-6 backdrop-blur">
-          <div className="flex items-center gap-2">
+        <Card className="p-5">
+          <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-3">
             <CalendarClock className="h-4 w-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold">Schedule and tasks</h3>
+            <h2 className="text-sm font-semibold text-foreground">Schedule & Tasks</h2>
           </div>
-          <div className="mt-4 space-y-3">
+          <div className="mt-3 space-y-2">
             {[
               { label: "Due today", value: data?.tasks.dueToday ?? 0 },
               { label: "Overdue tasks", value: data?.tasks.overdue ?? 0 },
               { label: "Queued schedules", value: data?.schedules.queued ?? 0 },
               { label: "Failed schedules", value: data?.schedules.failed ?? 0 },
             ].map((item) => (
-              <div className="flex items-center justify-between rounded-2xl border border-border/40 bg-muted/40 px-4 py-3" key={item.label}>
-                <p className="text-sm text-muted-foreground">{item.label}</p>
-                <p className="text-lg font-semibold text-foreground">{item.value}</p>
+              <div className="flex items-center justify-between rounded-md border border-[#F0F0F2] bg-[#FAFAFA] px-3 py-2" key={item.label}>
+                <p className="text-xs text-muted-foreground">{item.label}</p>
+                <p className="text-sm font-semibold text-foreground">{item.value}</p>
               </div>
             ))}
           </div>
         </Card>
 
-        <Card className="border-white/60 bg-white/78 p-6 backdrop-blur">
-          <div className="flex items-center gap-2">
+        <Card className="p-5">
+          <div className="flex items-center gap-2 border-b border-[#F0F0F2] pb-3">
             <Bot className="h-4 w-4 text-muted-foreground" />
-            <h3 className="text-lg font-semibold">Automation health</h3>
+            <h2 className="text-sm font-semibold text-foreground">Automation Health</h2>
           </div>
-          <div className="mt-4 space-y-3">
+          <div className="mt-3 space-y-2">
             {[
               { label: "Active automations", value: data?.automations.active ?? 0 },
               { label: "Waiting runs", value: data?.automations.waitingRuns ?? 0 },
               { label: "Failed runs today", value: data?.automations.failedRunsToday ?? 0 },
               { label: "Paused schedules", value: data?.schedules.paused ?? 0 },
             ].map((item) => (
-              <div className="flex items-center justify-between rounded-2xl border border-border/40 bg-muted/40 px-4 py-3" key={item.label}>
-                <p className="text-sm text-muted-foreground">{item.label}</p>
-                <p className="text-lg font-semibold text-foreground">{item.value}</p>
+              <div className="flex items-center justify-between rounded-md border border-[#F0F0F2] bg-[#FAFAFA] px-3 py-2" key={item.label}>
+                <p className="text-xs text-muted-foreground">{item.label}</p>
+                <p className="text-sm font-semibold text-foreground">{item.value}</p>
               </div>
             ))}
           </div>
         </Card>
       </div>
 
-      <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-        <Card className="border-white/60 bg-white/78 p-6 backdrop-blur">
-          <div className="flex items-center justify-between gap-3">
+      {/* Activity & Priority Threads */}
+      <div className="grid gap-3.5 xl:grid-cols-[1.2fr_0.8fr]">
+        <Card className="p-5">
+          <div className="flex items-center justify-between gap-3 border-b border-[#F0F0F2] pb-3">
             <div className="flex items-center gap-2">
               <Activity className="h-4 w-4 text-muted-foreground" />
-              <h3 className="text-lg font-semibold">Recent activity</h3>
+              <h2 className="text-sm font-semibold text-foreground">Recent Activity</h2>
             </div>
-            <Link className="text-sm text-muted-foreground underline-offset-4 hover:underline" href="/search">
-              Search records
+            <Link className="text-xs text-muted-foreground hover:text-foreground hover:underline" href="/search">
+              View all
             </Link>
           </div>
-          <div className="mt-4 space-y-3">
+          <div className="mt-3 space-y-2">
             {(data?.recentActivity ?? []).map((item) => (
-              <div className="rounded-2xl border border-border/40 bg-muted/40 p-4" key={item.activity._id}>
+              <div className="rounded-md border border-[#F0F0F2] bg-[#FAFAFA] p-3" key={item.activity._id}>
                 <div className="flex items-center justify-between gap-3">
-                  <p className="font-medium text-foreground">
+                  <p className="text-xs font-semibold text-foreground">
                     {item.contact?.displayName || item.contact?.phoneNumber || "Unknown contact"}
                   </p>
-                  <p className="text-xs text-muted-foreground">
-                    {item.activity.createdAt ? new Date(item.activity.createdAt).toLocaleString() : "No timestamp"}
+                  <p className="text-[11px] text-muted-foreground">
+                    {item.activity.createdAt ? new Date(item.activity.createdAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit" }) : ""}
                   </p>
                 </div>
-                <p className="mt-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                  {item.activity.entityType} | {item.activity.type}
+                <p className="mt-1 text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
+                  {item.activity.entityType} • {item.activity.type}
                 </p>
-                <p className="mt-1 text-sm text-foreground">{item.activity.description}</p>
+                <p className="mt-0.5 text-xs text-foreground">{item.activity.description}</p>
               </div>
             ))}
             {!isLoading && (data?.recentActivity.length ?? 0) === 0 ? (
-              <p className="text-sm text-muted-foreground">No recent activity is stored yet.</p>
+              <p className="text-xs text-muted-foreground">No recent activity recorded.</p>
             ) : null}
           </div>
         </Card>
 
-        <div className="space-y-4">
-          <Card className="border-white/60 bg-white/78 p-6 backdrop-blur">
-            <div className="flex items-center justify-between gap-3">
+        <div className="space-y-3.5">
+          <Card className="p-5">
+            <div className="flex items-center justify-between gap-3 border-b border-[#F0F0F2] pb-3">
               <div className="flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold">Priority threads</h3>
+                <Sparkles className="h-4 w-4 text-[#176B4D]" />
+                <h2 className="text-sm font-semibold text-foreground">Priority Threads</h2>
               </div>
-              <Link className="text-sm text-muted-foreground underline-offset-4 hover:underline" href="/inbox">
+              <Link className="text-xs text-muted-foreground hover:text-foreground hover:underline" href="/inbox">
                 Open inbox
               </Link>
             </div>
-            <div className="mt-4 space-y-3">
+            <div className="mt-3 space-y-2">
               {(data?.hotThreads ?? []).map((item) => (
-                <Link className="block rounded-2xl border border-border/40 bg-muted/40 p-4 transition hover:bg-card hover:shadow-xs" href={`/inbox?conversationId=${encodeURIComponent(item.conversation._id)}`} key={item.conversation._id}>
-                  <div className="flex items-center justify-between gap-3">
-                    <p className="font-medium text-foreground">
+                <Link className="block rounded-md border border-[#F0F0F2] bg-[#FAFAFA] p-3 transition-colors hover:border-[#D4D4D8]" href={`/inbox?conversationId=${encodeURIComponent(item.conversation._id)}`} key={item.conversation._id}>
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-semibold text-foreground">
                       {item.contact?.displayName || item.contact?.phoneNumber || item.conversation.waId}
                     </p>
-                    <span className="rounded-full bg-emerald-100/70 border border-emerald-200 px-2 py-0.5 text-xs font-medium text-emerald-800">
+                    <span className="rounded-full bg-[#EDF8F3] border border-emerald-200 px-2 py-0.5 text-[10px] font-semibold text-[#176B4D]">
                       unread {item.conversation.unreadCount}
                     </span>
                   </div>
-                  <p className="mt-2 text-xs uppercase tracking-[0.18em] text-muted-foreground">
-                    {item.conversation.status} | {item.conversation.lastMessageStatus || "unknown"}
-                  </p>
-                  <p className="mt-2 text-sm text-foreground">
+                  <p className="mt-1 truncate text-xs text-muted-foreground">
                     {item.conversation.lastMessageText || "No last message text"}
                   </p>
                 </Link>
               ))}
               {!isLoading && (data?.hotThreads.length ?? 0) === 0 ? (
-                <p className="text-sm text-muted-foreground">No active priority threads right now.</p>
+                <p className="text-xs text-muted-foreground">No active priority threads.</p>
               ) : null}
             </div>
           </Card>
 
-          <Card className="border-white/60 bg-white/78 p-6 backdrop-blur">
-            <div className="flex items-center justify-between gap-3">
+          <Card className="p-5">
+            <div className="flex items-center justify-between gap-3 border-b border-[#F0F0F2] pb-3">
               <div className="flex items-center gap-2">
-                <TriangleAlert className="h-4 w-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold">Risk summary</h3>
+                <TriangleAlert className="h-4 w-4 text-[#B7791F]" />
+                <h2 className="text-sm font-semibold text-foreground">Risk Summary</h2>
               </div>
-              <Link className="text-sm text-muted-foreground underline-offset-4 hover:underline" href="/tasks">
-                Open tasks
+              <Link className="text-xs text-muted-foreground hover:text-foreground hover:underline" href="/tasks">
+                View tasks
               </Link>
             </div>
-            <div className="mt-4 grid gap-3 md:grid-cols-3">
-              <div className="rounded-2xl border border-amber-200/60 bg-amber-50/70 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-800/80">Overdue tasks</p>
-                <p className="mt-2 text-2xl font-semibold text-amber-950">{data?.tasks.overdue ?? 0}</p>
+            <div className="mt-3 grid gap-2 md:grid-cols-3">
+              <div className="rounded-md border border-amber-200 bg-amber-50/50 p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-800">Overdue tasks</p>
+                <p className="mt-1 text-xl font-bold text-amber-950">{data?.tasks.overdue ?? 0}</p>
               </div>
-              <div className="rounded-2xl border border-amber-200/60 bg-amber-50/70 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-800/80">Failed schedules</p>
-                <p className="mt-2 text-2xl font-semibold text-amber-950">{data?.schedules.failed ?? 0}</p>
+              <div className="rounded-md border border-amber-200 bg-amber-50/50 p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-800">Failed schedules</p>
+                <p className="mt-1 text-xl font-bold text-amber-950">{data?.schedules.failed ?? 0}</p>
               </div>
-              <div className="rounded-2xl border border-amber-200/60 bg-amber-50/70 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-800/80">Failed runs</p>
-                <p className="mt-2 text-2xl font-semibold text-amber-950">{data?.automations.failedRunsToday ?? 0}</p>
+              <div className="rounded-md border border-amber-200 bg-amber-50/50 p-3">
+                <p className="text-[10px] font-semibold uppercase tracking-wider text-amber-800">Failed runs</p>
+                <p className="mt-1 text-xl font-bold text-amber-950">{data?.automations.failedRunsToday ?? 0}</p>
               </div>
             </div>
           </Card>
@@ -347,3 +349,4 @@ export default function DashboardPage() {
     </div>
   );
 }
+

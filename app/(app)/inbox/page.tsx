@@ -19,6 +19,7 @@ import {
   Plus,
   RefreshCw,
   Search,
+  Send,
   SendHorizonal,
   Smile,
   Sparkles,
@@ -184,12 +185,12 @@ const buildInitials = (value?: string | null) => {
 };
 
 const avatarColorStyles = [
-  "bg-[#dfe5dc] text-[#2d644d]",
-  "bg-[#e0e8f5] text-[#2b5288]",
-  "bg-[#f5e6e0] text-[#883d2b]",
-  "bg-[#eee0f5] text-[#632b88]",
-  "bg-[#f5f2e0] text-[#70642b]",
-  "bg-[#e0f5f2] text-[#2b7d70]",
+  "bg-[#EDF8F3] text-[#176B4D]",
+  "bg-[#EFF6FF] text-[#2563EB]",
+  "bg-[#FEE2E2] text-[#C2413A]",
+  "bg-[#F3E8FF] text-[#7E22CE]",
+  "bg-[#FEF3C7] text-[#B7791F]",
+  "bg-[#F4F4F5] text-[#52525B]",
 ];
 
 const getAvatarColorStyle = (name?: string | null) => {
@@ -502,8 +503,8 @@ const PanelSection = ({
   children: ReactNode;
   title: string;
 }) => (
-  <section className="border-t border-[#e5ddd3] px-6 py-5 first:border-t-0">
-    <h3 className="text-[12px] font-semibold uppercase tracking-[0.18em] text-[#6f7f75]">
+  <section className="border-t border-[#E4E4E7] px-5 py-4 first:border-t-0">
+    <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
       {title}
     </h3>
     <div className="mt-3">{children}</div>
@@ -987,19 +988,19 @@ export default function InboxPage() {
             : "xl:grid-cols-[340px_minmax(0,1fr)]",
         )}
       >
-        <aside className="flex min-h-0 flex-col border-r border-border/80 bg-muted/30">
-          <div className="border-b border-border/70 px-6 py-5">
+        <aside className="flex min-h-0 flex-col border-r border-[#E4E4E7] bg-white">
+          <div className="border-b border-[#E4E4E7] px-4 py-3.5">
             <div className="flex items-center justify-between">
-              <h1 className="text-[18px] font-semibold text-foreground">Inbox</h1>
+              <h1 className="text-base font-semibold text-foreground">Inbox</h1>
               <div className="flex items-center gap-1">
                 <button
-                  className="rounded-full p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                  className="rounded-md p-1.5 text-muted-foreground transition hover:bg-[#F4F4F5] hover:text-foreground"
                   type="button"
                 >
                   <Plus className="h-4 w-4" />
                 </button>
                 <button
-                  className="rounded-full p-2 text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                  className="rounded-md p-1.5 text-muted-foreground transition hover:bg-[#F4F4F5] hover:text-foreground"
                   type="button"
                 >
                   <MoreHorizontal className="h-4 w-4" />
@@ -1007,24 +1008,24 @@ export default function InboxPage() {
               </div>
             </div>
 
-            <div className="relative mt-4">
-              <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <div className="relative mt-3">
+              <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
               <Input
-                className="h-12 rounded-full border-border bg-card pl-11 text-[15px] text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary/20"
+                className="h-9 rounded-md border-[#D4D4D8] bg-[#FAFAFA] pl-9 text-xs text-foreground placeholder:text-muted-foreground focus:bg-white focus:ring-2 focus:ring-primary/15"
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search conversations"
+                placeholder="Search conversations..."
                 value={search}
               />
             </div>
 
-            <div className="mt-4 flex flex-wrap gap-2">
+            <div className="mt-3 flex flex-wrap gap-1.5">
               {filters.map((item) => (
                 <button
                   className={cn(
-                    "rounded-full border px-4 py-2 text-sm font-medium transition",
+                    "rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
                     filter === item.key
-                      ? "border-primary bg-primary text-primary-foreground shadow-sm"
-                      : "border-border bg-card text-muted-foreground hover:bg-muted hover:text-foreground",
+                      ? "border-primary bg-primary text-primary-foreground shadow-xs"
+                      : "border-[#E4E4E7] bg-white text-muted-foreground hover:bg-[#F4F4F5] hover:text-foreground",
                   )}
                   key={item.key}
                   onClick={() => setFilter(item.key)}
@@ -1034,10 +1035,10 @@ export default function InboxPage() {
                 </button>
               ))}
               <button
-                className="rounded-full border border-border bg-card px-3 py-2 text-muted-foreground transition hover:bg-muted hover:text-foreground"
+                className="rounded-md border border-[#E4E4E7] bg-white px-2 py-1 text-muted-foreground transition-colors hover:bg-[#F4F4F5] hover:text-foreground"
                 type="button"
               >
-                <ChevronDown className="h-4 w-4" />
+                <ChevronDown className="h-3.5 w-3.5" />
               </button>
             </div>
           </div>
@@ -1059,8 +1060,8 @@ export default function InboxPage() {
                 return (
                   <button
                     className={cn(
-                      "flex w-full items-start gap-3 border-b border-[#ece1d4] px-6 py-4 text-left transition",
-                      isActive ? "bg-[#ece4d8]" : "hover:bg-[#f2ebe2]",
+                      "flex w-full items-start gap-3 border-b border-[#F0F0F2] px-4 py-3 text-left transition-colors",
+                      isActive ? "bg-[#EDF8F3] border-l-2 border-l-[#176B4D]" : "hover:bg-[#FAFAFA]",
                     )}
                     key={thread.conversation._id}
                     onClick={() => setSelectedConversationId(thread.conversation._id)}
@@ -1068,30 +1069,30 @@ export default function InboxPage() {
                   >
                     <ContactAvatar
                       avatarUrl={thread.contact?.avatarUrl}
-                      className="h-12 w-12 shrink-0 text-sm"
+                      className="h-10 w-10 shrink-0 text-xs"
                       name={displayName}
                     />
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-start justify-between gap-2">
                         <div className="min-w-0">
                           <p
                             className={cn(
-                              "truncate text-[15px]",
-                              effectiveUnreadCount > 0 ? "font-semibold" : "font-medium",
+                              "truncate text-xs",
+                              effectiveUnreadCount > 0 ? "font-semibold text-foreground" : "font-medium text-foreground",
                             )}
                           >
                             {displayName}
                           </p>
-                          <p className="mt-1 truncate text-[14px] text-[#65766d]">
+                          <p className="mt-0.5 truncate text-[12px] text-[#71717A]">
                             {thread.conversation.lastMessageText || "No messages yet."}
                           </p>
                         </div>
-                        <div className="flex shrink-0 flex-col items-end gap-2">
-                          <span className="text-[12px] text-[#7a8b82]">
+                        <div className="flex shrink-0 flex-col items-end gap-1">
+                          <span className="text-[11px] text-[#71717A]">
                             {formatConversationTime(thread.conversation.lastMessageAt || thread.conversation.updatedAt)}
                           </span>
                           {effectiveUnreadCount > 0 ? (
-                            <span className="inline-flex min-w-5 items-center justify-center rounded-full bg-[#2d644d] px-2 py-0.5 text-[11px] font-semibold text-white">
+                            <span className="inline-flex min-w-4.5 items-center justify-center rounded-full bg-[#176B4D] px-1.5 py-0.5 text-[10px] font-semibold text-white">
                               {effectiveUnreadCount}
                             </span>
                           ) : null}
@@ -1104,52 +1105,46 @@ export default function InboxPage() {
             )}
 
             {!threadsQuery.isPending && !threadsQuery.isLoading && threads.length === 0 ? (
-              <div className="px-6 py-10 text-center text-sm text-[#7a8b82]">
+              <div className="px-4 py-8 text-center text-xs text-muted-foreground">
                 No conversations match this view.
               </div>
             ) : null}
           </div>
         </aside>
 
-        <section className="flex min-h-0 flex-col bg-[#fbf7f1] relative">
+        <section className="flex min-h-0 flex-col bg-[#F7F8FA] relative">
           {detailQuery.isPending || detailQuery.isLoading ? (
             <ChatWindowSkeleton />
           ) : !detail ? (
-            <div className="flex h-full items-center justify-center px-8">
-              <div className="max-w-lg text-center">
-                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-full bg-[#e6eee6] text-[#2d644d]">
-                  <MessageSquareDot className="h-8 w-8" />
+            <div className="flex h-full items-center justify-center px-6">
+              <div className="max-w-md text-center">
+                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#EDF8F3] text-[#176B4D]">
+                  <MessageSquareDot className="h-7 w-7" />
                 </div>
-                <h2 className="mt-6 text-[36px] font-semibold tracking-[-0.03em] text-[#25342f]">
-                  NiWa Desk
+                <h2 className="mt-5 text-2xl font-semibold tracking-tight text-foreground">
+                  NiWa Operational Desk
                 </h2>
-                <p className="mt-3 text-[18px] text-[#4f6258]">
-                  Select a conversation to start messaging
-                </p>
-                <p className="mt-4 text-[15px] leading-7 text-[#6f7f75]">
-                  Manage customer conversations, templates and follow-ups from one workspace.
-                </p>
-                <p className="mt-14 text-[13px] text-[#7a8b82]">
-                  Connected through WhatsApp Business Platform
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Select a conversation to manage communication and customer context.
                 </p>
               </div>
             </div>
           ) : (
             <>
-              <div className="relative flex h-[72px] items-center justify-between border-b border-[#ddd2c3] bg-[#fbf7f1] px-5">
+              <div className="relative flex h-14 items-center justify-between border-b border-[#E4E4E7] bg-white px-4">
                 <button
-                  className="flex min-w-0 items-center gap-3 rounded-xl px-2 py-1 text-left transition hover:bg-[#f2ebe2]"
+                  className="flex min-w-0 items-center gap-2.5 rounded-md px-2 py-1 text-left transition-colors hover:bg-[#F4F4F5]"
                   onClick={() => setContactInfoOpen(true)}
                   type="button"
                 >
                   <ContactAvatar
                     avatarUrl={detail.contact.avatarUrl}
-                    className="h-10 w-10 shrink-0 text-sm"
+                    className="h-9 w-9 shrink-0 text-xs"
                     name={detail.contact.displayName}
                   />
                   <div className="min-w-0">
                     <div className="flex items-center gap-2">
-                      <p className="truncate text-[16px] font-medium text-[#25342f]">
+                      <p className="truncate text-sm font-semibold text-foreground">
                         {withDisplayPhoneNumber(detail.contact.displayName) ?? detail.contact.displayName}
                       </p>
                       {(() => {
@@ -1161,8 +1156,8 @@ export default function InboxPage() {
 
                         if (diffMs <= 0) {
                           return (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-[#fdeaea] px-2 py-0.5 text-[10px] font-semibold text-[#9d3434]">
-                              <span className="h-1.5 w-1.5 rounded-full bg-[#9d3434]" />
+                            <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 border border-rose-200 px-2 py-0.5 text-[10px] font-semibold text-rose-700">
+                              <span className="h-1.5 w-1.5 rounded-full bg-rose-600" />
                               24h Expired
                             </span>
                           );
@@ -1172,49 +1167,49 @@ export default function InboxPage() {
                         const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
                         return (
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#eaf5ee] px-2.5 py-0.5 text-[10px] font-semibold text-[#2d644d]">
-                            <span className="h-1.5 w-1.5 rounded-full bg-[#2d644d] animate-pulse" />
+                          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EDF8F3] border border-emerald-200 px-2 py-0.5 text-[10px] font-semibold text-[#176B4D]">
+                            <span className="h-1.5 w-1.5 rounded-full bg-[#176B4D] animate-pulse" />
                             24h Active ({hours}h {mins}m)
                           </span>
                         );
                       })()}
                     </div>
-                    <p className="truncate text-[13px] text-[#6f7f75]">
+                    <p className="truncate text-xs text-muted-foreground">
                       {withDisplayPhoneNumber(detail.contact.phoneNumber || detail.conversation.waId)}
                     </p>
                   </div>
                 </button>
 
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5">
                   <button
-                    className="flex items-center gap-1.5 rounded-full border border-[#ddd2c3] bg-[#fffdf9] px-3 py-1.5 text-xs font-medium text-[#4f6258] transition hover:border-[#2d644d] hover:bg-[#efe7db] hover:text-[#25342f] disabled:opacity-50"
+                    className="flex items-center gap-1.5 rounded-md border border-[#E4E4E7] bg-white px-2.5 py-1 text-xs font-medium text-[#52525B] transition-colors hover:border-[#D4D4D8] hover:bg-[#FAFAFA] disabled:opacity-50"
                     disabled={syncHistoryMutation.isPending}
                     onClick={handleSyncHistory}
                     title="Sync & Reconcile Chat History"
                     type="button"
                   >
-                    <RefreshCw className={cn("h-3.5 w-3.5", syncHistoryMutation.isPending && "animate-spin")} />
+                    <RefreshCw className={cn("h-3.5 w-3.5 text-[#71717A]", syncHistoryMutation.isPending && "animate-spin")} />
                     <span>{syncHistoryMutation.isPending ? "Syncing..." : "Sync History"}</span>
                   </button>
                   <button
-                    className="rounded-full p-2 text-[#6f7f75] transition hover:bg-[#f2ebe2] hover:text-[#25342f]"
+                    className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-[#F4F4F5] hover:text-foreground"
                     type="button"
                   >
-                    <Search className="h-5 w-5" />
+                    <Search className="h-4 w-4" />
                   </button>
                   <div className="relative">
                     <button
-                      className="rounded-full p-2 text-[#6f7f75] transition hover:bg-[#f2ebe2] hover:text-[#25342f]"
+                      className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-[#F4F4F5] hover:text-foreground"
                       onClick={() => setActionsOpen((current) => !current)}
                       type="button"
                     >
-                      <MoreHorizontal className="h-5 w-5" />
+                      <MoreHorizontal className="h-4 w-4" />
                     </button>
                     {actionsOpen ? (
-                      <div className="absolute right-0 top-11 z-20 w-52 rounded-xl border border-[#ddd2c3] bg-white p-2 shadow-[0_12px_32px_rgba(32,38,35,0.14)]">
+                      <div className="absolute right-0 top-10 z-20 w-48 rounded-md border border-[#E4E4E7] bg-white p-1 shadow-floating">
                         {messageActionLabels.map((item) => (
                           <button
-                            className="block w-full rounded-lg px-3 py-2 text-left text-sm text-[#25342f] transition hover:bg-[#f6f1e9]"
+                            className="block w-full rounded-md px-2.5 py-1.5 text-left text-xs font-medium text-foreground transition-colors hover:bg-[#F4F4F5]"
                             key={item.action}
                             onClick={() =>
                               performThreadAction(
@@ -1239,7 +1234,7 @@ export default function InboxPage() {
               </div>
 
               <div
-                className="niwa-scrollbar min-h-0 flex-1 overflow-y-auto bg-[linear-gradient(180deg,#fbf7f1_0%,#f7f0e7_100%)] px-8 py-6 relative"
+                className="niwa-scrollbar min-h-0 flex-1 overflow-y-auto bg-[#F7F8FA] px-6 py-4 relative"
                 onScroll={handleMessageContainerScroll}
                 ref={messagesContainerRef}
               >
@@ -1248,7 +1243,7 @@ export default function InboxPage() {
                     {Array.from({ length: 6 }).map((_, index) => (
                       <div
                         className={cn(
-                          "h-20 w-[66%] animate-pulse rounded-2xl bg-[#ece4d8]",
+                          "h-16 w-[60%] animate-pulse rounded-lg bg-[#E4E4E7]",
                           index % 2 === 0 ? "ml-auto" : "",
                         )}
                         key={index}
@@ -1258,20 +1253,20 @@ export default function InboxPage() {
                 ) : null}
 
                 {!detailQuery.isLoading && messageGroups.length === 0 ? (
-                  <div className="flex h-full min-h-[240px] items-center justify-center">
-                    <div className="rounded-[28px] border border-[#e2d8ca] bg-[#fffdf9] px-6 py-5 text-center">
-                      <p className="text-sm font-medium text-[#25342f]">No messages in this thread yet.</p>
-                      <p className="mt-1 text-sm text-[#7a8b82]">
-                        New inbound and outbound messages will appear here automatically.
+                  <div className="flex h-full min-h-[200px] items-center justify-center">
+                    <div className="rounded-lg border border-[#E4E4E7] bg-white px-5 py-4 text-center">
+                      <p className="text-xs font-medium text-foreground">No messages in this thread yet.</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        Messages will appear here in real-time.
                       </p>
                     </div>
                   </div>
                 ) : null}
 
                 {messageGroups.map((group) => (
-                  <div className="mb-6" key={group.day}>
-                    <div className="mb-4 flex justify-center">
-                      <span className="rounded-full border border-[#e3d8ca] bg-[#fffdf9] px-3 py-1 text-[11px] font-medium text-[#7a8b82] shadow-sm">
+                  <div className="mb-5" key={group.day}>
+                    <div className="mb-3 flex justify-center">
+                      <span className="rounded-full border border-[#E4E4E7] bg-white px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground shadow-subtle">
                         {group.day}
                       </span>
                     </div>
@@ -1295,23 +1290,23 @@ export default function InboxPage() {
                           <div className={cn("flex", outgoing ? "justify-end" : "justify-start")} key={message._id}>
                             <div
                               className={cn(
-                                "max-w-[68%] rounded-2xl px-4 py-3 shadow-[0_1px_0_rgba(40,52,47,0.06)]",
+                                "max-w-[65%] rounded-xl px-3.5 py-2.5 border shadow-subtle",
                                 outgoing
-                                  ? "rounded-br-md bg-[#dfeee3]"
-                                  : "rounded-bl-md bg-white",
+                                  ? "rounded-br-xs bg-[#EDF8F3] border-[#C4E8DA] text-[#176B4D]"
+                                  : "rounded-bl-xs bg-white border-[#E4E4E7] text-foreground",
                               )}
                             >
                               {message.replyTo ? (
-                                <div className="mb-2 rounded-xl border-l-2 border-black/15 bg-black/5 px-3 py-2 text-xs text-[#5c6d63]">
+                                <div className="mb-1.5 rounded-md border-l-2 border-primary/30 bg-black/5 px-2.5 py-1 text-xs text-muted-foreground">
                                   {message.replyTo.previewText || `[${message.replyTo.messageType}]`}
                                 </div>
                               ) : null}
                               {message.textBody ? (
-                                <p className="whitespace-pre-wrap text-[14px] leading-6 text-[#25342f]">
+                                <p className="whitespace-pre-wrap text-xs leading-5">
                                   {message.textBody}
                                 </p>
                               ) : message.messageType === "text" || (message.previewText && message.previewText !== "[image]") ? (
-                                <p className="whitespace-pre-wrap text-[14px] leading-6 text-[#25342f]">
+                                <p className="whitespace-pre-wrap text-xs leading-5">
                                   {message.previewText}
                                 </p>
                               ) : null}
@@ -1323,13 +1318,13 @@ export default function InboxPage() {
                                 />
                               ) : null}
                               {message.media?.caption && message.media.caption !== message.textBody ? (
-                                <p className="mt-2 whitespace-pre-wrap text-[13px] leading-5 text-[#44534d]">
+                                <p className="mt-1.5 whitespace-pre-wrap text-xs leading-4 opacity-90">
                                   {message.media.caption}
                                 </p>
                               ) : null}
                               {hasLocation ? (
                                 <a
-                                  className="mt-2 block rounded-xl bg-black/5 px-3 py-2 text-sm text-[#2d644d] underline-offset-2 hover:underline"
+                                  className="mt-1.5 block rounded-md bg-black/5 px-2.5 py-1.5 text-xs underline-offset-2 hover:underline"
                                   href={`https://maps.google.com/?q=${locationData.latitude},${locationData.longitude}`}
                                   rel="noreferrer"
                                   target="_blank"
@@ -1337,14 +1332,14 @@ export default function InboxPage() {
                                   {locationData.name || locationData.address || "Open location"}
                                 </a>
                               ) : null}
-                              <div className="mt-2 flex items-center justify-end gap-1 text-[11px] text-[#7a8b82]">
+                              <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-muted-foreground opacity-80">
                                 <span>{formatConversationTime(messageTime)}</span>
                                 {outgoing ? (
                                   <span title={statusDetails || undefined}>{renderOutgoingStatusIcon(message.status)}</span>
                                 ) : null}
                               </div>
                               {message.status === "failed" && message.errorDetails ? (
-                                <p className="mt-2 text-[12px] text-[#bf5b4b]">{message.errorDetails}</p>
+                                <p className="mt-1 text-[11px] text-[#C2413A]">{message.errorDetails}</p>
                               ) : null}
                             </div>
                           </div>
@@ -1355,16 +1350,16 @@ export default function InboxPage() {
                 ))}
               </div>
 
-              <div className="border-t border-[#ddd2c3] bg-[#fbf7f1] px-5 py-3">
+              <div className="border-t border-[#E4E4E7] bg-white px-4 py-2.5">
                 {(selectedQuickReply && quickReplyPanelOpen) ? (
-                  <div className="mb-3 rounded-2xl border border-[#e2d8ca] bg-[#fffdf9] p-3">
-                    <div className="mb-3 flex items-center justify-between">
-                      <div className="flex items-center gap-2 text-xs uppercase tracking-[0.16em] text-[#6f7f75]">
-                        <Sparkles className="h-3.5 w-3.5" />
+                  <div className="mb-2.5 rounded-lg border border-[#E4E4E7] bg-[#FAFAFA] p-3">
+                    <div className="mb-2 flex items-center justify-between">
+                      <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                        <Sparkles className="h-3.5 w-3.5 text-[#176B4D]" />
                         Quick reply variables
                       </div>
                       <Button
-                        className="border-[#ddd2c3] bg-transparent text-[#25342f] hover:bg-[#f6f1e9]"
+                        className="h-7 border-[#E4E4E7] bg-white text-xs hover:bg-[#F4F4F5]"
                         disabled={patchQuickReplyMutation.isPending}
                         onClick={() =>
                           patchQuickReplyMutation.mutate({
@@ -1379,14 +1374,14 @@ export default function InboxPage() {
                         Sync vars
                       </Button>
                     </div>
-                    <div className="grid gap-3 md:grid-cols-2">
+                    <div className="grid gap-2 md:grid-cols-2">
                       {selectedQuickReplyVariables.map((variable) => (
                         <div key={variable}>
-                          <label className="mb-1 block text-xs uppercase tracking-[0.12em] text-[#6f7f75]">
+                          <label className="mb-1 block text-[11px] font-medium text-muted-foreground">
                             {variable}
                           </label>
                           <Input
-                            className="border-[#ddd2c3] bg-white text-[#25342f]"
+                            className="h-8 border-[#E4E4E7] bg-white text-xs"
                             onChange={(event) =>
                               setQuickReplyVariableValues((current) => ({
                                 ...current,
@@ -1398,41 +1393,41 @@ export default function InboxPage() {
                         </div>
                       ))}
                     </div>
-                    <div className="mt-3 rounded-xl bg-[#f6f1e9] px-3 py-2 text-sm text-[#5c6d63]">
+                    <div className="mt-2 rounded-md bg-[#F4F4F5] px-2.5 py-1.5 text-xs text-[#52525B]">
                       {quickReplyPreview || "Resolved quick reply preview appears here."}
                     </div>
                   </div>
                 ) : null}
 
                 {quickReplySuggestions.length > 0 ? (
-                  <div className="mb-3 rounded-2xl border border-[#e2d8ca] bg-white">
+                  <div className="mb-2.5 rounded-lg border border-[#E4E4E7] bg-white shadow-floating">
                     {quickReplySuggestions.slice(0, 6).map((reply) => (
                       <button
-                        className="block w-full border-b border-[#eee4d8] px-4 py-3 text-left last:border-b-0 hover:bg-[#f8f3eb]"
+                        className="block w-full border-b border-[#F0F0F2] px-3 py-2 text-left last:border-b-0 hover:bg-[#FAFAFA]"
                         key={reply._id}
                         onClick={() => insertQuickReply(reply._id)}
                         type="button"
                       >
-                        <p className="text-sm font-medium text-[#25342f]">{reply.shortcut}</p>
-                        <p className="mt-1 text-xs text-[#7a8b82]">{reply.title}</p>
+                        <p className="text-xs font-semibold text-foreground">{reply.shortcut}</p>
+                        <p className="mt-0.5 text-[11px] text-muted-foreground">{reply.title}</p>
                       </button>
                     ))}
                   </div>
                 ) : null}
 
-                <div className="flex items-end gap-3">
+                <div className="flex items-end gap-2">
                   <div className="relative">
                     <button
-                      className="rounded-full p-2 text-[#6f7f75] transition hover:bg-[#efe7db] hover:text-[#25342f]"
+                      className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-[#F4F4F5] hover:text-foreground"
                       onClick={() => setComposerMenuOpen((current) => !current)}
                       type="button"
                     >
-                      <Plus className="h-5 w-5" />
+                      <Plus className="h-4 w-4" />
                     </button>
                     {composerMenuOpen ? (
-                      <div className="absolute bottom-12 left-0 z-20 w-52 rounded-2xl border border-[#ddd2c3] bg-white p-2 shadow-[0_12px_32px_rgba(32,38,35,0.14)]">
+                      <div className="absolute bottom-10 left-0 z-20 w-48 rounded-md border border-[#E4E4E7] bg-white p-1 shadow-floating">
                         <button
-                          className="block w-full rounded-xl px-3 py-2 text-left text-sm text-[#25342f] transition hover:bg-[#f6f1e9]"
+                          className="block w-full rounded-md px-2.5 py-1.5 text-left text-xs font-medium text-foreground transition-colors hover:bg-[#F4F4F5]"
                           onClick={() => {
                             setQuickReplyPanelOpen(true);
                             setComposerMenuOpen(false);
@@ -1445,7 +1440,7 @@ export default function InboxPage() {
                           Quick reply
                         </button>
                         <button
-                          className="block w-full rounded-xl px-3 py-2 text-left text-sm text-[#25342f] transition hover:bg-[#f6f1e9]"
+                          className="block w-full rounded-md px-2.5 py-1.5 text-left text-xs font-medium text-foreground transition-colors hover:bg-[#F4F4F5]"
                           onClick={() => {
                             setScheduleDialogOpen(true);
                             setComposerMenuOpen(false);
@@ -1458,23 +1453,23 @@ export default function InboxPage() {
                     ) : null}
                   </div>
                   <button
-                    className="rounded-full p-2 text-[#6f7f75] transition hover:bg-[#efe7db] hover:text-[#25342f]"
+                    className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-[#F4F4F5] hover:text-foreground"
                     type="button"
                   >
-                    <Smile className="h-5 w-5" />
+                    <Smile className="h-4 w-4" />
                   </button>
                   <div className="relative min-w-0 flex-1">
                     <Textarea
-                      className="min-h-[54px] rounded-[28px] border-[#ddd2c3] bg-white px-4 py-3 text-[15px] text-[#25342f] placeholder:text-[#7a8b82]"
+                      className="min-h-[44px] rounded-md border-[#D4D4D8] bg-white px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/15"
                       disabled={sendTextMutation.isPending}
                       onChange={(event) => setComposerBody(event.target.value)}
                       onKeyDown={handleComposerKeyDown}
-                      placeholder="Type a message"
+                      placeholder="Type a message..."
                       value={composerBody}
                     />
                   </div>
                   <button
-                    className="rounded-full p-2 text-[#6f7f75] transition hover:bg-[#efe7db] hover:text-[#25342f]"
+                    className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-[#F4F4F5] hover:text-foreground"
                     onClick={() => {
                       setQuickReplyPanelOpen((current) => !current);
                       if (!selectedQuickReplyId && quickReplies[0]) {
@@ -1483,40 +1478,31 @@ export default function InboxPage() {
                     }}
                     type="button"
                   >
-                    <Command className="h-5 w-5" />
+                    <Command className="h-4 w-4" />
                   </button>
-                  <button
-                    className={cn(
-                      "rounded-full p-3 text-white transition",
-                      sendTextMutation.isPending
-                        ? "cursor-not-allowed bg-[#7ea18f]"
-                        : "bg-[#2d644d] hover:bg-[#255440]",
-                    )}
+                  <Button
+                    className="h-9 rounded-md px-3 font-medium"
                     disabled={sendTextMutation.isPending || !composerBody.trim()}
                     onClick={sendMessage}
+                    size="sm"
                     type="button"
+                    variant="primary"
                   >
                     {sendTextMutation.isPending ? (
-                      <Clock3 className="h-4 w-4 animate-pulse" />
+                      <Clock3 className="h-3.5 w-3.5 animate-pulse" />
                     ) : (
-                      <SendHorizonal className="h-4 w-4" />
+                      <Send className="h-3.5 w-3.5" />
                     )}
-                  </button>
+                  </Button>
                 </div>
-
-                {sendTextMutation.isPending ? (
-                  <div className="mt-3 rounded-xl bg-[#eef4ef] px-4 py-3 text-sm text-[#315444]">
-                    Sending message...
-                  </div>
-                ) : null}
 
                 {composerFeedback ? (
                   <div
                     className={cn(
-                      "mt-3 rounded-xl px-4 py-3 text-sm",
+                      "mt-3 rounded-md px-3 py-2 text-xs font-medium",
                       composerFeedback.tone === "success"
-                        ? "bg-[#e6f3e9] text-[#255440]"
-                        : "bg-[#fdeaea] text-[#9d3434]",
+                        ? "bg-[#EDF8F3] text-[#16803C] border border-[#C4E8DA]"
+                        : "bg-[#FEF2F2] text-[#C2413A] border border-[#FEE2E2]",
                     )}
                   >
                     {composerFeedback.message}
