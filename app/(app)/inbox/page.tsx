@@ -325,19 +325,43 @@ const renderOutgoingStatusIcon = (status?: string) => {
   switch ((status ?? "").toLowerCase()) {
     case "read":
     case "seen":
-      return <CheckCheck className="h-4 w-4 text-[#34b7f1]" title="Read / Seen by customer" />;
+      return (
+        <span title="Read / Seen by customer">
+          <CheckCheck className="h-4 w-4 text-[#34b7f1]" />
+        </span>
+      );
     case "delivered":
-      return <CheckCheck className="h-4 w-4 text-[#7a8b82]" title="Delivered to recipient's phone" />;
+      return (
+        <span title="Delivered to recipient's phone">
+          <CheckCheck className="h-4 w-4 text-[#7a8b82]" />
+        </span>
+      );
     case "sent":
     case "submitted":
-      return <Check className="h-4 w-4 text-[#7a8b82]" title="Sent to WhatsApp servers" />;
+      return (
+        <span title="Sent to WhatsApp servers">
+          <Check className="h-4 w-4 text-[#7a8b82]" />
+        </span>
+      );
     case "queued":
     case "accepted":
-      return <Clock3 className="h-4 w-4 text-[#7a8b82] animate-pulse" title="Sending / Queued in dispatch" />;
+      return (
+        <span title="Sending / Queued in dispatch">
+          <Clock3 className="h-4 w-4 text-[#7a8b82] animate-pulse" />
+        </span>
+      );
     case "failed":
-      return <X className="h-4 w-4 text-[#bf5b4b]" title="Failed to send" />;
+      return (
+        <span title="Failed to send">
+          <X className="h-4 w-4 text-[#bf5b4b]" />
+        </span>
+      );
     default:
-      return <Check className="h-4 w-4 text-[#7a8b82]" title="Sent" />;
+      return (
+        <span title="Sent">
+          <Check className="h-4 w-4 text-[#7a8b82]" />
+        </span>
+      );
   }
 };
 
