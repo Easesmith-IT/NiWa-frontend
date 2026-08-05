@@ -25,18 +25,23 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
       )}
     >
       <div className="flex items-center justify-between gap-2 px-2 py-1">
-        <Link className="min-w-0" href="/">
-          <div className={cn("flex items-center gap-2.5", collapsed && "justify-center")}>
+        <Link className="min-w-0 flex items-center" href="/">
+          {collapsed ? (
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#EDF8F3] dark:bg-[#15271F]">
-              <Image alt="NiWa logo" className="h-5 w-5 object-contain" height={20} src="/niwa-logo.png" width={20} />
+              <Image alt="NiWa logo" className="h-5 w-5 object-contain dark:brightness-110" height={20} src="/niwa-logo.png" width={20} />
             </div>
-            {!collapsed ? (
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold tracking-tight text-foreground">NiWa</p>
-                <p className="truncate text-[11px] font-medium text-muted-foreground">Operations Desk</p>
-              </div>
-            ) : null}
-          </div>
+          ) : (
+            <div className="flex items-center h-8 px-1">
+              <Image
+                alt="NiWa logo"
+                className="h-7 w-auto max-w-[135px] object-contain dark:brightness-110"
+                height={28}
+                priority
+                src="/niwa-logo.png"
+                width={120}
+              />
+            </div>
+          )}
         </Link>
         <Button
           aria-label={collapsed ? "Expand navigation" : "Collapse navigation"}
