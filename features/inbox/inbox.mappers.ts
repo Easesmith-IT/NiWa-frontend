@@ -18,6 +18,15 @@ export const mapInboxThreadRecordV1 = (record: InboxThreadRecordV1): InboxThread
 export const mapInboxThreadDetailV1 = (record: InboxThreadDetailV1): InboxThreadDetailV1 => ({
   ...record,
   activities: Array.isArray(record.activities) ? record.activities : [],
+  conversation: record.conversation
+    ? {
+        ...record.conversation,
+        aiMode:
+          (record.conversation as any)?.aiMode ||
+          (record.conversation as any)?.metadata?.aiMode ||
+          "AI_ACTIVE",
+      }
+    : record.conversation,
   contact: {
     ...record.contact,
     company: withNullableText(record.contact.company),

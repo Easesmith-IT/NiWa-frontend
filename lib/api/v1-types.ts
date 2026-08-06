@@ -43,6 +43,7 @@ export interface ContactRecordV1 extends V1RecordBase {
 }
 
 export interface ConversationRecordV1 extends V1RecordBase {
+  aiMode?: "AI_ACTIVE" | "AI_PAUSED" | "HUMAN_ONLY";
   contactId: string;
   lastMessageAt?: string | null;
   lastReadAt?: string | null;
@@ -51,6 +52,7 @@ export interface ConversationRecordV1 extends V1RecordBase {
   lastMessageStatus?: string;
   lastMessageText: string;
   lastMessageType?: string;
+  metadata?: Record<string, unknown>;
   status: "archived" | "closed" | "open";
   unreadCount: number;
   waId: string;

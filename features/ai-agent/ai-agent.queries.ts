@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { v1QueryKeys } from "../../lib/api/v1-query-keys";
 import {
   applyAITemplate,
   createKnowledgeSource,
@@ -124,8 +125,11 @@ export const useUpdateConversationAIModeMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: updateConversationAIMode,
-    onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["inbox"] });
+    onSuccess: (_data, variables) => {
+      void queryClient.invalidateQueries({ queryKey: v1QueryKeys.inbox });
+      void queryClient.invalidateQueries({
+        queryKey: [...v1QueryKeys.inboxThread, variables.conversationId],
+      });
     },
   });
 };
