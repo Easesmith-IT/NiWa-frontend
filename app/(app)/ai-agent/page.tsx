@@ -53,6 +53,7 @@ import {
   useUpdateKnowledgeSourceMutation,
   BusinessAISettings,
   KnowledgeSource,
+  AIActivityLog,
   MemoryFieldDefinition,
   AgentTemplatePreset,
 } from "../../../features/ai-agent";
@@ -317,7 +318,7 @@ export default function AIAgentPage() {
   const handleRunTest = (e: React.FormEvent) => {
     e.preventDefault();
     if (!testQuery.trim()) return;
-    testingMutation.mutate(testQuery.trim());
+    testingMutation.mutate({ query: testQuery.trim() });
   };
 
   const handleSaveKnowledge = (e: React.FormEvent) => {
@@ -1196,10 +1197,9 @@ export default function AIAgentPage() {
                 </Button>
               </div>
             </div>
-
             {/* Knowledge List */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {(knowledgeQuery.data?.sources || []).map((source) => (
+              {(knowledgeQuery.data?.sources || []).map((source: KnowledgeSource) => (
                 <div key={source._id} className="p-4 rounded-xl border border-border bg-card space-y-2 relative">
                   <div className="flex items-center justify-between">
                     <span className="text-xs font-bold uppercase tracking-wider text-primary">{source.type}</span>
@@ -1278,7 +1278,7 @@ export default function AIAgentPage() {
                 Recent AI Activity Logs
               </h3>
               <div className="divide-y divide-border">
-                {(activityQuery.data?.activities || []).map((log) => (
+                {(activityQuery.data?.activities || []).map((log: AIActivityLog) => (
                   <div key={log._id} className="py-3 flex items-center justify-between text-xs">
                     <div>
                       <span className="font-bold text-foreground">{log.customerPhoneNumber || "Customer"}</span>

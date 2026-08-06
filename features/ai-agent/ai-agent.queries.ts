@@ -2,15 +2,21 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { v1QueryKeys } from "../../lib/api/v1-query-keys";
 import {
   applyAITemplate,
+  createAgent,
   createKnowledgeSource,
+  deleteAgent,
   deleteKnowledgeSource,
   fetchAIActivityLogs,
   fetchAISettings,
   fetchAITemplates,
+  fetchAgents,
   fetchKnowledgePacks,
   fetchKnowledgeSources,
   runAITestingPlayground,
+  setDefaultAgent,
   toggleKnowledgeSourceStatus,
+  transferConversationAgent,
+  updateAgent,
   updateAISettings,
   updateConversationAIMode,
   updateKnowledgeSource,
@@ -19,10 +25,71 @@ import {
 export const aiAgentKeys = {
   all: ["ai-agent"] as const,
   settings: () => [...aiAgentKeys.all, "settings"] as const,
+  agents: () => [...aiAgentKeys.all, "agents"] as const,
   templates: () => [...aiAgentKeys.all, "templates"] as const,
   activity: () => [...aiAgentKeys.all, "activity"] as const,
-  knowledge: () => [...aiAgentKeys.all, "knowledge"] as const,
+  knowledge: (agentId?: string) => [...aiAgentKeys.all, "knowledge", agentId || "all"] as const,
   knowledgePacks: () => [...aiAgentKeys.all, "knowledge-packs"] as const,
+};
+
+export const useAgentsQuery = () =>
+  useQuery({
+    queryKey: aiAgentKeys.agents(),
+    queryFn: fetchAgents,
+  });
+
+export const useCreateAgentMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createAgent,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: aiAgentKeys.agents() });
+    },
+  });
+};
+
+export const useUpdateAgentMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateAgent,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: aiAgentKeys.agents() });
+    },
+  });
+};
+
+export const useDeleteAgentMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: deleteAgent,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: aiAgentKeys.agents() });
+      void queryClient.invalidateQueries({ queryKey: aiAgentKeys.knowledge() });
+    },
+  });
+};
+
+export const useSetDefaultAgentMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: setDefaultAgent,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: aiAgentKeys.agents() });
+    },
+  });
+};
+
+export const useTransferConversationAgentMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: transferConversationAgent,
+    onSuccess: (_data, variables) => {
+      void queryClient.invalidateQueries({ queryKey: v1QueryKeys.inbox });
+      void queryClient.invalidateQueries({
+        queryKey: [...v1QueryKeys.inboxThread, variables.conversationId],
+      });
+    },
+  });
 };
 
 export const useAISettingsQuery = () =>
@@ -75,10 +142,10 @@ export const useAIActivityLogsQuery = () =>
     refetchInterval: 10000,
   });
 
-export const useKnowledgeSourcesQuery = () =>
+export const useKnowledgeSourcesQuery = (agentId?: string) =>
   useQuery({
-    queryKey: aiAgentKeys.knowledge(),
-    queryFn: fetchKnowledgeSources,
+    queryKey: aiAgentKeys.knowledge(agentId),
+    queryFn: () => fetchKnowledgeSources(agentId),
   });
 
 export const useCreateKnowledgeSourceMutation = () => {

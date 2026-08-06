@@ -36,6 +36,13 @@ export const AgentDecisionTrace: React.FC<AgentDecisionTraceProps> = ({
 
       {isOpen && (
         <div className="p-4 grid grid-cols-1 md:grid-cols-2 gap-4 font-mono text-slate-300">
+          {trace.agentName && (
+            <div className="md:col-span-2 rounded bg-slate-950 p-2 border border-slate-800 flex items-center justify-between text-xs">
+              <span className="text-slate-400 font-mono">Resolved Agent:</span>
+              <span className="font-semibold text-blue-300 font-mono">{trace.agentName}</span>
+            </div>
+          )}
+
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-slate-400 text-[11px]">
               <Shield className="h-3.5 w-3.5 text-indigo-400" />
@@ -59,7 +66,7 @@ export const AgentDecisionTrace: React.FC<AgentDecisionTraceProps> = ({
           <div className="space-y-2">
             <div className="flex items-center gap-2 text-slate-400 text-[11px]">
               <Database className="h-3.5 w-3.5 text-amber-400" />
-              Knowledge & Policy
+              Knowledge & Access Policy
             </div>
             <div className="rounded bg-slate-950 p-2.5 border border-slate-800 space-y-1">
               <div className="flex justify-between text-slate-200">
@@ -70,6 +77,12 @@ export const AgentDecisionTrace: React.FC<AgentDecisionTraceProps> = ({
                 <span>Knowledge Source Used:</span>
                 <span className="text-slate-200">{trace.knowledgeUsed}</span>
               </div>
+              {trace.accessibleSourcesCount !== undefined && (
+                <div className="flex justify-between text-slate-400 text-[11px] border-t border-slate-800 pt-1 mt-1">
+                  <span>Accessible Sources:</span>
+                  <span className="text-emerald-400 font-semibold">{trace.accessibleSourcesCount}</span>
+                </div>
+              )}
             </div>
           </div>
 

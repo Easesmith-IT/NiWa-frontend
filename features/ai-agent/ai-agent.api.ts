@@ -42,7 +42,6 @@ export interface BusinessAISettings {
   responseLength: "short" | "balanced" | "detailed";
   questionsPerReply: number;
   behavior: AgentBehaviorConfig;
-  // Scope & Boundaries
   scopeLevel: ScopeLevel;
   autonomyLevel: AutonomyLevel;
   knowledgePolicy: KnowledgePolicy;
@@ -85,6 +84,46 @@ export interface BusinessAISettings {
   hasApiKey: boolean;
 }
 
+export interface AIAgent {
+  _id: string;
+  workspaceId: string;
+  templateId: string;
+  name: string;
+  status: "active" | "inactive";
+  isDefault: boolean;
+  agentName: string;
+  agentRole: string;
+  agentPurpose: string;
+  businessName: string;
+  businessDescription: string;
+  conversationStyle: "direct" | "consultative" | "supportive" | "sales_oriented" | "custom";
+  responseStyle: "professional" | "friendly" | "casual" | "custom";
+  responseLength: "short" | "balanced" | "detailed";
+  behavior: AgentBehaviorConfig;
+  scopeLevel: ScopeLevel;
+  autonomyLevel: AutonomyLevel;
+  knowledgePolicy: KnowledgePolicy;
+  capabilities: string[];
+  restrictedCapabilities: string[];
+  primaryObjective: string;
+  secondaryObjectives: string[];
+  allowAdjacentTopics: boolean;
+  allowGeneralKnowledge: boolean;
+  allowCasualConversation: boolean;
+  redirectOutOfScope: boolean;
+  outOfScopeMessage: string;
+  knowledgePackIds: string[];
+  recommendedIntegrations: string[];
+  enabledTools: string[];
+  memoryEnabled: boolean;
+  memorySchema: MemoryFieldDefinition[];
+  aiModel: string;
+  temperature: number;
+  maxTokens: number;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface AgentTemplatePreset {
   id: string;
   name: string;
@@ -120,6 +159,8 @@ export interface KnowledgeSource {
   question?: string;
   answer?: string;
   status: "ready" | "disabled";
+  accessMode: "all_agents" | "selected_agents";
+  assignedAgentIds: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -130,6 +171,7 @@ export interface ScoredChunk {
   sourceId: string;
   score: number;
   sourceType?: "workspace" | "template_pack" | "integration";
+  agentAccess?: "all_agents" | "selected_agents" | "platform_pack";
 }
 
 export interface DecisionTrace {
@@ -141,6 +183,9 @@ export interface DecisionTrace {
   memoryUsed: string;
   objective: string;
   action: string;
+  agentName?: string;
+  agentId?: string;
+  accessibleSourcesCount?: number;
 }
 
 export interface AITestResponse {
@@ -183,6 +228,43 @@ export const fetchAISettings = async (): Promise<{ settings: BusinessAISettings 
   return response.data;
 };
 
+export const fetchAgents = async (): Promise<{ agents: AIAgent[] }> => {
+  const response = await v1ApiClient.get<{ agents: AIAgent[] }>("/ai-agent/agents");
+  return response.data;
+};
+
+export const createAgent = async (payload: Partial<AIAgent>): Promise<{ agent: AIAgent }> => {
+  const response = await v1ApiClient.post<{ agent: AIAgent }>("/ai-agent/agents", payload);
+  return response.data;
+};
+
+export const updateAgent = async ({
+  id,
+  ...payload
+}: Partial<AIAgent> & { id: string }): Promise<{ agent: AIAgent }> => {
+  const response = await v1ApiClient.put<{ agent: AIAgent }>(`/ai-agent/agents/${id}`, payload);
+  return response.data;
+};
+
+export const deleteAgent = async (id: string): Promise<void> => {
+  await v1ApiClient.delete(`/ai-agent/agents/${id}`);
+};
+
+export const setDefaultAgent = async (id: string): Promise<{ agent: AIAgent }> => {
+  const response = await v1ApiClient.post<{ agent: AIAgent }>(`/ai-agent/agents/${id}/default`);
+  return response.data;
+};
+
+export const transferConversationAgent = async ({
+  conversationId,
+  agentId,
+}: {
+  conversationId: string;
+  agentId: string;
+}): Promise<void> => {
+  await v1ApiClient.patch(`/conversations/${conversationId}/agent`, { agentId });
+};
+
 export const fetchAITemplates = async (): Promise<{ templates: AgentTemplatePreset[] }> => {
   const response = await v1ApiClient.get<{ templates: AgentTemplatePreset[] }>("/ai-agent/templates");
   return response.data;
@@ -203,8 +285,14 @@ export const updateAISettings = async (
   return response.data;
 };
 
-export const runAITestingPlayground = async (query: string): Promise<AITestResponse> => {
-  const response = await v1ApiClient.post<AITestResponse>("/ai-agent/test", { query });
+export const runAITestingPlayground = async ({
+  query,
+  agentId,
+}: {
+  query: string;
+  agentId?: string;
+}): Promise<AITestResponse> => {
+  const response = await v1ApiClient.post<AITestResponse>("/ai-agent/test", { query, agentId });
   return response.data;
 };
 
@@ -219,8 +307,9 @@ export const fetchAIActivityLogs = async (): Promise<{
   return response.data;
 };
 
-export const fetchKnowledgeSources = async (): Promise<{ sources: KnowledgeSource[] }> => {
-  const response = await v1ApiClient.get<{ sources: KnowledgeSource[] }>("/ai-agent/knowledge");
+export const fetchKnowledgeSources = async (agentId?: string): Promise<{ sources: KnowledgeSource[] }> => {
+  const params = agentId ? { agentId } : undefined;
+  const response = await v1ApiClient.get<{ sources: KnowledgeSource[] }>("/ai-agent/knowledge", { params });
   return response.data;
 };
 
@@ -235,6 +324,8 @@ export const createKnowledgeSource = async (payload: {
   content?: string;
   question?: string;
   answer?: string;
+  accessMode?: "all_agents" | "selected_agents";
+  assignedAgentIds?: string[];
 }): Promise<{ source: KnowledgeSource }> => {
   const response = await v1ApiClient.post<{ source: KnowledgeSource }>("/ai-agent/knowledge", payload);
   return response.data;
@@ -249,6 +340,8 @@ export const updateKnowledgeSource = async ({
   content?: string;
   question?: string;
   answer?: string;
+  accessMode?: "all_agents" | "selected_agents";
+  assignedAgentIds?: string[];
 }): Promise<{ source: KnowledgeSource }> => {
   const response = await v1ApiClient.patch<{ source: KnowledgeSource }>(
     `/ai-agent/knowledge/${id}`,
@@ -284,4 +377,3 @@ export const updateConversationAIMode = async ({
 }): Promise<void> => {
   await v1ApiClient.patch(`/conversations/${conversationId}/ai-mode`, { aiMode });
 };
-
