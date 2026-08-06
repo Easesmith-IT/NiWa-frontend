@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit --project tsconfig.typecheck.json",
-    "test": "node --import tsx --test lib/**/*.test.ts"
+    "test": "node --import tsx --test lib/**/*.test.ts features/**/*.test.ts"
   },
   "repository": {
     "type": "git",

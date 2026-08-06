@@ -1,7 +1,7 @@
 "use client";
 
 import { AxiosError } from "axios";
-import { KeyboardEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { KeyboardEvent, ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   Archive,
@@ -43,7 +43,10 @@ import {
 import {
   ChatWindowSkeleton,
   ImageLightboxModal,
+  MessageRecordV1,
   ThreadListSkeleton,
+  mergeAndReconcileMessages,
+  useAsyncMessageBatchQueue,
   useInboxRealtime,
   useInboxThreadDetailV1Query,
   useInboxThreadStateMutation,
@@ -620,28 +623,28 @@ export default function InboxPage() {
     threadMutationRef.current = threadMutation.mutate;
   });
 
+  const markedReadRef = useRef<string | null>(null);
+
   const handleActiveMessageReceived = useCallback(
     (conversationId: string) => {
-      const currentUnread = selectedThread?.conversation?.unreadCount ?? 0;
-      if (currentUnread > 0) {
+      if (activeConversationId && conversationId === activeConversationId) {
+        markedReadRef.current = activeConversationId;
         threadMutationRef.current({
           action: "read",
           conversationId,
         });
       }
     },
-    [selectedThread?.conversation?.unreadCount],
+    [activeConversationId],
   );
 
   useInboxRealtime(activeConversationId, handleActiveMessageReceived);
 
-  const markedReadRef = useRef<string | null>(null);
   useEffect(() => {
     if (!activeConversationId) return;
     const unread = selectedThread?.conversation?.unreadCount ?? 0;
-    const key = `${activeConversationId}:${unread}`;
-    if (unread > 0 && markedReadRef.current !== key) {
-      markedReadRef.current = key;
+    if (unread > 0 && markedReadRef.current !== activeConversationId) {
+      markedReadRef.current = activeConversationId;
       threadMutationRef.current({
         action: "read",
         conversationId: activeConversationId,
@@ -649,10 +652,21 @@ export default function InboxPage() {
     }
   }, [activeConversationId, selectedThread?.conversation?.unreadCount]);
 
-  const detailQuery = useInboxThreadDetailV1Query(activeConversationId, { messageLimit: 1000 });
+  const detailQuery = useInboxThreadDetailV1Query(activeConversationId, { messageLimit: 50 });
   const syncHistoryMutation = useSyncInboxThreadHistoryV1Mutation();
   const patchContactMutation = usePatchContactV1Mutation();
   const detail = detailQuery.data?.data ?? null;
+  const initialPagination = detailQuery.data?.pagination;
+
+  const {
+    olderMessages,
+    isLoadingNextBatch,
+    hasMoreOlderMessages,
+    nextCursor,
+    paginationError,
+    loadNextBatchAsync,
+    retryLoadOlder,
+  } = useAsyncMessageBatchQueue(activeConversationId, initialPagination);
 
   const [editingContact, setEditingContact] = useState(false);
   const [editDisplayName, setEditDisplayName] = useState("");
@@ -683,6 +697,62 @@ export default function InboxPage() {
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [showJumpToBottom, setShowJumpToBottom] = useState(false);
+  const [newMessageCount, setNewMessageCount] = useState(0);
+
+  const anchorRef = useRef<{
+    anchorId: string | null;
+    anchorOffset: number;
+    beforeScrollHeight: number;
+    beforeScrollTop: number;
+  } | null>(null);
+
+  const captureScrollAnchor = useCallback(() => {
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const children = Array.from(container.querySelectorAll("[data-message-id]"));
+    const containerTop = container.getBoundingClientRect().top;
+    let anchorId: string | null = null;
+    let anchorOffset = 0;
+
+    for (const child of children) {
+      const rect = child.getBoundingClientRect();
+      if (rect.bottom > containerTop) {
+        anchorId = child.getAttribute("data-message-id");
+        anchorOffset = rect.top - containerTop;
+        break;
+      }
+    }
+
+    anchorRef.current = {
+      anchorId,
+      anchorOffset,
+      beforeScrollHeight: container.scrollHeight,
+      beforeScrollTop: container.scrollTop,
+    };
+  }, []);
+
+  useLayoutEffect(() => {
+    if (!anchorRef.current) return;
+    const container = messagesContainerRef.current;
+    if (!container) return;
+
+    const { anchorId, anchorOffset, beforeScrollHeight, beforeScrollTop } = anchorRef.current;
+    anchorRef.current = null;
+
+    if (anchorId) {
+      const anchorEl = container.querySelector(`[data-message-id="${anchorId}"]`);
+      if (anchorEl) {
+        const newOffset = anchorEl.getBoundingClientRect().top - container.getBoundingClientRect().top;
+        const delta = newOffset - anchorOffset;
+        container.scrollTop += delta;
+        return;
+      }
+    }
+
+    const newScrollHeight = container.scrollHeight;
+    container.scrollTop = beforeScrollTop + (newScrollHeight - beforeScrollHeight);
+  }, [olderMessages]);
 
   const scrollToBottom = (smooth = true) => {
     messagesEndRef.current?.scrollIntoView({ behavior: smooth ? "smooth" : "auto" });
@@ -693,6 +763,21 @@ export default function InboxPage() {
     if (!el) return;
     const isFarFromBottom = el.scrollHeight - el.scrollTop - el.clientHeight > 140;
     setShowJumpToBottom(isFarFromBottom);
+
+    if (!isFarFromBottom) {
+      setNewMessageCount(0);
+    }
+
+    if (
+      el.scrollTop < 150 &&
+      hasMoreOlderMessages &&
+      !isLoadingNextBatch &&
+      !paginationError &&
+      Boolean(nextCursor)
+    ) {
+      captureScrollAnchor();
+      void loadNextBatchAsync();
+    }
   };
 
   useEffect(() => {
@@ -717,6 +802,7 @@ export default function InboxPage() {
     setOptimisticMessages([]);
     setComposerFeedback(null);
     setShowJumpToBottom(false);
+    setNewMessageCount(0);
 
     const timer = setTimeout(() => scrollToBottom(false), 50);
     return () => clearTimeout(timer);
@@ -770,37 +856,22 @@ export default function InboxPage() {
   const [lightboxImageId, setLightboxImageId] = useState<string | null>(null);
 
   const displayedMessages = useMemo(() => {
-    const persistedMessages = detail?.messages ?? [];
-
-    if (optimisticMessages.length === 0) {
-      return persistedMessages;
-    }
-
-    const messagesById = new Map<string, (typeof persistedMessages)[number]>();
-
-    optimisticMessages.forEach((message) => {
-      messagesById.set(message._id, message);
+    return mergeAndReconcileMessages({
+      initialMessages: detail?.messages ?? [],
+      historicalPages: [olderMessages],
+      optimisticMessages,
     });
-    persistedMessages.forEach((message) => {
-      messagesById.set(message._id, message);
-    });
-
-    return Array.from(messagesById.values()).sort((left, right) => {
-      const leftTime = getMessageTimestamp(left) ? new Date(getMessageTimestamp(left)).getTime() : 0;
-      const rightTime = getMessageTimestamp(right) ? new Date(getMessageTimestamp(right)).getTime() : 0;
-      return leftTime - rightTime;
-    });
-  }, [detail?.messages, optimisticMessages]);
+  }, [detail?.messages, olderMessages, optimisticMessages]);
 
   const lightboxImages = useMemo(() => {
     return displayedMessages
       .filter(
-        (m) =>
+        (m: MessageRecordV1) =>
           m.messageType === "image" ||
           m.media?.mimeType?.startsWith("image/") ||
           Boolean(m.media?.metaMediaId),
       )
-      .map((m) => {
+      .map((m: MessageRecordV1) => {
         const isOutgoing = m.direction === "outgoing";
         const senderName = isOutgoing
           ? "You"
@@ -824,7 +895,7 @@ export default function InboxPage() {
       return groups;
     }
 
-    displayedMessages.forEach((message) => {
+    displayedMessages.forEach((message: MessageRecordV1) => {
       const day = formatMessageDay(getMessageTimestamp(message));
       const existing = groups[groups.length - 1];
 
@@ -1290,6 +1361,34 @@ export default function InboxPage() {
                 ref={messagesContainerRef}
                 style={{ backgroundImage: "url('/whatsapp-bg.png')", backgroundSize: "450px" }}
               >
+                {isLoadingNextBatch ? (
+                  <div className="flex justify-center pb-3">
+                    <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/90 backdrop-blur px-3.5 py-1 text-xs font-semibold text-muted-foreground shadow-xs">
+                      <RefreshCw className="h-3 w-3 animate-spin text-primary" />
+                      <span>Loading earlier messages...</span>
+                    </div>
+                  </div>
+                ) : paginationError ? (
+                  <div className="flex justify-center pb-3">
+                    <div className="inline-flex items-center gap-2 rounded-full border border-destructive/30 bg-destructive/10 px-3.5 py-1 text-xs font-semibold text-destructive shadow-xs">
+                      <span>{paginationError}</span>
+                      <button
+                        type="button"
+                        onClick={() => void retryLoadOlder()}
+                        className="font-bold underline underline-offset-2 hover:opacity-80 cursor-pointer"
+                      >
+                        Retry
+                      </button>
+                    </div>
+                  </div>
+                ) : !hasMoreOlderMessages && !detailQuery.isLoading && messageGroups.length > 0 ? (
+                  <div className="flex justify-center pb-3">
+                    <span className="text-[11px] font-medium text-muted-foreground/70 tracking-wide uppercase">
+                      Beginning of conversation
+                    </span>
+                  </div>
+                ) : null}
+
                 {detailQuery.isLoading ? (
                   <div className="space-y-3">
                     {Array.from({ length: 6 }).map((_, index) => (
@@ -1339,7 +1438,11 @@ export default function InboxPage() {
                           typeof locationData.longitude === "number";
 
                         return (
-                          <div className={cn("flex", outgoing ? "justify-end" : "justify-start")} key={message._id}>
+                          <div
+                            className={cn("flex", outgoing ? "justify-end" : "justify-start")}
+                            data-message-id={message._id}
+                            key={message._id}
+                          >
                             <div
                               className={cn(
                                 "max-w-[65%] rounded-xl px-3.5 py-2.5 border shadow-subtle",
@@ -1406,6 +1509,24 @@ export default function InboxPage() {
                     </div>
                   </div>
                 ))}
+                {(showJumpToBottom || newMessageCount > 0) && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewMessageCount(0);
+                      scrollToBottom(true);
+                    }}
+                    className="absolute bottom-4 right-8 z-20 inline-flex items-center gap-1.5 rounded-full border border-border bg-primary text-primary-foreground px-3.5 py-1.5 text-xs font-semibold shadow-md transition-all hover:scale-105 cursor-pointer"
+                  >
+                    <ArrowDown className="h-3.5 w-3.5" />
+                    <span>
+                      {newMessageCount > 0
+                        ? `${newMessageCount} new message${newMessageCount > 1 ? "s" : ""}`
+                        : "Jump to bottom"}
+                    </span>
+                  </button>
+                )}
+                <div ref={messagesEndRef} />
               </div>
 
               <div className="border-t border-[#E4E4E7] bg-white px-4 py-2.5 dark:border-[#24272A] dark:bg-[#121416]">
@@ -2127,7 +2248,7 @@ export default function InboxPage() {
           images={lightboxImages}
           initialIndex={Math.max(
             0,
-            lightboxImages.findIndex((img) => img.messageId === lightboxImageId),
+            lightboxImages.findIndex((img: { messageId: string }) => img.messageId === lightboxImageId),
           )}
           onClose={() => setLightboxImageId(null)}
         />

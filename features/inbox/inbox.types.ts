@@ -2,9 +2,11 @@ import type {
   ActivityRecordV1,
   ContactRecordV1,
   ConversationRecordV1,
-  NoteRecordV1,
   MessageRecordV1,
+  NoteRecordV1,
 } from "../../lib/api/v1-types";
+
+export type { MessageRecordV1 };
 
 export interface InboxThreadRecordV1 {
   contact: Pick<

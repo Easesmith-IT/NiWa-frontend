@@ -19,15 +19,21 @@ export const listInboxThreadsV1 = async (params?: {
 export const getInboxThreadDetailV1 = async (
   conversationId: string,
   params?: { cursor?: string | null; messageLimit?: number },
+  options?: { signal?: AbortSignal },
 ) => {
   const response = await v1ApiClient.get<{
     data: InboxThreadDetailV1;
-    pagination: V1ListResponse<never>["pagination"];
+    pagination: {
+      nextCursor: string | null;
+      hasMore: boolean;
+      limit: number;
+    };
   }>(`/inbox/${conversationId}`, {
     params: {
       cursor: params?.cursor || undefined,
       messageLimit: params?.messageLimit,
     },
+    signal: options?.signal,
   });
 
   return response.data;
