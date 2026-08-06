@@ -23,6 +23,10 @@ export interface HumanHandoffTriggers {
   sensitiveRequest: boolean;
 }
 
+export type ScopeLevel = "strict" | "focused" | "flexible" | "general";
+export type AutonomyLevel = "answer_only" | "assist" | "goal_driven" | "action_enabled";
+export type KnowledgePolicy = "grounded_only" | "grounded_business" | "assisted" | "open";
+
 export interface BusinessAISettings {
   workspaceId: string;
   templateId: string;
@@ -38,6 +42,22 @@ export interface BusinessAISettings {
   responseLength: "short" | "balanced" | "detailed";
   questionsPerReply: number;
   behavior: AgentBehaviorConfig;
+  // Scope & Boundaries
+  scopeLevel: ScopeLevel;
+  autonomyLevel: AutonomyLevel;
+  knowledgePolicy: KnowledgePolicy;
+  capabilities: string[];
+  restrictedCapabilities: string[];
+  primaryObjective: string;
+  secondaryObjectives: string[];
+  allowAdjacentTopics: boolean;
+  allowGeneralKnowledge: boolean;
+  allowCasualConversation: boolean;
+  redirectOutOfScope: boolean;
+  outOfScopeMessage: string;
+  knowledgePackIds: string[];
+  recommendedIntegrations: string[];
+  enabledTools: string[];
   languageMode: "auto" | "english" | "hindi" | "hinglish" | "custom";
   matchCustomerLanguage: boolean;
   allowHinglish: boolean;
@@ -69,8 +89,26 @@ export interface AgentTemplatePreset {
   id: string;
   name: string;
   description: string;
+  category: "business" | "real_estate" | "travel" | "healthcare" | "support" | "sales" | "ecommerce" | "custom";
   icon: string;
   preset: Partial<BusinessAISettings>;
+}
+
+export interface KnowledgePackEntry {
+  id: string;
+  topic: string;
+  content: string;
+  keywords: string[];
+}
+
+export interface KnowledgePack {
+  id: string;
+  name: string;
+  description: string;
+  category: string;
+  version: string;
+  status: "active" | "deprecated";
+  entries: KnowledgePackEntry[];
 }
 
 export interface KnowledgeSource {
@@ -91,6 +129,18 @@ export interface ScoredChunk {
   sourceTitle: string;
   sourceId: string;
   score: number;
+  sourceType?: "workspace" | "template_pack" | "integration";
+}
+
+export interface DecisionTrace {
+  scope: string;
+  scopeConfidence: number;
+  scopeReason: string;
+  knowledgePolicy: string;
+  knowledgeUsed: string;
+  memoryUsed: string;
+  objective: string;
+  action: string;
 }
 
 export interface AITestResponse {
@@ -106,6 +156,7 @@ export interface AITestResponse {
   knowledgeSources: string[];
   usedChunks: string[];
   scoredChunks: ScoredChunk[];
+  decisionTrace?: DecisionTrace;
 }
 
 export interface AIActivityLog {
@@ -170,6 +221,11 @@ export const fetchAIActivityLogs = async (): Promise<{
 
 export const fetchKnowledgeSources = async (): Promise<{ sources: KnowledgeSource[] }> => {
   const response = await v1ApiClient.get<{ sources: KnowledgeSource[] }>("/ai-agent/knowledge");
+  return response.data;
+};
+
+export const fetchKnowledgePacks = async (): Promise<{ packs: KnowledgePack[] }> => {
+  const response = await v1ApiClient.get<{ packs: KnowledgePack[] }>("/ai-agent/knowledge-packs");
   return response.data;
 };
 

@@ -57,6 +57,14 @@ import {
   AgentTemplatePreset,
 } from "../../../features/ai-agent";
 
+import { AgentLibrary } from "./components/AgentLibrary";
+import { AgentScopeSettings } from "./components/AgentScopeSettings";
+import { KnowledgePolicySelector } from "./components/KnowledgePolicySelector";
+import { AgentCapabilitiesEditor } from "./components/AgentCapabilitiesEditor";
+import { AgentObjectiveSettings } from "./components/AgentObjectiveSettings";
+import { AgentContractSummary } from "./components/AgentContractSummary";
+import { AgentDecisionTrace } from "./components/AgentDecisionTrace";
+
 export default function AIAgentPage() {
   const [activeTab, setActiveTab] = useState<"settings" | "knowledge" | "playground" | "activity">("settings");
   const [testQuery, setTestQuery] = useState("");
@@ -483,90 +491,17 @@ export default function AIAgentPage() {
       <div className="p-6">
         {activeTab === "settings" && (
           <div className="space-y-6 max-w-6xl mx-auto">
-            {/* Live Configuration Preview Card */}
-            <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
-              <div className="flex items-center gap-3">
-                <div className="h-10 w-10 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center text-primary font-bold">
-                  <Sparkles className="h-5 w-5" />
-                </div>
-                <div>
-                  <h2 className="text-base font-bold text-foreground">
-                    {currentData.agentName || "AI Assistant"}
-                  </h2>
-                  <p className="text-xs text-muted-foreground">
-                    {currentData.agentRole || "Assistant"} • {currentData.businessName || "Organization"}
-                  </p>
-                </div>
-              </div>
+            {/* Agent Contract Visual Overview */}
+            <AgentContractSummary settings={currentData} />
 
-              <div className="flex flex-wrap items-center gap-2 text-xs">
-                <span className="rounded-full bg-card px-2.5 py-1 font-semibold border border-border text-foreground capitalize">
-                  {currentData.conversationStyle || "consultative"}
-                </span>
-                <span className="rounded-full bg-card px-2.5 py-1 font-semibold border border-border text-foreground capitalize">
-                  {currentData.responseStyle || "professional"}
-                </span>
-                <span className="rounded-full bg-card px-2.5 py-1 font-semibold border border-border text-foreground capitalize">
-                  {currentData.responseLength || "short"}
-                </span>
-                <span className="rounded-full bg-card px-2.5 py-1 font-semibold border border-border text-foreground capitalize">
-                  Language: {currentData.languageMode || "auto"}
-                </span>
-                <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 font-semibold text-emerald-600 border border-emerald-500/20">
-                  Memory: {(currentData.memorySchema || []).length} Fields
-                </span>
-                {currentData.humanHandoffEnabled && (
-                  <span className="rounded-full bg-blue-500/10 px-2.5 py-1 font-semibold text-blue-600 border border-blue-500/20">
-                    Handoff Enabled
-                  </span>
-                )}
-              </div>
-            </div>
-
-            {/* Template Selector Section */}
-            <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h3 className="text-base font-bold text-foreground flex items-center gap-2">
-                    <Zap className="h-5 w-5 text-amber-500" />
-                    Start from Template Preset
-                  </h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    Select a configuration starting point. Templates populate identity, diagnostic behavior, instructions, and recommended memory schemas.
-                  </p>
-                </div>
-                <span className="text-xs font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-md border border-border">
-                  Active Template: <strong className="text-foreground capitalize">{currentData.templateId || "business_consultant"}</strong>
-                </span>
-              </div>
-
-              {/* Template Cards Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-                {templates.map((tpl) => {
-                  const isSelected = currentData.templateId === tpl.id;
-                  return (
-                    <button
-                      key={tpl.id}
-                      type="button"
-                      onClick={() => handleSelectTemplate(tpl.id)}
-                      className={cn(
-                        "flex flex-col text-left p-3.5 rounded-lg border transition-all text-xs space-y-1.5 relative",
-                        isSelected
-                          ? "border-primary bg-primary/10 shadow-sm ring-1 ring-primary/30"
-                          : "border-border bg-card hover:bg-accent/50 hover:border-primary/40",
-                      )}
-                    >
-                      <div className="flex items-center justify-between font-bold text-sm text-foreground">
-                        <span>{tpl.name}</span>
-                        {isSelected && <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />}
-                      </div>
-                      <p className="text-muted-foreground line-clamp-2 leading-relaxed">
-                        {tpl.description}
-                      </p>
-                    </button>
-                  );
-                })}
-              </div>
+            {/* Enterprise Agent Library Section */}
+            <div className="rounded-xl border border-border bg-card p-6 shadow-sm">
+              <AgentLibrary
+                templates={templates}
+                activeTemplateId={currentData.templateId || "business_consultant"}
+                onApplyTemplate={executeApplyTemplate}
+                isApplying={applyTemplateMutation.isPending}
+              />
             </div>
 
             {/* 1. Identity Section */}
@@ -725,6 +660,135 @@ export default function AIAgentPage() {
                     );
                   })}
                 </div>
+              </div>
+            </div>
+
+            {/* AGENT SCOPE & BOUNDARIES SECTION */}
+            <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-6">
+              <h3 className="text-base font-bold text-foreground border-b border-border pb-3 flex items-center gap-2">
+                <Shield className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                Agent Scope & Boundaries Controls
+              </h3>
+
+              {/* Scope Level Selector */}
+              <AgentScopeSettings
+                value={currentData.scopeLevel || "focused"}
+                onChange={(val) => handleUpdateField("scopeLevel", val)}
+              />
+
+              {/* Autonomy Level Selector */}
+              <div className="space-y-3">
+                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-700 dark:text-slate-300">
+                  Agent Autonomy Level
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                  {[
+                    { id: "answer_only", title: "Answer Only", desc: "Respond to questions. Do not proactively qualify or drive toward objectives." },
+                    { id: "assist", title: "Assist (Default)", desc: "Answer questions and ask useful follow-up questions to recommend next steps." },
+                    { id: "goal_driven", title: "Goal Driven", desc: "Actively guide conversation toward primary objective progressively." },
+                    { id: "action_enabled", title: "Action Enabled", desc: "Goal-driven behavior plus execution of explicitly enabled workflow tools." },
+                  ].map((aut) => {
+                    const isSelected = (currentData.autonomyLevel || "assist") === aut.id;
+                    return (
+                      <div
+                        key={aut.id}
+                        onClick={() => handleUpdateField("autonomyLevel", aut.id as any)}
+                        className={cn(
+                          "p-3 rounded-lg border cursor-pointer transition-all text-xs flex flex-col justify-between space-y-1.5",
+                          isSelected
+                            ? "border-blue-600 bg-blue-50/50 dark:border-blue-500 dark:bg-blue-950/30 ring-1 ring-blue-600 dark:ring-blue-500"
+                            : "border-border bg-card hover:bg-accent/40",
+                        )}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span className="font-bold text-foreground">{aut.title}</span>
+                          {isSelected && <span className="h-2 w-2 rounded-full bg-blue-600" />}
+                        </div>
+                        <p className="text-[11px] text-muted-foreground leading-snug">{aut.desc}</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Knowledge Policy Selector */}
+              <KnowledgePolicySelector
+                value={currentData.knowledgePolicy || "grounded_business"}
+                onChange={(val) => handleUpdateField("knowledgePolicy", val)}
+              />
+
+              {/* Objectives Editor */}
+              <AgentObjectiveSettings
+                primaryObjective={currentData.primaryObjective || ""}
+                secondaryObjectives={currentData.secondaryObjectives || []}
+                onChangePrimary={(val) => handleUpdateField("primaryObjective", val)}
+                onChangeSecondary={(val) => handleUpdateField("secondaryObjectives", val)}
+              />
+
+              {/* Capabilities & Restrictions Editor */}
+              <AgentCapabilitiesEditor
+                capabilities={currentData.capabilities || []}
+                restrictedCapabilities={currentData.restrictedCapabilities || []}
+                onChangeCapabilities={(caps) => handleUpdateField("capabilities", caps)}
+                onChangeRestricted={(rests) => handleUpdateField("restrictedCapabilities", rests)}
+              />
+
+              {/* Collapsible Advanced Scope Toggles */}
+              <div className="pt-2 border-t border-border">
+                <button
+                  type="button"
+                  onClick={() => setShowAdvancedInstructions(!showAdvancedInstructions)}
+                  className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showAdvancedInstructions ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  Advanced Scope Toggles & Out-of-Scope Redirect Message
+                </button>
+
+                {showAdvancedInstructions && (
+                  <div className="mt-4 p-4 rounded-lg border border-border bg-muted/20 space-y-4 text-xs">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {[
+                        { key: "allowAdjacentTopics", label: "Allow Adjacent Topics", desc: "Allow questions closely related to current conversation" },
+                        { key: "allowGeneralKnowledge", label: "Allow General Knowledge", desc: "Permit general domain knowledge where appropriate" },
+                        { key: "allowCasualConversation", label: "Allow Casual Conversation", desc: "Process greetings and acknowledgements gracefully" },
+                        { key: "redirectOutOfScope", label: "Redirect Out-of-Scope Questions", desc: "Politely redirect queries exceeding scope boundaries" },
+                      ].map((tog) => {
+                        const isChecked = Boolean((currentData as any)[tog.key] !== false);
+                        return (
+                          <label
+                            key={tog.key}
+                            className={cn(
+                              "flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors text-xs bg-card",
+                              isChecked ? "border-primary/30" : "border-border opacity-75",
+                            )}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(e) => handleUpdateField(tog.key as any, e.target.checked)}
+                              className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                            />
+                            <div>
+                              <span className="font-bold text-foreground block">{tog.label}</span>
+                              <span className="text-muted-foreground text-[11px] leading-tight block">{tog.desc}</span>
+                            </div>
+                          </label>
+                        );
+                      })}
+                    </div>
+
+                    <div className="space-y-1.5 pt-2">
+                      <label className="font-bold text-foreground">Out-of-Scope Redirect Response (Max 500 chars)</label>
+                      <Textarea
+                        rows={2}
+                        maxLength={500}
+                        value={currentData.outOfScopeMessage || ""}
+                        onChange={(e) => handleUpdateField("outOfScopeMessage", e.target.value)}
+                        placeholder="I specialize in assistance related to our organization's role and services. How can I help you with those?"
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 
@@ -1186,9 +1250,19 @@ export default function AIAgentPage() {
               </form>
 
               {testingMutation.data && (
-                <div className="mt-4 p-4 rounded-lg border border-border bg-muted/20 space-y-3 text-xs">
-                  <div className="font-bold text-primary">AI Output:</div>
-                  <p className="text-sm font-medium whitespace-pre-wrap">{testingMutation.data.response}</p>
+                <div className="mt-4 space-y-4">
+                  <div className="p-4 rounded-lg border border-border bg-muted/20 space-y-2 text-xs">
+                    <div className="font-bold text-primary flex items-center justify-between">
+                      <span>AI Output Response:</span>
+                      <span className="text-[11px] font-mono text-muted-foreground">{testingMutation.data.model}</span>
+                    </div>
+                    <p className="text-sm font-medium whitespace-pre-wrap text-foreground leading-relaxed">
+                      {testingMutation.data.response}
+                    </p>
+                  </div>
+
+                  {/* System Decision Trace */}
+                  <AgentDecisionTrace trace={testingMutation.data.decisionTrace} />
                 </div>
               )}
             </div>

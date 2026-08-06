@@ -6,6 +6,7 @@ import {
   fetchAIActivityLogs,
   fetchAISettings,
   fetchAITemplates,
+  fetchKnowledgePacks,
   fetchKnowledgeSources,
   runAITestingPlayground,
   toggleKnowledgeSourceStatus,
@@ -20,12 +21,19 @@ export const aiAgentKeys = {
   templates: () => [...aiAgentKeys.all, "templates"] as const,
   activity: () => [...aiAgentKeys.all, "activity"] as const,
   knowledge: () => [...aiAgentKeys.all, "knowledge"] as const,
+  knowledgePacks: () => [...aiAgentKeys.all, "knowledge-packs"] as const,
 };
 
 export const useAISettingsQuery = () =>
   useQuery({
     queryKey: aiAgentKeys.settings(),
     queryFn: fetchAISettings,
+  });
+
+export const useKnowledgePacksQuery = () =>
+  useQuery({
+    queryKey: aiAgentKeys.knowledgePacks(),
+    queryFn: fetchKnowledgePacks,
   });
 
 export const useAITemplatesQuery = () =>
