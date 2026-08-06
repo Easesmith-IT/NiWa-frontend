@@ -615,17 +615,22 @@ export default function InboxPage() {
   );
 
   const activeConversationId = selectedThread?.conversation._id ?? null;
+  const threadMutationRef = useRef(threadMutation.mutate);
+  useEffect(() => {
+    threadMutationRef.current = threadMutation.mutate;
+  });
+
   const handleActiveMessageReceived = useCallback(
     (conversationId: string) => {
       const currentUnread = selectedThread?.conversation?.unreadCount ?? 0;
       if (currentUnread > 0) {
-        threadMutation.mutate({
+        threadMutationRef.current({
           action: "read",
           conversationId,
         });
       }
     },
-    [selectedThread?.conversation?.unreadCount, threadMutation],
+    [selectedThread?.conversation?.unreadCount],
   );
 
   useInboxRealtime(activeConversationId, handleActiveMessageReceived);
@@ -637,12 +642,12 @@ export default function InboxPage() {
     const key = `${activeConversationId}:${unread}`;
     if (unread > 0 && markedReadRef.current !== key) {
       markedReadRef.current = key;
-      threadMutation.mutate({
+      threadMutationRef.current({
         action: "read",
         conversationId: activeConversationId,
       });
     }
-  }, [activeConversationId, selectedThread?.conversation?.unreadCount, threadMutation]);
+  }, [activeConversationId, selectedThread?.conversation?.unreadCount]);
 
   const detailQuery = useInboxThreadDetailV1Query(activeConversationId, { messageLimit: 1000 });
   const syncHistoryMutation = useSyncInboxThreadHistoryV1Mutation();

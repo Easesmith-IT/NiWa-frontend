@@ -58,12 +58,12 @@ export const useInboxThreadStateMutation = () => {
       conversationId: string;
     }) => updateInboxThreadStateV1(conversationId, action),
     onSuccess: async (_result, variables) => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: v1QueryKeys.inbox }),
-        queryClient.invalidateQueries({
+      await queryClient.invalidateQueries({ queryKey: v1QueryKeys.inbox });
+      if (variables.action !== "read") {
+        await queryClient.invalidateQueries({
           queryKey: [...v1QueryKeys.inboxThread, variables.conversationId],
-        }),
-      ]);
+        });
+      }
     },
   });
 };
