@@ -4,60 +4,80 @@ import React from "react";
 import { AIAgent, KnowledgeSource } from "../../../../features/ai-agent/ai-agent.api";
 
 interface AgentKnowledgeSummaryProps {
-  agent: AIAgent;
+  agents: AIAgent[];
   sources: KnowledgeSource[];
-  onManageKnowledge: () => void;
+  selectedAgentId?: string;
+  onManageKnowledge?: () => void;
 }
 
 export const AgentKnowledgeSummary: React.FC<AgentKnowledgeSummaryProps> = ({
-  agent,
+  agents,
   sources,
+  selectedAgentId,
   onManageKnowledge,
 }) => {
+  const selectedAgent = agents.find((a) => a._id === selectedAgentId);
+
   const sharedSourcesCount = sources.filter((s) => s.accessMode === "all_agents").length;
-  const specificSourcesCount = sources.filter(
-    (s) => s.accessMode === "selected_agents" && s.assignedAgentIds.includes(agent._id),
-  ).length;
+  const specificSourcesCount = sources.filter((s) => s.accessMode === "selected_agents").length;
+  
+  const selectedAgentSpecificCount = selectedAgent
+    ? sources.filter(
+        (s) => s.accessMode === "selected_agents" && s.assignedAgentIds?.includes(selectedAgent._id),
+      ).length
+    : specificSourcesCount;
 
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+    <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-sm font-bold text-gray-900 dark:text-gray-100">Knowledge Access</h3>
-          <p className="text-xs text-gray-500 dark:text-gray-400">
-            Knowledge sources available to <span className="font-semibold">{agent.name}</span>
+          <h3 className="text-sm font-bold text-foreground">Knowledge Access Overview</h3>
+          <p className="text-xs text-muted-foreground">
+            {selectedAgent ? (
+              <>Showing active knowledge sources for <span className="font-semibold text-primary">{selectedAgent.name}</span></>
+            ) : (
+              <>Workspace knowledge visibility across <span className="font-semibold text-primary">{agents.length} Agent Instances</span></>
+            )}
           </p>
         </div>
-        <button
-          type="button"
-          onClick={onManageKnowledge}
-          className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-200 dark:hover:bg-gray-700"
-        >
-          Manage Knowledge →
-        </button>
+        {onManageKnowledge && (
+          <button
+            type="button"
+            onClick={onManageKnowledge}
+            className="rounded-lg border border-border bg-muted/40 px-3 py-1.5 text-xs font-semibold text-foreground hover:bg-accent transition-colors"
+          >
+            Manage Knowledge →
+          </button>
+        )}
       </div>
 
-      <div className="mt-4 grid grid-cols-3 gap-3">
-        <div className="rounded-lg border border-gray-100 bg-gray-50/60 p-3 dark:border-gray-800/80 dark:bg-gray-950/40">
-          <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500">SHARED WORKSPACE</span>
-          <p className="mt-1 text-lg font-bold text-gray-900 dark:text-gray-100">
-            {sharedSourcesCount} <span className="text-xs font-normal text-gray-500">sources</span>
+      <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/5 p-3">
+          <span className="text-[10px] font-bold tracking-wider text-emerald-600 dark:text-emerald-400 uppercase">
+            🌐 Shared Knowledge
+          </span>
+          <p className="mt-1 text-lg font-bold text-foreground">
+            {sharedSourcesCount} <span className="text-xs font-normal text-muted-foreground">sources (All Agents)</span>
           </p>
         </div>
 
-        <div className="rounded-lg border border-emerald-100 bg-emerald-50/40 p-3 dark:border-emerald-900/30 dark:bg-emerald-950/20">
-          <span className="text-[10px] font-medium text-emerald-600 dark:text-emerald-400">AGENT SPECIFIC</span>
-          <p className="mt-1 text-lg font-bold text-emerald-900 dark:text-emerald-200">
-            {specificSourcesCount} <span className="text-xs font-normal text-emerald-700 dark:text-emerald-400">sources</span>
+        <div className="rounded-lg border border-indigo-500/20 bg-indigo-500/5 p-3">
+          <span className="text-[10px] font-bold tracking-wider text-indigo-600 dark:text-indigo-400 uppercase">
+            🎯 Agent Specific
+          </span>
+          <p className="mt-1 text-lg font-bold text-foreground">
+            {selectedAgentSpecificCount} <span className="text-xs font-normal text-muted-foreground">sources {selectedAgent ? `for ${selectedAgent.name}` : "(Restricted)"}</span>
           </p>
         </div>
 
-        <div className="rounded-lg border border-purple-100 bg-purple-50/40 p-3 dark:border-purple-900/30 dark:bg-purple-950/20">
-          <span className="text-[10px] font-medium text-purple-600 dark:text-purple-400">TEMPLATE PACKS</span>
-          <p className="mt-1 text-xs font-bold text-purple-900 dark:text-purple-200 truncate">
-            {agent.knowledgePackIds && agent.knowledgePackIds.length > 0
-              ? agent.knowledgePackIds.join(", ")
-              : "None"}
+        <div className="rounded-lg border border-purple-500/20 bg-purple-500/5 p-3">
+          <span className="text-[10px] font-bold tracking-wider text-purple-600 dark:text-purple-400 uppercase">
+            ⚡ Platform Packs
+          </span>
+          <p className="mt-1 text-xs font-bold text-foreground truncate leading-relaxed">
+            {selectedAgent && selectedAgent.knowledgePackIds?.length > 0
+              ? selectedAgent.knowledgePackIds.join(", ")
+              : `${agents.filter((a) => a.knowledgePackIds?.length > 0).length} Agents configured`}
           </p>
         </div>
       </div>

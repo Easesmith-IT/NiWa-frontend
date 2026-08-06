@@ -40,6 +40,7 @@ import { Input } from "../../../components/ui/input";
 import { Textarea } from "../../../components/ui/textarea";
 import { cn } from "../../../lib/utils";
 import {
+  useAgentsQuery,
   useAIActivityLogsQuery,
   useAISettingsQuery,
   useAITemplatesQuery,
@@ -51,6 +52,7 @@ import {
   useToggleKnowledgeSourceStatusMutation,
   useUpdateAISettingsMutation,
   useUpdateKnowledgeSourceMutation,
+  AIAgent,
   BusinessAISettings,
   KnowledgeSource,
   AIActivityLog,
@@ -65,6 +67,9 @@ import { AgentCapabilitiesEditor } from "./components/AgentCapabilitiesEditor";
 import { AgentObjectiveSettings } from "./components/AgentObjectiveSettings";
 import { AgentContractSummary } from "./components/AgentContractSummary";
 import { AgentDecisionTrace } from "./components/AgentDecisionTrace";
+import { KnowledgeFilters, AccessFilter } from "./components/KnowledgeFilters";
+import { KnowledgeAccessSelector } from "./components/KnowledgeAccessSelector";
+import { AgentKnowledgeSummary } from "./components/AgentKnowledgeSummary";
 
 export default function AIAgentPage() {
   const [activeTab, setActiveTab] = useState<"settings" | "knowledge" | "playground" | "activity">("settings");
@@ -96,14 +101,21 @@ export default function AIAgentPage() {
   const [sourceQuestion, setSourceQuestion] = useState("");
   const [sourceAnswer, setSourceAnswer] = useState("");
 
+  // Agent Knowledge Access State
+  const [selectedKnowledgeAgentId, setSelectedKnowledgeAgentId] = useState<string>("");
+  const [accessFilter, setAccessFilter] = useState<AccessFilter>("all");
+  const [sourceAccessMode, setSourceAccessMode] = useState<"all_agents" | "selected_agents">("all_agents");
+  const [sourceAssignedAgentIds, setSourceAssignedAgentIds] = useState<string[]>([]);
+
   // Queries & Mutations
+  const agentsQuery = useAgentsQuery();
   const settingsQuery = useAISettingsQuery();
   const templatesQuery = useAITemplatesQuery();
   const updateSettingsMutation = useUpdateAISettingsMutation();
   const applyTemplateMutation = useApplyAITemplateMutation();
   const testingMutation = useAITestingPlaygroundMutation();
   const activityQuery = useAIActivityLogsQuery();
-  const knowledgeQuery = useKnowledgeSourcesQuery();
+  const knowledgeQuery = useKnowledgeSourcesQuery(selectedKnowledgeAgentId || undefined);
 
   const createKnowledgeMutation = useCreateKnowledgeSourceMutation();
   const updateKnowledgeMutation = useUpdateKnowledgeSourceMutation();
@@ -301,6 +313,8 @@ export default function AIAgentPage() {
     setSourceContent("");
     setSourceQuestion("");
     setSourceAnswer("");
+    setSourceAccessMode("all_agents");
+    setSourceAssignedAgentIds([]);
     setIsAddKnowledgeOpen(true);
   };
 
@@ -311,6 +325,8 @@ export default function AIAgentPage() {
     setSourceContent(source.content || "");
     setSourceQuestion(source.question || "");
     setSourceAnswer(source.answer || "");
+    setSourceAccessMode(source.accessMode || "all_agents");
+    setSourceAssignedAgentIds(source.assignedAgentIds || []);
     setIsAddKnowledgeOpen(true);
   };
 
@@ -318,31 +334,28 @@ export default function AIAgentPage() {
   const handleRunTest = (e: React.FormEvent) => {
     e.preventDefault();
     if (!testQuery.trim()) return;
-    testingMutation.mutate({ query: testQuery.trim() });
+    testingMutation.mutate({ query: testQuery.trim(), agentId: selectedKnowledgeAgentId || undefined });
   };
 
   const handleSaveKnowledge = (e: React.FormEvent) => {
     e.preventDefault();
+    const payload = {
+      title: sourceType === "text" ? sourceTitle : (sourceTitle || sourceQuestion),
+      content: sourceContent,
+      question: sourceQuestion,
+      answer: sourceAnswer,
+      accessMode: sourceAccessMode,
+      assignedAgentIds: sourceAccessMode === "selected_agents" ? sourceAssignedAgentIds : [],
+    };
+
     if (editingSource) {
       updateKnowledgeMutation.mutate(
-        {
-          id: editingSource._id,
-          title: sourceType === "text" ? sourceTitle : (sourceTitle || sourceQuestion),
-          content: sourceContent,
-          question: sourceQuestion,
-          answer: sourceAnswer,
-        },
+        { id: editingSource._id, ...payload },
         { onSuccess: () => setIsAddKnowledgeOpen(false) },
       );
     } else {
       createKnowledgeMutation.mutate(
-        {
-          type: sourceType,
-          title: sourceType === "text" ? sourceTitle : (sourceTitle || sourceQuestion),
-          content: sourceContent,
-          question: sourceQuestion,
-          answer: sourceAnswer,
-        },
+        { type: sourceType, ...payload },
         { onSuccess: () => setIsAddKnowledgeOpen(false) },
       );
     }
@@ -1183,10 +1196,11 @@ export default function AIAgentPage() {
         {/* Knowledge Tab */}
         {activeTab === "knowledge" && (
           <div className="space-y-6 max-w-6xl mx-auto">
-            <div className="flex justify-between items-center">
+            {/* Header & Add Buttons */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
                 <h3 className="text-lg font-bold">Knowledge Base Sources</h3>
-                <p className="text-xs text-muted-foreground">Add text documents or Q&A pairs for precision RAG retrieval.</p>
+                <p className="text-xs text-muted-foreground">Add text documents or Q&A pairs for precision RAG retrieval with Agent-Scoped access controls.</p>
               </div>
               <div className="flex gap-2">
                 <Button onClick={() => handleOpenAddKnowledge("text")} size="sm" className="gap-1.5">
@@ -1197,16 +1211,53 @@ export default function AIAgentPage() {
                 </Button>
               </div>
             </div>
+
+            {/* Knowledge Overview Summary */}
+            <AgentKnowledgeSummary
+              agents={agentsQuery.data?.agents || []}
+              sources={knowledgeQuery.data?.sources || []}
+              selectedAgentId={selectedKnowledgeAgentId}
+            />
+
+            {/* Access & Agent Instance Filter Toolbar */}
+            <KnowledgeFilters
+              accessFilter={accessFilter}
+              selectedAgentId={selectedKnowledgeAgentId}
+              agents={agentsQuery.data?.agents || []}
+              onChangeAccessFilter={setAccessFilter}
+              onChangeSelectedAgent={setSelectedKnowledgeAgentId}
+            />
+
             {/* Knowledge List */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {(knowledgeQuery.data?.sources || []).map((source: KnowledgeSource) => (
-                <div key={source._id} className="p-4 rounded-xl border border-border bg-card space-y-2 relative">
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold uppercase tracking-wider text-primary">{source.type}</span>
+              {(knowledgeQuery.data?.sources || [])
+                .filter((source: KnowledgeSource) => {
+                  if (accessFilter === "shared") return source.accessMode === "all_agents";
+                  if (accessFilter === "agent_specific") return source.accessMode === "selected_agents";
+                  return true;
+                })
+                .map((source: KnowledgeSource) => (
+                <div key={source._id} className="p-4 rounded-xl border border-border bg-card space-y-3.5 relative shadow-sm hover:shadow-md transition-all">
+                  <div className="flex items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
+                      <span className="text-[11px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded border border-primary/20">
+                        {source.type}
+                      </span>
+                      {source.accessMode === "all_agents" ? (
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-700 dark:text-emerald-300 border border-emerald-500/20">
+                          🌐 Shared (All Agents)
+                        </span>
+                      ) : (
+                        <span className="text-[11px] font-semibold px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-700 dark:text-indigo-300 border border-indigo-500/20">
+                          🎯 Selected ({source.assignedAgentIds?.length || 0} Agent{(source.assignedAgentIds?.length || 0) === 1 ? "" : "s"})
+                        </span>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-1.5">
                       <button
+                        type="button"
                         onClick={() => toggleKnowledgeStatusMutation.mutate({ id: source._id, status: source.status === "ready" ? "disabled" : "ready" })}
-                        className={cn("text-xs font-semibold px-2 py-0.5 rounded", source.status === "ready" ? "bg-emerald-500/10 text-emerald-600" : "bg-muted text-muted-foreground")}
+                        className={cn("text-xs font-semibold px-2 py-0.5 rounded transition-colors", source.status === "ready" ? "bg-emerald-500/10 text-emerald-600" : "bg-muted text-muted-foreground")}
                       >
                         {source.status}
                       </button>
@@ -1218,10 +1269,12 @@ export default function AIAgentPage() {
                       </Button>
                     </div>
                   </div>
-                  <h4 className="font-bold text-sm">{source.title}</h4>
-                  <p className="text-xs text-muted-foreground line-clamp-3">
-                    {source.type === "faq" ? `Q: ${source.question}\nA: ${source.answer}` : source.content}
-                  </p>
+                  <div>
+                    <h4 className="font-bold text-sm text-foreground">{source.title}</h4>
+                    <p className="text-xs text-muted-foreground line-clamp-3 mt-1 leading-relaxed">
+                      {source.type === "faq" ? `Q: ${source.question}\nA: ${source.answer}` : source.content}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -1413,7 +1466,7 @@ export default function AIAgentPage() {
       {/* Add / Edit Knowledge Modal */}
       {isAddKnowledgeOpen && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <form onSubmit={handleSaveKnowledge} className="bg-card border border-border rounded-xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+          <form onSubmit={handleSaveKnowledge} className="bg-card border border-border rounded-xl max-w-lg w-full p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
             <h3 className="text-base font-bold">{editingSource ? "Edit Knowledge Source" : "Add Knowledge Source"}</h3>
             <div className="space-y-3 text-xs">
               <div className="space-y-1">
@@ -1423,7 +1476,7 @@ export default function AIAgentPage() {
               {sourceType === "text" ? (
                 <div className="space-y-1">
                   <label className="font-bold">Content</label>
-                  <Textarea rows={5} value={sourceContent} onChange={(e) => setSourceContent(e.target.value)} required />
+                  <Textarea rows={4} value={sourceContent} onChange={(e) => setSourceContent(e.target.value)} required />
                 </div>
               ) : (
                 <>
@@ -1437,8 +1490,19 @@ export default function AIAgentPage() {
                   </div>
                 </>
               )}
+
+              {/* Agent Access Control Selector */}
+              <div className="pt-3 border-t border-border">
+                <KnowledgeAccessSelector
+                  accessMode={sourceAccessMode}
+                  assignedAgentIds={sourceAssignedAgentIds}
+                  agents={agentsQuery.data?.agents || []}
+                  onChangeAccessMode={setSourceAccessMode}
+                  onChangeAssignedAgents={setSourceAssignedAgentIds}
+                />
+              </div>
             </div>
-            <div className="flex justify-end gap-3">
+            <div className="flex justify-end gap-3 pt-2 border-t border-border">
               <Button type="button" variant="outline" size="sm" onClick={() => setIsAddKnowledgeOpen(false)}>
                 Cancel
               </Button>
