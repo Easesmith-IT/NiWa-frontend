@@ -14,7 +14,7 @@ export const useInboxThreadsV1Query = (params: {
   search: string;
 }) =>
   useQuery({
-    refetchInterval: 10000,
+    refetchInterval: 30000,
     refetchOnReconnect: true,
     refetchOnWindowFocus: true,
     queryKey: [...v1QueryKeys.inbox, params.filter, params.search],
@@ -33,7 +33,7 @@ export const useInboxThreadDetailV1Query = (
 ) =>
   useQuery({
     enabled: Boolean(conversationId),
-    refetchInterval: conversationId ? 5000 : false,
+    refetchInterval: conversationId ? 30000 : false,
     refetchOnReconnect: true,
     refetchOnWindowFocus: true,
     queryKey: [...v1QueryKeys.inboxThread, conversationId, params?.cursor ?? null, params?.messageLimit ?? null],

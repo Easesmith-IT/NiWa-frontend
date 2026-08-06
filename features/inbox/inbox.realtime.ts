@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -35,6 +35,16 @@ export const useInboxRealtime = (
   onActiveMessageReceived?: (conversationId: string) => void,
 ) => {
   const queryClient = useQueryClient();
+  const onActiveMessageReceivedRef = useRef(onActiveMessageReceived);
+  const activeConversationIdRef = useRef(activeConversationId);
+
+  useEffect(() => {
+    onActiveMessageReceivedRef.current = onActiveMessageReceived;
+  }, [onActiveMessageReceived]);
+
+  useEffect(() => {
+    activeConversationIdRef.current = activeConversationId;
+  }, [activeConversationId]);
 
   useEffect(() => {
     if (!isSocketIoRealtimeEnabled()) {
@@ -61,12 +71,13 @@ export const useInboxRealtime = (
     };
 
     const invalidateActiveThread = (conversationId?: string) => {
-      if (!activeConversationId || !conversationId || activeConversationId !== conversationId) {
+      const currentActiveId = activeConversationIdRef.current;
+      if (!currentActiveId || !conversationId || currentActiveId !== conversationId) {
         return;
       }
 
       void queryClient.invalidateQueries({
-        queryKey: [...v1QueryKeys.inboxThread, activeConversationId],
+        queryKey: [...v1QueryKeys.inboxThread, currentActiveId],
       });
     };
 
@@ -74,8 +85,9 @@ export const useInboxRealtime = (
       const conversationId = event?.payload?.conversationId;
       invalidateInbox();
       invalidateActiveThread(conversationId);
-      if (activeConversationId && conversationId === activeConversationId) {
-        onActiveMessageReceived?.(conversationId);
+      const currentActiveId = activeConversationIdRef.current;
+      if (currentActiveId && conversationId === currentActiveId) {
+        onActiveMessageReceivedRef.current?.(conversationId);
       }
     });
 
@@ -83,8 +95,9 @@ export const useInboxRealtime = (
       const conversationId = event?.payload?.conversationId;
       invalidateInbox();
       invalidateActiveThread(conversationId);
-      if (activeConversationId && conversationId === activeConversationId) {
-        onActiveMessageReceived?.(conversationId);
+      const currentActiveId = activeConversationIdRef.current;
+      if (currentActiveId && conversationId === currentActiveId) {
+        onActiveMessageReceivedRef.current?.(conversationId);
       }
     });
 
@@ -100,5 +113,5 @@ export const useInboxRealtime = (
     return () => {
       socket.disconnect();
     };
-  }, [activeConversationId, onActiveMessageReceived, queryClient]);
+  }, [queryClient]);
 };
