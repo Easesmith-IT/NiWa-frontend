@@ -42,9 +42,13 @@ export const useInboxRealtime = (
     }
 
     const realtimeUrl = resolveRealtimeUrl();
+    const transports = process.env.NEXT_PUBLIC_SOCKET_TRANSPORTS
+      ? process.env.NEXT_PUBLIC_SOCKET_TRANSPORTS.split(",")
+      : ["polling"];
+
     const socket = io(realtimeUrl, {
       path: "/socket.io",
-      transports: ["polling", "websocket"],
+      transports,
       withCredentials: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 3000,
