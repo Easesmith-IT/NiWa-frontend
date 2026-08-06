@@ -2,12 +2,12 @@ import axios from "axios";
 
 import { clearAccessToken, getAccessToken, redirectToLogin, setAccessToken } from "../auth";
 
-import { apiClient } from "./client";
+import { apiClient, getBaseApiUrl } from "./client";
 
-const v1BaseUrl = `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api"}/v1`;
+const getV1BaseUrl = () => `${getBaseApiUrl()}/v1`;
 
 export const v1ApiClient = axios.create({
-  baseURL: v1BaseUrl,
+  baseURL: getV1BaseUrl(),
   withCredentials: true,
 });
 

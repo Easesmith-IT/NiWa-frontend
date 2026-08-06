@@ -5,19 +5,28 @@ import { io } from "socket.io-client";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { v1QueryKeys } from "../../lib/api/v1-query-keys";
+import { getBaseApiUrl } from "../../lib/api/client";
 
 const isSocketIoRealtimeEnabled = () => {
   return process.env.NEXT_PUBLIC_REALTIME_TRANSPORT === "socket_io";
 };
 
 const resolveRealtimeUrl = () => {
-  const explicitUrl = process.env.NEXT_PUBLIC_REALTIME_URL;
+  const isBrowser = typeof window !== "undefined";
+  const isLocalhost =
+    isBrowser && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+
+  let explicitUrl = process.env.NEXT_PUBLIC_REALTIME_URL;
+
+  if (isBrowser && !isLocalhost && explicitUrl && (explicitUrl.includes("localhost") || explicitUrl.includes("127.0.0.1"))) {
+    explicitUrl = undefined;
+  }
 
   if (explicitUrl) {
     return explicitUrl;
   }
 
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api";
+  const apiUrl = getBaseApiUrl();
   return apiUrl.replace(/\/api\/?$/, "");
 };
 
@@ -37,6 +46,8 @@ export const useInboxRealtime = (
       path: "/socket.io",
       transports: ["polling", "websocket"],
       withCredentials: true,
+      reconnectionAttempts: 5,
+      reconnectionDelay: 3000,
     });
 
     const invalidateInbox = () => {
