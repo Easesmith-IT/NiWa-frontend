@@ -1,25 +1,37 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
   BookOpen,
   Bot,
+  Briefcase,
+  Building,
+  Calendar,
   CheckCircle2,
+  ChevronDown,
+  ChevronRight,
   Clock,
   Database,
   Edit2,
   FileText,
+  Headphones,
   HelpCircle,
   Info,
   Plus,
   Play,
   RefreshCw,
+  RotateCcw,
   Save,
+  Shield,
+  ShoppingBag,
   Sliders,
   Sparkles,
+  Stethoscope,
   Terminal,
   Trash2,
+  TrendingUp,
+  UserCheck,
   Zap,
 } from "lucide-react";
 
@@ -30,6 +42,8 @@ import { cn } from "../../../lib/utils";
 import {
   useAIActivityLogsQuery,
   useAISettingsQuery,
+  useAITemplatesQuery,
+  useApplyAITemplateMutation,
   useAITestingPlaygroundMutation,
   useCreateKnowledgeSourceMutation,
   useDeleteKnowledgeSourceMutation,
@@ -39,12 +53,30 @@ import {
   useUpdateKnowledgeSourceMutation,
   BusinessAISettings,
   KnowledgeSource,
+  MemoryFieldDefinition,
+  AgentTemplatePreset,
 } from "../../../features/ai-agent";
 
 export default function AIAgentPage() {
   const [activeTab, setActiveTab] = useState<"settings" | "knowledge" | "playground" | "activity">("settings");
   const [testQuery, setTestQuery] = useState("");
-  const [saveFeedback, setSaveFeedback] = useState<string | null>(null);
+  const [saveFeedback, setSaveFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
+
+  // Template Overwrite Modal state
+  const [pendingTemplateId, setPendingTemplateId] = useState<string | null>(null);
+  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
+
+  // Memory Field Modal state
+  const [isMemoryModalOpen, setIsMemoryModalOpen] = useState(false);
+  const [editingMemoryKey, setEditingMemoryKey] = useState<string | null>(null);
+  const [memoryFieldName, setMemoryFieldName] = useState("");
+  const [memoryFieldDesc, setMemoryFieldDesc] = useState("");
+  const [memoryFieldType, setMemoryFieldType] = useState<"string" | "number" | "boolean" | "string_array">("string");
+  const [memoryFieldError, setMemoryFieldError] = useState<string | null>(null);
+
+  // Collapsed sections state
+  const [showAdvancedInstructions, setShowAdvancedInstructions] = useState(false);
+  const [showAdvancedMemory, setShowAdvancedMemory] = useState(false);
 
   // Knowledge Form state
   const [isAddKnowledgeOpen, setIsAddKnowledgeOpen] = useState(false);
@@ -55,8 +87,11 @@ export default function AIAgentPage() {
   const [sourceQuestion, setSourceQuestion] = useState("");
   const [sourceAnswer, setSourceAnswer] = useState("");
 
+  // Queries & Mutations
   const settingsQuery = useAISettingsQuery();
+  const templatesQuery = useAITemplatesQuery();
   const updateSettingsMutation = useUpdateAISettingsMutation();
+  const applyTemplateMutation = useApplyAITemplateMutation();
   const testingMutation = useAITestingPlaygroundMutation();
   const activityQuery = useAIActivityLogsQuery();
   const knowledgeQuery = useKnowledgeSourcesQuery();
@@ -66,32 +101,190 @@ export default function AIAgentPage() {
   const toggleKnowledgeStatusMutation = useToggleKnowledgeSourceStatusMutation();
   const deleteKnowledgeMutation = useDeleteKnowledgeSourceMutation();
 
-  const settings = settingsQuery.data?.settings;
+  const serverSettings = settingsQuery.data?.settings;
   const [formData, setFormData] = useState<Partial<BusinessAISettings>>({});
 
-  const currentData: Partial<BusinessAISettings> = {
-    ...settings,
-    ...formData,
+  // Sync formData with serverSettings when loaded initially or after save
+  useEffect(() => {
+    if (serverSettings) {
+      setFormData({});
+    }
+  }, [serverSettings]);
+
+  const currentData: BusinessAISettings = useMemo(() => {
+    return {
+      ...(serverSettings || ({} as BusinessAISettings)),
+      ...formData,
+      behavior: {
+        diagnoseBeforeRecommending: true,
+        challengeAssumptions: true,
+        explainReasoning: true,
+        preferActionableAdvice: true,
+        useNumbersWhenUseful: true,
+        avoidGenericRecommendations: true,
+        ...(serverSettings?.behavior || {}),
+        ...(formData.behavior || {}),
+      },
+      handoffTriggers: {
+        explicitHumanRequest: true,
+        unableToAnswer: true,
+        dissatisfied: true,
+        sensitiveRequest: false,
+        ...(serverSettings?.handoffTriggers || {}),
+        ...(formData.handoffTriggers || {}),
+      },
+    };
+  }, [serverSettings, formData]);
+
+  const isDirty = useMemo(() => {
+    return Object.keys(formData).length > 0;
+  }, [formData]);
+
+  const handleUpdateField = <K extends keyof BusinessAISettings>(key: K, value: BusinessAISettings[K]) => {
+    setFormData((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleUpdateBehavior = (key: keyof BusinessAISettings["behavior"], value: boolean) => {
+    setFormData((prev) => ({
+      ...prev,
+      behavior: {
+        ...(currentData.behavior || {}),
+        [key]: value,
+      },
+    }));
+  };
+
+  const handleUpdateHandoffTrigger = (key: keyof BusinessAISettings["handoffTriggers"], value: boolean) => {
+    setFormData((prev) => ({
+      ...prev,
+      handoffTriggers: {
+        ...(currentData.handoffTriggers || {}),
+        [key]: value,
+      },
+    }));
+  };
+
+  const handleDiscardChanges = () => {
+    setFormData({});
   };
 
   const handleSaveSettings = () => {
     updateSettingsMutation.mutate(formData, {
       onSuccess: () => {
-        setSaveFeedback("AI Agent settings saved successfully.");
+        setFormData({});
+        setSaveFeedback({ type: "success", message: "AI Agent settings saved successfully." });
         setTimeout(() => setSaveFeedback(null), 3000);
       },
       onError: (err: any) => {
-        setSaveFeedback(`Error saving settings: ${err?.message || "Failed to update"}`);
+        setSaveFeedback({ type: "error", message: `Error saving settings: ${err?.message || "Failed to update"}` });
       },
     });
   };
 
-  const handleRunTest = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!testQuery.trim()) return;
-    testingMutation.mutate(testQuery.trim());
+  // Template Selection
+  const handleSelectTemplate = (templateId: string) => {
+    if (templateId === "custom") {
+      handleUpdateField("templateId", "custom");
+      return;
+    }
+
+    setPendingTemplateId(templateId);
+    if (isDirty || currentData.agentInstructions?.trim()) {
+      setIsTemplateModalOpen(true);
+    } else {
+      executeApplyTemplate(templateId);
+    }
   };
 
+  const executeApplyTemplate = (templateId: string) => {
+    applyTemplateMutation.mutate(templateId, {
+      onSuccess: () => {
+        setFormData({});
+        setIsTemplateModalOpen(false);
+        setPendingTemplateId(null);
+        setSaveFeedback({ type: "success", message: `Template '${templateId}' applied successfully.` });
+        setTimeout(() => setSaveFeedback(null), 3000);
+      },
+      onError: (err: any) => {
+        setIsTemplateModalOpen(false);
+        setSaveFeedback({ type: "error", message: `Failed to apply template: ${err?.message}` });
+      },
+    });
+  };
+
+  // Memory Field Management
+  const generateSafeKey = (name: string): string => {
+    return name
+      .toLowerCase()
+      .trim()
+      .replace(/[^\w\s]/g, "")
+      .replace(/\s+/g, "_");
+  };
+
+  const handleOpenAddMemoryModal = () => {
+    setEditingMemoryKey(null);
+    setMemoryFieldName("");
+    setMemoryFieldDesc("");
+    setMemoryFieldType("string");
+    setMemoryFieldError(null);
+    setIsMemoryModalOpen(true);
+  };
+
+  const handleOpenEditMemoryModal = (item: MemoryFieldDefinition) => {
+    setEditingMemoryKey(item.key);
+    setMemoryFieldName(item.key.replace(/_/g, " "));
+    setMemoryFieldDesc(item.description || "");
+    setMemoryFieldType(item.type);
+    setMemoryFieldError(null);
+    setIsMemoryModalOpen(true);
+  };
+
+  const handleSaveMemoryField = (e: React.FormEvent) => {
+    e.preventDefault();
+    setMemoryFieldError(null);
+
+    if (!memoryFieldName.trim()) {
+      setMemoryFieldError("Field name is required");
+      return;
+    }
+
+    const key = editingMemoryKey || generateSafeKey(memoryFieldName);
+    const existingSchema = currentData.memorySchema || [];
+
+    if (!editingMemoryKey && existingSchema.some((f) => f.key.toLowerCase() === key.toLowerCase())) {
+      setMemoryFieldError(`Field key '${key}' already exists.`);
+      return;
+    }
+
+    const newField: MemoryFieldDefinition = {
+      key,
+      description: memoryFieldDesc.trim(),
+      type: memoryFieldType,
+    };
+
+    let updatedSchema: MemoryFieldDefinition[];
+    if (editingMemoryKey) {
+      updatedSchema = existingSchema.map((f) => (f.key === editingMemoryKey ? newField : f));
+    } else {
+      updatedSchema = [...existingSchema, newField];
+    }
+
+    handleUpdateField("memorySchema", updatedSchema);
+    setIsMemoryModalOpen(false);
+  };
+
+  const handleDeleteMemoryField = (keyToDelete: string) => {
+    const updatedSchema = (currentData.memorySchema || []).filter((f) => f.key !== keyToDelete);
+    handleUpdateField("memorySchema", updatedSchema);
+  };
+
+  const handleResetToTemplateDefaults = () => {
+    if (currentData.templateId) {
+      executeApplyTemplate(currentData.templateId);
+    }
+  };
+
+  // Knowledge Form handlers
   const handleOpenAddKnowledge = (type: "text" | "faq" = "text") => {
     setEditingSource(null);
     setSourceType(type);
@@ -112,6 +305,13 @@ export default function AIAgentPage() {
     setIsAddKnowledgeOpen(true);
   };
 
+  // Playground & Knowledge
+  const handleRunTest = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!testQuery.trim()) return;
+    testingMutation.mutate(testQuery.trim());
+  };
+
   const handleSaveKnowledge = (e: React.FormEvent) => {
     e.preventDefault();
     if (editingSource) {
@@ -123,9 +323,7 @@ export default function AIAgentPage() {
           question: sourceQuestion,
           answer: sourceAnswer,
         },
-        {
-          onSuccess: () => setIsAddKnowledgeOpen(false),
-        },
+        { onSuccess: () => setIsAddKnowledgeOpen(false) },
       );
     } else {
       createKnowledgeMutation.mutate(
@@ -136,9 +334,7 @@ export default function AIAgentPage() {
           question: sourceQuestion,
           answer: sourceAnswer,
         },
-        {
-          onSuccess: () => setIsAddKnowledgeOpen(false),
-        },
+        { onSuccess: () => setIsAddKnowledgeOpen(false) },
       );
     }
   };
@@ -152,638 +348,1033 @@ export default function AIAgentPage() {
     );
   }
 
-  return (
-    <div className="flex h-full flex-col bg-[#F7F8FA] text-foreground dark:bg-[#0C0D0E]">
-      {/* Top Page Header */}
-      <div className="border-b border-[#E4E4E7] bg-white px-6 py-5 dark:border-[#24272A] dark:bg-[#121416]">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <div>
-            <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#EDF8F3] text-[#176B4D] dark:bg-[#14251E] dark:text-[#2D8A67]">
-                <Sparkles className="h-5 w-5" />
-              </div>
-              <div>
-                <h1 className="text-xl font-bold text-foreground tracking-tight">AI Agent Console</h1>
-                <p className="text-xs text-muted-foreground">
-                  xAI Grok Auto-Response, Knowledge Base (RAG) & Operational Activity
-                </p>
-              </div>
-            </div>
-          </div>
+  const templates = templatesQuery.data?.templates || [];
 
-          <div className="flex items-center gap-3">
-            <span
+  return (
+    <div className="flex flex-col min-h-screen bg-background text-foreground pb-24">
+      {/* Header Bar */}
+      <div className="border-b border-border bg-card px-6 py-4 flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2">
+            <Bot className="h-6 w-6 text-primary" />
+            <h1 className="text-xl font-bold tracking-tight">AI Agent Studio</h1>
+            <span className="rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-semibold text-primary border border-primary/20">
+              v2.0 Generic Core
+            </span>
+          </div>
+          <p className="text-sm text-muted-foreground mt-0.5">
+            Configure your AI employee persona, diagnostic behaviors, generic memory, and safety handoffs.
+          </p>
+        </div>
+
+        {/* Status Toggle & Save Action */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/30 px-3 py-1.5">
+            <span className="text-xs font-medium text-muted-foreground">Auto Response:</span>
+            <button
+              onClick={() => handleUpdateField("enabled", !currentData.enabled)}
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-semibold border",
-                currentData.enabled && currentData.autoReplyEnabled
-                  ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/40 dark:text-emerald-400 dark:border-emerald-800"
-                  : "bg-zinc-100 text-zinc-600 border-zinc-200 dark:bg-zinc-800 dark:text-zinc-400 dark:border-zinc-700",
+                "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                currentData.enabled ? "bg-emerald-500" : "bg-muted-foreground/30",
               )}
             >
               <span
                 className={cn(
-                  "h-2 w-2 rounded-full",
-                  currentData.enabled && currentData.autoReplyEnabled ? "bg-emerald-500 animate-pulse" : "bg-zinc-400",
+                  "pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                  currentData.enabled ? "translate-x-4" : "translate-x-0",
                 )}
               />
-              {currentData.enabled && currentData.autoReplyEnabled
-                ? "Auto-Reply ACTIVE"
-                : currentData.enabled
-                  ? "AI Enabled (Auto-Reply OFF)"
-                  : "AI Disabled"}
+            </button>
+            <span className={cn("text-xs font-bold", currentData.enabled ? "text-emerald-500" : "text-muted-foreground")}>
+              {currentData.enabled ? "ACTIVE" : "PAUSED"}
             </span>
-
-            <Button
-              className="bg-[#176B4D] hover:bg-[#12543C] text-white dark:bg-[#2D8A67] dark:hover:bg-[#236E52]"
-              disabled={updateSettingsMutation.isPending}
-              onClick={handleSaveSettings}
-              size="sm"
-            >
-              <Save className="h-4 w-4 mr-1.5" />
-              {updateSettingsMutation.isPending ? "Saving..." : "Save Settings"}
-            </Button>
           </div>
-        </div>
 
-        {/* Status Warnings */}
-        <div className="mt-4 space-y-2">
-          {!settings?.hasApiKey ? (
-            <div className="flex items-center gap-2 rounded-md border border-amber-200 bg-amber-50 px-3.5 py-2 text-xs font-medium text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/30 dark:text-amber-300">
-              <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
-              <span>
-                <strong>xAI API Key Missing:</strong> Configure <code className="font-mono font-bold">XAI_API_KEY</code> in backend environment variables to enable Grok response generation.
-              </span>
-            </div>
-          ) : null}
+          <Button
+            onClick={handleSaveSettings}
+            disabled={!isDirty || updateSettingsMutation.isPending}
+            className="gap-2 font-semibold shadow-sm"
+          >
+            {updateSettingsMutation.isPending ? (
+              <RefreshCw className="h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
+            Save Changes
+          </Button>
         </div>
+      </div>
 
-        {/* Tab Navigation */}
-        <div className="mt-5 flex gap-2 border-b border-[#E4E4E7] dark:border-[#24272A]">
+      {/* Save Feedback Banner */}
+      {saveFeedback && (
+        <div
+          className={cn(
+            "mx-6 mt-4 p-3 rounded-lg flex items-center justify-between text-sm font-medium border",
+            saveFeedback.type === "success"
+              ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/30"
+              : "bg-destructive/10 text-destructive border-destructive/30",
+          )}
+        >
+          <div className="flex items-center gap-2">
+            {saveFeedback.type === "success" ? <CheckCircle2 className="h-4 w-4" /> : <AlertTriangle className="h-4 w-4" />}
+            <span>{saveFeedback.message}</span>
+          </div>
+          <button onClick={() => setSaveFeedback(null)} className="text-xs underline opacity-80 hover:opacity-100">
+            Dismiss
+          </button>
+        </div>
+      )}
+
+      {/* Tabs Bar */}
+      <div className="border-b border-border bg-card/50 px-6">
+        <div className="flex gap-6">
           <button
+            onClick={() => setActiveTab("settings")}
             className={cn(
-              "flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-semibold transition-colors",
+              "flex items-center gap-2 border-b-2 py-3 text-sm font-semibold transition-colors",
               activeTab === "settings"
-                ? "border-[#176B4D] text-[#176B4D] dark:border-[#2D8A67] dark:text-[#2D8A67]"
+                ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground",
             )}
-            onClick={() => setActiveTab("settings")}
-            type="button"
           >
             <Sliders className="h-4 w-4" />
-            <span>Agent Settings</span>
+            Agent Configuration
           </button>
           <button
-            className={cn(
-              "flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-semibold transition-colors",
-              activeTab === "knowledge"
-                ? "border-[#176B4D] text-[#176B4D] dark:border-[#2D8A67] dark:text-[#2D8A67]"
-                : "border-transparent text-muted-foreground hover:text-foreground",
-            )}
             onClick={() => setActiveTab("knowledge")}
-            type="button"
-          >
-            <Database className="h-4 w-4" />
-            <span>Knowledge Base</span>
-            <span className="ml-1 rounded-full bg-zinc-200 px-2 py-0.5 text-[10px] text-zinc-800 dark:bg-zinc-800 dark:text-zinc-300">
-              {knowledgeQuery.data?.sources?.length ?? 0}
-            </span>
-          </button>
-          <button
             className={cn(
-              "flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-semibold transition-colors",
-              activeTab === "playground"
-                ? "border-[#176B4D] text-[#176B4D] dark:border-[#2D8A67] dark:text-[#2D8A67]"
+              "flex items-center gap-2 border-b-2 py-3 text-sm font-semibold transition-colors",
+              activeTab === "knowledge"
+                ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground",
             )}
+          >
+            <BookOpen className="h-4 w-4" />
+            Knowledge Base (RAG)
+          </button>
+          <button
             onClick={() => setActiveTab("playground")}
-            type="button"
+            className={cn(
+              "flex items-center gap-2 border-b-2 py-3 text-sm font-semibold transition-colors",
+              activeTab === "playground"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground",
+            )}
           >
             <Terminal className="h-4 w-4" />
-            <span>Testing Playground</span>
-            {settings?.testedSuccessfully ? (
-              <span className="ml-1 inline-flex items-center gap-0.5 rounded bg-emerald-100 px-1.5 py-0.2 text-[10px] text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300">
-                <CheckCircle2 className="h-3 w-3" /> Tested
-              </span>
-            ) : (
-              <span className="ml-1 rounded bg-amber-100 px-1.5 py-0.2 text-[10px] text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
-                Untested
-              </span>
-            )}
+            Testing Playground
           </button>
           <button
+            onClick={() => setActiveTab("activity")}
             className={cn(
-              "flex items-center gap-2 border-b-2 px-4 py-2.5 text-xs font-semibold transition-colors",
+              "flex items-center gap-2 border-b-2 py-3 text-sm font-semibold transition-colors",
               activeTab === "activity"
-                ? "border-[#176B4D] text-[#176B4D] dark:border-[#2D8A67] dark:text-[#2D8A67]"
+                ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground",
             )}
-            onClick={() => setActiveTab("activity")}
-            type="button"
           >
             <Clock className="h-4 w-4" />
-            <span>Activity & Logs</span>
+            Activity Logs
           </button>
         </div>
       </div>
 
-      {/* Main Tab Content */}
-      <div className="niwa-scrollbar min-h-0 flex-1 overflow-y-auto p-6">
-        {saveFeedback ? (
-          <div className="mb-4 rounded-md bg-emerald-50 border border-emerald-200 p-3 text-xs font-medium text-emerald-800 dark:bg-emerald-950/40 dark:border-emerald-800 dark:text-emerald-300">
-            {saveFeedback}
-          </div>
-        ) : null}
-
-        {/* Tab 1: Agent Settings */}
+      {/* Tab Contents */}
+      <div className="p-6">
         {activeTab === "settings" && (
-          <div className="grid gap-6 max-w-4xl">
-            <div className="rounded-xl border border-[#E4E4E7] bg-white p-5 shadow-subtle dark:border-[#24272A] dark:bg-[#121416]">
-              <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <Zap className="h-4 w-4 text-[#176B4D] dark:text-[#2D8A67]" />
-                Activation Controls
-              </h2>
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <div className="flex items-center justify-between rounded-lg border border-[#E4E4E7] p-3.5 dark:border-[#292C2F]">
-                  <div>
-                    <label className="text-xs font-semibold text-foreground cursor-pointer" htmlFor="ai-enabled-toggle">
-                      AI System Master Switch
-                    </label>
-                    <p className="text-[11px] text-muted-foreground">Master toggle for AI orchestration</p>
-                  </div>
-                  <input
-                    checked={Boolean(currentData.enabled)}
-                    className="h-4 w-4 rounded border-gray-300 text-[#176B4D] focus:ring-[#176B4D]"
-                    id="ai-enabled-toggle"
-                    onChange={(e) => setFormData((prev) => ({ ...prev, enabled: e.target.checked }))}
-                    type="checkbox"
-                  />
-                </div>
-
-                <div className="flex items-center justify-between rounded-lg border border-[#E4E4E7] p-3.5 dark:border-[#292C2F]">
-                  <div>
-                    <label className="text-xs font-semibold text-foreground cursor-pointer" htmlFor="auto-reply-toggle">
-                      Auto-Reply to Customer Messages
-                    </label>
-                    <p className="text-[11px] text-muted-foreground">Automatically send Grok replies via WhatsApp</p>
-                  </div>
-                  <input
-                    checked={Boolean(currentData.autoReplyEnabled)}
-                    className="h-4 w-4 rounded border-gray-300 text-[#176B4D] focus:ring-[#176B4D]"
-                    id="auto-reply-toggle"
-                    onChange={(e) => setFormData((prev) => ({ ...prev, autoReplyEnabled: e.target.checked }))}
-                    type="checkbox"
-                  />
-                </div>
-              </div>
-            </div>
-
-            <div className="rounded-xl border border-[#E4E4E7] bg-white p-5 shadow-subtle dark:border-[#24272A] dark:bg-[#121416]">
-              <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <Bot className="h-4 w-4 text-[#176B4D] dark:text-[#2D8A67]" />
-                Identity & Behavior Settings
-              </h2>
-
-              <div className="mt-4 grid gap-4 sm:grid-cols-2">
-                <div>
-                  <label className="text-xs font-semibold text-foreground">Agent Name</label>
-                  <Input
-                    className="mt-1 text-xs"
-                    onChange={(e) => setFormData((prev) => ({ ...prev, agentName: e.target.value }))}
-                    value={currentData.agentName ?? ""}
-                  />
+          <div className="space-y-6 max-w-6xl mx-auto">
+            {/* Live Configuration Preview Card */}
+            <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-center text-primary font-bold">
+                  <Sparkles className="h-5 w-5" />
                 </div>
                 <div>
-                  <label className="text-xs font-semibold text-foreground">Business Name</label>
-                  <Input
-                    className="mt-1 text-xs"
-                    onChange={(e) => setFormData((prev) => ({ ...prev, businessName: e.target.value }))}
-                    value={currentData.businessName ?? ""}
-                  />
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground">Response Tone</label>
-                  <select
-                    className="mt-1 w-full rounded-md border border-[#D4D4D8] bg-white px-3 py-2 text-xs font-medium text-foreground dark:border-[#303438] dark:bg-[#17191B]"
-                    onChange={(e) => setFormData((prev) => ({ ...prev, responseStyle: e.target.value as any }))}
-                    value={currentData.responseStyle ?? "friendly"}
-                  >
-                    <option value="friendly">Friendly & Helpful</option>
-                    <option value="professional">Professional & Formal</option>
-                    <option value="casual">Casual & Direct</option>
-                    <option value="custom">Custom Persona</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground">Response Length</label>
-                  <select
-                    className="mt-1 w-full rounded-md border border-[#D4D4D8] bg-white px-3 py-2 text-xs font-medium text-foreground dark:border-[#303438] dark:bg-[#17191B]"
-                    onChange={(e) => setFormData((prev) => ({ ...prev, responseLength: e.target.value as any }))}
-                    value={currentData.responseLength ?? "short"}
-                  >
-                    <option value="short">Short (1-2 sentences recommended)</option>
-                    <option value="balanced">Balanced (2-3 sentences)</option>
-                    <option value="detailed">Detailed</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground">Language Mode</label>
-                  <select
-                    className="mt-1 w-full rounded-md border border-[#D4D4D8] bg-white px-3 py-2 text-xs font-medium text-foreground dark:border-[#303438] dark:bg-[#17191B]"
-                    onChange={(e) => setFormData((prev) => ({ ...prev, languageMode: e.target.value as any }))}
-                    value={currentData.languageMode ?? "auto"}
-                  >
-                    <option value="auto">Auto Detect Customer Language</option>
-                    <option value="english">English Only</option>
-                    <option value="hindi">Hindi</option>
-                    <option value="hinglish">Hinglish</option>
-                  </select>
-                </div>
-                <div>
-                  <label className="text-xs font-semibold text-foreground">Unknown Answer Behavior</label>
-                  <select
-                    className="mt-1 w-full rounded-md border border-[#D4D4D8] bg-white px-3 py-2 text-xs font-medium text-foreground dark:border-[#303438] dark:bg-[#17191B]"
-                    onChange={(e) => setFormData((prev) => ({ ...prev, unknownAnswerBehavior: e.target.value as any }))}
-                    value={currentData.unknownAnswerBehavior ?? "safe_response"}
-                  >
-                    <option value="safe_response">Send Configured Fallback Response</option>
-                    <option value="no_response">Do Not Send Automatic Response</option>
-                    <option value="handoff">Trigger Human Operator Handoff</option>
-                  </select>
-                </div>
-              </div>
-
-              <div className="mt-4">
-                <label className="text-xs font-semibold text-foreground">Custom System Instructions</label>
-                <Textarea
-                  className="mt-1 font-mono text-xs"
-                  onChange={(e) => setFormData((prev) => ({ ...prev, systemPrompt: e.target.value }))}
-                  placeholder="e.g. You are the sales assistant for Easesmith. Ask customers what type of website they require."
-                  rows={4}
-                  value={currentData.systemPrompt ?? ""}
-                />
-              </div>
-
-              <div className="mt-4">
-                <label className="text-xs font-semibold text-foreground">Fallback Response Text</label>
-                <Input
-                  className="mt-1 text-xs"
-                  onChange={(e) => setFormData((prev) => ({ ...prev, fallbackResponse: e.target.value }))}
-                  value={currentData.fallbackResponse ?? "I'm unable to answer that right now. A team member will assist you shortly."}
-                />
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Tab 2: Knowledge Base */}
-        {activeTab === "knowledge" && (
-          <div className="grid gap-6 max-w-5xl">
-            <div className="rounded-xl border border-[#E4E4E7] bg-white p-5 shadow-subtle dark:border-[#24272A] dark:bg-[#121416]">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <Database className="h-4 w-4 text-[#176B4D] dark:text-[#2D8A67]" />
-                    Business Knowledge Base (RAG)
+                  <h2 className="text-base font-bold text-foreground">
+                    {currentData.agentName || "AI Assistant"}
                   </h2>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    Give your AI accurate factual information about your pricing, FAQs, and business policies.
+                  <p className="text-xs text-muted-foreground">
+                    {currentData.agentRole || "Assistant"} • {currentData.businessName || "Organization"}
                   </p>
                 </div>
-
-                <div className="flex gap-2">
-                  <Button
-                    className="bg-[#176B4D] text-white hover:bg-[#12543C] dark:bg-[#2D8A67]"
-                    onClick={() => handleOpenAddKnowledge("text")}
-                    size="sm"
-                  >
-                    <Plus className="h-4 w-4 mr-1" />
-                    Add Text Source
-                  </Button>
-                  <Button
-                    onClick={() => handleOpenAddKnowledge("faq")}
-                    size="sm"
-                    variant="outline"
-                  >
-                    <HelpCircle className="h-4 w-4 mr-1" />
-                    Add FAQ Source
-                  </Button>
-                </div>
               </div>
 
-              {/* Knowledge Table */}
-              <div className="mt-5 overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="border-b border-[#E4E4E7] bg-[#FAFAFA] text-muted-foreground dark:border-[#24272A] dark:bg-[#17191B]">
-                    <tr>
-                      <th className="px-3 py-2.5 font-semibold">Source Title</th>
-                      <th className="px-3 py-2.5 font-semibold">Type</th>
-                      <th className="px-3 py-2.5 font-semibold">Status</th>
-                      <th className="px-3 py-2.5 font-semibold">Updated</th>
-                      <th className="px-3 py-2.5 font-semibold text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-[#F0F0F2] dark:divide-[#202326]">
-                    {knowledgeQuery.data?.sources?.length === 0 ? (
-                      <tr>
-                        <td className="px-3 py-8 text-center text-muted-foreground" colSpan={5}>
-                          No knowledge sources added yet. Click <strong>+ Add Text Source</strong> or <strong>Add FAQ Source</strong> to ground your AI assistant!
-                        </td>
-                      </tr>
-                    ) : (
-                      knowledgeQuery.data?.sources?.map((source) => (
-                        <tr className="hover:bg-[#FAFAFA] dark:hover:bg-[#17191B]" key={source._id}>
-                          <td className="px-3 py-3 font-semibold text-foreground">
-                            <div className="flex items-center gap-2">
-                              {source.type === "faq" ? (
-                                <HelpCircle className="h-4 w-4 text-purple-600 dark:text-purple-400 shrink-0" />
-                              ) : (
-                                <FileText className="h-4 w-4 text-blue-600 dark:text-blue-400 shrink-0" />
-                              )}
-                              <span className="truncate max-w-xs">{source.title}</span>
-                            </div>
-                          </td>
-                          <td className="px-3 py-3 font-mono text-[11px] uppercase text-muted-foreground">
-                            {source.type}
-                          </td>
-                          <td className="px-3 py-3">
-                            <span
-                              className={cn(
-                                "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold",
-                                source.status === "ready"
-                                  ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-                                  : "bg-zinc-200 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-400",
-                              )}
-                            >
-                              {source.status === "ready" ? "● Ready" : "○ Disabled"}
-                            </span>
-                          </td>
-                          <td className="px-3 py-3 text-muted-foreground text-[11px]">
-                            {new Date(source.updatedAt).toLocaleDateString()}
-                          </td>
-                          <td className="px-3 py-3 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
-                              <Button
-                                onClick={() =>
-                                  toggleKnowledgeStatusMutation.mutate({
-                                    id: source._id,
-                                    status: source.status === "ready" ? "disabled" : "ready",
-                                  })
-                                }
-                                size="sm"
-                                variant="outline"
-                              >
-                                {source.status === "ready" ? "Disable" : "Enable"}
-                              </Button>
-                              <Button onClick={() => handleOpenEditKnowledge(source)} size="sm" variant="outline">
-                                <Edit2 className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                className="text-rose-600 hover:text-rose-700"
-                                onClick={() => deleteKnowledgeMutation.mutate(source._id)}
-                                size="sm"
-                                variant="outline"
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Modal for Adding / Editing Knowledge */}
-        {isAddKnowledgeOpen ? (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-            <div className="w-full max-w-lg rounded-xl border border-[#E4E4E7] bg-white p-6 shadow-floating dark:border-[#24272A] dark:bg-[#121416]">
-              <h3 className="text-base font-bold text-foreground">
-                {editingSource ? "Edit Knowledge Source" : `Add New ${sourceType.toUpperCase()} Knowledge Source`}
-              </h3>
-
-              <form className="mt-4 space-y-4" onSubmit={handleSaveKnowledge}>
-                {sourceType === "text" ? (
-                  <>
-                    <div>
-                      <label className="text-xs font-semibold text-foreground">Title / Topic Name</label>
-                      <Input
-                        className="mt-1 text-xs"
-                        onChange={(e) => setSourceTitle(e.target.value)}
-                        placeholder="e.g. Website Pricing & Timelines"
-                        required
-                        value={sourceTitle}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold text-foreground">Content Text</label>
-                      <Textarea
-                        className="mt-1 text-xs"
-                        onChange={(e) => setSourceContent(e.target.value)}
-                        placeholder="e.g. Website development pricing starts at ₹35,000. Typical timeline is 3-4 weeks."
-                        required
-                        rows={5}
-                        value={sourceContent}
-                      />
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <div>
-                      <label className="text-xs font-semibold text-foreground">Question</label>
-                      <Input
-                        className="mt-1 text-xs"
-                        onChange={(e) => setSourceQuestion(e.target.value)}
-                        placeholder="e.g. Do you offer hosting and maintenance?"
-                        required
-                        value={sourceQuestion}
-                      />
-                    </div>
-                    <div>
-                      <label className="text-xs font-semibold text-foreground">Answer</label>
-                      <Textarea
-                        className="mt-1 text-xs"
-                        onChange={(e) => setSourceAnswer(e.target.value)}
-                        placeholder="e.g. Yes, 1 year of hosting and maintenance is included with all projects."
-                        required
-                        rows={4}
-                        value={sourceAnswer}
-                      />
-                    </div>
-                  </>
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <span className="rounded-full bg-card px-2.5 py-1 font-semibold border border-border text-foreground capitalize">
+                  {currentData.conversationStyle || "consultative"}
+                </span>
+                <span className="rounded-full bg-card px-2.5 py-1 font-semibold border border-border text-foreground capitalize">
+                  {currentData.responseStyle || "professional"}
+                </span>
+                <span className="rounded-full bg-card px-2.5 py-1 font-semibold border border-border text-foreground capitalize">
+                  {currentData.responseLength || "short"}
+                </span>
+                <span className="rounded-full bg-card px-2.5 py-1 font-semibold border border-border text-foreground capitalize">
+                  Language: {currentData.languageMode || "auto"}
+                </span>
+                <span className="rounded-full bg-emerald-500/10 px-2.5 py-1 font-semibold text-emerald-600 border border-emerald-500/20">
+                  Memory: {(currentData.memorySchema || []).length} Fields
+                </span>
+                {currentData.humanHandoffEnabled && (
+                  <span className="rounded-full bg-blue-500/10 px-2.5 py-1 font-semibold text-blue-600 border border-blue-500/20">
+                    Handoff Enabled
+                  </span>
                 )}
-
-                <div className="flex justify-end gap-2 border-t border-[#E4E4E7] pt-4 dark:border-[#24272A]">
-                  <Button onClick={() => setIsAddKnowledgeOpen(false)} type="button" variant="outline">
-                    Cancel
-                  </Button>
-                  <Button className="bg-[#176B4D] text-white hover:bg-[#12543C] dark:bg-[#2D8A67]" type="submit">
-                    Save Knowledge
-                  </Button>
-                </div>
-              </form>
+              </div>
             </div>
-          </div>
-        ) : null}
 
-        {/* Tab 3: Testing Playground */}
-        {activeTab === "playground" && (
-          <div className="grid gap-6 max-w-4xl">
-            <div className="rounded-xl border border-[#E4E4E7] bg-white p-5 shadow-subtle dark:border-[#24272A] dark:bg-[#121416]">
-              <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-                <Terminal className="h-4 w-4 text-[#176B4D] dark:text-[#2D8A67]" />
-                Testing Playground (RAG Retrieval Visibility)
-              </h2>
-
-              <form className="mt-4 space-y-3" onSubmit={handleRunTest}>
-                <div>
-                  <label className="text-xs font-semibold text-foreground">Customer Test Message</label>
-                  <div className="mt-1.5 flex gap-2">
-                    <Input
-                      className="text-xs"
-                      onChange={(e) => setTestQuery(e.target.value)}
-                      placeholder="e.g. Website development ka price kitna hai?"
-                      value={testQuery}
-                    />
-                    <Button
-                      className="bg-[#176B4D] text-white hover:bg-[#12543C] dark:bg-[#2D8A67]"
-                      disabled={testingMutation.isPending || !testQuery.trim()}
-                      type="submit"
-                    >
-                      <Play className="h-4 w-4 mr-1" />
-                      {testingMutation.isPending ? "Generating..." : "Run Test"}
-                    </Button>
-                  </div>
-                </div>
-              </form>
-
-              {testingMutation.data ? (
-                <div className="mt-5 space-y-4 border-t border-[#E4E4E7] pt-4 dark:border-[#24272A]">
-                  <div>
-                    <span className="font-semibold text-xs text-foreground flex items-center gap-1.5">
-                      <Sparkles className="h-3.5 w-3.5 text-[#176B4D] dark:text-[#2D8A67]" />
-                      Generated Grok Response
-                    </span>
-                    <div className="mt-2 rounded-lg border border-emerald-200 bg-[#EDF8F3] p-4 text-xs font-medium text-foreground dark:border-[#203D31] dark:bg-[#14251E]">
-                      {testingMutation.data.response}
-                    </div>
-                  </div>
-
-                  {/* RAG Context Information */}
-                  <div className="rounded-lg border border-zinc-200 bg-zinc-50 p-3 text-xs dark:border-zinc-800 dark:bg-zinc-900">
-                    <div className="flex items-center justify-between font-semibold">
-                      <span className="flex items-center gap-1.5">
-                        <Database className="h-3.5 w-3.5 text-purple-600 dark:text-purple-400" />
-                        Knowledge Base Retrieval Status
-                      </span>
-                      <span className="font-mono text-[11px]">
-                        {testingMutation.data.knowledgeUsed ? "● Knowledge Used" : "○ No Knowledge Matched"}
-                      </span>
-                    </div>
-
-                    {testingMutation.data.knowledgeSources?.length ? (
-                      <div className="mt-2 text-[11px]">
-                        <span className="font-medium text-muted-foreground">Sources Matched:</span>{" "}
-                        <span className="font-semibold">{testingMutation.data.knowledgeSources.join(", ")}</span>
-                      </div>
-                    ) : null}
-
-                    {testingMutation.data.scoredChunks?.length ? (
-                      <div className="mt-3 space-y-2">
-                        <span className="font-medium text-muted-foreground text-[11px]">Retrieved Chunks & Relevance Scores:</span>
-                        {testingMutation.data.scoredChunks.map((chunk, idx) => (
-                          <div className="rounded border border-zinc-200 bg-white p-2 text-[11px] dark:border-zinc-800 dark:bg-zinc-950" key={idx}>
-                            <div className="flex justify-between font-mono text-[10px] text-muted-foreground">
-                              <span>Source: {chunk.sourceTitle}</span>
-                              <span className="font-bold text-emerald-600 dark:text-emerald-400">Score: {chunk.score}</span>
-                            </div>
-                            <p className="mt-1 text-foreground whitespace-pre-wrap">{chunk.chunkText}</p>
-                          </div>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                </div>
-              ) : null}
-            </div>
-          </div>
-        )}
-
-        {/* Tab 4: Activity Logs */}
-        {activeTab === "activity" && (
-          <div className="grid gap-6 max-w-5xl">
-            <div className="rounded-xl border border-[#E4E4E7] bg-white p-5 shadow-subtle dark:border-[#24272A] dark:bg-[#121416]">
+            {/* Template Selector Section */}
+            <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-[#176B4D] dark:text-[#2D8A67]" />
-                    AI Activity Execution Log
-                  </h2>
+                  <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                    <Zap className="h-5 w-5 text-amber-500" />
+                    Start from Template Preset
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Select a configuration starting point. Templates populate identity, diagnostic behavior, instructions, and recommended memory schemas.
+                  </p>
                 </div>
-                <Button disabled={activityQuery.isFetching} onClick={() => activityQuery.refetch()} size="sm" variant="outline">
-                  <RefreshCw className={cn("h-3.5 w-3.5 mr-1", activityQuery.isFetching && "animate-spin")} />
-                  Refresh
+                <span className="text-xs font-medium text-muted-foreground bg-muted px-2.5 py-1 rounded-md border border-border">
+                  Active Template: <strong className="text-foreground capitalize">{currentData.templateId || "business_consultant"}</strong>
+                </span>
+              </div>
+
+              {/* Template Cards Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+                {templates.map((tpl) => {
+                  const isSelected = currentData.templateId === tpl.id;
+                  return (
+                    <button
+                      key={tpl.id}
+                      type="button"
+                      onClick={() => handleSelectTemplate(tpl.id)}
+                      className={cn(
+                        "flex flex-col text-left p-3.5 rounded-lg border transition-all text-xs space-y-1.5 relative",
+                        isSelected
+                          ? "border-primary bg-primary/10 shadow-sm ring-1 ring-primary/30"
+                          : "border-border bg-card hover:bg-accent/50 hover:border-primary/40",
+                      )}
+                    >
+                      <div className="flex items-center justify-between font-bold text-sm text-foreground">
+                        <span>{tpl.name}</span>
+                        {isSelected && <CheckCircle2 className="h-4 w-4 text-primary shrink-0" />}
+                      </div>
+                      <p className="text-muted-foreground line-clamp-2 leading-relaxed">
+                        {tpl.description}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 1. Identity Section */}
+            <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4">
+              <h3 className="text-base font-bold text-foreground border-b border-border pb-3 flex items-center gap-2">
+                <UserCheck className="h-5 w-5 text-primary" />
+                1. Identity & Organization Context
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-foreground">Agent Name</label>
+                  <Input
+                    value={currentData.agentName || ""}
+                    onChange={(e) => handleUpdateField("agentName", e.target.value)}
+                    placeholder="e.g. AI Senior Business Consultant"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-foreground">Agent Role</label>
+                  <Input
+                    value={currentData.agentRole || ""}
+                    onChange={(e) => handleUpdateField("agentRole", e.target.value)}
+                    placeholder="e.g. Senior Business Consultant"
+                  />
+                </div>
+
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="text-xs font-bold text-foreground">Organization / Business Name</label>
+                  <Input
+                    value={currentData.businessName || ""}
+                    onChange={(e) => handleUpdateField("businessName", e.target.value)}
+                    placeholder="e.g. Easesmith"
+                  />
+                </div>
+
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="text-xs font-bold text-foreground">Agent Purpose</label>
+                  <Textarea
+                    rows={2}
+                    value={currentData.agentPurpose || ""}
+                    onChange={(e) => handleUpdateField("agentPurpose", e.target.value)}
+                    placeholder="Describe what this AI employee is designed to achieve..."
+                  />
+                </div>
+
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="text-xs font-bold text-foreground">Organization Description</label>
+                  <Textarea
+                    rows={2}
+                    value={currentData.businessDescription || ""}
+                    onChange={(e) => handleUpdateField("businessDescription", e.target.value)}
+                    placeholder="Brief description of products, services, or organization background..."
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Behavior Section */}
+            <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-5">
+              <h3 className="text-base font-bold text-foreground border-b border-border pb-3 flex items-center gap-2">
+                <Sliders className="h-5 w-5 text-primary" />
+                2. Conversation Style & Diagnostic Behavior
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-foreground">Conversation Style</label>
+                  <select
+                    value={currentData.conversationStyle || "consultative"}
+                    onChange={(e) => handleUpdateField("conversationStyle", e.target.value as any)}
+                    className="w-full h-9 rounded-md border border-border bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="direct">Direct</option>
+                    <option value="consultative">Consultative</option>
+                    <option value="supportive">Supportive</option>
+                    <option value="sales_oriented">Sales-oriented</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-foreground">Response Tone</label>
+                  <select
+                    value={currentData.responseStyle || "professional"}
+                    onChange={(e) => handleUpdateField("responseStyle", e.target.value as any)}
+                    className="w-full h-9 rounded-md border border-border bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="professional">Professional</option>
+                    <option value="friendly">Friendly</option>
+                    <option value="casual">Casual</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-foreground">Response Length</label>
+                  <select
+                    value={currentData.responseLength || "short"}
+                    onChange={(e) => handleUpdateField("responseLength", e.target.value as any)}
+                    className="w-full h-9 rounded-md border border-border bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="short">Short (1-2 sentences)</option>
+                    <option value="balanced">Balanced (2-4 sentences)</option>
+                    <option value="detailed">Detailed (Comprehensive)</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-foreground">Questions Per Reply</label>
+                  <select
+                    value={currentData.questionsPerReply || 1}
+                    onChange={(e) => handleUpdateField("questionsPerReply", Number(e.target.value))}
+                    className="w-full h-9 rounded-md border border-border bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value={1}>1 Question Max</option>
+                    <option value={2}>2 Questions Max</option>
+                    <option value={3}>3 Questions Max</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Behavior Toggles Grid */}
+              <div className="space-y-2 pt-2">
+                <label className="text-xs font-bold text-foreground">Diagnostic Behavior Controls</label>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {[
+                    { key: "diagnoseBeforeRecommending", label: "Diagnose before recommending", desc: "Ask diagnostic questions before prescribing solutions" },
+                    { key: "challengeAssumptions", label: "Challenge assumptions", desc: "Respectfully question unsupported customer assumptions" },
+                    { key: "explainReasoning", label: "Explain reasoning", desc: "Briefly explain why recommendations make sense" },
+                    { key: "preferActionableAdvice", label: "Prefer actionable advice", desc: "Prioritize direct, high-impact next steps" },
+                    { key: "useNumbersWhenUseful", label: "Use numbers when useful", desc: "Incorporate metrics & data points into diagnosis" },
+                    { key: "avoidGenericRecommendations", label: "Avoid generic recommendations", desc: "Refuse cliché advice like 'do paid ads' prematurely" },
+                  ].map((item) => {
+                    const isChecked = Boolean((currentData.behavior as any)?.[item.key]);
+                    return (
+                      <label
+                        key={item.key}
+                        className={cn(
+                          "flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors text-xs",
+                          isChecked ? "bg-primary/5 border-primary/30" : "bg-card border-border hover:bg-accent/40",
+                        )}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={isChecked}
+                          onChange={(e) => handleUpdateBehavior(item.key as any, e.target.checked)}
+                          className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                        />
+                        <div>
+                          <span className="font-bold text-foreground block">{item.label}</span>
+                          <span className="text-muted-foreground text-[11px] leading-tight block">{item.desc}</span>
+                        </div>
+                      </label>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Custom Instructions Area */}
+            <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4">
+              <div className="flex items-center justify-between border-b border-border pb-3">
+                <div>
+                  <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                    <FileText className="h-5 w-5 text-primary" />
+                    3. Custom Agent Instructions
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Add specific instructions for how this agent should converse. Platform safety & grounding directives remain active automatically.
+                  </p>
+                </div>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleResetToTemplateDefaults}
+                  className="gap-1.5 text-xs"
+                >
+                  <RotateCcw className="h-3.5 w-3.5" />
+                  Reset to Template Defaults
                 </Button>
               </div>
 
-              <div className="mt-5 overflow-x-auto">
+              <div className="space-y-1.5">
+                <div className="flex justify-between items-center text-xs">
+                  <span className="font-bold text-foreground">Agent Instructions</span>
+                  <span className="text-muted-foreground font-mono">
+                    {(currentData.agentInstructions || "").length} / 4000
+                  </span>
+                </div>
+                <Textarea
+                  rows={6}
+                  maxLength={4000}
+                  value={currentData.agentInstructions || ""}
+                  onChange={(e) => handleUpdateField("agentInstructions", e.target.value)}
+                  placeholder="Enter workspace-level agent instructions..."
+                  className="font-mono text-xs leading-relaxed"
+                />
+              </div>
+
+              {/* Advanced Collapsed Section */}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAdvancedInstructions(!showAdvancedInstructions)}
+                  className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showAdvancedInstructions ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  Advanced Instructions & System Prompt Override
+                </button>
+
+                {showAdvancedInstructions && (
+                  <div className="mt-3 p-4 rounded-lg border border-border bg-muted/20 space-y-3 text-xs">
+                    <p className="text-muted-foreground">
+                      <Shield className="h-4 w-4 inline mr-1.5 text-amber-500" />
+                      Platform safety directives and grounding rules cannot be modified or overridden.
+                    </p>
+                    <div className="space-y-1.5">
+                      <label className="font-bold text-foreground">Legacy System Prompt Extra Directive</label>
+                      <Textarea
+                        rows={3}
+                        value={currentData.systemPrompt || ""}
+                        onChange={(e) => handleUpdateField("systemPrompt", e.target.value)}
+                        placeholder="Additional prompt rules appended into system prompt..."
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 4. Language Configuration */}
+            <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4">
+              <h3 className="text-base font-bold text-foreground border-b border-border pb-3 flex items-center gap-2">
+                <Bot className="h-5 w-5 text-primary" />
+                4. Language Configuration
+              </h3>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-foreground">Language Mode</label>
+                  <select
+                    value={currentData.languageMode || "auto"}
+                    onChange={(e) => handleUpdateField("languageMode", e.target.value as any)}
+                    className="w-full h-9 rounded-md border border-border bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                  >
+                    <option value="auto">Auto Detect Customer Language</option>
+                    <option value="english">English Only</option>
+                    <option value="hindi">Hindi Only</option>
+                    <option value="hinglish">Hinglish (Hindi + English)</option>
+                    <option value="custom">Custom</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-foreground">Preferred Language Default</label>
+                  <Input
+                    value={currentData.preferredLanguage || "English"}
+                    onChange={(e) => handleUpdateField("preferredLanguage", e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+                {[
+                  { key: "matchCustomerLanguage", label: "Match Customer Language", desc: "Mirror customer's language automatically" },
+                  { key: "allowHinglish", label: "Allow Hinglish", desc: "Support Hinglish when customer speaks Hindi/Hinglish" },
+                  { key: "preserveTechnicalEnglish", label: "Preserve Tech Terms", desc: "Keep business & technical English terms intact" },
+                ].map((item) => {
+                  const isChecked = Boolean((currentData as any)[item.key]);
+                  return (
+                    <label
+                      key={item.key}
+                      className={cn(
+                        "flex items-start gap-2.5 p-3 rounded-lg border cursor-pointer transition-colors text-xs",
+                        isChecked ? "bg-primary/5 border-primary/30" : "bg-card border-border hover:bg-accent/40",
+                      )}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isChecked}
+                        onChange={(e) => handleUpdateField(item.key as any, e.target.checked)}
+                        className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                      />
+                      <div>
+                        <span className="font-bold text-foreground block">{item.label}</span>
+                        <span className="text-muted-foreground text-[11px] leading-tight block">{item.desc}</span>
+                      </div>
+                    </label>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* 5. Memory Configuration UI */}
+            <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-4">
+              <div className="flex flex-col md:flex-row md:items-center justify-between border-b border-border pb-3 gap-3">
+                <div>
+                  <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                    <Database className="h-5 w-5 text-primary" />
+                    5. Conversation Memory Schema
+                  </h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Configure facts worth remembering explicitly during customer chats with full provenance.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold">Memory:</span>
+                    <button
+                      onClick={() => handleUpdateField("memoryEnabled", !currentData.memoryEnabled)}
+                      className={cn(
+                        "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                        currentData.memoryEnabled ? "bg-primary" : "bg-muted-foreground/30",
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          "pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                          currentData.memoryEnabled ? "translate-x-4" : "translate-x-0",
+                        )}
+                      />
+                    </button>
+                  </div>
+
+                  <Button onClick={handleOpenAddMemoryModal} size="sm" className="gap-1.5 text-xs">
+                    <Plus className="h-4 w-4" /> Add Memory Field
+                  </Button>
+                </div>
+              </div>
+
+              {/* Memory Fields Table */}
+              <div className="rounded-lg border border-border overflow-hidden">
                 <table className="w-full text-left text-xs">
-                  <thead className="border-b border-[#E4E4E7] bg-[#FAFAFA] text-muted-foreground dark:border-[#24272A] dark:bg-[#17191B]">
+                  <thead className="bg-muted/40 text-muted-foreground font-semibold border-b border-border">
                     <tr>
-                      <th className="px-3 py-2.5 font-semibold">Timestamp</th>
-                      <th className="px-3 py-2.5 font-semibold">State</th>
-                      <th className="px-3 py-2.5 font-semibold">Reason</th>
-                      <th className="px-3 py-2.5 font-semibold">Model</th>
-                      <th className="px-3 py-2.5 font-semibold">Latency</th>
-                      <th className="px-3 py-2.5 font-semibold">Tokens</th>
+                      <th className="p-3">Field Key</th>
+                      <th className="p-3">Description</th>
+                      <th className="p-3">Data Type</th>
+                      <th className="p-3 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-[#F0F0F2] dark:divide-[#202326]">
-                    {activityQuery.data?.activities?.length === 0 ? (
+                  <tbody className="divide-y divide-border">
+                    {(currentData.memorySchema || []).length === 0 ? (
                       <tr>
-                        <td className="px-3 py-6 text-center text-muted-foreground" colSpan={6}>
-                          No AI activity recorded yet.
+                        <td colSpan={4} className="p-4 text-center text-muted-foreground">
+                          No memory fields configured. Click "Add Memory Field" to add one.
                         </td>
                       </tr>
                     ) : (
-                      activityQuery.data?.activities?.map((item) => (
-                        <tr className="hover:bg-[#FAFAFA] dark:hover:bg-[#17191B]" key={item._id}>
-                          <td className="px-3 py-2.5 font-mono text-[11px]">
-                            {new Date(item.createdAt).toLocaleTimeString([], { hour: "numeric", minute: "2-digit", second: "2-digit" })}
-                          </td>
-                          <td className="px-3 py-2.5">
-                            <span
-                              className={cn(
-                                "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold",
-                                item.processingState === "COMPLETED"
-                                  ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300"
-                                  : item.processingState === "FAILED"
-                                    ? "bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300"
-                                    : "bg-zinc-100 text-zinc-800 dark:bg-zinc-800 dark:text-zinc-300",
-                              )}
+                      (currentData.memorySchema || []).map((item) => (
+                        <tr key={item.key} className="hover:bg-accent/30 transition-colors">
+                          <td className="p-3 font-mono font-bold text-primary">{item.key}</td>
+                          <td className="p-3 text-muted-foreground">{item.description || "No description"}</td>
+                          <td className="p-3 font-semibold capitalize">{item.type.replace("_", " ")}</td>
+                          <td className="p-3 text-right space-x-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleOpenEditMemoryModal(item)}
+                              className="h-7 w-7 p-0"
                             >
-                              {item.processingState}
-                            </span>
+                              <Edit2 className="h-3.5 w-3.5 text-muted-foreground hover:text-foreground" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteMemoryField(item.key)}
+                              className="h-7 w-7 p-0 hover:text-destructive"
+                            >
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </Button>
                           </td>
-                          <td className="px-3 py-2.5 font-mono text-[11px] font-semibold text-foreground">
-                            {item.reason}
-                          </td>
-                          <td className="px-3 py-2.5 font-mono text-[11px] text-muted-foreground">{item.aiModel}</td>
-                          <td className="px-3 py-2.5 font-mono text-[11px] text-muted-foreground">{item.latencyMs}ms</td>
-                          <td className="px-3 py-2.5 font-mono text-[11px] text-muted-foreground">{item.totalTokens}</td>
                         </tr>
                       ))
                     )}
                   </tbody>
                 </table>
               </div>
+
+              {/* Advanced Collapsed Memory Settings */}
+              <div className="pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowAdvancedMemory(!showAdvancedMemory)}
+                  className="flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {showAdvancedMemory ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  Advanced Memory Bounds Settings
+                </button>
+
+                {showAdvancedMemory && (
+                  <div className="mt-3 p-4 rounded-lg border border-border bg-muted/20 grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                    <div className="space-y-1.5">
+                      <label className="font-bold text-foreground">Max Facts Remembered Per Conversation</label>
+                      <Input
+                        type="number"
+                        min={1}
+                        max={50}
+                        value={currentData.maxFactsPerConversation || 15}
+                        onChange={(e) => handleUpdateField("maxFactsPerConversation", Number(e.target.value))}
+                      />
+                      <p className="text-[11px] text-muted-foreground">Allowed limit: 1-50 facts (Default: 15)</p>
+                    </div>
+
+                    <div className="space-y-1.5">
+                      <label className="font-bold text-foreground">Max Fact String Length</label>
+                      <Input
+                        type="number"
+                        min={20}
+                        max={500}
+                        value={currentData.maxFactLength || 200}
+                        onChange={(e) => handleUpdateField("maxFactLength", Number(e.target.value))}
+                      />
+                      <p className="text-[11px] text-muted-foreground">Allowed limit: 20-500 characters (Default: 200)</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* 6. Safety & Human Handoff Section */}
+            <div className="rounded-xl border border-border bg-card p-6 shadow-sm space-y-5">
+              <h3 className="text-base font-bold text-foreground border-b border-border pb-3 flex items-center gap-2">
+                <Shield className="h-5 w-5 text-primary" />
+                6. Safety & Human Handoff Triggers
+              </h3>
+
+              {/* Unknown Answer Behavior */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-foreground">
+                  When this AI doesn't have enough information:
+                </label>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {[
+                    { value: "ask_customer", label: "Ask customer for missing info", desc: "Inquire politely for missing facts" },
+                    { value: "explain_unavailable", label: "Explain info unavailable", desc: "State that information is not available" },
+                    { value: "safe_response", label: "Send fallback message", desc: "Respond with configured fallback message" },
+                    { value: "handoff", label: "Hand over to human", desc: "Transfer conversation to human team" },
+                    { value: "no_response", label: "Do not respond", desc: "Remain silent without auto-reply" },
+                  ].map((opt) => {
+                    const isSelected = currentData.unknownAnswerBehavior === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => handleUpdateField("unknownAnswerBehavior", opt.value as any)}
+                        className={cn(
+                          "flex flex-col text-left p-3 rounded-lg border text-xs space-y-1 transition-all",
+                          isSelected
+                            ? "border-primary bg-primary/10 font-semibold shadow-sm"
+                            : "border-border bg-card hover:bg-accent/40",
+                        )}
+                      >
+                        <span className="font-bold text-foreground">{opt.label}</span>
+                        <span className="text-[11px] text-muted-foreground leading-tight">{opt.desc}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {currentData.unknownAnswerBehavior === "safe_response" && (
+                  <div className="pt-2 space-y-1.5">
+                    <label className="text-xs font-bold text-foreground">Fallback Response Text</label>
+                    <Textarea
+                      rows={2}
+                      value={currentData.fallbackResponse || ""}
+                      onChange={(e) => handleUpdateField("fallbackResponse", e.target.value)}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {/* Human Handoff Controls */}
+              <div className="border-t border-border pt-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="text-sm font-bold text-foreground">Human Handoff Master Switch</h4>
+                    <p className="text-xs text-muted-foreground">Automatically transfer conversation to human operator on triggers</p>
+                  </div>
+                  <button
+                    onClick={() => handleUpdateField("humanHandoffEnabled", !currentData.humanHandoffEnabled)}
+                    className={cn(
+                      "relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none",
+                      currentData.humanHandoffEnabled ? "bg-primary" : "bg-muted-foreground/30",
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out",
+                        currentData.humanHandoffEnabled ? "translate-x-4" : "translate-x-0",
+                      )}
+                    />
+                  </button>
+                </div>
+
+                {currentData.humanHandoffEnabled && (
+                  <div className="space-y-3 pt-1">
+                    <label className="text-xs font-bold text-foreground">Configurable Handoff Triggers</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {[
+                        { key: "explicitHumanRequest", label: "Customer explicitly asks for human", desc: "e.g. 'talk to agent', 'human please'" },
+                        { key: "unableToAnswer", label: "AI cannot confidently answer", desc: "Query falls below RAG match threshold" },
+                        { key: "dissatisfied", label: "Customer appears dissatisfied", desc: "Negative sentiment or frustration detected" },
+                        { key: "sensitiveRequest", label: "Sensitive / high-risk request", desc: "Payment, legal, or account risk query" },
+                      ].map((trig) => {
+                        const isChecked = Boolean((currentData.handoffTriggers as any)?.[trig.key]);
+                        return (
+                          <label
+                            key={trig.key}
+                            className={cn(
+                              "flex items-start gap-3 p-3 rounded-lg border cursor-pointer transition-colors text-xs",
+                              isChecked ? "bg-primary/5 border-primary/30" : "bg-card border-border hover:bg-accent/40",
+                            )}
+                          >
+                            <input
+                              type="checkbox"
+                              checked={isChecked}
+                              onChange={(e) => handleUpdateHandoffTrigger(trig.key as any, e.target.checked)}
+                              className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary"
+                            />
+                            <div>
+                              <span className="font-bold text-foreground block">{trig.label}</span>
+                              <span className="text-muted-foreground text-[11px] leading-tight block">{trig.desc}</span>
+                            </div>
+                          </label>
+                        );
+                      })}
+                    </div>
+
+                    <div className="space-y-1.5 pt-2">
+                      <label className="text-xs font-bold text-foreground">Handoff Message</label>
+                      <Input
+                        value={currentData.handoffMessage || ""}
+                        onChange={(e) => handleUpdateField("handoffMessage", e.target.value)}
+                        placeholder="e.g. I'll connect you with a team member who can help you further."
+                      />
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Knowledge Tab */}
+        {activeTab === "knowledge" && (
+          <div className="space-y-6 max-w-6xl mx-auto">
+            <div className="flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-bold">Knowledge Base Sources</h3>
+                <p className="text-xs text-muted-foreground">Add text documents or Q&A pairs for precision RAG retrieval.</p>
+              </div>
+              <div className="flex gap-2">
+                <Button onClick={() => handleOpenAddKnowledge("text")} size="sm" className="gap-1.5">
+                  <Plus className="h-4 w-4" /> Add Document
+                </Button>
+                <Button onClick={() => handleOpenAddKnowledge("faq")} size="sm" variant="outline" className="gap-1.5">
+                  <Plus className="h-4 w-4" /> Add FAQ Pair
+                </Button>
+              </div>
+            </div>
+
+            {/* Knowledge List */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {(knowledgeQuery.data?.sources || []).map((source) => (
+                <div key={source._id} className="p-4 rounded-xl border border-border bg-card space-y-2 relative">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold uppercase tracking-wider text-primary">{source.type}</span>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => toggleKnowledgeStatusMutation.mutate({ id: source._id, status: source.status === "ready" ? "disabled" : "ready" })}
+                        className={cn("text-xs font-semibold px-2 py-0.5 rounded", source.status === "ready" ? "bg-emerald-500/10 text-emerald-600" : "bg-muted text-muted-foreground")}
+                      >
+                        {source.status}
+                      </button>
+                      <Button variant="ghost" size="sm" onClick={() => handleOpenEditKnowledge(source)} className="h-7 w-7 p-0">
+                        <Edit2 className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button variant="ghost" size="sm" onClick={() => deleteKnowledgeMutation.mutate(source._id)} className="h-7 w-7 p-0 text-destructive">
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                  <h4 className="font-bold text-sm">{source.title}</h4>
+                  <p className="text-xs text-muted-foreground line-clamp-3">
+                    {source.type === "faq" ? `Q: ${source.question}\nA: ${source.answer}` : source.content}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Playground Tab */}
+        {activeTab === "playground" && (
+          <div className="space-y-6 max-w-4xl mx-auto">
+            <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+              <h3 className="text-base font-bold flex items-center gap-2">
+                <Terminal className="h-5 w-5 text-primary" />
+                Testing Playground
+              </h3>
+              <form onSubmit={handleRunTest} className="space-y-3">
+                <Textarea
+                  rows={3}
+                  value={testQuery}
+                  onChange={(e) => setTestQuery(e.target.value)}
+                  placeholder="Type a test customer message (e.g. 'Business ka apko kya knowledge hai')..."
+                />
+                <Button type="submit" disabled={testingMutation.isPending} className="gap-2">
+                  {testingMutation.isPending ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Play className="h-4 w-4" />}
+                  Test AI Response
+                </Button>
+              </form>
+
+              {testingMutation.data && (
+                <div className="mt-4 p-4 rounded-lg border border-border bg-muted/20 space-y-3 text-xs">
+                  <div className="font-bold text-primary">AI Output:</div>
+                  <p className="text-sm font-medium whitespace-pre-wrap">{testingMutation.data.response}</p>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Activity Logs Tab */}
+        {activeTab === "activity" && (
+          <div className="space-y-6 max-w-6xl mx-auto">
+            <div className="rounded-xl border border-border bg-card p-6 space-y-4">
+              <h3 className="text-base font-bold flex items-center gap-2">
+                <Clock className="h-5 w-5 text-primary" />
+                Recent AI Activity Logs
+              </h3>
+              <div className="divide-y divide-border">
+                {(activityQuery.data?.activities || []).map((log) => (
+                  <div key={log._id} className="py-3 flex items-center justify-between text-xs">
+                    <div>
+                      <span className="font-bold text-foreground">{log.customerPhoneNumber || "Customer"}</span>
+                      <span className="text-muted-foreground ml-2">Reason: {log.reason}</span>
+                    </div>
+                    <span className={cn("font-bold px-2 py-0.5 rounded", log.processingState === "COMPLETED" ? "bg-emerald-500/10 text-emerald-600" : "bg-destructive/10 text-destructive")}>
+                      {log.processingState}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         )}
       </div>
+
+      {/* Sticky Bottom Action Bar for Unsaved Changes */}
+      {isDirty && (
+        <div className="fixed bottom-0 inset-x-0 bg-card/95 backdrop-blur border-t border-border p-4 shadow-2xl z-50 flex items-center justify-between px-8 animate-in slide-in-from-bottom duration-200">
+          <div className="flex items-center gap-2 text-sm font-bold text-amber-500">
+            <AlertTriangle className="h-5 w-5" />
+            <span>Unsaved Changes in Agent Configuration</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="sm" onClick={handleDiscardChanges}>
+              Discard Changes
+            </Button>
+            <Button size="sm" onClick={handleSaveSettings} disabled={updateSettingsMutation.isPending} className="gap-2">
+              {updateSettingsMutation.isPending ? <RefreshCw className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+              Save Agent Configuration
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Template Overwrite Confirmation Modal */}
+      {isTemplateModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-card border border-border rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center gap-3 text-amber-500">
+              <AlertTriangle className="h-6 w-6" />
+              <h3 className="text-lg font-bold text-foreground">Apply Template Preset?</h3>
+            </div>
+            <p className="text-xs text-muted-foreground leading-relaxed">
+              Applying this template will replace current agent behavior, diagnostic rules, and recommended memory schema. Organization info and Knowledge Base content will be preserved.
+            </p>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button variant="outline" size="sm" onClick={() => setIsTemplateModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => pendingTemplateId && executeApplyTemplate(pendingTemplateId)}
+                disabled={applyTemplateMutation.isPending}
+              >
+                {applyTemplateMutation.isPending ? "Applying..." : "Apply Template"}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add / Edit Memory Field Modal */}
+      {isMemoryModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <form onSubmit={handleSaveMemoryField} className="bg-card border border-border rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <h3 className="text-base font-bold text-foreground">
+                {editingMemoryKey ? "Edit Memory Field" : "Add Memory Field"}
+              </h3>
+              <button type="button" onClick={() => setIsMemoryModalOpen(false)} className="text-muted-foreground hover:text-foreground">
+                ×
+              </button>
+            </div>
+
+            {memoryFieldError && (
+              <div className="p-2.5 rounded bg-destructive/10 text-destructive text-xs font-semibold">
+                {memoryFieldError}
+              </div>
+            )}
+
+            <div className="space-y-3 text-xs">
+              <div className="space-y-1">
+                <label className="font-bold text-foreground">Field Name</label>
+                <Input
+                  value={memoryFieldName}
+                  onChange={(e) => setMemoryFieldName(e.target.value)}
+                  placeholder="e.g. Average Order Value"
+                />
+                <p className="text-[11px] text-muted-foreground">
+                  Internal key: <code className="font-mono font-bold text-primary">{editingMemoryKey || generateSafeKey(memoryFieldName || "field_name")}</code>
+                </p>
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-bold text-foreground">Description</label>
+                <Textarea
+                  rows={2}
+                  value={memoryFieldDesc}
+                  onChange={(e) => setMemoryFieldDesc(e.target.value)}
+                  placeholder="Explicit description of what this field tracks..."
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-bold text-foreground">Data Type</label>
+                <select
+                  value={memoryFieldType}
+                  onChange={(e) => setMemoryFieldType(e.target.value as any)}
+                  className="w-full h-9 rounded-md border border-border bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                >
+                  <option value="string">Text (String)</option>
+                  <option value="number">Number</option>
+                  <option value="boolean">Yes / No (Boolean)</option>
+                  <option value="string_array">List of Text (Array)</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 pt-3 border-t border-border">
+              <Button type="button" variant="outline" size="sm" onClick={() => setIsMemoryModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" size="sm">
+                Save Memory Field
+              </Button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Add / Edit Knowledge Modal */}
+      {isAddKnowledgeOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <form onSubmit={handleSaveKnowledge} className="bg-card border border-border rounded-xl max-w-lg w-full p-6 space-y-4 shadow-2xl">
+            <h3 className="text-base font-bold">{editingSource ? "Edit Knowledge Source" : "Add Knowledge Source"}</h3>
+            <div className="space-y-3 text-xs">
+              <div className="space-y-1">
+                <label className="font-bold">Source Title</label>
+                <Input value={sourceTitle} onChange={(e) => setSourceTitle(e.target.value)} required />
+              </div>
+              {sourceType === "text" ? (
+                <div className="space-y-1">
+                  <label className="font-bold">Content</label>
+                  <Textarea rows={5} value={sourceContent} onChange={(e) => setSourceContent(e.target.value)} required />
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-1">
+                    <label className="font-bold">Question</label>
+                    <Input value={sourceQuestion} onChange={(e) => setSourceQuestion(e.target.value)} required />
+                  </div>
+                  <div className="space-y-1">
+                    <label className="font-bold">Answer</label>
+                    <Textarea rows={3} value={sourceAnswer} onChange={(e) => setSourceAnswer(e.target.value)} required />
+                  </div>
+                </>
+              )}
+            </div>
+            <div className="flex justify-end gap-3">
+              <Button type="button" variant="outline" size="sm" onClick={() => setIsAddKnowledgeOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" size="sm">
+                Save Source
+              </Button>
+            </div>
+          </form>
+        </div>
+      )}
     </div>
   );
 }

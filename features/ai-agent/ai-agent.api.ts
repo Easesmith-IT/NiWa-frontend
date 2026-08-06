@@ -1,25 +1,76 @@
 import { v1ApiClient } from "../../lib/api/v1-client";
 
+export interface MemoryFieldDefinition {
+  key: string;
+  description: string;
+  type: "string" | "number" | "boolean" | "string_array";
+  multiple?: boolean;
+}
+
+export interface AgentBehaviorConfig {
+  diagnoseBeforeRecommending: boolean;
+  challengeAssumptions: boolean;
+  explainReasoning: boolean;
+  preferActionableAdvice: boolean;
+  useNumbersWhenUseful: boolean;
+  avoidGenericRecommendations: boolean;
+}
+
+export interface HumanHandoffTriggers {
+  explicitHumanRequest: boolean;
+  unableToAnswer: boolean;
+  dissatisfied: boolean;
+  sensitiveRequest: boolean;
+}
+
 export interface BusinessAISettings {
   workspaceId: string;
+  templateId: string;
   enabled: boolean;
   autoReplyEnabled: boolean;
   agentName: string;
+  agentRole: string;
+  agentPurpose: string;
   businessName: string;
-  systemPrompt: string;
+  businessDescription: string;
+  conversationStyle: "direct" | "consultative" | "supportive" | "sales_oriented" | "custom";
   responseStyle: "professional" | "friendly" | "casual" | "custom";
   responseLength: "short" | "balanced" | "detailed";
+  questionsPerReply: number;
+  behavior: AgentBehaviorConfig;
   languageMode: "auto" | "english" | "hindi" | "hinglish" | "custom";
+  matchCustomerLanguage: boolean;
+  allowHinglish: boolean;
+  preserveTechnicalEnglish: boolean;
   preferredLanguage: string;
-  unknownAnswerBehavior: "safe_response" | "no_response" | "handoff";
+  agentInstructions: string;
+  systemPrompt: string;
+  memoryEnabled: boolean;
+  memorySchema: MemoryFieldDefinition[];
+  maxFactsPerConversation: number;
+  maxFactLength: number;
+  unknownAnswerBehavior: "ask_customer" | "explain_unavailable" | "safe_response" | "no_response" | "handoff";
   fallbackResponse: string;
+  humanHandoffEnabled: boolean;
+  handoffTriggers: HumanHandoffTriggers;
+  handoffMessage: string;
   aiModel: string;
   temperature: number;
   maxTokens: number;
   useConversationHistory: boolean;
   maxHistoryMessages: number;
+  greetingFastPathEnabled: boolean;
+  acknowledgementFastPathEnabled: boolean;
   testedSuccessfully: boolean;
   hasApiKey: boolean;
+}
+
+export interface AgentTemplatePreset {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+  preset: Partial<BusinessAISettings>;
 }
 
 export interface KnowledgeSource {
@@ -78,6 +129,19 @@ export interface AIActivityLog {
 
 export const fetchAISettings = async (): Promise<{ settings: BusinessAISettings }> => {
   const response = await v1ApiClient.get<{ settings: BusinessAISettings }>("/ai-agent/settings");
+  return response.data;
+};
+
+export const fetchAITemplates = async (): Promise<{ templates: AgentTemplatePreset[] }> => {
+  const response = await v1ApiClient.get<{ templates: AgentTemplatePreset[] }>("/ai-agent/templates");
+  return response.data;
+};
+
+export const applyAITemplate = async (templateId: string): Promise<{ settings: BusinessAISettings }> => {
+  const response = await v1ApiClient.post<{ settings: BusinessAISettings }>(
+    `/ai-agent/templates/${templateId}/apply`,
+    {},
+  );
   return response.data;
 };
 

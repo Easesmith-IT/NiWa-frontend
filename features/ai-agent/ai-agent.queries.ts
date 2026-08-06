@@ -1,9 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  applyAITemplate,
   createKnowledgeSource,
   deleteKnowledgeSource,
   fetchAIActivityLogs,
   fetchAISettings,
+  fetchAITemplates,
   fetchKnowledgeSources,
   runAITestingPlayground,
   toggleKnowledgeSourceStatus,
@@ -15,6 +17,7 @@ import {
 export const aiAgentKeys = {
   all: ["ai-agent"] as const,
   settings: () => [...aiAgentKeys.all, "settings"] as const,
+  templates: () => [...aiAgentKeys.all, "templates"] as const,
   activity: () => [...aiAgentKeys.all, "activity"] as const,
   knowledge: () => [...aiAgentKeys.all, "knowledge"] as const,
 };
@@ -24,6 +27,22 @@ export const useAISettingsQuery = () =>
     queryKey: aiAgentKeys.settings(),
     queryFn: fetchAISettings,
   });
+
+export const useAITemplatesQuery = () =>
+  useQuery({
+    queryKey: aiAgentKeys.templates(),
+    queryFn: fetchAITemplates,
+  });
+
+export const useApplyAITemplateMutation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: applyAITemplate,
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: aiAgentKeys.settings() });
+    },
+  });
+};
 
 export const useUpdateAISettingsMutation = () => {
   const queryClient = useQueryClient();
