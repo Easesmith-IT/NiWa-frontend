@@ -1283,28 +1283,36 @@ export default function InboxPage() {
 
                 <div className="flex items-center gap-1.5">
                   <div className="relative flex items-center">
-                    <select
-                      className={cn(
-                        "h-7 rounded-md border px-2 text-xs font-semibold transition-colors focus:ring-2 focus:ring-emerald-500/20",
-                        ((detail.conversation as any).aiMode || "AI_ACTIVE") === "AI_ACTIVE"
-                          ? "border-emerald-300 bg-[#EDF8F3] text-[#176B4D] dark:border-emerald-800 dark:bg-[#14251E] dark:text-[#2D8A67]"
-                          : ((detail.conversation as any).aiMode === "AI_PAUSED")
-                            ? "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
-                            : "border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
-                      )}
-                      onChange={(e) => {
-                        const nextMode = e.target.value as "AI_ACTIVE" | "AI_PAUSED" | "HUMAN_ONLY";
-                        updateAIModeMutation.mutate({
-                          conversationId: detail.conversation._id,
-                          aiMode: nextMode,
-                        });
-                      }}
-                      value={(detail.conversation as any).aiMode || "AI_ACTIVE"}
-                    >
-                      <option value="AI_ACTIVE">◆ AI Active</option>
-                      <option value="AI_PAUSED">⏸ AI Paused</option>
-                      <option value="HUMAN_ONLY">👤 Human Only</option>
-                    </select>
+                    {(() => {
+                      const currentAiMode =
+                        (detail.conversation as any).aiMode ||
+                        (detail.conversation as any).metadata?.aiMode ||
+                        "AI_ACTIVE";
+                      return (
+                        <select
+                          className={cn(
+                            "h-7 rounded-md border px-2 text-xs font-semibold transition-colors focus:ring-2 focus:ring-emerald-500/20",
+                            currentAiMode === "AI_ACTIVE"
+                              ? "border-emerald-300 bg-[#EDF8F3] text-[#176B4D] dark:border-emerald-800 dark:bg-[#14251E] dark:text-[#2D8A67]"
+                              : currentAiMode === "AI_PAUSED"
+                                ? "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
+                                : "border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
+                          )}
+                          onChange={(e) => {
+                            const nextMode = e.target.value as "AI_ACTIVE" | "AI_PAUSED" | "HUMAN_ONLY";
+                            updateAIModeMutation.mutate({
+                              conversationId: detail.conversation._id,
+                              aiMode: nextMode,
+                            });
+                          }}
+                          value={currentAiMode}
+                        >
+                          <option value="AI_ACTIVE">◆ AI Active</option>
+                          <option value="AI_PAUSED">⏸ AI Paused</option>
+                          <option value="HUMAN_ONLY">👤 Human Only</option>
+                        </select>
+                      );
+                    })()}
                   </div>
 
                   <button
