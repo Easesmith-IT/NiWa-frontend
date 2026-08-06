@@ -85,10 +85,6 @@ export const useInboxRealtime = (
       const conversationId = event?.payload?.conversationId;
       invalidateInbox();
       invalidateActiveThread(conversationId);
-      const currentActiveId = activeConversationIdRef.current;
-      if (currentActiveId && conversationId === currentActiveId) {
-        onActiveMessageReceivedRef.current?.(conversationId);
-      }
     });
 
     socket.on("message.created", (event: { payload?: { conversationId?: string } }) => {
