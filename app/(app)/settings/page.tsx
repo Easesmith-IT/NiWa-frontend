@@ -23,6 +23,8 @@ import {
   SettingsResponse,
 } from "../../../lib/api/types";
 
+import { WhatsAppSettingsModule } from "../../../features/whatsapp-connections/WhatsAppSettingsModule";
+
 const settingsSchema = z.object({
   appId: z.string(),
   appSecret: z.string(),
@@ -214,9 +216,12 @@ export default function SettingsPage() {
           System Settings & Meta Cloud API Connectivity
         </h1>
         <p className="mt-1 max-w-2xl text-xs text-muted-foreground">
-          Configure WABA credentials, phone number IDs, permanent access tokens, and operator access controls.
+          Configure WABA credentials, phone number IDs, Meta Embedded Signup connections, and operator access controls.
         </p>
       </section>
+
+      {/* WhatsApp Embedded Signup & Connections Module */}
+      <WhatsAppSettingsModule />
 
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="space-y-3.5 p-4">

@@ -20,6 +20,62 @@ export interface SettingsResponse {
   metaWebhookEndpoint: string;
 }
 
+export interface WhatsAppConnectionRecord {
+  id: string;
+  workspaceId: string;
+  provider: string;
+  metaBusinessId: string;
+  wabaId: string;
+  phoneNumberId: string;
+  displayPhoneNumber: string;
+  verifiedName: string;
+  displayName: string;
+  qualityRating: string;
+  phoneStatus: string;
+  connectionStatus:
+    | "PENDING"
+    | "CONNECTING"
+    | "CONNECTED"
+    | "ACTION_REQUIRED"
+    | "TOKEN_EXPIRED"
+    | "PERMISSION_ERROR"
+    | "WEBHOOK_ERROR"
+    | "DISCONNECTED"
+    | "FAILED";
+  webhookStatus: string;
+  messagingStatus: string;
+  templateSyncStatus: string;
+  connectionMode: string;
+  connectedBy: string;
+  connectedAt: string | null;
+  lastSyncedAt: string | null;
+  lastWebhookAt: string | null;
+  lastHealthCheckAt: string | null;
+  healthStatus: "healthy" | "warning" | "disconnected";
+  healthMessage: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WhatsAppConnectionsResponse {
+  workspaceId: string;
+  connections: WhatsAppConnectionRecord[];
+  count: number;
+}
+
+export interface CompleteEmbeddedSignupPayload {
+  code?: string;
+  wabaId: string;
+  phoneNumberId: string;
+  businessId?: string;
+}
+
+export interface EmbeddedSignupResponse {
+  success: boolean;
+  message: string;
+  connection: WhatsAppConnectionRecord;
+}
+
 export interface ConnectionTestResponse {
   success: boolean;
   message: string;
