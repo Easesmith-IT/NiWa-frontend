@@ -33,7 +33,7 @@ export const useInboxThreadDetailV1Query = (
 ) =>
   useQuery({
     enabled: Boolean(conversationId),
-    refetchInterval: conversationId ? 30000 : false,
+    refetchInterval: false,
     refetchOnReconnect: true,
     refetchOnWindowFocus: true,
     queryKey: [...v1QueryKeys.inboxThread, conversationId, params?.cursor ?? null, params?.messageLimit ?? null],
@@ -57,6 +57,24 @@ export const useInboxThreadStateMutation = () => {
       action: "archive" | "pin" | "read" | "star" | "unarchive" | "unpin" | "unstar";
       conversationId: string;
     }) => updateInboxThreadStateV1(conversationId, action),
+    onMutate: async (variables) => {
+      if (variables.action === "read") {
+        queryClient.setQueriesData<{ data?: Array<{ conversation?: { _id: string; unreadCount: number } }> }>(
+          { queryKey: v1QueryKeys.inbox },
+          (oldData) => {
+            if (!oldData || !Array.isArray(oldData.data)) return oldData;
+            return {
+              ...oldData,
+              data: oldData.data.map((item) =>
+                item?.conversation?._id === variables.conversationId
+                  ? { ...item, conversation: { ...item.conversation, unreadCount: 0 } }
+                  : item,
+              ),
+            };
+          },
+        );
+      }
+    },
     onSuccess: async (_result, variables) => {
       await queryClient.invalidateQueries({ queryKey: v1QueryKeys.inbox });
       if (variables.action !== "read") {

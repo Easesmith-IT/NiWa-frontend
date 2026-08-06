@@ -544,6 +544,8 @@ export default function InboxPage() {
     message: string;
     tone: "error" | "success";
   } | null>(null);
+  const [hasInitialScrollCompleted, setHasInitialScrollCompleted] = useState(false);
+  const paginationCallWindowRef = useRef<number[]>([]);
 
   const threadsQuery = useInboxThreadsV1Query({ filter, search });
   const labelsQuery = useLabelsV1Query();
@@ -623,12 +625,12 @@ export default function InboxPage() {
     threadMutationRef.current = threadMutation.mutate;
   });
 
-  const markedReadRef = useRef<string | null>(null);
+  const markedReadSetRef = useRef<Set<string>>(new Set());
 
   const handleActiveMessageReceived = useCallback(
     (conversationId: string) => {
       if (activeConversationId && conversationId === activeConversationId) {
-        markedReadRef.current = activeConversationId;
+        markedReadSetRef.current.add(activeConversationId);
         threadMutationRef.current({
           action: "read",
           conversationId,
@@ -643,8 +645,8 @@ export default function InboxPage() {
   useEffect(() => {
     if (!activeConversationId) return;
     const unread = selectedThread?.conversation?.unreadCount ?? 0;
-    if (unread > 0 && markedReadRef.current !== activeConversationId) {
-      markedReadRef.current = activeConversationId;
+    if (unread > 0 && !markedReadSetRef.current.has(activeConversationId)) {
+      markedReadSetRef.current.add(activeConversationId);
       threadMutationRef.current({
         action: "read",
         conversationId: activeConversationId,
@@ -769,18 +771,31 @@ export default function InboxPage() {
     }
 
     if (
+      hasInitialScrollCompleted &&
       el.scrollTop < 150 &&
       hasMoreOlderMessages &&
       !isLoadingNextBatch &&
       !paginationError &&
       Boolean(nextCursor)
     ) {
+      const now = Date.now();
+      paginationCallWindowRef.current = paginationCallWindowRef.current.filter((t) => now - t < 5000);
+      if (paginationCallWindowRef.current.length >= 10) {
+        if (process.env.NODE_ENV !== "production") {
+          console.warn("[INBOX_CIRCUIT_BREAKER] Rapid pagination requests suppressed.");
+        }
+        return;
+      }
+      paginationCallWindowRef.current.push(now);
+
       captureScrollAnchor();
       void loadNextBatchAsync();
     }
   };
 
   useEffect(() => {
+    setHasInitialScrollCompleted(false);
+    paginationCallWindowRef.current = [];
     setContactInfoOpen(false);
     setSelectedQuickReplyId("");
     setSelectedLabelId("");
@@ -804,7 +819,10 @@ export default function InboxPage() {
     setShowJumpToBottom(false);
     setNewMessageCount(0);
 
-    const timer = setTimeout(() => scrollToBottom(false), 50);
+    const timer = setTimeout(() => {
+      scrollToBottom(false);
+      setHasInitialScrollCompleted(true);
+    }, 50);
     return () => clearTimeout(timer);
   }, [activeConversationId]);
 
@@ -909,20 +927,6 @@ export default function InboxPage() {
 
     return groups;
   }, [detail, displayedMessages, optimisticMessages.length]);
-
-  useEffect(() => {
-    if (!activeConversationId) {
-      return;
-    }
-
-    const currentThread = threads.find((t) => t.conversation._id === activeConversationId);
-    if (currentThread && currentThread.conversation.unreadCount > 0) {
-      threadMutation.mutate({
-        action: "read",
-        conversationId: activeConversationId,
-      });
-    }
-  }, [activeConversationId, threads, threadMutation]);
 
   useEffect(() => {
     if (!selectedQuickReply) {

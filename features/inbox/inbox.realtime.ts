@@ -54,7 +54,7 @@ export const useInboxRealtime = (
     const realtimeUrl = resolveRealtimeUrl();
     const transports = process.env.NEXT_PUBLIC_SOCKET_TRANSPORTS
       ? process.env.NEXT_PUBLIC_SOCKET_TRANSPORTS.split(",")
-      : ["polling"];
+      : ["websocket", "polling"];
 
     const socket = io(realtimeUrl, {
       path: "/socket.io",
@@ -81,6 +81,18 @@ export const useInboxRealtime = (
       });
     };
 
+    if (process.env.NODE_ENV !== "production") {
+      socket.on("connect", () => {
+        console.log("[INBOX_SOCKET] Connected:", socket.id);
+      });
+      socket.on("disconnect", (reason) => {
+        console.log("[INBOX_SOCKET] Disconnected:", reason);
+      });
+      socket.on("connect_error", (err) => {
+        console.warn("[INBOX_SOCKET] Connect error:", err.message);
+      });
+    }
+
     socket.on("conversation.updated", (event: { payload?: { conversationId?: string } }) => {
       const conversationId = event?.payload?.conversationId;
       invalidateInbox();
@@ -99,10 +111,32 @@ export const useInboxRealtime = (
 
     socket.on(
       "message.status.updated",
-      (event: { payload?: { conversationId?: string } }) => {
+      (event: { payload?: { conversationId?: string; messageId?: string; status?: string } }) => {
         const conversationId = event?.payload?.conversationId;
+        const messageId = event?.payload?.messageId;
+        const status = event?.payload?.status;
+
         invalidateInbox();
-        invalidateActiveThread(conversationId);
+
+        if (conversationId && messageId && status) {
+          queryClient.setQueriesData<{ data?: { messages?: Array<{ _id: string; status: string }> } }>(
+            { queryKey: [...v1QueryKeys.inboxThread, conversationId] },
+            (oldData) => {
+              if (!oldData || !oldData.data || !Array.isArray(oldData.data.messages)) return oldData;
+              return {
+                ...oldData,
+                data: {
+                  ...oldData.data,
+                  messages: oldData.data.messages.map((msg) =>
+                    msg._id === messageId ? { ...msg, status } : msg,
+                  ),
+                },
+              };
+            },
+          );
+        } else {
+          invalidateActiveThread(conversationId);
+        }
       },
     );
 
