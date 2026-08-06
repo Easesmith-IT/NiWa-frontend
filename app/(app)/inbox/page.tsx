@@ -70,6 +70,7 @@ import {
   useCreateTaskV1Mutation,
   useTasksV1Query,
 } from "../../../features/tasks";
+import { useUpdateConversationAIModeMutation } from "../../../features/ai-agent";
 
 const filters = [
   { key: "all", label: "All" },
@@ -557,6 +558,7 @@ export default function InboxPage() {
   const setNotePinnedMutation = useSetNotePinnedV1Mutation();
   const patchQuickReplyMutation = usePatchQuickReplyV1Mutation();
   const createScheduledMessageMutation = useCreateScheduledMessageV1Mutation();
+  const updateAIModeMutation = useUpdateConversationAIModeMutation();
 
   const rawThreads = threadsQuery.data?.data ?? [];
   const threads = useMemo(() => {
@@ -1183,6 +1185,31 @@ export default function InboxPage() {
                 </button>
 
                 <div className="flex items-center gap-1.5">
+                  <div className="relative flex items-center">
+                    <select
+                      className={cn(
+                        "h-7 rounded-md border px-2 text-xs font-semibold transition-colors focus:ring-2 focus:ring-emerald-500/20",
+                        ((detail.conversation as any).aiMode || "AI_ACTIVE") === "AI_ACTIVE"
+                          ? "border-emerald-300 bg-[#EDF8F3] text-[#176B4D] dark:border-emerald-800 dark:bg-[#14251E] dark:text-[#2D8A67]"
+                          : ((detail.conversation as any).aiMode === "AI_PAUSED")
+                            ? "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
+                            : "border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
+                      )}
+                      onChange={(e) => {
+                        const nextMode = e.target.value as "AI_ACTIVE" | "AI_PAUSED" | "HUMAN_ONLY";
+                        updateAIModeMutation.mutate({
+                          conversationId: detail.conversation._id,
+                          aiMode: nextMode,
+                        });
+                      }}
+                      value={(detail.conversation as any).aiMode || "AI_ACTIVE"}
+                    >
+                      <option value="AI_ACTIVE">◆ AI Active</option>
+                      <option value="AI_PAUSED">⏸ AI Paused</option>
+                      <option value="HUMAN_ONLY">👤 Human Only</option>
+                    </select>
+                  </div>
+
                   <button
                     className="flex items-center gap-1.5 rounded-md border border-[#E4E4E7] bg-white px-2.5 py-1 text-xs font-medium text-[#52525B] transition-colors hover:border-[#D4D4D8] hover:bg-[#FAFAFA] disabled:opacity-50"
                     disabled={syncHistoryMutation.isPending}
@@ -1336,6 +1363,12 @@ export default function InboxPage() {
                                 </a>
                               ) : null}
                               <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-muted-foreground opacity-80">
+                                {(message as any).generatedByAI || (message as any).source === "ai" ? (
+                                  <span className="mr-1 inline-flex items-center gap-0.5 font-[#176B4D] font-bold text-[#176B4D] dark:text-[#2D8A67]" title="AI Generated Response">
+                                    <span>◆</span>
+                                    <span>AI</span>
+                                  </span>
+                                ) : null}
                                 <span>{formatConversationTime(messageTime)}</span>
                                 {outgoing ? (
                                   <span title={statusDetails || undefined}>{renderOutgoingStatusIcon(message.status)}</span>
