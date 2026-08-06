@@ -1,10 +1,4 @@
-import axios from "axios";
-import { getAccessToken } from "../../lib/auth";
-
-const getAuthHeaders = () => {
-  const token = getAccessToken();
-  return token ? { Authorization: `Bearer ${token}` } : {};
-};
+import { v1ApiClient } from "../../lib/api/v1-client";
 
 export interface BusinessAISettings {
   workspaceId: string;
@@ -83,27 +77,19 @@ export interface AIActivityLog {
 }
 
 export const fetchAISettings = async (): Promise<{ settings: BusinessAISettings }> => {
-  const response = await axios.get("/api/v1/ai-agent/settings", {
-    headers: getAuthHeaders(),
-  });
+  const response = await v1ApiClient.get<{ settings: BusinessAISettings }>("/ai-agent/settings");
   return response.data;
 };
 
 export const updateAISettings = async (
   payload: Partial<BusinessAISettings>,
 ): Promise<{ settings: BusinessAISettings }> => {
-  const response = await axios.put("/api/v1/ai-agent/settings", payload, {
-    headers: getAuthHeaders(),
-  });
+  const response = await v1ApiClient.put<{ settings: BusinessAISettings }>("/ai-agent/settings", payload);
   return response.data;
 };
 
 export const runAITestingPlayground = async (query: string): Promise<AITestResponse> => {
-  const response = await axios.post(
-    "/api/v1/ai-agent/test",
-    { query },
-    { headers: getAuthHeaders() },
-  );
+  const response = await v1ApiClient.post<AITestResponse>("/ai-agent/test", { query });
   return response.data;
 };
 
@@ -111,16 +97,15 @@ export const fetchAIActivityLogs = async (): Promise<{
   activities: AIActivityLog[];
   metrics: { total: number; completedCount: number; failedCount: number };
 }> => {
-  const response = await axios.get("/api/v1/ai-agent/activity", {
-    headers: getAuthHeaders(),
-  });
+  const response = await v1ApiClient.get<{
+    activities: AIActivityLog[];
+    metrics: { total: number; completedCount: number; failedCount: number };
+  }>("/ai-agent/activity");
   return response.data;
 };
 
 export const fetchKnowledgeSources = async (): Promise<{ sources: KnowledgeSource[] }> => {
-  const response = await axios.get("/api/v1/ai-agent/knowledge", {
-    headers: getAuthHeaders(),
-  });
+  const response = await v1ApiClient.get<{ sources: KnowledgeSource[] }>("/ai-agent/knowledge");
   return response.data;
 };
 
@@ -131,9 +116,7 @@ export const createKnowledgeSource = async (payload: {
   question?: string;
   answer?: string;
 }): Promise<{ source: KnowledgeSource }> => {
-  const response = await axios.post("/api/v1/ai-agent/knowledge", payload, {
-    headers: getAuthHeaders(),
-  });
+  const response = await v1ApiClient.post<{ source: KnowledgeSource }>("/ai-agent/knowledge", payload);
   return response.data;
 };
 
@@ -147,9 +130,10 @@ export const updateKnowledgeSource = async ({
   question?: string;
   answer?: string;
 }): Promise<{ source: KnowledgeSource }> => {
-  const response = await axios.patch(`/api/v1/ai-agent/knowledge/${id}`, payload, {
-    headers: getAuthHeaders(),
-  });
+  const response = await v1ApiClient.patch<{ source: KnowledgeSource }>(
+    `/ai-agent/knowledge/${id}`,
+    payload,
+  );
   return response.data;
 };
 
@@ -160,18 +144,15 @@ export const toggleKnowledgeSourceStatus = async ({
   id: string;
   status: "ready" | "disabled";
 }): Promise<{ source: KnowledgeSource }> => {
-  const response = await axios.patch(
-    `/api/v1/ai-agent/knowledge/${id}/status`,
+  const response = await v1ApiClient.patch<{ source: KnowledgeSource }>(
+    `/ai-agent/knowledge/${id}/status`,
     { status },
-    { headers: getAuthHeaders() },
   );
   return response.data;
 };
 
 export const deleteKnowledgeSource = async (id: string): Promise<void> => {
-  await axios.delete(`/api/v1/ai-agent/knowledge/${id}`, {
-    headers: getAuthHeaders(),
-  });
+  await v1ApiClient.delete(`/ai-agent/knowledge/${id}`);
 };
 
 export const updateConversationAIMode = async ({
@@ -181,9 +162,6 @@ export const updateConversationAIMode = async ({
   conversationId: string;
   aiMode: "AI_ACTIVE" | "AI_PAUSED" | "HUMAN_ONLY";
 }): Promise<void> => {
-  await axios.patch(
-    `/api/v1/conversations/${conversationId}/ai-mode`,
-    { aiMode },
-    { headers: getAuthHeaders() },
-  );
+  await v1ApiClient.patch(`/conversations/${conversationId}/ai-mode`, { aiMode });
 };
+
