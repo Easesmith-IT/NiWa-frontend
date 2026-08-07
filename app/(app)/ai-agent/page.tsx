@@ -41,6 +41,9 @@ import { Textarea } from "../../../components/ui/textarea";
 import { cn } from "../../../lib/utils";
 import {
   useAgentsQuery,
+  useCreateAgentMutation,
+  useDeleteAgentMutation,
+  useSetDefaultAgentMutation,
   useAIActivityLogsQuery,
   useAISettingsQuery,
   useAITemplatesQuery,
@@ -70,9 +73,10 @@ import { AgentDecisionTrace } from "./components/AgentDecisionTrace";
 import { KnowledgeFilters, AccessFilter } from "./components/KnowledgeFilters";
 import { KnowledgeAccessSelector } from "./components/KnowledgeAccessSelector";
 import { AgentKnowledgeSummary } from "./components/AgentKnowledgeSummary";
+import { AgentInstanceManager } from "./components/AgentInstanceManager";
 
 export default function AIAgentPage() {
-  const [activeTab, setActiveTab] = useState<"settings" | "knowledge" | "playground" | "activity">("settings");
+  const [activeTab, setActiveTab] = useState<"agents" | "settings" | "knowledge" | "playground" | "activity">("agents");
   const [testQuery, setTestQuery] = useState("");
   const [saveFeedback, setSaveFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
@@ -107,6 +111,11 @@ export default function AIAgentPage() {
   const [sourceAccessMode, setSourceAccessMode] = useState<"all_agents" | "selected_agents">("all_agents");
   const [sourceAssignedAgentIds, setSourceAssignedAgentIds] = useState<string[]>([]);
 
+  // Agent Management Mutations
+  const createAgentMutation = useCreateAgentMutation();
+  const deleteAgentMutation = useDeleteAgentMutation();
+  const setDefaultAgentMutation = useSetDefaultAgentMutation();
+
   // Queries & Mutations
   const agentsQuery = useAgentsQuery();
   const settingsQuery = useAISettingsQuery();
@@ -121,6 +130,37 @@ export default function AIAgentPage() {
   const updateKnowledgeMutation = useUpdateKnowledgeSourceMutation();
   const toggleKnowledgeStatusMutation = useToggleKnowledgeSourceStatusMutation();
   const deleteKnowledgeMutation = useDeleteKnowledgeSourceMutation();
+
+  const handleCreateAgent = (payload: { name: string; templateId: string; isDefault?: boolean }) => {
+    createAgentMutation.mutate(payload, {
+      onSuccess: (data) => {
+        setSelectedKnowledgeAgentId(data.agent._id);
+        setSaveFeedback({ type: "success", message: `AI Agent '${data.agent.name}' created successfully.` });
+        setTimeout(() => setSaveFeedback(null), 3000);
+      },
+      onError: (err: any) => {
+        setSaveFeedback({ type: "error", message: `Failed to create agent: ${err?.message}` });
+      },
+    });
+  };
+
+  const handleDeleteAgent = (agentId: string) => {
+    deleteAgentMutation.mutate(agentId, {
+      onSuccess: () => {
+        setSaveFeedback({ type: "success", message: "AI Agent deleted successfully." });
+        setTimeout(() => setSaveFeedback(null), 3000);
+      },
+    });
+  };
+
+  const handleSetDefaultAgent = (agentId: string) => {
+    setDefaultAgentMutation.mutate(agentId, {
+      onSuccess: () => {
+        setSaveFeedback({ type: "success", message: "Default AI Agent updated." });
+        setTimeout(() => setSaveFeedback(null), 3000);
+      },
+    });
+  };
 
   const serverSettings = settingsQuery.data?.settings;
   const [formData, setFormData] = useState<Partial<BusinessAISettings>>({});
@@ -449,23 +489,35 @@ export default function AIAgentPage() {
 
       {/* Tabs Bar */}
       <div className="border-b border-border bg-card/50 px-6">
-        <div className="flex gap-6">
+        <div className="flex gap-6 overflow-x-auto">
+          <button
+            onClick={() => setActiveTab("agents")}
+            className={cn(
+              "flex items-center gap-2 border-b-2 py-3 text-sm font-semibold transition-colors whitespace-nowrap",
+              activeTab === "agents"
+                ? "border-primary text-primary"
+                : "border-transparent text-muted-foreground hover:text-foreground",
+            )}
+          >
+            <Bot className="h-4 w-4" />
+            AI Agents ({agentsQuery.data?.agents?.length || 0})
+          </button>
           <button
             onClick={() => setActiveTab("settings")}
             className={cn(
-              "flex items-center gap-2 border-b-2 py-3 text-sm font-semibold transition-colors",
+              "flex items-center gap-2 border-b-2 py-3 text-sm font-semibold transition-colors whitespace-nowrap",
               activeTab === "settings"
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground",
             )}
           >
             <Sliders className="h-4 w-4" />
-            Agent Configuration
+            Agent Persona & Rules
           </button>
           <button
             onClick={() => setActiveTab("knowledge")}
             className={cn(
-              "flex items-center gap-2 border-b-2 py-3 text-sm font-semibold transition-colors",
+              "flex items-center gap-2 border-b-2 py-3 text-sm font-semibold transition-colors whitespace-nowrap",
               activeTab === "knowledge"
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground",
@@ -477,32 +529,50 @@ export default function AIAgentPage() {
           <button
             onClick={() => setActiveTab("playground")}
             className={cn(
-              "flex items-center gap-2 border-b-2 py-3 text-sm font-semibold transition-colors",
+              "flex items-center gap-2 border-b-2 py-3 text-sm font-semibold transition-colors whitespace-nowrap",
               activeTab === "playground"
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground",
             )}
           >
             <Terminal className="h-4 w-4" />
-            Testing Playground
+            Playground
           </button>
           <button
             onClick={() => setActiveTab("activity")}
             className={cn(
-              "flex items-center gap-2 border-b-2 py-3 text-sm font-semibold transition-colors",
+              "flex items-center gap-2 border-b-2 py-3 text-sm font-semibold transition-colors whitespace-nowrap",
               activeTab === "activity"
                 ? "border-primary text-primary"
                 : "border-transparent text-muted-foreground hover:text-foreground",
             )}
           >
-            <Clock className="h-4 w-4" />
+            <TrendingUp className="h-4 w-4" />
             Activity Logs
           </button>
         </div>
       </div>
 
-      {/* Tab Contents */}
-      <div className="p-6">
+      {/* Main Content Body */}
+      <div className="flex-1 p-6">
+        {/* AI Agents Manager Tab */}
+        {activeTab === "agents" && (
+          <div className="space-y-6 max-w-6xl mx-auto">
+            <AgentInstanceManager
+              agents={agentsQuery.data?.agents || []}
+              templates={templates}
+              activeAgentId={selectedKnowledgeAgentId || (agentsQuery.data?.agents.find((a) => a.isDefault)?._id || "")}
+              onSelectAgent={(agent) => {
+                setSelectedKnowledgeAgentId(agent._id);
+                setActiveTab("settings");
+              }}
+              onCreateAgent={handleCreateAgent}
+              onDeleteAgent={handleDeleteAgent}
+              onSetDefaultAgent={handleSetDefaultAgent}
+              isCreating={createAgentMutation.isPending}
+            />
+          </div>
+        )}
         {activeTab === "settings" && (
           <div className="space-y-6 max-w-6xl mx-auto">
             {/* Agent Contract Visual Overview */}
