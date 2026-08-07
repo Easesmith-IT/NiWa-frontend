@@ -73,7 +73,11 @@ import {
   useCreateTaskV1Mutation,
   useTasksV1Query,
 } from "../../../features/tasks";
-import { useUpdateConversationAIModeMutation } from "../../../features/ai-agent";
+import {
+  useAgentsQuery,
+  useTransferConversationAgentMutation,
+  useUpdateConversationAIModeMutation,
+} from "../../../features/ai-agent";
 
 const filters = [
   { key: "all", label: "All" },
@@ -564,6 +568,8 @@ export default function InboxPage() {
   const patchQuickReplyMutation = usePatchQuickReplyV1Mutation();
   const createScheduledMessageMutation = useCreateScheduledMessageV1Mutation();
   const updateAIModeMutation = useUpdateConversationAIModeMutation();
+  const agentsQuery = useAgentsQuery();
+  const transferAgentMutation = useTransferConversationAgentMutation();
 
   const rawThreads = threadsQuery.data?.data ?? [];
   const threads = useMemo(() => {
@@ -1310,6 +1316,41 @@ export default function InboxPage() {
                           <option value="AI_ACTIVE">◆ AI Active</option>
                           <option value="AI_PAUSED">⏸ AI Paused</option>
                           <option value="HUMAN_ONLY">👤 Human Only</option>
+                        </select>
+                      );
+                    })()}
+
+                    {/* Assigned AI Agent Selector Dropdown */}
+                    {(() => {
+                      const agents = agentsQuery.data?.agents || [];
+                      if (agents.length === 0) return null;
+
+                      const defaultAgent = agents.find((a) => a.isDefault) || agents[0];
+                      const assignedAgentId = detail.conversation.assignedAgentId
+                        ? typeof detail.conversation.assignedAgentId === "object"
+                          ? (detail.conversation.assignedAgentId as any)._id
+                          : detail.conversation.assignedAgentId
+                        : defaultAgent?._id || "";
+
+                      return (
+                        <select
+                          className="h-7 rounded-md border border-indigo-200 bg-indigo-50/70 dark:bg-indigo-950/40 dark:text-indigo-200 dark:border-indigo-800/80 px-2.5 py-1 text-xs font-bold text-indigo-950 shadow-xs transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
+                          value={assignedAgentId}
+                          disabled={transferAgentMutation.isPending}
+                          title="Select assigned AI Agent instance for this conversation"
+                          onChange={(e) => {
+                            const targetAgentId = e.target.value;
+                            transferAgentMutation.mutate({
+                              conversationId: detail.conversation._id,
+                              agentId: targetAgentId,
+                            });
+                          }}
+                        >
+                          {agents.map((agent) => (
+                            <option key={agent._id} value={agent._id}>
+                              🤖 {agent.name} {agent.isDefault ? "⭐ (Default)" : ""}
+                            </option>
+                          ))}
                         </select>
                       );
                     })()}

@@ -44,6 +44,7 @@ export interface ContactRecordV1 extends V1RecordBase {
 
 export interface ConversationRecordV1 extends V1RecordBase {
   aiMode?: "AI_ACTIVE" | "AI_PAUSED" | "HUMAN_ONLY";
+  assignedAgentId?: string | null;
   contactId: string;
   lastMessageAt?: string | null;
   lastReadAt?: string | null;
