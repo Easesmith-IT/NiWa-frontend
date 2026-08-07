@@ -106,7 +106,8 @@ export default function AIAgentPage() {
   const [sourceQuestion, setSourceQuestion] = useState("");
   const [sourceAnswer, setSourceAnswer] = useState("");
 
-  // Agent Knowledge Access State
+  // Agent Knowledge Access & Editing State
+  const [activeEditingAgentId, setActiveEditingAgentId] = useState<string>("");
   const [selectedKnowledgeAgentId, setSelectedKnowledgeAgentId] = useState<string>("");
   const [accessFilter, setAccessFilter] = useState<AccessFilter>("all");
   const [sourceAccessMode, setSourceAccessMode] = useState<"all_agents" | "selected_agents">("all_agents");
@@ -135,26 +136,26 @@ export default function AIAgentPage() {
 
   const agents = agentsQuery.data?.agents || [];
 
-  // Active agent instance resolution
+  // Active agent instance resolution for persona editing
   const activeAgent = useMemo(() => {
-    if (selectedKnowledgeAgentId) {
-      const found = agents.find((a) => a._id === selectedKnowledgeAgentId);
+    if (activeEditingAgentId) {
+      const found = agents.find((a) => a._id === activeEditingAgentId);
       if (found) return found;
     }
     return agents.find((a) => a.isDefault) || agents[0];
-  }, [agents, selectedKnowledgeAgentId]);
+  }, [agents, activeEditingAgentId]);
 
-  // Keep selectedKnowledgeAgentId synced with default agent if unselected
+  // Keep activeEditingAgentId set to default if uninitialized
   useEffect(() => {
-    if (activeAgent && (!selectedKnowledgeAgentId || selectedKnowledgeAgentId !== activeAgent._id)) {
-      setSelectedKnowledgeAgentId(activeAgent._id);
+    if (activeAgent && !activeEditingAgentId) {
+      setActiveEditingAgentId(activeAgent._id);
     }
-  }, [activeAgent, selectedKnowledgeAgentId]);
+  }, [activeAgent, activeEditingAgentId]);
 
   const handleCreateAgent = (payload: { name: string; templateId: string; isDefault?: boolean }) => {
     createAgentMutation.mutate(payload, {
       onSuccess: (data) => {
-        setSelectedKnowledgeAgentId(data.agent._id);
+        setActiveEditingAgentId(data.agent._id);
         setSaveFeedback({ type: "success", message: `AI Agent '${data.agent.name}' created successfully.` });
         setTimeout(() => setSaveFeedback(null), 3000);
       },
@@ -629,9 +630,9 @@ export default function AIAgentPage() {
             <AgentInstanceManager
               agents={agentsQuery.data?.agents || []}
               templates={templates}
-              activeAgentId={selectedKnowledgeAgentId || (agentsQuery.data?.agents.find((a) => a.isDefault)?._id || "")}
+              activeAgentId={activeEditingAgentId || (agentsQuery.data?.agents.find((a) => a.isDefault)?._id || "")}
               onSelectAgent={(agent) => {
-                setSelectedKnowledgeAgentId(agent._id);
+                setActiveEditingAgentId(agent._id);
                 setActiveTab("settings");
               }}
               onCreateAgent={handleCreateAgent}
@@ -666,7 +667,7 @@ export default function AIAgentPage() {
                 <label className="text-xs font-semibold text-muted-foreground whitespace-nowrap">Switch Agent Instance:</label>
                 <select
                   value={activeAgent?._id || ""}
-                  onChange={(e) => setSelectedKnowledgeAgentId(e.target.value)}
+                  onChange={(e) => setActiveEditingAgentId(e.target.value)}
                   className="h-9 rounded-lg border border-border bg-background px-3 py-1 text-xs font-bold text-foreground shadow-sm focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
                 >
                   {agents.map((agent) => (
