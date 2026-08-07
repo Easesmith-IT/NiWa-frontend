@@ -42,6 +42,7 @@ import { cn } from "../../../lib/utils";
 import {
   useAgentsQuery,
   useCreateAgentMutation,
+  useUpdateAgentMutation,
   useDeleteAgentMutation,
   useSetDefaultAgentMutation,
   useAIActivityLogsQuery,
@@ -113,6 +114,7 @@ export default function AIAgentPage() {
 
   // Agent Management Mutations
   const createAgentMutation = useCreateAgentMutation();
+  const updateAgentMutation = useUpdateAgentMutation();
   const deleteAgentMutation = useDeleteAgentMutation();
   const setDefaultAgentMutation = useSetDefaultAgentMutation();
 
@@ -130,6 +132,24 @@ export default function AIAgentPage() {
   const updateKnowledgeMutation = useUpdateKnowledgeSourceMutation();
   const toggleKnowledgeStatusMutation = useToggleKnowledgeSourceStatusMutation();
   const deleteKnowledgeMutation = useDeleteKnowledgeSourceMutation();
+
+  const agents = agentsQuery.data?.agents || [];
+
+  // Active agent instance resolution
+  const activeAgent = useMemo(() => {
+    if (selectedKnowledgeAgentId) {
+      const found = agents.find((a) => a._id === selectedKnowledgeAgentId);
+      if (found) return found;
+    }
+    return agents.find((a) => a.isDefault) || agents[0];
+  }, [agents, selectedKnowledgeAgentId]);
+
+  // Keep selectedKnowledgeAgentId synced with default agent if unselected
+  useEffect(() => {
+    if (activeAgent && (!selectedKnowledgeAgentId || selectedKnowledgeAgentId !== activeAgent._id)) {
+      setSelectedKnowledgeAgentId(activeAgent._id);
+    }
+  }, [activeAgent, selectedKnowledgeAgentId]);
 
   const handleCreateAgent = (payload: { name: string; templateId: string; isDefault?: boolean }) => {
     createAgentMutation.mutate(payload, {
@@ -165,25 +185,29 @@ export default function AIAgentPage() {
   const serverSettings = settingsQuery.data?.settings;
   const [formData, setFormData] = useState<Partial<BusinessAISettings>>({});
 
-  // Sync formData with serverSettings when loaded initially or after save
+  // Reset form overrides when switching active agent
   useEffect(() => {
-    if (serverSettings) {
-      setFormData({});
-    }
-  }, [serverSettings]);
+    setFormData({});
+  }, [activeAgent?._id]);
 
   const currentData: BusinessAISettings = useMemo(() => {
+    const base = activeAgent ? {
+      ...serverSettings,
+      ...activeAgent,
+      agentName: activeAgent.agentName || activeAgent.name,
+    } : (serverSettings || ({} as BusinessAISettings));
+
     return {
       ...(serverSettings || ({} as BusinessAISettings)),
-      ...formData,
+      ...base,
+      capabilities: Array.isArray(base.capabilities) ? base.capabilities : (serverSettings?.capabilities || []),
       behavior: {
-        diagnoseBeforeRecommending: true,
-        challengeAssumptions: true,
-        explainReasoning: true,
-        preferActionableAdvice: true,
-        useNumbersWhenUseful: true,
-        avoidGenericRecommendations: true,
-        ...(serverSettings?.behavior || {}),
+        diagnoseBeforeRecommending: base.behavior?.diagnoseBeforeRecommending ?? true,
+        challengeAssumptions: base.behavior?.challengeAssumptions ?? true,
+        explainReasoning: base.behavior?.explainReasoning ?? true,
+        preferActionableAdvice: base.behavior?.preferActionableAdvice ?? true,
+        useNumbersWhenUseful: base.behavior?.useNumbersWhenUseful ?? true,
+        avoidGenericRecommendations: base.behavior?.avoidGenericRecommendations ?? true,
         ...(formData.behavior || {}),
       },
       handoffTriggers: {
@@ -192,10 +216,12 @@ export default function AIAgentPage() {
         dissatisfied: true,
         sensitiveRequest: false,
         ...(serverSettings?.handoffTriggers || {}),
+        ...((base as any).handoffTriggers || {}),
         ...(formData.handoffTriggers || {}),
       },
+      ...formData,
     };
-  }, [serverSettings, formData]);
+  }, [activeAgent, serverSettings, formData]);
 
   const isDirty = useMemo(() => {
     return Object.keys(formData).length > 0;
@@ -230,16 +256,39 @@ export default function AIAgentPage() {
   };
 
   const handleSaveSettings = () => {
-    updateSettingsMutation.mutate(formData, {
-      onSuccess: () => {
-        setFormData({});
-        setSaveFeedback({ type: "success", message: "AI Agent settings saved successfully." });
-        setTimeout(() => setSaveFeedback(null), 3000);
+    if (!activeAgent) return;
+
+    if (formData.enabled !== undefined) {
+      updateSettingsMutation.mutate({ enabled: formData.enabled });
+    }
+
+    updateAgentMutation.mutate(
+      {
+        id: activeAgent._id,
+        name: currentData.agentName || activeAgent.name,
+        agentName: currentData.agentName || activeAgent.name,
+        agentRole: currentData.agentRole,
+        agentPurpose: currentData.agentPurpose,
+        scopeLevel: currentData.scopeLevel,
+        autonomyLevel: currentData.autonomyLevel,
+        knowledgePolicy: currentData.knowledgePolicy,
+        capabilities: currentData.capabilities,
+        behavior: currentData.behavior,
+        memorySchema: currentData.memorySchema,
+        primaryObjective: currentData.primaryObjective,
+        templateId: currentData.templateId,
       },
-      onError: (err: any) => {
-        setSaveFeedback({ type: "error", message: `Error saving settings: ${err?.message || "Failed to update"}` });
+      {
+        onSuccess: () => {
+          setFormData({});
+          setSaveFeedback({ type: "success", message: `AI Agent '${activeAgent.name}' saved successfully.` });
+          setTimeout(() => setSaveFeedback(null), 3000);
+        },
+        onError: (err: any) => {
+          setSaveFeedback({ type: "error", message: `Error saving agent: ${err?.message || "Failed to update"}` });
+        },
       },
-    });
+    );
   };
 
   // Template Selection
@@ -258,19 +307,38 @@ export default function AIAgentPage() {
   };
 
   const executeApplyTemplate = (templateId: string) => {
-    applyTemplateMutation.mutate(templateId, {
-      onSuccess: () => {
-        setFormData({});
-        setIsTemplateModalOpen(false);
-        setPendingTemplateId(null);
-        setSaveFeedback({ type: "success", message: `Template '${templateId}' applied successfully.` });
-        setTimeout(() => setSaveFeedback(null), 3000);
+    const tpl = templates.find((t) => t.id === templateId);
+    if (!tpl || !activeAgent) return;
+
+    const preset = tpl.preset || {};
+
+    updateAgentMutation.mutate(
+      {
+        id: activeAgent._id,
+        templateId: tpl.id,
+        agentRole: preset.agentRole || tpl.name,
+        agentPurpose: preset.agentPurpose || tpl.description,
+        scopeLevel: preset.scopeLevel,
+        autonomyLevel: preset.autonomyLevel,
+        knowledgePolicy: preset.knowledgePolicy,
+        capabilities: preset.capabilities,
+        primaryObjective: preset.primaryObjective,
+        memorySchema: preset.memorySchema,
       },
-      onError: (err: any) => {
-        setIsTemplateModalOpen(false);
-        setSaveFeedback({ type: "error", message: `Failed to apply template: ${err?.message}` });
+      {
+        onSuccess: () => {
+          setFormData({});
+          setIsTemplateModalOpen(false);
+          setPendingTemplateId(null);
+          setSaveFeedback({ type: "success", message: `Template '${tpl.name}' applied to ${activeAgent.name}.` });
+          setTimeout(() => setSaveFeedback(null), 3000);
+        },
+        onError: (err: any) => {
+          setIsTemplateModalOpen(false);
+          setSaveFeedback({ type: "error", message: `Failed to apply template: ${err?.message}` });
+        },
       },
-    });
+    );
   };
 
   // Memory Field Management
@@ -575,6 +643,41 @@ export default function AIAgentPage() {
         )}
         {activeTab === "settings" && (
           <div className="space-y-6 max-w-6xl mx-auto">
+            {/* Active Editing Agent Instance Switcher Bar */}
+            <div className="rounded-xl border border-primary/30 bg-primary/5 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-center text-xl">
+                  {templates.find((t) => t.id === activeAgent?.templateId)?.icon || "🤖"}
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Editing Persona For</span>
+                    {activeAgent?.isDefault && (
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-amber-500/10 text-amber-600 border border-amber-500/20">
+                        ⭐ Workspace Default
+                      </span>
+                    )}
+                  </div>
+                  <h2 className="text-base font-bold text-foreground">{activeAgent?.name || "Select an Agent"}</h2>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <label className="text-xs font-semibold text-muted-foreground whitespace-nowrap">Switch Agent Instance:</label>
+                <select
+                  value={activeAgent?._id || ""}
+                  onChange={(e) => setSelectedKnowledgeAgentId(e.target.value)}
+                  className="h-9 rounded-lg border border-border bg-background px-3 py-1 text-xs font-bold text-foreground shadow-sm focus:outline-none focus:ring-1 focus:ring-primary cursor-pointer"
+                >
+                  {agents.map((agent) => (
+                    <option key={agent._id} value={agent._id}>
+                      {agent.name} ({agent.agentRole}) {agent.isDefault ? "⭐ (Default)" : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
             {/* Agent Contract Visual Overview */}
             <AgentContractSummary settings={currentData} />
 
