@@ -150,6 +150,7 @@ export interface ContactImportRecordV1 {
     normalizedPhone: string | null;
   }>;
   errorSummary?: string | null;
+  failurePhase?: "validation" | "commit" | null;
   createdAt?: string;
   updatedAt?: string;
 }

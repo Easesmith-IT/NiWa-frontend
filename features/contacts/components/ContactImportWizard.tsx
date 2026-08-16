@@ -35,7 +35,8 @@ export function ContactImportWizard() {
   const [fileHeaders, setFileHeaders] = useState<string[]>([]);
   const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
 
-  const isImportFailure = importRecord?.preview && importRecord.preview.length > 0;
+  const isValidationFailure = importRecord?.failurePhase === "validation";
+  const isImportFailure = importRecord?.failurePhase === "commit";
 
   // Initialize from URL importId
   useEffect(() => {
@@ -225,7 +226,6 @@ export function ContactImportWizard() {
     }
 
     if (step === "FAILED") {
-      const isValidationFailure = !isImportFailure;
       return (
         <div className="flex flex-col items-center justify-center p-12 text-center space-y-6">
           <div className="rounded-full bg-rose-100 p-4 dark:bg-rose-900/30">
