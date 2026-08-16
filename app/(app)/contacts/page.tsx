@@ -16,14 +16,12 @@ import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import {
   ContactDetailDrawer,
-  ContactImportModal,
   ContactMergeModal,
   ContactsDataTable,
   useContactDuplicatesV1Query,
   useContactsV1Query,
   useCreateContactV1Mutation,
   useDeleteContactV1Mutation,
-  useImportContactsV1Mutation,
   useMergeContactsV1Mutation,
   usePatchContactV1Mutation,
 } from "../../../features/contacts";
@@ -44,7 +42,6 @@ export default function ContactsPage() {
 
   const [search, setSearch] = useState("");
   const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
-  const [importModalOpen, setImportModalOpen] = useState(false);
   const [mergeModalOpen, setMergeModalOpen] = useState(false);
   const [createModalOpen, setCreateModalOpen] = useState(false);
   const [newContactDraft, setNewContactDraft] = useState(defaultNewContact);
@@ -61,7 +58,6 @@ export default function ContactsPage() {
   const createContactMutation = useCreateContactV1Mutation();
   const patchContactMutation = usePatchContactV1Mutation();
   const deleteContactMutation = useDeleteContactV1Mutation();
-  const importContactsMutation = useImportContactsV1Mutation();
   const mergeContactsMutation = useMergeContactsV1Mutation();
 
   const contacts = contactsQuery.data?.data ?? [];
@@ -158,37 +154,6 @@ export default function ContactsPage() {
     }
   };
 
-  const handleImportContacts = (
-    importedContacts: Array<{
-      company?: string;
-      displayName: string;
-      email?: string;
-      phoneNumber: string;
-      phoneNumberE164: string;
-      profileName?: string;
-      waId: string;
-    }>,
-  ) => {
-    importContactsMutation.mutate(
-      { contacts: importedContacts },
-      {
-        onSuccess: (res) => {
-          setFeedback({
-            message: `Successfully imported ${res.data.created} contact(s) (${res.data.updated} updated).`,
-            tone: "success",
-          });
-          setImportModalOpen(false);
-        },
-        onError: (err) => {
-          setFeedback({
-            message: err instanceof Error ? err.message : "Bulk import failed.",
-            tone: "error",
-          });
-        },
-      },
-    );
-  };
-
   const handleMergeContacts = (sourceId: string, targetId: string) => {
     mergeContactsMutation.mutate(
       { sourceContactId: sourceId, targetContactId: targetId },
@@ -209,66 +174,69 @@ export default function ContactsPage() {
   };
 
   return (
-    <div className="flex flex-col space-y-4">
-      {/* Control Header Bar */}
-      <div className="flex flex-col gap-3.5 rounded-lg border border-[#E4E4E7] bg-white p-4 shadow-subtle md:flex-row md:items-center md:justify-between dark:border-[#292C2F] dark:bg-[#121416]">
+    <div className="flex h-[calc(100vh-4rem)] flex-col space-y-4">
+      {/* Top Enterprise Control Bar */}
+      <div className="flex flex-col gap-4 rounded-2xl border border-[#e5ddd3] bg-[#fbf7f1] p-5 shadow-sm md:flex-row md:items-center md:justify-between">
         <div>
-          <h1 className="text-xl font-semibold tracking-tight text-foreground">
+          <h1 className="text-2xl font-bold tracking-tight text-[#25342f]">
             Customer Registry
           </h1>
-          <p className="text-xs text-muted-foreground">
-            WhatsApp business contacts, labels, and customer metadata.
+          <p className="text-xs text-[#6f7f75]">
+            Enterprise CRM for WhatsApp business contacts, tags, and notes
           </p>
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative min-w-[220px]">
-            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="relative min-w-[240px]">
+            <Search className="absolute left-3.5 top-2.5 h-4 w-4 text-[#7a8b82]" />
             <Input
-              className="h-8.5 rounded-md border-[#D4D4D8] bg-[#FAFAFA] pl-8.5 text-xs text-foreground placeholder:text-muted-foreground focus:bg-white dark:border-[#303438] dark:bg-[#17191B] dark:focus:bg-[#121416]"
+              className="rounded-xl border-[#ddd2c3] bg-white pl-9 text-xs text-[#25342f] placeholder:text-[#7a8b82]"
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search contacts..."
+              placeholder="Search by name, phone, company..."
               value={search}
             />
           </div>
 
           <Button
+            className="bg-[#2d644d] text-white hover:bg-[#255440]"
             onClick={() => setCreateModalOpen(true)}
             size="sm"
             type="button"
-            variant="primary"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="mr-1.5 h-4 w-4" />
             New Contact
           </Button>
 
           <Button
-            onClick={() => setImportModalOpen(true)}
+            className="border-[#ddd2c3] bg-white text-[#25342f] hover:bg-[#f6f1e9]"
+            onClick={() => router.push("/contacts/import")}
             size="sm"
             type="button"
             variant="secondary"
           >
-            <Upload className="h-3.5 w-3.5 text-muted-foreground" />
+            <Upload className="mr-1.5 h-3.5 w-3.5 text-[#2d644d]" />
             Import
           </Button>
 
           <Button
+            className="border-[#ddd2c3] bg-white text-[#25342f] hover:bg-[#f6f1e9]"
             onClick={() => setMergeModalOpen(true)}
             size="sm"
             type="button"
             variant="secondary"
           >
-            <GitMerge className="h-3.5 w-3.5 text-muted-foreground" />
-            Merge ({duplicateGroups.length})
+            <GitMerge className="mr-1.5 h-3.5 w-3.5 text-[#2d644d]" />
+            Merge Duplicates ({duplicateGroups.length})
           </Button>
 
           <Button
+            className="border-[#ddd2c3] bg-white text-[#25342f] hover:bg-[#f6f1e9]"
             onClick={handleExport}
             size="sm"
             type="button"
             variant="secondary"
           >
-            <ArrowDownToLine className="h-3.5 w-3.5" />
+            <ArrowDownToLine className="mr-1.5 h-3.5 w-3.5" />
             Export CSV
           </Button>
         </div>
@@ -277,21 +245,22 @@ export default function ContactsPage() {
       {/* Global Feedback Banner */}
       {feedback ? (
         <div
-          className={`flex items-center justify-between rounded-md border px-3.5 py-2.5 text-xs font-medium ${
+          className={`flex items-center justify-between rounded-xl border px-4 py-3 text-xs font-medium ${
             feedback.tone === "success"
-              ? "border-emerald-200 bg-[#EDF8F3] text-[#16803C] dark:border-[#24483A] dark:bg-[#13251E] dark:text-[#3FA66F]"
-              : "border-rose-200 bg-rose-50 text-[#C2413A] dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-[#D7685C]"
+              ? "border-[#bfd8c6] bg-[#eef8f0] text-[#244b42]"
+              : "border-[#e6c2bc] bg-[#fdf0ee] text-[#9a3d33]"
           }`}
         >
           <span>{feedback.message}</span>
           <button onClick={() => setFeedback(null)} type="button">
-            <X className="h-3.5 w-3.5" />
+            <X className="h-4 w-4" />
           </button>
         </div>
       ) : null}
 
-      {/* Main Workspace Area */}
-      <div className="grid min-h-0 flex-1 gap-4 grid-cols-1 xl:grid-cols-[minmax(0,1fr)_400px]">
+      {/* Main Workspace Area: Table + Sliding Detail Drawer */}
+      <div className="grid min-h-0 flex-1 gap-4 grid-cols-1 xl:grid-cols-[minmax(0,1fr)_420px]">
+        {/* Contacts Data Table */}
         <div className="min-h-0 overflow-y-auto">
           <ContactsDataTable
             contacts={contacts}
@@ -305,6 +274,7 @@ export default function ContactsPage() {
           />
         </div>
 
+        {/* Selected Contact Inspector Drawer */}
         <div className="min-h-0">
           {selectedContact ? (
             <ContactDetailDrawer
@@ -316,27 +286,18 @@ export default function ContactsPage() {
               onSaveContact={handleSaveContact}
             />
           ) : (
-            <div className="flex h-full flex-col items-center justify-center rounded-lg border border-dashed border-[#E4E4E7] bg-white p-6 text-center text-muted-foreground dark:border-[#292C2F] dark:bg-[#121416]">
-              <UserPlus className="h-8 w-8 text-muted-foreground/60" />
-              <p className="mt-2 text-xs font-semibold text-foreground">
+            <div className="flex h-full flex-col items-center justify-center rounded-2xl border border-dashed border-[#ddd2c3] bg-[#fbf7f1] p-8 text-center text-[#7a8b82]">
+              <UserPlus className="h-10 w-10 text-[#a0aca4]" />
+              <p className="mt-3 text-sm font-semibold text-[#25342f]">
                 No contact selected
               </p>
-              <p className="mt-0.5 text-xs">
-                Select a contact from the registry table to view details.
+              <p className="mt-1 text-xs">
+                Select a contact from the registry table to view details & notes.
               </p>
             </div>
           )}
         </div>
       </div>
-
-      {/* Import Modal */}
-      {importModalOpen ? (
-        <ContactImportModal
-          isPending={importContactsMutation.isPending}
-          onClose={() => setImportModalOpen(false)}
-          onImport={handleImportContacts}
-        />
-      ) : null}
 
       {/* Merge Modal */}
       {mergeModalOpen ? (
@@ -351,22 +312,22 @@ export default function ContactsPage() {
 
       {/* New Contact Creation Modal */}
       {createModalOpen ? (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-xs">
-          <div className="w-full max-w-md rounded-xl border border-[#E4E4E7] bg-white p-5 shadow-modal space-y-3.5 dark:border-[#303438] dark:bg-[#17191B]">
-            <div className="flex items-center justify-between border-b border-[#F0F0F2] pb-3 dark:border-[#202326]">
-              <h3 className="text-sm font-semibold text-foreground">Create New Contact</h3>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-2xl border border-[#ddd2c3] bg-white p-6 shadow-2xl space-y-4">
+            <div className="flex items-center justify-between border-b border-[#eee4d8] pb-3">
+              <h3 className="text-lg font-semibold text-[#25342f]">Create new contact</h3>
               <button
-                className="rounded-md p-1 text-muted-foreground hover:bg-[#F4F4F5] hover:text-foreground dark:hover:bg-[#202326]"
+                className="rounded-full p-1.5 text-[#6f7f75] hover:bg-[#efe7db] hover:text-[#25342f]"
                 onClick={() => setCreateModalOpen(false)}
                 type="button"
               >
-                <X className="h-4 w-4" />
+                <X className="h-5 w-5" />
               </button>
             </div>
 
-            <div className="space-y-2.5">
+            <div className="space-y-3">
               <div>
-                <label className="mb-1 block text-xs font-medium text-foreground">
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-[#6f7f75]">
                   Display Name *
                 </label>
                 <Input
@@ -378,7 +339,7 @@ export default function ContactsPage() {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-foreground">
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-[#6f7f75]">
                   Phone Number (E.164) *
                 </label>
                 <Input
@@ -390,7 +351,7 @@ export default function ContactsPage() {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-foreground">
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-[#6f7f75]">
                   Company Name
                 </label>
                 <Input
@@ -402,7 +363,7 @@ export default function ContactsPage() {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-foreground">
+                <label className="mb-1 block text-xs font-semibold uppercase tracking-[0.12em] text-[#6f7f75]">
                   Email Address
                 </label>
                 <Input
@@ -416,9 +377,9 @@ export default function ContactsPage() {
               </div>
             </div>
 
-            <div className="flex gap-2 pt-2">
+            <div className="flex gap-3 pt-2">
               <Button
-                className="flex-1"
+                className="flex-1 bg-[#2d644d] text-white hover:bg-[#255440]"
                 disabled={
                   !newContactDraft.displayName.trim() ||
                   !newContactDraft.phoneNumber.trim() ||
@@ -426,7 +387,6 @@ export default function ContactsPage() {
                 }
                 onClick={handleCreateContact}
                 type="button"
-                variant="primary"
               >
                 {createContactMutation.isPending ? "Creating..." : "Save Contact"}
               </Button>
@@ -440,4 +400,3 @@ export default function ContactsPage() {
     </div>
   );
 }
-

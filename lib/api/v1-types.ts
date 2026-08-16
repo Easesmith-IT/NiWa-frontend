@@ -43,8 +43,6 @@ export interface ContactRecordV1 extends V1RecordBase {
 }
 
 export interface ConversationRecordV1 extends V1RecordBase {
-  aiMode?: "AI_ACTIVE" | "AI_PAUSED" | "HUMAN_ONLY";
-  assignedAgentId?: string | null;
   contactId: string;
   lastMessageAt?: string | null;
   lastReadAt?: string | null;
@@ -53,7 +51,6 @@ export interface ConversationRecordV1 extends V1RecordBase {
   lastMessageStatus?: string;
   lastMessageText: string;
   lastMessageType?: string;
-  metadata?: Record<string, unknown>;
   status: "archived" | "closed" | "open";
   unreadCount: number;
   waId: string;
@@ -125,4 +122,32 @@ export interface ActivityRecordV1 extends V1RecordBase {
   entityId: string;
   entityType: string;
   type: string;
+}
+
+export interface ContactImportRecordV1 extends V1RecordBase {
+  workspaceId: string;
+  createdBy: string;
+  status: "uploaded" | "validating" | "ready" | "importing" | "completed" | "failed";
+  fileName: string;
+  storageProvider: string;
+  storageKey: string;
+  columnMapping?: Record<string, string>;
+  stats: {
+    totalRows: number;
+    validRows: number;
+    invalidRows: number;
+    duplicateRows: number;
+    existingContacts: number;
+    newContacts: number;
+    updatedContacts: number;
+    processedRows: number;
+  };
+  preview?: Array<{
+    rowNumber: number;
+    data: Record<string, unknown>;
+    isValid: boolean;
+    statusReason: string | null;
+    normalizedPhone: string | null;
+  }>;
+  errorSummary?: string;
 }

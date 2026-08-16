@@ -4,5 +4,5 @@ export * from "./contact.queries";
 export * from "./contact.types";
 export * from "./components/ContactsDataTable";
 export * from "./components/ContactDetailDrawer";
-export * from "./components/ContactImportModal";
 export * from "./components/ContactMergeModal";
+export * from "./components/ContactImportWizard";

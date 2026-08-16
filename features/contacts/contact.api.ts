@@ -1,6 +1,6 @@
 import type { V1ListResponse } from "../../lib/api/v1-types";
 import { v1ApiClient } from "../../lib/api/v1-client";
-import type { ContactRecordV1 } from "./contact.types";
+import type { ContactRecordV1, ContactImportRecordV1 } from "./contact.types";
 
 export const listContactsV1 = async (params?: { search?: string }) => {
   const response = await v1ApiClient.get<V1ListResponse<ContactRecordV1>>("/contacts", {
@@ -112,5 +112,31 @@ export const mergeContactsV1 = async (payload: {
   targetContactId: string;
 }) => {
   const response = await v1ApiClient.post<{ data: ContactRecordV1 | null }>("/contacts/merge", payload);
+  return response.data;
+};
+
+export const uploadContactImportV1 = async (file: File) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  const response = await v1ApiClient.post<{ data: ContactImportRecordV1 }>("/contact-imports/upload", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return response.data;
+};
+
+export const validateContactImportV1 = async (importId: string, payload: { columnMapping: Record<string, string> }) => {
+  const response = await v1ApiClient.post<{ data: ContactImportRecordV1 }>(`/contact-imports/${importId}/validate`, payload);
+  return response.data;
+};
+
+export const commitContactImportV1 = async (importId: string) => {
+  const response = await v1ApiClient.post<{ data: ContactImportRecordV1 }>(`/contact-imports/${importId}/commit`);
+  return response.data;
+};
+
+export const getContactImportV1 = async (importId: string) => {
+  const response = await v1ApiClient.get<{ data: ContactImportRecordV1 }>(`/contact-imports/${importId}`);
   return response.data;
 };
