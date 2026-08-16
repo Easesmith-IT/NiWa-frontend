@@ -15,6 +15,7 @@ import {
   Sparkles,
   ListTodo,
   Webhook,
+  Megaphone,
 } from "lucide-react";
 
 export interface NavigationItem {
@@ -75,6 +76,12 @@ export const navigationGroups: NavigationGroup[] = [
         icon: Bot,
         label: "Automations",
         description: "Automation registry and builders.",
+      },
+      {
+        href: "/campaigns",
+        icon: Megaphone,
+        label: "Campaigns",
+        description: "Bulk messaging operations.",
       },
       {
         href: "/scheduled",
