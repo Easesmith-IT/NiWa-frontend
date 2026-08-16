@@ -43,6 +43,39 @@ test("buildMessageStudioPreview renders template preview", () => {
   assert.match(preview, /Body vars: \{\{1\}\}: -, \{\{2\}\}: -/);
 });
 
+test("buildMessageStudioPreview renders selected template header media", () => {
+  const preview = buildMessageStudioPreview({
+    mode: "template",
+    templateHeaderFormat: "IMAGE",
+    selectedTemplate: {
+      _id: "1",
+      metaTemplateId: "mt1",
+      name: "hero_template",
+      category: "MARKETING",
+      language: "en",
+      status: "APPROVED",
+      variables: [],
+      components: [],
+      rawPayload: {},
+      updatedAt: new Date().toISOString(),
+      isSendable: true,
+    },
+    selectedTemplateHeaderMedia: {
+      _id: "media-1",
+      metaMediaId: "meta-media-1",
+      customName: "Hero Banner",
+      fileName: "hero-banner.png",
+      mimeType: "image/png",
+      mediaType: "image",
+      fileSize: 1024,
+      uploadedAt: new Date().toISOString(),
+      responsePayload: {},
+    },
+  });
+
+  assert.match(preview, /Header: IMAGE \| Hero Banner/);
+});
+
 test("buildMessageStudioPreview renders location preview", () => {
   const preview = buildMessageStudioPreview({
     mode: "location",

@@ -28,6 +28,7 @@ import {
 import {
   MediaListResponse,
   MediaRecord,
+  MediaUploadResponse,
   OutboundMessageResponse,
   TemplateRecord,
   TemplatesResponse,
@@ -103,8 +104,13 @@ export default function MessageStudioPage() {
   const [templateVariables, setTemplateVariables] = useState("");
   const [templateBodyVariableValues, setTemplateBodyVariableValues] = useState<string[]>([]);
   const [templateHeaderVariableValues, setTemplateHeaderVariableValues] = useState<string[]>([]);
-  const [templateHeaderMediaId, setTemplateHeaderMediaId] = useState("");
+  const [templateHeaderMediaId, setTemplateHeaderMediaId] = useState(
+    initialMode === "template" ? initialMediaId : "",
+  );
   const [templateButtonVariables, setTemplateButtonVariables] = useState<string[]>([]);
+  const [templateHeaderUploadName, setTemplateHeaderUploadName] = useState("");
+  const [templateHeaderUploadMessage, setTemplateHeaderUploadMessage] = useState<string | null>(null);
+  const [templateHeaderUploadError, setTemplateHeaderUploadError] = useState<string | null>(null);
 
   const [selectedMediaId, setSelectedMediaId] = useState(initialMediaId);
   const [mediaCaption, setMediaCaption] = useState("");
@@ -396,6 +402,37 @@ export default function MessageStudioPage() {
     },
   });
 
+  const templateHeaderUploadMutation = useMutation({
+    mutationFn: async ({ customName, file }: { customName: string; file: File }) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      if (customName.trim()) {
+        formData.append("customName", customName.trim());
+      }
+      const response = await apiClient.post<MediaUploadResponse>("/media/upload", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      return response.data;
+    },
+    onSuccess: async (data) => {
+      setTemplateHeaderUploadError(null);
+      setTemplateHeaderUploadMessage(`Uploaded ${getMediaDisplayName(data.media)} successfully.`);
+      setTemplateHeaderUploadName("");
+      setTemplateHeaderMediaId(data.media.metaMediaId);
+      await mediaQuery.refetch();
+    },
+    onError: (error) => {
+      setTemplateHeaderUploadMessage(null);
+      setTemplateHeaderUploadError(
+        error instanceof AxiosError
+          ? error.response?.data?.message ?? "Header media upload failed."
+          : "Header media upload failed.",
+      );
+    },
+  });
+
   const filteredMedia = useMemo(() => {
     const allMedia = mediaQuery.data?.media ?? [];
     if (["image", "video", "audio", "document", "sticker"].includes(mode)) {
@@ -403,6 +440,19 @@ export default function MessageStudioPage() {
     }
     return allMedia;
   }, [mediaQuery.data, mode]);
+
+  const templateHeaderMediaAccept = useMemo(() => {
+    if (templateHeaderFormat === "IMAGE") {
+      return "image/*";
+    }
+    if (templateHeaderFormat === "VIDEO") {
+      return "video/*";
+    }
+    if (templateHeaderFormat === "DOCUMENT") {
+      return ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,application/*";
+    }
+    return undefined;
+  }, [templateHeaderFormat]);
 
   const previewSummary = useMemo(
     () =>
@@ -601,6 +651,86 @@ export default function MessageStudioPage() {
                         ))}
                       </div>
                     ) : null}
+
+                    {templateHeaderFormat ? (
+                      <div className="space-y-2 rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 dark:border-[#292C2F] dark:bg-[#17191B]">
+                        <div className="flex items-start justify-between gap-2">
+                          <div>
+                            <label className="block text-xs font-medium text-foreground">
+                              Header {templateHeaderFormat.toLowerCase()} media
+                            </label>
+                            <p className="mt-1 text-[11px] text-muted-foreground">
+                              This template requires stored {templateHeaderFormat.toLowerCase()} media before send.
+                            </p>
+                          </div>
+                          <label className="inline-flex cursor-pointer items-center rounded-md bg-[#176B4D] px-2.5 py-1.5 text-[11px] font-medium text-white dark:bg-[#2D8A67]">
+                            {templateHeaderUploadMutation.isPending ? "Uploading..." : `Upload ${templateHeaderFormat.toLowerCase()}`}
+                            <input
+                              accept={templateHeaderMediaAccept}
+                              className="hidden"
+                              onChange={(event) => {
+                                const file = event.target.files?.[0];
+                                if (!file) {
+                                  return;
+                                }
+                                setTemplateHeaderUploadMessage(null);
+                                setTemplateHeaderUploadError(null);
+                                templateHeaderUploadMutation.mutate({
+                                  customName: templateHeaderUploadName,
+                                  file,
+                                });
+                                event.currentTarget.value = "";
+                              }}
+                              type="file"
+                            />
+                          </label>
+                        </div>
+
+                        <Input
+                          className="text-xs"
+                          onChange={(event) => setTemplateHeaderUploadName(event.target.value)}
+                          placeholder="Optional custom name for next header upload"
+                          value={templateHeaderUploadName}
+                        />
+
+                        <select
+                          className="h-8.5 w-full rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none focus:border-primary dark:border-[#303438] dark:bg-[#17191B]"
+                          onChange={(event) => setTemplateHeaderMediaId(event.target.value)}
+                          value={templateHeaderMediaId}
+                        >
+                          <option value="">Select stored {templateHeaderFormat.toLowerCase()} media</option>
+                          {filteredTemplateHeaderMedia.map((media) => (
+                            <option key={media._id} value={media.metaMediaId}>
+                              {getMediaDisplayName(media)} ({media.mediaType})
+                            </option>
+                          ))}
+                        </select>
+
+                        {selectedTemplateHeaderMedia ? (
+                          <div className="rounded-md border border-[#E4E4E7] bg-white p-2 text-[11px] text-foreground dark:border-[#282C2F] dark:bg-[#1C1F21]">
+                            Selected: <span className="font-medium">{getMediaDisplayName(selectedTemplateHeaderMedia)}</span>
+                          </div>
+                        ) : null}
+
+                        {filteredTemplateHeaderMedia.length === 0 ? (
+                          <p className="text-[11px] font-medium text-[#C2413A] dark:text-[#D7685C]">
+                            No stored {templateHeaderFormat.toLowerCase()} media available yet. Upload one here or from Media.
+                          </p>
+                        ) : null}
+
+                        {templateHeaderUploadMessage ? (
+                          <p className="text-[11px] font-medium text-[#16803C] dark:text-[#3FA66F]">
+                            {templateHeaderUploadMessage}
+                          </p>
+                        ) : null}
+
+                        {templateHeaderUploadError ? (
+                          <p className="text-[11px] font-medium text-[#C2413A] dark:text-[#D7685C]">
+                            {templateHeaderUploadError}
+                          </p>
+                        ) : null}
+                      </div>
+                    ) : null}
                   </>
                 ) : null}
 
@@ -685,9 +815,16 @@ export default function MessageStudioPage() {
 
                 <div className="mt-3 min-h-[160px] rounded-lg bg-[#EDF8F3] p-3 border border-[#C4E8DA] dark:border-[#203D31] dark:bg-[#14251E]">
                   <p className="whitespace-pre-wrap text-xs text-foreground leading-relaxed dark:text-[#E8F3EE]">{previewSummary}</p>
-                  {selectedMedia ? (
+                  {mode !== "template" && selectedMedia ? (
                     <div className="mt-2 rounded bg-white p-2 text-[11px] border border-[#E4E4E7] dark:border-[#282C2F] dark:bg-[#1C1F21]">
                       <span className="font-mono font-medium">{getMediaDisplayName(selectedMedia)}</span>
+                    </div>
+                  ) : null}
+                  {mode === "template" && selectedTemplateHeaderMedia ? (
+                    <div className="mt-2 rounded bg-white p-2 text-[11px] border border-[#E4E4E7] dark:border-[#282C2F] dark:bg-[#1C1F21]">
+                      <span className="font-mono font-medium">
+                        Header media: {getMediaDisplayName(selectedTemplateHeaderMedia)}
+                      </span>
                     </div>
                   ) : null}
                   <p className="mt-2 text-right text-[9px] text-[#34B7F1] dark:text-[#53BDEB] font-semibold">12:00 PM ✓✓</p>
