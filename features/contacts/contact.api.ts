@@ -60,24 +60,7 @@ export const removeContactLabelV1 = async (contactId: string, labelId: string) =
   return response.data;
 };
 
-export const importContactsV1 = async (payload: {
-  contacts: Array<{
-    company?: string;
-    customFields?: Array<{ key: string; type: "boolean" | "date" | "number" | "text"; value: string }>;
-    displayName: string;
-    email?: string;
-    phoneNumber: string;
-    phoneNumberE164: string;
-    profileName?: string;
-    waId: string;
-  }>;
-}) => {
-  const response = await v1ApiClient.post<{ data: { created: number; total: number; updated: number } }>(
-    "/contacts/import",
-    payload,
-  );
-  return response.data;
-};
+
 
 export const exportContactsV1 = async (params?: { format?: "csv" | "json"; search?: string }) => {
   const response = await v1ApiClient.get("/contacts/export", {
@@ -123,20 +106,20 @@ export const uploadContactImportV1 = async (file: File) => {
       "Content-Type": "multipart/form-data",
     },
   });
-  return response.data;
+  return response.data.data;
 };
 
 export const validateContactImportV1 = async (importId: string, payload: { columnMapping: Record<string, string> }) => {
   const response = await v1ApiClient.post<{ data: ContactImportRecordV1 }>(`/contact-imports/${importId}/validate`, payload);
-  return response.data;
+  return response.data.data;
 };
 
 export const commitContactImportV1 = async (importId: string) => {
   const response = await v1ApiClient.post<{ data: ContactImportRecordV1 }>(`/contact-imports/${importId}/commit`);
-  return response.data;
+  return response.data.data;
 };
 
 export const getContactImportV1 = async (importId: string) => {
   const response = await v1ApiClient.get<{ data: ContactImportRecordV1 }>(`/contact-imports/${importId}`);
-  return response.data;
+  return response.data.data;
 };

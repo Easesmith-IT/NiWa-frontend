@@ -18,7 +18,7 @@ import {
 } from "../contact.api";
 import type { ContactImportRecordV1 } from "../contact.types";
 
-type WizardStep = "UPLOAD" | "MAPPING" | "VALIDATING" | "PREVIEW" | "IMPORTING" | "COMPLETED";
+type WizardStep = "UPLOAD" | "MAPPING" | "VALIDATING" | "PREVIEW" | "IMPORTING" | "COMPLETED" | "FAILED";
 
 export function ContactImportWizard() {
   const router = useRouter();
@@ -35,6 +35,8 @@ export function ContactImportWizard() {
   const [fileHeaders, setFileHeaders] = useState<string[]>([]);
   const [columnMapping, setColumnMapping] = useState<Record<string, string>>({});
 
+  const isImportFailure = importRecord?.preview && importRecord.preview.length > 0;
+
   // Initialize from URL importId
   useEffect(() => {
     if (urlImportId && !importRecord) {
@@ -46,17 +48,14 @@ export function ContactImportWizard() {
     setIsProcessing(true);
     setError(null);
     try {
-      const res = await getContactImportV1(id);
-      const record = res.data;
+      const record = await getContactImportV1(id);
       setImportRecord(record);
+      setFileHeaders(record.headers || []);
+      if (record.columnMapping) setColumnMapping(record.columnMapping);
       
       switch (record.status) {
         case "uploaded":
-          // If it's uploaded but we don't have headers, we can't show mapping easily without re-reading file.
-          // Since file isn't in browser memory, we might just force a new upload or assume headers are known
-          // But backend doesn't store headers natively until validation.
-          // We'll reset to UPLOAD for safety if it's just 'uploaded'.
-          setStep("UPLOAD");
+          setStep("MAPPING");
           break;
         case "validating":
           setStep("VALIDATING");
@@ -72,7 +71,7 @@ export function ContactImportWizard() {
           break;
         case "failed":
           setError(record.errorSummary || "Import failed during processing.");
-          setStep("UPLOAD"); // Give them a chance to try again
+          setStep("FAILED");
           break;
       }
     } catch (err) {
@@ -91,9 +90,9 @@ export function ContactImportWizard() {
     if (importRecord && (step === "VALIDATING" || step === "IMPORTING")) {
       interval = setInterval(async () => {
         try {
-          const res = await getContactImportV1(importRecord._id);
-          const record = res.data;
+          const record = await getContactImportV1(importRecord.id);
           setImportRecord(record);
+          setFileHeaders(record.headers || []);
           
           if (step === "VALIDATING" && record.status === "ready") {
             setStep("PREVIEW");
@@ -101,11 +100,10 @@ export function ContactImportWizard() {
             setStep("COMPLETED");
           } else if (record.status === "failed") {
             setError(record.errorSummary ?? "An error occurred during background processing.");
-            setStep("PREVIEW"); // Fallback to a visible step to show error
+            setStep("FAILED");
           }
         } catch (err) {
           console.error("Polling error", err);
-          // Don't kill state on transient network error
         }
       }, 2000);
     }
@@ -120,43 +118,31 @@ export function ContactImportWizard() {
     setError(null);
 
     try {
-      const res = await uploadContactImportV1(file);
-      setImportRecord(res.data);
+      const record = await uploadContactImportV1(file);
+      setImportRecord(record);
       
       // Update URL with importId for recovery
       const newUrl = new URL(window.location.href);
-      newUrl.searchParams.set("importId", res.data._id);
+      newUrl.searchParams.set("importId", record.id);
       window.history.pushState({}, "", newUrl.toString());
 
-      // Extract headers locally for mapping
-      const reader = new FileReader();
-      reader.onload = (event) => {
-        const text = String(event.target?.result ?? "");
-        const lines = text.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-        if (lines.length > 0) {
-          const headers = lines[0]?.split(",").map((h) => h.trim().replace(/^"|"$/g, "")) ?? [];
-          setFileHeaders(headers);
-          
-          const autoMap: Record<string, string> = {};
-          headers.forEach(h => {
-            const lower = h.toLowerCase();
-            if (lower.includes("phone") || lower.includes("mobile") || lower.includes("waid")) autoMap[h] = "phoneNumber";
-            else if (lower.includes("name") && !lower.includes("profile")) autoMap[h] = "displayName";
-            else if (lower.includes("email")) autoMap[h] = "email";
-            else if (lower.includes("company")) autoMap[h] = "company";
-          });
-          setColumnMapping(autoMap);
-        }
-        setStep("MAPPING");
-        setIsProcessing(false);
-      };
-      reader.onerror = () => {
-        setError("Failed to read file locally.");
-        setIsProcessing(false);
-      };
-      reader.readAsText(file.slice(0, 1024 * 64)); // 64kb
+      const headers = record.headers || [];
+      setFileHeaders(headers);
+      
+      const autoMap: Record<string, string> = {};
+      headers.forEach((h: string) => {
+        const lower = h.toLowerCase();
+        if (lower.includes("phone") || lower.includes("mobile") || lower.includes("waid")) autoMap[h] = "phoneNumber";
+        else if (lower.includes("name") && !lower.includes("profile")) autoMap[h] = "displayName";
+        else if (lower.includes("email")) autoMap[h] = "email";
+        else if (lower.includes("company")) autoMap[h] = "company";
+      });
+      setColumnMapping(autoMap);
+      
+      setStep("MAPPING");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to upload file.");
+    } finally {
       setIsProcessing(false);
     }
   };
@@ -167,8 +153,8 @@ export function ContactImportWizard() {
     setError(null);
     
     try {
-      const res = await validateContactImportV1(importRecord._id, { columnMapping });
-      setImportRecord(res.data);
+      const record = await validateContactImportV1(importRecord.id, { columnMapping });
+      setImportRecord(record);
       setStep("VALIDATING");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to start validation.");
@@ -183,13 +169,37 @@ export function ContactImportWizard() {
     setError(null);
     
     try {
-      const res = await commitContactImportV1(importRecord._id);
-      setImportRecord(res.data);
+      const record = await commitContactImportV1(importRecord.id);
+      setImportRecord(record);
       setStep("IMPORTING");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to start import.");
     } finally {
       setIsProcessing(false);
+    }
+  };
+
+  const handleRetryValidation = async () => {
+    setStep("VALIDATING");
+    setError(null);
+    try {
+      const record = await validateContactImportV1(importRecord!.id, { columnMapping });
+      setImportRecord(record);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to retry validation.");
+      setStep("FAILED");
+    }
+  };
+
+  const handleRetryImport = async () => {
+    setStep("IMPORTING");
+    setError(null);
+    try {
+      const record = await commitContactImportV1(importRecord!.id);
+      setImportRecord(record);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to retry import.");
+      setStep("FAILED");
     }
   };
 
@@ -210,6 +220,40 @@ export function ContactImportWizard() {
         <div className="flex flex-col items-center justify-center p-12 text-center">
           <Loader2 className="h-10 w-10 text-[#2d644d] animate-spin mb-4" />
           <p className="font-medium text-[#25342f]">Uploading File...</p>
+        </div>
+      );
+    }
+
+    if (step === "FAILED") {
+      const isValidationFailure = !isImportFailure;
+      return (
+        <div className="flex flex-col items-center justify-center p-12 text-center space-y-6">
+          <div className="rounded-full bg-rose-100 p-4 dark:bg-rose-900/30">
+            <svg className="h-10 w-10 text-rose-600 dark:text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold tracking-tight text-[#25342f]">
+              {isValidationFailure ? "Validation failed" : "Import failed"}
+            </h2>
+            <p className="text-sm text-rose-600 font-medium mt-2 max-w-md mx-auto">
+              {error || "An unknown error occurred."}
+            </p>
+          </div>
+          <div className="flex gap-4 mt-4">
+            <Button variant="outline" onClick={resetWizard}>
+              Start Over
+            </Button>
+            {isImportFailure && (
+              <Button variant="outline" onClick={() => setStep("PREVIEW")}>
+                View Preview
+              </Button>
+            )}
+            <Button onClick={isValidationFailure ? handleRetryValidation : handleRetryImport} className="bg-[#2d644d] hover:bg-[#204a39]">
+              {isValidationFailure ? "Retry Validation" : "Retry Import"}
+            </Button>
+          </div>
         </div>
       );
     }

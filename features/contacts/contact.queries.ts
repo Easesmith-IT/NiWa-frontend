@@ -6,7 +6,6 @@ import {
   createContactV1,
   deleteContactV1,
   getContactDuplicatesV1,
-  importContactsV1,
   listContactsV1,
   mergeContactsV1,
   patchContactV1,
@@ -101,16 +100,7 @@ export const useRemoveContactLabelV1Mutation = () => {
   });
 };
 
-export const useImportContactsV1Mutation = () => {
-  const queryClient = useQueryClient();
 
-  return useMutation({
-    mutationFn: importContactsV1,
-    onSuccess: async () => {
-      await invalidateContactSurfaces(queryClient);
-    },
-  });
-};
 
 export const useMergeContactsV1Mutation = () => {
   const queryClient = useQueryClient();
