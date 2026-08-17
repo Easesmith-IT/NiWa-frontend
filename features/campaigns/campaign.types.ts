@@ -1,3 +1,29 @@
+export interface CampaignStats {
+  totalRecipients: number;
+  pending: number;
+  scheduled: number;
+  processing: number;
+  unknown: number;
+  sent: number;
+  delivered: number;
+  read: number;
+  failed: number;
+  skipped: number;
+}
+
+export interface CampaignAudience {
+  importId?: string;
+  tags?: string[];
+}
+
+export interface CampaignSchedule {
+  type: "now" | "scheduled";
+  scheduledAt?: string;
+  timezone: string;
+}
+
+export type CampaignStatus = "draft" | "validating" | "scheduled" | "running" | "paused" | "completed" | "cancelled" | "failed";
+
 export interface Campaign {
   _id: string;
   workspaceId: string;
@@ -6,46 +32,30 @@ export interface Campaign {
   templateId: string;
   name: string;
   description?: string;
-  audience: {
-    source: "import" | "filter";
-    importId?: string;
-    filterQuery?: Record<string, any>;
-  };
-  schedule: {
-    type: "now" | "later";
-    scheduledAt?: string;
-  };
-  status: "draft" | "validating" | "scheduled" | "running" | "paused" | "completed" | "cancelled" | "failed";
-  stats: {
-    total: number;
-    pending: number;
-    processing: number;
-    sent: number;
-    delivered: number;
-    read: number;
-    failed: number;
-    unknown: number;
-    skipped: number;
-  };
-  lastError?: string;
+  audience: CampaignAudience;
+  schedule: CampaignSchedule;
+  status: CampaignStatus;
+  stats: CampaignStats;
   createdAt: string;
   updatedAt: string;
 }
+
+export type CampaignRecipientStatus = "pending" | "scheduled" | "processing" | "unknown" | "sent" | "delivered" | "read" | "failed" | "skipped";
 
 export interface CampaignRecipient {
   _id: string;
   workspaceId: string;
   campaignId: string;
-  contactId?: string;
+  contactId: string;
   phoneNumberE164: string;
-  name?: string;
-  variables: Record<string, string>;
-  status: "pending" | "scheduled" | "processing" | "sent" | "delivered" | "read" | "failed" | "unknown" | "skipped";
-  metaMessageId?: string;
-  dispatchedAt?: string;
-  deliveredAt?: string;
-  readAt?: string;
-  errorReason?: string;
+  status: CampaignRecipientStatus;
+  metaMessageId?: string | null;
+  failureReason?: string | null;
+  attemptCount: number;
+  bullmqJobId?: string | null;
+  scheduledAt?: string | null;
+  processingAt?: string | null;
+  lastAttemptAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -58,23 +68,29 @@ export interface CampaignResponse {
   campaign: Campaign;
 }
 
+export interface CampaignRecipientsPagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
 export interface CampaignRecipientsResponse {
   data: {
     items: CampaignRecipient[];
-    pagination: {
-      page: number;
-      limit: number;
-      total: number;
-      totalPages: number;
-    };
+    pagination: CampaignRecipientsPagination;
   };
 }
 
 export interface CreateCampaignPayload {
-  connectionId: string;
-  templateId: string;
   name: string;
   description?: string;
-  audience: Campaign["audience"];
-  schedule: Campaign["schedule"];
+  connectionId: string;
+  templateId: string;
+  audience: CampaignAudience;
+  schedule: CampaignSchedule;
+}
+
+export interface UpdateCampaignStatusPayload {
+  action: "pause" | "resume" | "cancel";
 }

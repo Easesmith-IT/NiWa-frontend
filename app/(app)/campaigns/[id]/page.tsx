@@ -95,7 +95,7 @@ export default function CampaignDetailPage() {
               <Play className="w-4 h-4 mr-2" /> Resume
             </Button>
           )}
-          {(["running", "paused", "scheduled", "validating"].includes(campaign.status)) && (
+          {(["draft", "validating", "scheduled", "running", "paused"].includes(campaign.status)) && (
             <Button onClick={() => handleAction("cancel")} variant="destructive" size="sm">
               <XCircle className="w-4 h-4 mr-2" /> Cancel
             </Button>
@@ -107,9 +107,10 @@ export default function CampaignDetailPage() {
         <div className="mx-auto max-w-6xl space-y-6">
           
           {/* Stats Overview */}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-4">
-            <StatCard label="Total" value={campaign.stats?.total || 0} />
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-9 gap-4">
+            <StatCard label="Total" value={campaign.stats?.totalRecipients || 0} />
             <StatCard label="Pending" value={campaign.stats?.pending || 0} />
+            <StatCard label="Scheduled" value={campaign.stats?.scheduled || 0} />
             <StatCard label="Processing" value={campaign.stats?.processing || 0} />
             <StatCard label="Sent" value={campaign.stats?.sent || 0} />
             <StatCard label="Delivered" value={campaign.stats?.delivered || 0} />
@@ -157,7 +158,7 @@ export default function CampaignDetailPage() {
                   <tr>
                     <th className="px-6 py-3 font-medium">Phone Number</th>
                     <th className="px-6 py-3 font-medium">Status</th>
-                    <th className="px-6 py-3 font-medium">Dispatched</th>
+                    <th className="px-6 py-3 font-medium">Attempted At</th>
                     <th className="px-6 py-3 font-medium">Error</th>
                   </tr>
                 </thead>
@@ -184,10 +185,10 @@ export default function CampaignDetailPage() {
                           </span>
                         </td>
                         <td className="px-6 py-3 text-slate-500">
-                          {rec.dispatchedAt ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date(rec.dispatchedAt)) : "-"}
+                          {rec.lastAttemptAt ? new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(new Date(rec.lastAttemptAt)) : "-"}
                         </td>
                         <td className="px-6 py-3 text-red-500 text-xs max-w-[200px] truncate">
-                          {rec.errorReason || "-"}
+                          {rec.failureReason || "-"}
                         </td>
                       </tr>
                     ))

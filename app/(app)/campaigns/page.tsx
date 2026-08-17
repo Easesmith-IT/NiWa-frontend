@@ -123,7 +123,7 @@ export default function CampaignsPage() {
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right font-medium">
-                        {campaign.stats?.total?.toLocaleString() || 0}
+                        {campaign.stats?.totalRecipients?.toLocaleString() || 0}
                       </td>
                       <td className="px-6 py-4 text-right text-slate-600">
                         {campaign.stats?.sent?.toLocaleString() || 0}

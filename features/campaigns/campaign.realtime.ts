@@ -58,22 +58,33 @@ export const useCampaignRealtime = () => {
 
     const socket = sharedSocket;
 
+    const invalidationTimeouts: Record<string, NodeJS.Timeout> = {};
+
     const handleCampaignUpdated = (envelope: { payload: { campaignId: string; type: string } }) => {
       const { campaignId, type } = envelope.payload;
       
-      queryClient.invalidateQueries({ queryKey: campaignKeys.detail(campaignId) });
-      
-      if (type === "stats_changed") {
-        queryClient.invalidateQueries({ queryKey: campaignKeys.recipients(campaignId) });
+      // Debounce the invalidation to prevent backend hammering during mass dispatches
+      const key = `${campaignId}-${type}`;
+      if (invalidationTimeouts[key]) {
+        clearTimeout(invalidationTimeouts[key]);
       }
       
-      queryClient.invalidateQueries({ queryKey: campaignKeys.lists() });
+      invalidationTimeouts[key] = setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: campaignKeys.detail(campaignId) });
+        
+        if (type === "stats_changed") {
+          queryClient.invalidateQueries({ queryKey: campaignKeys.recipients(campaignId) });
+        }
+        
+        queryClient.invalidateQueries({ queryKey: campaignKeys.lists() });
+      }, 1000);
     };
 
     socket.on("campaign.updated", handleCampaignUpdated);
 
     return () => {
       socket.off("campaign.updated", handleCampaignUpdated);
+      Object.values(invalidationTimeouts).forEach(clearTimeout);
     };
   }, [queryClient]);
 };
