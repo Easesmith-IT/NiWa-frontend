@@ -37,7 +37,7 @@ export default function NewCampaignPage() {
   const templatesQuery = useQuery({
     queryKey: ["templates"],
     queryFn: async () => {
-      const { data } = await apiClient.get<{ templates: Array<{ _id: string; name: string; components?: any[] }> }>("/templates");
+      const { data } = await apiClient.get<{ templates: Array<{ _id: string; name: string; components?: Record<string, unknown>[] }> }>("/templates");
       return data;
     }
   });
@@ -46,9 +46,9 @@ export default function NewCampaignPage() {
 
   const selectedTemplate = templatesQuery.data?.templates?.find(t => t._id === templateId);
   const isTemplateInvalid = selectedTemplate ? (
-    (selectedTemplate.components?.some(c => c.type === "BODY" && (c.example?.body_text?.length > 0 || c.text?.includes("{{1}}"))) || false) ||
-    (selectedTemplate.components?.some(c => c.type === "HEADER" && (c.example?.header_text?.length > 0 || c.text?.includes("{{1}}") || c.format === "IMAGE" || c.format === "DOCUMENT" || c.format === "VIDEO")) || false) ||
-    (selectedTemplate.components?.some(c => c.type === "BUTTONS" && c.buttons?.some((b: any) => b.type === "URL" && b.url?.includes("{{1}}"))) || false)
+    (selectedTemplate.components?.some(c => c.type === "BODY" && ((c.example as Record<string, unknown[]>)?.body_text?.length > 0 || (c.text as string)?.includes("{{1}}"))) || false) ||
+    (selectedTemplate.components?.some(c => c.type === "HEADER" && ((c.example as Record<string, unknown[]>)?.header_text?.length > 0 || (c.text as string)?.includes("{{1}}") || c.format === "IMAGE" || c.format === "DOCUMENT" || c.format === "VIDEO")) || false) ||
+    (selectedTemplate.components?.some(c => c.type === "BUTTONS" && (c.buttons as Array<Record<string, string>>)?.some(b => b.type === "URL" && b.url?.includes("{{1}}"))) || false)
   ) : false;
 
   const handleSubmit = async (e: React.FormEvent) => {
