@@ -29,7 +29,7 @@ export default function NewCampaignPage() {
   const connectionsQuery = useQuery({
     queryKey: ["whatsapp-connections"],
     queryFn: async () => {
-      const { data } = await apiClient.get<any>("/whatsapp-connections");
+      const { data } = await apiClient.get<{ connections: Array<{ _id: string; name: string }> }>("/whatsapp-connections");
       return data;
     }
   });
@@ -37,17 +37,18 @@ export default function NewCampaignPage() {
   const templatesQuery = useQuery({
     queryKey: ["templates"],
     queryFn: async () => {
-      const { data } = await apiClient.get<any>("/templates");
+      const { data } = await apiClient.get<{ templates: Array<{ _id: string; name: string; components?: any[] }> }>("/templates");
       return data;
     }
   });
 
   const createMutation = useCreateCampaign();
 
-  const selectedTemplate = templatesQuery.data?.templates?.find((t: any) => t._id === templateId);
+  const selectedTemplate = templatesQuery.data?.templates?.find(t => t._id === templateId);
   const isTemplateInvalid = selectedTemplate ? (
-    (selectedTemplate.components?.some((c: any) => c.type === "BODY" && (c.variables?.length > 0 || c.text?.includes("{{1}}"))) || false) ||
-    (selectedTemplate.components?.some((c: any) => c.type === "HEADER" && (c.variables?.length > 0 || c.text?.includes("{{1}}"))) || false)
+    (selectedTemplate.components?.some(c => c.type === "BODY" && (c.example?.body_text?.length > 0 || c.text?.includes("{{1}}"))) || false) ||
+    (selectedTemplate.components?.some(c => c.type === "HEADER" && (c.example?.header_text?.length > 0 || c.text?.includes("{{1}}") || c.format === "IMAGE" || c.format === "DOCUMENT" || c.format === "VIDEO")) || false) ||
+    (selectedTemplate.components?.some(c => c.type === "BUTTONS" && c.buttons?.some((b: any) => b.type === "URL" && b.url?.includes("{{1}}"))) || false)
   ) : false;
 
   const handleSubmit = async (e: React.FormEvent) => {

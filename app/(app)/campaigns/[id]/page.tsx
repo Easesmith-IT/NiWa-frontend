@@ -176,7 +176,7 @@ export default function CampaignDetailPage() {
                       </td>
                     </tr>
                   ) : (
-                    recipientsData?.items.map((rec: any) => (
+                    recipientsData?.items.map((rec: import("../../../../features/campaigns/campaign.types.js").CampaignRecipient) => (
                       <tr key={rec._id} className="hover:bg-slate-50">
                         <td className="px-6 py-3 font-medium">{rec.phoneNumberE164}</td>
                         <td className="px-6 py-3">

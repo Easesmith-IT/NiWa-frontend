@@ -58,33 +58,41 @@ export const useCampaignRealtime = () => {
 
     const socket = sharedSocket;
 
-    const invalidationTimeouts: Record<string, NodeJS.Timeout> = {};
+    const activeTimeouts: Record<string, NodeJS.Timeout> = {};
+    const pendingRefreshes: Record<string, boolean> = {};
 
     const handleCampaignUpdated = (envelope: { payload: { campaignId: string; type: string } }) => {
       const { campaignId, type } = envelope.payload;
       
-      // Debounce the invalidation to prevent backend hammering during mass dispatches
+      // We use a bounded throttle. First event schedules the refresh, 
+      // subsequent events within the 1000ms window are simply ignored until the refresh fires.
       const key = `${campaignId}-${type}`;
-      if (invalidationTimeouts[key]) {
-        clearTimeout(invalidationTimeouts[key]);
+      
+      if (pendingRefreshes[key]) {
+        return;
       }
       
-      invalidationTimeouts[key] = setTimeout(() => {
+      pendingRefreshes[key] = true;
+      activeTimeouts[key] = setTimeout(() => {
+        pendingRefreshes[key] = false;
+        delete activeTimeouts[key];
+        
         queryClient.invalidateQueries({ queryKey: campaignKeys.detail(campaignId) });
         
-        if (type === "stats_changed") {
+        if (type === "status_changed") {
+          queryClient.invalidateQueries({ queryKey: campaignKeys.lists() });
+        } else if (type === "stats_changed") {
+          // Invalidate recipients for stats change
           queryClient.invalidateQueries({ queryKey: campaignKeys.recipients(campaignId) });
         }
-        
-        queryClient.invalidateQueries({ queryKey: campaignKeys.lists() });
-      }, 1000);
+      }, 1500);
     };
 
     socket.on("campaign.updated", handleCampaignUpdated);
 
     return () => {
       socket.off("campaign.updated", handleCampaignUpdated);
-      Object.values(invalidationTimeouts).forEach(clearTimeout);
+      Object.values(activeTimeouts).forEach(clearTimeout);
     };
   }, [queryClient]);
 };
