@@ -193,125 +193,170 @@ export default function CampaignDetailPage() {
         <div className="mx-auto max-w-6xl space-y-6">
 
           {/* Campaign Overview & Timestamps Card */}
-          <div className="rounded-xl border bg-white p-4 shadow-xs space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-3">
+          <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b border-gray-100 pb-4">
               <div>
-                <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
-                  <Info className="h-4 w-4 text-emerald-600" />
+                <h2 className="text-base font-bold text-gray-900 flex items-center gap-2">
+                  <div className="p-1.5 bg-emerald-50 rounded-lg">
+                    <Info className="h-4 w-4 text-emerald-600" />
+                  </div>
                   Campaign Overview
                 </h2>
-                <p className="text-xs text-gray-500 mt-0.5">{campaign.description || "No description provided."}</p>
+                <p className="text-sm text-gray-500 mt-1">{campaign.description || "No description provided."}</p>
               </div>
-              <div className="flex flex-wrap items-center gap-2 text-xs">
-                <span className="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2.5 py-1 font-medium text-gray-700">
-                  <Calendar className="h-3.5 w-3.5 text-gray-500" />
+              <div className="flex flex-wrap items-center gap-3 text-xs">
+                <span className="inline-flex items-center gap-1.5 rounded-lg bg-gray-50 px-3 py-1.5 font-medium text-gray-700 border border-gray-200/60">
+                  <Calendar className="h-4 w-4 text-gray-400" />
                   Created: {campaign.createdAt ? new Date(campaign.createdAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }) : "N/A"}
                 </span>
-                <span className="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2.5 py-1 font-medium text-gray-700">
-                  <Clock className="h-3.5 w-3.5 text-gray-500" />
+                <span className="inline-flex items-center gap-1.5 rounded-lg bg-gray-50 px-3 py-1.5 font-medium text-gray-700 border border-gray-200/60">
+                  <Clock className="h-4 w-4 text-gray-400" />
                   Updated: {campaign.updatedAt ? new Date(campaign.updatedAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }) : "N/A"}
                 </span>
               </div>
             </div>
 
-            <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4 text-xs">
-              <div className="rounded-lg bg-gray-50 p-2.5">
-                <span className="text-gray-400 font-medium block mb-0.5">Schedule Mode</span>
-                <span className="font-semibold text-gray-800 flex items-center gap-1.5">
-                  <Clock className="h-3.5 w-3.5 text-emerald-600" />
-                  {campaign.schedule?.scheduledAt ? new Date(campaign.schedule.scheduledAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }) : "Immediate Dispatch"}
-                </span>
+            <div className="grid gap-4 sm:grid-cols-2 md:grid-cols-4">
+              <div className="flex items-start gap-3 rounded-xl border border-gray-100 bg-gray-50/50 p-4 transition-all hover:bg-gray-50">
+                <div className="rounded-lg bg-white p-2 shadow-xs border border-gray-100">
+                  <Clock className="h-4 w-4 text-emerald-600" />
+                </div>
+                <div>
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block mb-1">Schedule Mode</span>
+                  <span className="font-semibold text-gray-900 text-sm">
+                    {campaign.schedule?.scheduledAt ? new Date(campaign.schedule.scheduledAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }) : "Immediate Dispatch"}
+                  </span>
+                </div>
               </div>
 
-              <div className="rounded-lg bg-gray-50 p-2.5">
-                <span className="text-gray-400 font-medium block mb-0.5">Target Audience Source</span>
-                <span className="font-semibold text-gray-800 flex items-center gap-1.5 truncate">
-                  <Users className="h-3.5 w-3.5 text-blue-600" />
-                  {(campaign.audience as any)?.importId
-                    ? "CSV Import File"
-                    : (campaign.audience as any)?.contactIds?.length
-                    ? `${(campaign.audience as any).contactIds.length} Selected Contacts`
-                    : (campaign.audience as any)?.tags?.length
-                    ? `Tags: ${Array.isArray((campaign.audience as any).tags) ? (campaign.audience as any).tags.join(", ") : (campaign.audience as any).tags}`
-                    : "All Audience Contacts"}
-                </span>
+              <div className="flex items-start gap-3 rounded-xl border border-gray-100 bg-gray-50/50 p-4 transition-all hover:bg-gray-50">
+                <div className="rounded-lg bg-white p-2 shadow-xs border border-gray-100">
+                  <Users className="h-4 w-4 text-blue-600" />
+                </div>
+                <div className="overflow-hidden">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block mb-1">Target Audience</span>
+                  <span className="font-semibold text-gray-900 text-sm truncate block">
+                    {(campaign.audience as any)?.importId
+                      ? "CSV Import File"
+                      : (campaign.audience as any)?.contactIds?.length
+                      ? `${(campaign.audience as any).contactIds.length} Selected Contacts`
+                      : (campaign.audience as any)?.tags?.length
+                      ? `Tags: ${Array.isArray((campaign.audience as any).tags) ? (campaign.audience as any).tags.join(", ") : (campaign.audience as any).tags}`
+                      : "All Audience Contacts"}
+                  </span>
+                </div>
               </div>
 
-              <div className="rounded-lg bg-gray-50 p-2.5">
-                <span className="text-gray-400 font-medium block mb-0.5">WhatsApp Account</span>
-                <span className="font-semibold text-gray-800 flex items-center gap-1.5 truncate">
-                  <Smartphone className="h-3.5 w-3.5 text-purple-600" />
-                  {campaign.connectionId || "Default Account"}
-                </span>
+              <div className="flex items-start gap-3 rounded-xl border border-gray-100 bg-gray-50/50 p-4 transition-all hover:bg-gray-50">
+                <div className="rounded-lg bg-white p-2 shadow-xs border border-gray-100">
+                  <Smartphone className="h-4 w-4 text-purple-600" />
+                </div>
+                <div className="overflow-hidden">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block mb-1">WhatsApp Account</span>
+                  <span className="font-semibold text-gray-900 text-sm truncate block">
+                    {campaign.connectionId || "Default Account"}
+                  </span>
+                </div>
               </div>
 
-              <div className="rounded-lg bg-gray-50 p-2.5">
-                <span className="text-gray-400 font-medium block mb-0.5">Template ID</span>
-                <span className="font-semibold text-gray-800 flex items-center gap-1.5 truncate">
-                  <FileText className="h-3.5 w-3.5 text-amber-600" />
-                  {campaign.templateId}
-                </span>
+              <div className="flex items-start gap-3 rounded-xl border border-gray-100 bg-gray-50/50 p-4 transition-all hover:bg-gray-50">
+                <div className="rounded-lg bg-white p-2 shadow-xs border border-gray-100">
+                  <FileText className="h-4 w-4 text-amber-600" />
+                </div>
+                <div className="overflow-hidden">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block mb-1">Template ID</span>
+                  <span className="font-semibold text-gray-900 text-sm truncate block">
+                    {campaign.templateId}
+                  </span>
+                </div>
               </div>
             </div>
           </div>
 
           {/* Performance Analytics & Rates */}
           <div className="grid gap-4 md:grid-cols-3">
-            <div className="rounded-xl border bg-white p-4 shadow-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-gray-500 uppercase">Delivery Rate</span>
-                <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+            <div className="relative overflow-hidden rounded-xl border border-emerald-100 bg-white p-5 shadow-sm transition-all hover:shadow-md">
+              <div className="absolute -right-4 -top-4 opacity-5">
+                <CheckCircle2 className="h-24 w-24 text-emerald-600" />
               </div>
-              <p className="mt-2 text-2xl font-bold text-gray-900">{deliveryRate}%</p>
-              <div className="mt-2 h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
-                <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${deliveryRate}%` }} />
+              <div className="flex items-center justify-between relative z-10">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Delivery Rate</span>
+                <div className="rounded-full bg-emerald-50 p-1.5">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                </div>
               </div>
-              <p className="mt-1.5 text-[11px] text-gray-400">
-                {deliveredCount.toLocaleString()} delivered of {eligibleRecipients.toLocaleString()} eligible
-              </p>
+              <div className="mt-4 relative z-10">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-black text-gray-900">{deliveryRate}%</span>
+                </div>
+                <div className="mt-3 h-2 w-full rounded-full bg-emerald-50 overflow-hidden">
+                  <div className="h-full bg-emerald-500 rounded-full transition-all duration-1000" style={{ width: `${deliveryRate}%` }} />
+                </div>
+                <p className="mt-2 text-xs font-medium text-gray-500">
+                  <span className="text-gray-900 font-bold">{deliveredCount.toLocaleString()}</span> delivered out of {eligibleRecipients.toLocaleString()}
+                </p>
+              </div>
             </div>
 
-            <div className="rounded-xl border bg-white p-4 shadow-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-gray-500 uppercase">Read Rate</span>
-                <BarChart3 className="h-4 w-4 text-blue-600" />
+            <div className="relative overflow-hidden rounded-xl border border-blue-100 bg-white p-5 shadow-sm transition-all hover:shadow-md">
+              <div className="absolute -right-4 -top-4 opacity-5">
+                <BarChart3 className="h-24 w-24 text-blue-600" />
               </div>
-              <p className="mt-2 text-2xl font-bold text-gray-900">{readRate}%</p>
-              <div className="mt-2 h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
-                <div className="h-full bg-blue-500 rounded-full" style={{ width: `${readRate}%` }} />
+              <div className="flex items-center justify-between relative z-10">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Read Rate</span>
+                <div className="rounded-full bg-blue-50 p-1.5">
+                  <BarChart3 className="h-4 w-4 text-blue-600" />
+                </div>
               </div>
-              <p className="mt-1.5 text-[11px] text-gray-400">
-                {readCount.toLocaleString()} read of {deliveredCount.toLocaleString()} delivered
-              </p>
+              <div className="mt-4 relative z-10">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-black text-gray-900">{readRate}%</span>
+                </div>
+                <div className="mt-3 h-2 w-full rounded-full bg-blue-50 overflow-hidden">
+                  <div className="h-full bg-blue-500 rounded-full transition-all duration-1000" style={{ width: `${readRate}%` }} />
+                </div>
+                <p className="mt-2 text-xs font-medium text-gray-500">
+                  <span className="text-gray-900 font-bold">{readCount.toLocaleString()}</span> read out of {deliveredCount.toLocaleString()}
+                </p>
+              </div>
             </div>
 
-            <div className="rounded-xl border bg-white p-4 shadow-xs">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-gray-500 uppercase">Failure Rate</span>
-                <AlertTriangle className="h-4 w-4 text-amber-600" />
+            <div className="relative overflow-hidden rounded-xl border border-amber-100 bg-white p-5 shadow-sm transition-all hover:shadow-md">
+              <div className="absolute -right-4 -top-4 opacity-5">
+                <AlertTriangle className="h-24 w-24 text-amber-600" />
               </div>
-              <p className="mt-2 text-2xl font-bold text-gray-900">{failureRate}%</p>
-              <div className="mt-2 h-1.5 w-full rounded-full bg-gray-100 overflow-hidden">
-                <div className="h-full bg-amber-500 rounded-full" style={{ width: `${failureRate}%` }} />
+              <div className="flex items-center justify-between relative z-10">
+                <span className="text-xs font-bold text-gray-500 uppercase tracking-wider">Failure Rate</span>
+                <div className="rounded-full bg-amber-50 p-1.5">
+                  <AlertTriangle className="h-4 w-4 text-amber-600" />
+                </div>
               </div>
-              <p className="mt-1.5 text-[11px] text-gray-400">
-                {failedCount.toLocaleString()} failed of {eligibleRecipients.toLocaleString()} eligible
-              </p>
+              <div className="mt-4 relative z-10">
+                <div className="flex items-baseline gap-2">
+                  <span className="text-3xl font-black text-gray-900">{failureRate}%</span>
+                </div>
+                <div className="mt-3 h-2 w-full rounded-full bg-amber-50 overflow-hidden">
+                  <div className="h-full bg-amber-500 rounded-full transition-all duration-1000" style={{ width: `${failureRate}%` }} />
+                </div>
+                <p className="mt-2 text-xs font-medium text-gray-500">
+                  <span className="text-gray-900 font-bold">{failedCount.toLocaleString()}</span> failed out of {eligibleRecipients.toLocaleString()}
+                </p>
+              </div>
             </div>
           </div>
 
           {/* Detailed Recipient Counters */}
           <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-3">
-            <StatCard label="Total" value={campaign.stats?.totalRecipients || 0} color="bg-gray-100 text-gray-800" />
-            <StatCard label="Pending" value={campaign.stats?.pending || 0} color="bg-gray-50 text-gray-600" />
-            <StatCard label="Scheduled" value={campaign.stats?.scheduled || 0} color="bg-yellow-50 text-yellow-800" />
-            <StatCard label="Processing" value={campaign.stats?.processing || 0} color="bg-blue-50 text-blue-800" />
-            <StatCard label="Sent" value={campaign.stats?.sent || 0} color="bg-indigo-50 text-indigo-800" />
-            <StatCard label="Delivered" value={campaign.stats?.delivered || 0} color="bg-emerald-50 text-emerald-800" />
-            <StatCard label="Read" value={campaign.stats?.read || 0} color="bg-emerald-100 text-emerald-900" />
-            <StatCard label="Failed" value={campaign.stats?.failed || 0} color="bg-red-50 text-red-800" />
-            <StatCard label="Unknown" value={campaign.stats?.unknown || 0} color="bg-amber-50 text-amber-800" />
-            <StatCard label="Skipped" value={campaign.stats?.skipped || 0} color="bg-slate-100 text-slate-700" />
+            <StatCard label="Total" value={campaign.stats?.totalRecipients || 0} color="bg-gray-50 border-gray-200 text-gray-800" />
+            <StatCard label="Pending" value={campaign.stats?.pending || 0} color="bg-gray-50 border-gray-200 text-gray-600" />
+            <StatCard label="Scheduled" value={campaign.stats?.scheduled || 0} color="bg-yellow-50 border-yellow-200 text-yellow-800" />
+            <StatCard label="Processing" value={campaign.stats?.processing || 0} color="bg-blue-50 border-blue-200 text-blue-800" />
+            <StatCard label="Sent" value={campaign.stats?.sent || 0} color="bg-indigo-50 border-indigo-200 text-indigo-800" />
+            <StatCard label="Delivered" value={campaign.stats?.delivered || 0} color="bg-emerald-50 border-emerald-200 text-emerald-800" />
+            <StatCard label="Read" value={campaign.stats?.read || 0} color="bg-emerald-100 border-emerald-300 text-emerald-900" />
+            <StatCard label="Failed" value={campaign.stats?.failed || 0} color="bg-red-50 border-red-200 text-red-800" />
+            <StatCard label="Unknown" value={campaign.stats?.unknown || 0} color="bg-amber-50 border-amber-200 text-amber-800" />
+            <StatCard label="Skipped" value={campaign.stats?.skipped || 0} color="bg-slate-100 border-slate-200 text-slate-700" />
           </div>
 
           {/* Quota Usage Banner if available */}
@@ -484,9 +529,9 @@ export default function CampaignDetailPage() {
 
 function StatCard({ label, value, color }: { label: string; value: number; color: string }) {
   return (
-    <div className={`rounded-xl border p-3 text-center shadow-2xs ${color}`}>
-      <div className="text-[10px] font-semibold uppercase tracking-wider opacity-75">{label}</div>
-      <div className="mt-1 text-lg font-bold">{value.toLocaleString()}</div>
+    <div className={`flex flex-col items-center justify-center rounded-xl border border-opacity-40 p-3.5 transition-all hover:scale-105 hover:shadow-sm ${color}`}>
+      <span className="text-[10px] font-bold uppercase tracking-wider opacity-80 mb-1">{label}</span>
+      <span className="text-xl font-black">{value.toLocaleString()}</span>
     </div>
   );
 }
