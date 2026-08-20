@@ -89,6 +89,7 @@ export interface CreateCampaignPayload {
   templateId: string;
   audience: CampaignAudience;
   schedule: CampaignSchedule;
+  variables?: Record<string, string>;
 }
 
 export interface UpdateCampaignStatusPayload {

@@ -57,21 +57,27 @@ export const Step3Audience: React.FC<Step3Props> = ({
   });
 
   const importsList = importsQuery.data?.data || [];
-  const selectedImport = importsList.find((i) => i.id === importId);
+  const completedImports = importsList.filter((i) => i.status === "completed" || i.status === "ready");
+  const selectedImport = completedImports.find((i) => i.id === importId);
 
   // Auto-select first completed import if none selected
   React.useEffect(() => {
-    if (audienceType === "import" && !importId && importsList.length > 0) {
-      const firstReady = importsList.find((i) => i.status === "completed" || i.status === "ready") || importsList[0];
-      if (firstReady) setImportId(firstReady.id);
+    if (audienceType === "import" && !importId && completedImports.length > 0) {
+      setImportId(completedImports[0].id);
     }
-  }, [audienceType, importId, importsList, setImportId]);
+  }, [audienceType, importId, completedImports, setImportId]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (audienceType === "import" && !importId) {
-      setError("Please select a contact import file.");
-      return;
+    if (audienceType === "import") {
+      if (completedImports.length === 0) {
+        setError("No completed contact imports available. Please upload a CSV under Contacts → Import and wait for completion.");
+        return;
+      }
+      if (!importId || !selectedImport) {
+        setError("Please select a completed contact import list.");
+        return;
+      }
     }
     if (audienceType === "tags" && !tagsInput.trim()) {
       setError("Please enter at least one contact tag.");

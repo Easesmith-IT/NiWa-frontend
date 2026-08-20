@@ -6,7 +6,7 @@ import { ArrowLeft } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 import { Button } from "../../../../components/ui/button";
-import { useCreateCampaign } from "../../../../features/campaigns";
+import { useCreateCampaign, useValidateCampaign } from "../../../../features/campaigns";
 import { CampaignWizardStepper } from "../../../../features/campaigns/components/CampaignWizardStepper";
 import { Step1CampaignDetails } from "../../../../features/campaigns/components/Step1CampaignDetails";
 import { Step2WhatsAppTemplate } from "../../../../features/campaigns/components/Step2WhatsAppTemplate";
@@ -21,6 +21,7 @@ import { WhatsAppConnectionsResponse } from "../../../../lib/api/types";
 export default function NewCampaignPage() {
   const router = useRouter();
   const createMutation = useCreateCampaign();
+  const validateMutation = useValidateCampaign();
 
   // Wizard state
   const [currentStep, setCurrentStep] = useState(1);
@@ -111,6 +112,7 @@ export default function NewCampaignPage() {
     setLaunchError("");
 
     try {
+      // 1. Create Campaign (Draft)
       const result = await createMutation.mutateAsync({
         name,
         description,
@@ -124,12 +126,19 @@ export default function NewCampaignPage() {
           scheduleType === "now"
             ? { type: "now", timezone }
             : { type: "scheduled", scheduledAt: new Date(scheduledAt).toISOString(), timezone },
+        variables: variableValues,
       });
 
-      router.push(`/campaigns/${result.campaign._id}`);
+      const campaignId = result.campaign._id;
+
+      // 2. Validate & Materialize Campaign
+      await validateMutation.mutateAsync(campaignId);
+
+      // 3. Redirect to Campaign Detail / Monitoring Page
+      router.push(`/campaigns/${campaignId}`);
     } catch (err: any) {
-      console.error("Failed to create campaign:", err);
-      const msg = err.response?.data?.message || err.message || "Failed to create campaign.";
+      console.error("Failed to launch campaign:", err);
+      const msg = err.response?.data?.message || err.message || "Failed to launch campaign.";
       setLaunchError(msg);
       setIsSubmitting(false);
     }
