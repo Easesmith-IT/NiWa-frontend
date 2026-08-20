@@ -1,14 +1,12 @@
 "use client";
 
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, ArrowRight, CheckCircle2, AlertCircle, Smartphone, FileText, Loader2 } from "lucide-react";
+import { ArrowLeft, ArrowRight, Smartphone, Loader2 } from "lucide-react";
 
 import { Button } from "../../../components/ui/button";
-import { v1ApiClient } from "../../../lib/api/v1-client";
-import { apiClient } from "../../../lib/api/client";
-import { WhatsAppConnectionsResponse, WhatsAppConnectionRecord } from "../../../lib/api/types";
 import { WhatsAppMessagePreview, MetaTemplate } from "./WhatsAppMessagePreview";
+import { useWhatsAppConnections } from "../../whatsapp-connections/whatsapp-connections.queries";
+import { useTemplates } from "../../templates/templates.queries";
 
 interface Step2Props {
   connectionId: string;
@@ -31,21 +29,8 @@ export const Step2WhatsAppTemplate: React.FC<Step2Props> = ({
 }) => {
   const [error, setError] = React.useState("");
 
-  const connectionsQuery = useQuery({
-    queryKey: ["whatsapp-connections"],
-    queryFn: async () => {
-      const { data } = await v1ApiClient.get<WhatsAppConnectionsResponse>("/whatsapp/connections");
-      return data;
-    },
-  });
-
-  const templatesQuery = useQuery({
-    queryKey: ["templates"],
-    queryFn: async () => {
-      const { data } = await v1ApiClient.get<{ templates: MetaTemplate[] }>("/templates");
-      return data;
-    },
-  });
+  const connectionsQuery = useWhatsAppConnections();
+  const templatesQuery = useTemplates();
 
   const activeConnections = connectionsQuery.data?.connections || [];
   const templates = templatesQuery.data?.templates || [];
@@ -53,13 +38,13 @@ export const Step2WhatsAppTemplate: React.FC<Step2Props> = ({
   // Auto-select first connection if only one exists and none selected
   React.useEffect(() => {
     if (!connectionId && activeConnections.length > 0) {
-      const firstConnected = activeConnections.find((c) => c.connectionStatus === "CONNECTED") || activeConnections[0];
+      const firstConnected = activeConnections.find((c: any) => c.connectionStatus === "CONNECTED") || activeConnections[0];
       if (firstConnected) setConnectionId(firstConnected.id);
     }
   }, [activeConnections, connectionId, setConnectionId]);
 
-  const selectedConnectionObj = activeConnections.find((c) => c.id === connectionId);
-  const selectedTemplate = templates.find((t) => t._id === templateId) || null;
+  const selectedConnectionObj = activeConnections.find((c: any) => c.id === connectionId);
+  const selectedTemplate = templates.find((t: any) => t._id === templateId) || null;
 
   React.useEffect(() => {
     setSelectedTemplateObj(selectedTemplate);
@@ -115,7 +100,7 @@ export const Step2WhatsAppTemplate: React.FC<Step2Props> = ({
               </div>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
-                {activeConnections.map((conn) => {
+                {activeConnections.map((conn: any) => {
                   const isSelected = conn.id === connectionId;
                   const isConnected = conn.connectionStatus === "CONNECTED";
 
@@ -178,7 +163,7 @@ export const Step2WhatsAppTemplate: React.FC<Step2Props> = ({
                   <option value="" disabled>
                     -- Choose an approved template --
                   </option>
-                  {templates.map((t) => (
+                  {templates.map((t: any) => (
                     <option key={t._id} value={t._id}>
                       {t.name} ({t.language}) {t.category ? `• ${t.category}` : ""}
                     </option>

@@ -35,17 +35,7 @@ import {
   useUpdateCampaignStatus,
   useValidateCampaign,
 } from "../../../../features/campaigns";
-import { v1ApiClient } from "../../../../lib/api/v1-client";
-import { apiClient } from "../../../../lib/api/client";
-
-export interface QuotaData {
-  limit: number;
-  used: number;
-  reserved: number;
-  released: number;
-  available: number;
-  dateString: string;
-}
+import { useQuota } from "../../../../features/quotas/quota.queries";
 
 export default function CampaignDetailPage() {
   const router = useRouter();
@@ -67,17 +57,7 @@ export default function CampaignDetailPage() {
   const campaign = campaignQuery.data?.campaign;
   const recipientsData = recipientsQuery.data?.data;
 
-  const quotaQuery = useQuery({
-    queryKey: ["quota", campaign?.connectionId],
-    queryFn: async () => {
-      const { data } = await v1ApiClient.get<{ data: QuotaData }>("/quotas", {
-        params: { connectionId: campaign?.connectionId },
-      });
-      return data.data;
-    },
-    enabled: Boolean(campaign?.connectionId),
-  });
-
+  const quotaQuery = useQuota(campaign?.connectionId, Boolean(campaign?.connectionId));
   const quota = quotaQuery.data;
 
   const getStatusColor = (status?: string) => {
@@ -116,10 +96,9 @@ export default function CampaignDetailPage() {
 
   const handleExportCSV = async () => {
     try {
-      const response = await apiClient.get(`/campaigns/${id}/export`, {
-        responseType: "blob",
-      });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const { exportCampaignCSV } = await import("../../../../features/campaigns/campaign.api");
+      const data = await exportCampaignCSV(id);
+      const url = window.URL.createObjectURL(new Blob([data]));
       const link = document.createElement("a");
       link.href = url;
       link.setAttribute("download", `campaign-${id}-recipients.csv`);

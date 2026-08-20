@@ -44,3 +44,20 @@ export const deleteCampaign = async (id: string) => {
   const { data } = await v1ApiClient.delete<{ success: boolean }>(`/campaigns/${id}`);
   return data;
 };
+
+export const exportCampaignCSV = async (id: string) => {
+  const response = await v1ApiClient.get(`/campaigns/${id}/export`, {
+    responseType: "blob",
+  });
+  return response.data;
+};
+
+export const createCampaignDraft = async (payload: Partial<CreateCampaignPayload>) => {
+  const { data } = await v1ApiClient.post<CampaignResponse>("/campaigns", payload);
+  return data;
+};
+
+export const updateCampaignDraft = async (id: string, payload: Partial<CreateCampaignPayload>) => {
+  const { data } = await v1ApiClient.patch<CampaignResponse>(`/campaigns/${id}/draft`, payload);
+  return data;
+};

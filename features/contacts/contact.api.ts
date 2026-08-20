@@ -123,3 +123,8 @@ export const getContactImportV1 = async (importId: string) => {
   const response = await v1ApiClient.get<{ data: ContactImportRecordV1 }>(`/contact-imports/${importId}`);
   return response.data.data;
 };
+
+export const listContactImportsV1 = async () => {
+  const response = await v1ApiClient.get<{ data: ContactImportRecordV1[] }>("/contact-imports");
+  return response.data;
+};

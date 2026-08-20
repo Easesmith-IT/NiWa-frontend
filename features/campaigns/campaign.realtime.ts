@@ -82,8 +82,9 @@ export const useCampaignRealtime = () => {
         if (type === "status_changed") {
           queryClient.invalidateQueries({ queryKey: campaignKeys.lists() });
         } else if (type === "stats_changed") {
-          // Invalidate recipients for stats change
           queryClient.invalidateQueries({ queryKey: campaignKeys.recipients(campaignId) });
+          // FIX: Invalidate list query so KPI dashboard reflects fresh stats
+          queryClient.invalidateQueries({ queryKey: campaignKeys.lists() });
         }
       }, 1500);
     };

@@ -34,6 +34,15 @@ export const useContactsV1Query = (params?: { search?: string }) =>
     },
   });
 
+export const useContactImportsV1Query = () =>
+  useQuery({
+    queryKey: [...v1QueryKeys.contacts, "imports"],
+    queryFn: async () => {
+      const { listContactImportsV1 } = await import("./contact.api");
+      return listContactImportsV1();
+    },
+  });
+
 export const useContactDuplicatesV1Query = (params?: {
   field?: "phoneNumber" | "phoneNumberE164" | "waId";
 }) =>

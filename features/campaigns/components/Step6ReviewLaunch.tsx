@@ -1,7 +1,6 @@
 "use client";
 
 import React from "react";
-import { useQuery } from "@tanstack/react-query";
 import {
   AlertTriangle,
   ArrowLeft,
@@ -23,9 +22,9 @@ import {
 } from "lucide-react";
 
 import { Button } from "../../../components/ui/button";
-import { v1ApiClient } from "../../../lib/api/v1-client";
 import { WhatsAppMessagePreview, MetaTemplate } from "./WhatsAppMessagePreview";
 import { ContactItem } from "./Step3Audience";
+import { useQuotaForecast } from "../../quotas/quota.queries";
 
 export interface QuotaForecastResponse {
   data: {
@@ -104,23 +103,14 @@ export const Step6ReviewLaunch: React.FC<Step6Props> = ({
       : 0;
 
   // Query Quota & Forecast
-  const forecastQuery = useQuery({
-    queryKey: ["quota-forecast", connectionId, timezone, eligibleCount, scheduledAt],
-    queryFn: async () => {
-      const { data } = await v1ApiClient.get<QuotaForecastResponse>("/quotas/forecast", {
-        params: {
-          connectionId,
-          timezone,
-          recipientCount: eligibleCount,
-          startDate: scheduleType === "scheduled" && scheduledAt ? scheduledAt : undefined,
-        },
-      });
-      return data.data;
-    },
-    enabled: Boolean(connectionId),
-  });
+  const forecastQuery = useQuotaForecast({
+    connectionId,
+    timezone,
+    recipientCount: eligibleCount,
+    startDate: scheduleType === "scheduled" && scheduledAt ? scheduledAt : undefined,
+  }, Boolean(connectionId));
 
-  const forecastData = forecastQuery.data;
+  const forecastData = forecastQuery.data?.data;
   const currentQuota = forecastData?.current;
 
   const limit = currentQuota?.limit ?? 1000;
@@ -386,7 +376,7 @@ export const Step6ReviewLaunch: React.FC<Step6Props> = ({
                         Estimated Rollover Schedule
                       </p>
                       <div className="divide-y divide-gray-200/60 rounded-lg border bg-white">
-                        {forecastData.schedule.map((item, idx) => (
+                        {forecastData.schedule.map((item: any, idx: number) => (
                           <div key={idx} className="flex items-center justify-between px-3 py-1.5 text-[11px]">
                             <span className="font-semibold text-gray-800">
                               {idx === 0 ? "Today" : `Day ${idx + 1}`} ({item.dateString})

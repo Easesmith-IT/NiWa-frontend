@@ -6,8 +6,8 @@ import { ArrowLeft, ArrowRight, CheckCircle2, FileCode, Info, Video, Image as Im
 
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
-import { v1ApiClient } from "../../../lib/api/v1-client";
 import { WhatsAppMessagePreview, MetaTemplate } from "./WhatsAppMessagePreview";
+import { useMedia } from "../../media/media.queries";
 
 interface Step4Props {
   template: MetaTemplate | null;
@@ -29,16 +29,9 @@ export const Step4MessageVariables: React.FC<Step4Props> = ({
   const isMediaHeader = mediaFormat === "IMAGE" || mediaFormat === "VIDEO" || mediaFormat === "DOCUMENT";
 
   // Query uploaded media files from NiWa Media Library
-  const mediaLibraryQuery = useQuery({
-    queryKey: ["media-library-step4"],
-    queryFn: async () => {
-      const response = await v1ApiClient.get<{ media: Array<{ _id?: string; customName?: string | null; fileName: string; metaMediaId: string; mimeType: string; mediaType: string }> }>("/media");
-      return response.data?.media || [];
-    },
-    enabled: isMediaHeader,
-  });
+  const mediaLibraryQuery = useMedia(isMediaHeader);
 
-  const mediaList = mediaLibraryQuery.data || [];
+  const mediaList = mediaLibraryQuery.data?.media || [];
   const selectedMediaId = variableValues["headerMediaUrl"] || "";
 
   // Extract all {{1}}, {{2}} placeholders from template text and button URLs

@@ -23,7 +23,8 @@ import {
 
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
-import { v1ApiClient } from "../../../lib/api/v1-client";
+import { useContactImportsV1Query, useContactsV1Query } from "../../contacts/contact.queries";
+import { uploadContactImportV1, validateContactImportV1, commitContactImportV1, getContactImportV1 } from "../../contacts/contact.api";
 
 export interface ContactImportItem {
   id: string;
@@ -113,37 +114,22 @@ export const Step3Audience: React.FC<Step3Props> = ({
   }, [search]);
 
   // Query Contact Imports
-  const importsQuery = useQuery({
-    queryKey: ["contact-imports-list"],
-    queryFn: async () => {
-      const { data } = await v1ApiClient.get<{ data: ContactImportItem[] }>("/contact-imports");
-      return data;
-    },
-  });
+  const importsQuery = useContactImportsV1Query();
 
   const importsList = importsQuery.data?.data || [];
-  const completedImports = importsList.filter((i) => i.status === "completed" || i.status === "ready");
-  const selectedImport = completedImports.find((i) => i.id === importId);
+  const completedImports = importsList.filter((i: any) => i.status === "completed" || i.status === "ready");
+  const selectedImport = completedImports.find((i: any) => i.id === importId);
 
   // Query Contacts for Manual Selection Mode
-  const contactsQuery = useQuery({
-    queryKey: ["contacts-audience-search", debouncedSearch, page, limit],
-    queryFn: async () => {
-      const { data } = await v1ApiClient.get<ContactsResponse>("/contacts", {
-        params: { search: debouncedSearch, page, limit },
-      });
-      return data;
-    },
-    enabled: audienceType === "select",
-  });
+  const contactsQuery = useContactsV1Query({ search: debouncedSearch, page, limit } as any);
 
-  const contactsList = contactsQuery.data?.data || contactsQuery.data?.items || [];
-  const pagination = contactsQuery.data?.pagination || {
+  const contactsList = (contactsQuery.data?.data || (contactsQuery.data as any)?.items || []) as any[];
+  const pagination = (contactsQuery.data?.pagination || {
     page: 1,
     limit,
     total: contactsList.length,
     totalPages: 1,
-  };
+  }) as any;
 
   // Auto-select first import if import mode active and no import selected
   useEffect(() => {
@@ -183,19 +169,14 @@ export const Step3Audience: React.FC<Step3Props> = ({
     setUploadProgress("Uploading file...");
 
     try {
-      const formData = new FormData();
-      formData.append("file", file);
-
       // 1. Upload File
-      const { data: uploadRes } = await v1ApiClient.post<{ data: ContactImportItem }>("/contact-imports/upload", formData, {
-        headers: { "Content-Type": "multipart/form-data" },
-      });
+      const uploadRes = await uploadContactImportV1(file);
+      const newImportId = uploadRes.id;
 
-      const newImportId = uploadRes.data.id;
       setUploadProgress("Validating contact columns...");
 
       // 2. Validate Import with default mapping
-      await v1ApiClient.post(`/contact-imports/${newImportId}/validate`, {
+      await validateContactImportV1(newImportId, {
         columnMapping: {
           displayName: "displayName",
           phoneNumber: "phoneNumber",
@@ -206,14 +187,14 @@ export const Step3Audience: React.FC<Step3Props> = ({
       setUploadProgress("Importing contacts into workspace...");
 
       // 3. Commit Import
-      await v1ApiClient.post(`/contact-imports/${newImportId}/commit`);
+      await commitContactImportV1(newImportId);
 
       // 4. Poll status
       let attempts = 0;
       while (attempts < 20) {
         await new Promise((r) => setTimeout(r, 1000));
-        const { data: pollRes } = await v1ApiClient.get<{ data: ContactImportItem }>(`/contact-imports/${newImportId}`);
-        if (pollRes.data.status === "completed" || pollRes.data.status === "ready") {
+        const pollRes = await getContactImportV1(newImportId);
+        if (pollRes.status === "completed" || pollRes.status === "ready") {
           break;
         }
         attempts++;
@@ -461,11 +442,13 @@ export const Step3Audience: React.FC<Step3Props> = ({
                         <div className="overflow-hidden">
                           <p className="truncate text-sm font-semibold text-gray-900">{item.fileName}</p>
                           <p className="mt-0.5 text-[11px] text-gray-500">
-                            {new Date(item.createdAt).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })}
+                            {item.createdAt
+                              ? new Date(item.createdAt as string).toLocaleString("en-US", {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                })
+                              : "-"}
                           </p>
                         </div>
                         <span

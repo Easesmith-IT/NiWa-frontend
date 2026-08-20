@@ -1,12 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Save, Loader2, Check, Trash2 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
 
 import { Button } from "../../../../components/ui/button";
 import { useCreateCampaign, useValidateCampaign, useDeleteCampaign } from "../../../../features/campaigns";
+import { createCampaignDraft, updateCampaignDraft, getCampaignById } from "../../../../features/campaigns/campaign.api";
 import { CampaignWizardStepper } from "../../../../features/campaigns/components/CampaignWizardStepper";
 import { Step1CampaignDetails } from "../../../../features/campaigns/components/Step1CampaignDetails";
 import { Step2WhatsAppTemplate } from "../../../../features/campaigns/components/Step2WhatsAppTemplate";
@@ -15,15 +15,16 @@ import { Step4MessageVariables } from "../../../../features/campaigns/components
 import { Step5Schedule } from "../../../../features/campaigns/components/Step5Schedule";
 import { Step6ReviewLaunch } from "../../../../features/campaigns/components/Step6ReviewLaunch";
 import { MetaTemplate } from "../../../../features/campaigns/components/WhatsAppMessagePreview";
-import { apiClient } from "../../../../lib/api/client";
-import { v1ApiClient } from "../../../../lib/api/v1-client";
-import { WhatsAppConnectionsResponse } from "../../../../lib/api/types";
-import { Campaign } from "../../../../features/campaigns/campaign.types";
+import { useWhatsAppConnections } from "../../../../features/whatsapp-connections/whatsapp-connections.queries";
+import { useContactImportsV1Query } from "../../../../features/contacts/contact.queries";
+import { listContactsV1 } from "../../../../features/contacts/contact.api";
 
 export default function NewCampaignPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const createMutation = useCreateCampaign();
   const validateMutation = useValidateCampaign();
+  const deleteMutation = useDeleteCampaign();
 
   // Wizard state
   const [currentStep, setCurrentStep] = useState(1);
@@ -63,15 +64,12 @@ export default function NewCampaignPage() {
 
   // Hydrate draft from URL if ?draft=xxx is present
   useEffect(() => {
-    if (typeof window === "undefined") return;
-    const urlParams = new URLSearchParams(window.location.search);
-    const paramDraftId = urlParams.get("draft");
+    const paramDraftId = searchParams.get("draft");
     if (!paramDraftId) return;
 
     setDraftId(paramDraftId);
-    v1ApiClient
-      .get<{ campaign: Campaign }>(`/campaigns/${paramDraftId}`)
-      .then(async ({ data }) => {
+    getCampaignById(paramDraftId)
+      .then(async (data) => {
         const c = data.campaign;
         if (c.name) setName(c.name);
         if (c.description) setDescription(c.description);
@@ -85,12 +83,12 @@ export default function NewCampaignPage() {
           } else if (c.audience.contactIds && c.audience.contactIds.length > 0) {
             setAudienceType("select");
             try {
-              const { data: contactsRes } = await v1ApiClient.get<{ data: ContactItem[] }>("/contacts");
+              const contactsRes = await listContactsV1();
               const contacts = contactsRes.data || [];
               const map: Record<string, ContactItem> = {};
               c.audience.contactIds.forEach((id) => {
-                const found = contacts.find((item) => item._id === id);
-                if (found) map[id] = found;
+                const found = contacts.find((item: any) => item._id === id);
+                if (found) map[id] = found as any;
                 else map[id] = { _id: id, displayName: "Contact", phoneNumberE164: id };
               });
               setSelectedContactMap(map);
@@ -117,27 +115,14 @@ export default function NewCampaignPage() {
       .catch((err) => {
         console.error("Failed to hydrate draft campaign:", err);
       });
-  }, []);
+  }, [searchParams]);
 
   // Queries for helper details on review step
-  const connectionsQuery = useQuery({
-    queryKey: ["whatsapp-connections"],
-    queryFn: async () => {
-      const { data } = await v1ApiClient.get<WhatsAppConnectionsResponse>("/whatsapp/connections");
-      return data;
-    },
-  });
-
-  const importsQuery = useQuery({
-    queryKey: ["contact-imports-list"],
-    queryFn: async () => {
-      const { data } = await v1ApiClient.get<{ data: ContactImportItem[] }>("/contact-imports");
-      return data;
-    },
-  });
+  const connectionsQuery = useWhatsAppConnections();
+  const importsQuery = useContactImportsV1Query();
 
   const connections = connectionsQuery.data?.connections || [];
-  const selectedConnectionRecord = connections.find((c) => c.id === connectionId) || null;
+  const selectedConnectionRecord = connections.find((c: any) => c.id === connectionId) || null;
   const connectionDetails = selectedConnectionRecord
     ? {
         phone: selectedConnectionRecord.displayPhoneNumber || selectedConnectionRecord.phoneNumberId,
@@ -147,7 +132,7 @@ export default function NewCampaignPage() {
     : null;
 
   const importsList = importsQuery.data?.data || [];
-  const selectedImportObj = importsList.find((i) => i.id === importId);
+  const selectedImportObj = importsList.find((i: any) => i.id === importId);
   const importDetails = selectedImportObj
     ? {
         name: selectedImportObj.fileName,
@@ -203,9 +188,9 @@ export default function NewCampaignPage() {
     try {
       let savedCampaignId = draftId;
       if (draftId) {
-        await v1ApiClient.patch(`/campaigns/${draftId}/draft`, payload);
+        await updateCampaignDraft(draftId, payload as any);
       } else {
-        const { data } = await v1ApiClient.post<{ campaign: Campaign }>("/campaigns", payload);
+        const data = await createCampaignDraft(payload as any);
         savedCampaignId = data.campaign._id;
         setDraftId(savedCampaignId);
         if (typeof window !== "undefined") {
@@ -221,8 +206,6 @@ export default function NewCampaignPage() {
       setIsSavingDraft(false);
     }
   };
-
-  const deleteMutation = useDeleteCampaign();
 
   const handleDeleteDraft = async () => {
     if (!draftId) return;
@@ -245,43 +228,29 @@ export default function NewCampaignPage() {
     try {
       let campaignIdToLaunch = draftId;
 
+      const payload = {
+        name: name.trim() || "Untitled Campaign",
+        description,
+        connectionId,
+        templateId,
+        audience:
+          audienceType === "import"
+            ? { importId }
+            : audienceType === "select"
+            ? { contactIds: Object.keys(selectedContactMap) }
+            : { tags: tagsInput.split(",").map((t) => t.trim()).filter(Boolean) },
+        schedule:
+          scheduleType === "now"
+            ? { type: "now", timezone }
+            : { type: "scheduled", scheduledAt: new Date(scheduledAt).toISOString(), timezone },
+        variables: variableValues,
+      };
+
       if (!campaignIdToLaunch) {
-        const result = await createMutation.mutateAsync({
-          name: name.trim() || "Untitled Campaign",
-          description,
-          connectionId,
-          templateId,
-          audience:
-            audienceType === "import"
-              ? { importId }
-              : audienceType === "select"
-              ? { contactIds: Object.keys(selectedContactMap) }
-              : { tags: tagsInput.split(",").map((t) => t.trim()).filter(Boolean) },
-          schedule:
-            scheduleType === "now"
-              ? { type: "now", timezone }
-              : { type: "scheduled", scheduledAt: new Date(scheduledAt).toISOString(), timezone },
-          variables: variableValues,
-        });
+        const result = await createMutation.mutateAsync(payload as any);
         campaignIdToLaunch = result.campaign._id;
       } else {
-        await v1ApiClient.patch(`/campaigns/${campaignIdToLaunch}/draft`, {
-          name: name.trim() || "Untitled Campaign",
-          description,
-          connectionId,
-          templateId,
-          audience:
-            audienceType === "import"
-              ? { importId }
-              : audienceType === "select"
-              ? { contactIds: Object.keys(selectedContactMap) }
-              : { tags: tagsInput.split(",").map((t) => t.trim()).filter(Boolean) },
-          schedule:
-            scheduleType === "now"
-              ? { type: "now", timezone }
-              : { type: "scheduled", scheduledAt: new Date(scheduledAt).toISOString(), timezone },
-          variables: variableValues,
-        });
+        await updateCampaignDraft(campaignIdToLaunch, payload as any);
       }
 
       // Validate & Materialize Campaign
