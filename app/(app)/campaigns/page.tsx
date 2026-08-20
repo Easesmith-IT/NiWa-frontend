@@ -140,7 +140,13 @@ export default function CampaignsPage() {
                     <tr
                       key={campaign._id}
                       className="hover:bg-slate-50/80 cursor-pointer transition-colors"
-                      onClick={() => router.push(`/campaigns/${campaign._id}`)}
+                      onClick={() => {
+                        if (campaign.status === "draft") {
+                          router.push(`/campaigns/new?draft=${campaign._id}`);
+                        } else {
+                          router.push(`/campaigns/${campaign._id}`);
+                        }
+                      }}
                     >
                       <td className="px-5 py-3.5">
                         <div className="font-semibold text-gray-900">{campaign.name}</div>

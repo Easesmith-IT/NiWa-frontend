@@ -157,9 +157,12 @@ export default function CampaignDetailPage() {
             <Download className="w-4 h-4 mr-1.5" /> Export CSV
           </Button>
           {campaign.status === "draft" && (
-            <Button onClick={handleValidate} disabled={validateMutation.isPending} size="sm" className="bg-emerald-600 hover:bg-emerald-700 text-white">
-              {validateMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Validate & Run
+            <Button
+              onClick={() => router.push(`/campaigns/new?draft=${campaign._id}`)}
+              size="sm"
+              className="bg-emerald-600 hover:bg-emerald-700 text-white"
+            >
+              Resume Editing Draft
             </Button>
           )}
           {campaign.status === "running" && (
