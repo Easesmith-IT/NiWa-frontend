@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { isAxiosError } from "axios";
 import { ArrowLeft, Save, Loader2, Check, Trash2 } from "lucide-react";
 
 import { Button } from "../../../../components/ui/button";
@@ -90,7 +91,17 @@ export default function NewCampaignPage() {
               const map: Record<string, ContactItem> = {};
               c.audience.contactIds.forEach((id) => {
                 const found = contacts.find((item: ContactRecordV1) => item._id === id);
-                if (found) map[id] = found as unknown as ContactItem;
+                if (found) {
+                  map[id] = {
+                    _id: found._id,
+                    displayName: found.displayName,
+                    phoneNumber: found.phoneNumber,
+                    phoneNumberE164: found.phoneNumberE164,
+                    email: found.email,
+                    company: found.company,
+                    customFields: found.customFields,
+                  };
+                }
                 else map[id] = { _id: id, displayName: "Contact", phoneNumberE164: id };
               });
               setSelectedContactMap(map);
@@ -202,7 +213,7 @@ export default function NewCampaignPage() {
       const now = new Date();
       setLastSavedTime(now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
     } catch (err: unknown) {
-      console.error("Failed to save draft:", err);
+      console.error("Failed to save draft:", err); setLaunchError((isAxiosError(err) ? err.response?.data?.message : undefined) || (err as Error).message || "Failed to save draft");
     } finally {
       setIsSavingDraft(false);
     }
@@ -215,7 +226,7 @@ export default function NewCampaignPage() {
         await deleteMutation.mutateAsync(draftId);
         router.push("/campaigns");
       } catch (err: unknown) {
-        alert((err as any).response?.data?.message || "Failed to delete draft");
+        alert((isAxiosError(err) ? err.response?.data?.message : undefined) || (err as Error).message || "Failed to delete draft");
       }
     }
   };
@@ -261,7 +272,7 @@ export default function NewCampaignPage() {
       router.push(`/campaigns/${campaignIdToLaunch}`);
     } catch (err: unknown) {
       console.error("Failed to launch campaign:", err);
-      const msg = (err as any).response?.data?.message || (err as Error).message || "Failed to launch campaign.";
+      const msg = (isAxiosError(err) ? err.response?.data?.message : undefined) || (err as Error).message || "Failed to launch campaign.";
       setLaunchError(msg);
       setIsSubmitting(false);
     }

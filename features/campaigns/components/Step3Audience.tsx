@@ -2,6 +2,7 @@
 
 import React, { useState, useMemo, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { isAxiosError } from "axios";
 import {
   ArrowLeft,
   ArrowRight,
@@ -206,7 +207,12 @@ export const Step3Audience: React.FC<Step3Props> = ({
       setUploadProgress("");
     } catch (err: unknown) {
       console.error("Upload failed:", err);
-      setUploadError((err as any).response?.data?.message || (err as Error).message || "Failed to process contact file.");
+      const msg = isAxiosError(err)
+        ? err.response?.data?.message
+        : err instanceof Error
+        ? err.message
+        : "Failed to process contact file.";
+      setUploadError(msg || "Failed to process contact file.");
     } finally {
       setIsUploading(false);
     }

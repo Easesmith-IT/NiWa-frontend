@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { isAxiosError } from "axios";
 import {
   Plus,
   Search,
@@ -50,7 +51,7 @@ export default function CampaignsPage() {
       try {
         await deleteMutation.mutateAsync(campaign._id);
       } catch (err) {
-        alert((err as any).response?.data?.message || (err as Error).message || "Failed to delete campaign");
+        alert((isAxiosError(err) ? err.response?.data?.message : undefined) || (err as Error).message || "Failed to delete campaign");
       }
     }
   };
