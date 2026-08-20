@@ -93,56 +93,69 @@ export function CampaignCreateScreen() {
 
     setDraftId(paramDraftId);
 
-    if (campaignQuery.data?.campaign && hydratedDraftRef.current !== paramDraftId) {
-      const c = campaignQuery.data.campaign;
-      if (c.name) setName(c.name);
-      if (c.description) setDescription(c.description);
-      if (c.connectionId && c.connectionId !== "pending") setConnectionId(c.connectionId);
-      if (c.templateId && c.templateId !== "pending") setTemplateId(c.templateId);
+    // Guard against repeated hydration once draft is fully loaded
+    if (hydratedDraftRef.current === paramDraftId) return;
 
-      if (c.audience) {
-        if (c.audience.importId) {
-          setAudienceType("import");
-          setImportId(c.audience.importId);
-        } else if (c.audience.contactIds && c.audience.contactIds.length > 0) {
-          setAudienceType("select");
-          const contacts = contactsQuery.data?.data || [];
-          const map: Record<string, ContactItem> = {};
-          c.audience.contactIds.forEach((id) => {
-            const found = contacts.find((item: ContactRecordV1) => item._id === id);
-            if (found) {
-              map[id] = {
-                _id: found._id,
-                displayName: found.displayName,
-                phoneNumber: found.phoneNumber,
-                phoneNumberE164: found.phoneNumberE164,
-                email: found.email,
-                company: found.company,
-                customFields: found.customFields,
-              };
-            } else {
-              map[id] = { _id: id, displayName: "Contact", phoneNumberE164: id };
-            }
-          });
-          setSelectedContactMap(map);
-        } else if (c.audience.tags && c.audience.tags.length > 0) {
-          setAudienceType("tags");
-          setTagsInput(c.audience.tags.join(", "));
-        }
-      }
+    // Wait until campaign data is loaded
+    if (!campaignQuery.data?.campaign) return;
 
-      if (c.variables) setVariableValues(c.variables);
-      if (c.schedule) {
-        setScheduleType(c.schedule.type || "now");
-        if (c.schedule.scheduledAt) setScheduledAt(c.schedule.scheduledAt);
-        if (c.schedule.timezone) setTimezone(c.schedule.timezone);
-      }
+    const c = campaignQuery.data.campaign;
+    const hasContactIds = Boolean(c.audience?.contactIds && c.audience.contactIds.length > 0);
 
-      hydratedDraftRef.current = paramDraftId;
+    // If draft requires contact details, wait until contactsQuery resolves
+    if (hasContactIds && (contactsQuery.isLoading || !contactsQuery.data)) {
+      return;
     }
+
+    if (c.name) setName(c.name);
+    if (c.description) setDescription(c.description);
+    if (c.connectionId && c.connectionId !== "pending") setConnectionId(c.connectionId);
+    if (c.templateId && c.templateId !== "pending") setTemplateId(c.templateId);
+
+    if (c.audience) {
+      if (c.audience.importId) {
+        setAudienceType("import");
+        setImportId(c.audience.importId);
+      } else if (hasContactIds && c.audience.contactIds) {
+        setAudienceType("select");
+        const contacts = contactsQuery.data?.data || [];
+        const map: Record<string, ContactItem> = {};
+        c.audience.contactIds.forEach((id) => {
+          const found = contacts.find((item: ContactRecordV1) => item._id === id);
+          if (found) {
+            map[id] = {
+              _id: found._id,
+              displayName: found.displayName,
+              phoneNumber: found.phoneNumber,
+              phoneNumberE164: found.phoneNumberE164,
+              email: found.email,
+              company: found.company,
+              customFields: found.customFields,
+            };
+          } else {
+            // Fallback for deleted or missing contacts
+            map[id] = { _id: id, displayName: "Contact", phoneNumberE164: id };
+          }
+        });
+        setSelectedContactMap(map);
+      } else if (c.audience.tags && c.audience.tags.length > 0) {
+        setAudienceType("tags");
+        setTagsInput(c.audience.tags.join(", "));
+      }
+    }
+
+    if (c.variables) setVariableValues(c.variables);
+    if (c.schedule) {
+      setScheduleType(c.schedule.type || "now");
+      if (c.schedule.scheduledAt) setScheduledAt(c.schedule.scheduledAt);
+      if (c.schedule.timezone) setTimezone(c.schedule.timezone);
+    }
+
+    hydratedDraftRef.current = paramDraftId;
   }, [
     paramDraftId,
     campaignQuery.data,
+    contactsQuery.isLoading,
     contactsQuery.data,
     setDraftId,
     setName,
