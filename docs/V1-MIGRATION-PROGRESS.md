@@ -20,6 +20,8 @@
 - [ ] Replace inline modals with new Dialog UI components
 
 > **Note:** Phase 2B list/detail UI decomposition completed. Campaign creation wizard remains pending for a separate controlled migration.
+> **Note:** Minor Campaign list visual/content refresh occurred during UI decomposition.
+> **Note:** Alert-based error handling on Campaign delete remains as future UX debt (pending a global notification/toast primitive).
 
 ## Phase 4: Contacts Migration
 - [ ] ...
