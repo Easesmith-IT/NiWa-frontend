@@ -18,6 +18,12 @@ import {
   AlertTriangle,
   HelpCircle,
   BarChart3,
+  Calendar,
+  Clock,
+  Users,
+  FileText,
+  Smartphone,
+  Info,
 } from "lucide-react";
 
 import { Button } from "../../../../components/ui/button";
@@ -185,6 +191,69 @@ export default function CampaignDetailPage() {
 
       <div className="flex-1 overflow-auto p-4 lg:p-6">
         <div className="mx-auto max-w-6xl space-y-6">
+
+          {/* Campaign Overview & Timestamps Card */}
+          <div className="rounded-xl border bg-white p-4 shadow-xs space-y-3">
+            <div className="flex flex-wrap items-center justify-between gap-4 border-b pb-3">
+              <div>
+                <h2 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                  <Info className="h-4 w-4 text-emerald-600" />
+                  Campaign Overview
+                </h2>
+                <p className="text-xs text-gray-500 mt-0.5">{campaign.description || "No description provided."}</p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2 text-xs">
+                <span className="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2.5 py-1 font-medium text-gray-700">
+                  <Calendar className="h-3.5 w-3.5 text-gray-500" />
+                  Created: {campaign.createdAt ? new Date(campaign.createdAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }) : "N/A"}
+                </span>
+                <span className="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2.5 py-1 font-medium text-gray-700">
+                  <Clock className="h-3.5 w-3.5 text-gray-500" />
+                  Updated: {campaign.updatedAt ? new Date(campaign.updatedAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }) : "N/A"}
+                </span>
+              </div>
+            </div>
+
+            <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-4 text-xs">
+              <div className="rounded-lg bg-gray-50 p-2.5">
+                <span className="text-gray-400 font-medium block mb-0.5">Schedule Mode</span>
+                <span className="font-semibold text-gray-800 flex items-center gap-1.5">
+                  <Clock className="h-3.5 w-3.5 text-emerald-600" />
+                  {campaign.schedule?.scheduledAt ? new Date(campaign.schedule.scheduledAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short" }) : "Immediate Dispatch"}
+                </span>
+              </div>
+
+              <div className="rounded-lg bg-gray-50 p-2.5">
+                <span className="text-gray-400 font-medium block mb-0.5">Target Audience Source</span>
+                <span className="font-semibold text-gray-800 flex items-center gap-1.5 truncate">
+                  <Users className="h-3.5 w-3.5 text-blue-600" />
+                  {(campaign.audience as any)?.importId
+                    ? "CSV Import File"
+                    : (campaign.audience as any)?.contactIds?.length
+                    ? `${(campaign.audience as any).contactIds.length} Selected Contacts`
+                    : (campaign.audience as any)?.tags?.length
+                    ? `Tags: ${Array.isArray((campaign.audience as any).tags) ? (campaign.audience as any).tags.join(", ") : (campaign.audience as any).tags}`
+                    : "All Audience Contacts"}
+                </span>
+              </div>
+
+              <div className="rounded-lg bg-gray-50 p-2.5">
+                <span className="text-gray-400 font-medium block mb-0.5">WhatsApp Account</span>
+                <span className="font-semibold text-gray-800 flex items-center gap-1.5 truncate">
+                  <Smartphone className="h-3.5 w-3.5 text-purple-600" />
+                  {campaign.connectionId || "Default Account"}
+                </span>
+              </div>
+
+              <div className="rounded-lg bg-gray-50 p-2.5">
+                <span className="text-gray-400 font-medium block mb-0.5">Template ID</span>
+                <span className="font-semibold text-gray-800 flex items-center gap-1.5 truncate">
+                  <FileText className="h-3.5 w-3.5 text-amber-600" />
+                  {campaign.templateId}
+                </span>
+              </div>
+            </div>
+          </div>
 
           {/* Performance Analytics & Rates */}
           <div className="grid gap-4 md:grid-cols-3">
