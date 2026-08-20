@@ -7,10 +7,10 @@
 - [x] Create `V1-ARCHITECTURE.md`
 
 ## Phase 2: Build Missing V1 UI Foundation
-- [ ] `components/ui/dialog.tsx`
-- [ ] `components/ui/alert-dialog.tsx`
-- [ ] `components/ui/drawer.tsx`
-- [ ] `components/shared/ConfirmDialog.tsx`
+- [x] `components/ui/dialog.tsx`
+- [x] `components/ui/alert-dialog.tsx`
+- [x] `components/ui/drawer.tsx`
+- [x] `components/shared/ConfirmDialog.tsx`
 
 ## Phase 3: Campaigns Migration
 - [ ] Migrate `app/(app)/campaigns/page.tsx`
