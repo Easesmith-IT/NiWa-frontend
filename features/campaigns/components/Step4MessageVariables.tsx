@@ -1,10 +1,12 @@
 "use client";
 
 import React from "react";
-import { ArrowLeft, ArrowRight, CheckCircle2, FileCode, Info, Video, Image as ImageIcon, FileText } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { ArrowLeft, ArrowRight, CheckCircle2, FileCode, Info, Video, Image as ImageIcon, FileText, Folder, Check } from "lucide-react";
 
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
+import { v1ApiClient } from "../../../lib/api/v1-client";
 import { WhatsAppMessagePreview, MetaTemplate } from "./WhatsAppMessagePreview";
 
 interface Step4Props {
@@ -25,6 +27,19 @@ export const Step4MessageVariables: React.FC<Step4Props> = ({
   const headerComponent = template?.components?.find((c) => c.type === "HEADER");
   const mediaFormat = headerComponent?.format;
   const isMediaHeader = mediaFormat === "IMAGE" || mediaFormat === "VIDEO" || mediaFormat === "DOCUMENT";
+
+  // Query uploaded media files from NiWa Media Library
+  const mediaLibraryQuery = useQuery({
+    queryKey: ["media-library-step4"],
+    queryFn: async () => {
+      const response = await v1ApiClient.get<{ media: Array<{ _id?: string; customName?: string | null; fileName: string; metaMediaId: string; mimeType: string; mediaType: string }> }>("/media");
+      return response.data?.media || [];
+    },
+    enabled: isMediaHeader,
+  });
+
+  const mediaList = mediaLibraryQuery.data || [];
+  const selectedMediaId = variableValues["headerMediaUrl"] || "";
 
   // Extract all {{1}}, {{2}} placeholders from template text
   const extractPlaceholders = (tmpl: MetaTemplate | null): string[] => {
@@ -90,7 +105,7 @@ export const Step4MessageVariables: React.FC<Step4Props> = ({
         <div className="space-y-6 lg:col-span-7">
           {/* Media Header Input Field if template requires Image/Video/Document header */}
           {isMediaHeader && (
-            <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-4 shadow-xs space-y-3">
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50/40 p-4 shadow-xs space-y-4">
               <div className="flex items-center justify-between">
                 <span className="inline-flex items-center rounded-md bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-800">
                   Header {mediaFormat} Media Link
@@ -98,24 +113,82 @@ export const Step4MessageVariables: React.FC<Step4Props> = ({
                 <span className="text-[11px] text-emerald-700 font-semibold">Required for Media Header</span>
               </div>
 
+              {/* Option A: Pick from NiWa Media Library */}
+              <div>
+                <label className="mb-1.5 block text-xs font-semibold text-gray-800 flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <Folder className="h-3.5 w-3.5 text-emerald-600" />
+                    Select from NiWa Media Library
+                  </span>
+                  {mediaLibraryQuery.isLoading && (
+                    <span className="text-[10px] text-gray-400 font-normal">Loading NiWa media...</span>
+                  )}
+                </label>
+
+                {mediaList.length > 0 ? (
+                  <div className="max-h-40 overflow-y-auto rounded-lg border bg-white divide-y">
+                    {mediaList.map((item) => {
+                      const itemTitle = item.customName || item.fileName;
+                      const isSelected = selectedMediaId === item.metaMediaId;
+                      return (
+                        <div
+                          key={item.metaMediaId || item._id}
+                          onClick={() => handleVarChange("headerMediaUrl", item.metaMediaId)}
+                          className={`flex items-center justify-between p-2.5 cursor-pointer text-xs transition-colors ${
+                            isSelected ? "bg-emerald-50 text-emerald-900 font-semibold" : "hover:bg-gray-50 text-gray-700"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 truncate">
+                            {item.mediaType === "IMAGE" || item.mimeType?.startsWith("image/") ? (
+                              <ImageIcon className="h-4 w-4 shrink-0 text-emerald-600" />
+                            ) : item.mediaType === "VIDEO" || item.mimeType?.startsWith("video/") ? (
+                              <Video className="h-4 w-4 shrink-0 text-blue-600" />
+                            ) : (
+                              <FileText className="h-4 w-4 shrink-0 text-purple-600" />
+                            )}
+                            <span className="truncate">{itemTitle}</span>
+                          </div>
+                          {isSelected && (
+                            <span className="flex items-center text-[10px] font-bold text-emerald-600 bg-emerald-100 px-2 py-0.5 rounded-full">
+                              <Check className="h-3 w-3 mr-0.5" /> Selected
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-gray-400 italic">
+                    {mediaLibraryQuery.isLoading ? "Fetching uploaded media..." : "No media uploaded in NiWa Media Library yet. Upload files on Content → Media page or paste an HTTPS URL below."}
+                  </p>
+                )}
+              </div>
+
+              <div className="relative flex items-center my-2">
+                <div className="flex-grow border-t border-gray-200"></div>
+                <span className="flex-shrink mx-2 text-[10px] uppercase font-bold text-gray-400">OR Enter Direct URL</span>
+                <div className="flex-grow border-t border-gray-200"></div>
+              </div>
+
+              {/* Option B: Direct HTTPS Link */}
               <div>
                 <label className="mb-1 block text-xs font-medium text-gray-700">
-                  Header {mediaFormat} Direct HTTPS URL
+                  Header {mediaFormat} Direct HTTPS URL or Meta Media ID
                 </label>
                 <Input
                   value={variableValues["headerMediaUrl"] || ""}
                   onChange={(e) => handleVarChange("headerMediaUrl", e.target.value)}
                   placeholder={
                     mediaFormat === "IMAGE"
-                      ? "https://example.com/header-image.jpg"
+                      ? "https://example.com/header-image.jpg or Meta Media ID"
                       : mediaFormat === "VIDEO"
-                      ? "https://example.com/header-video.mp4"
-                      : "https://example.com/document.pdf"
+                      ? "https://example.com/header-video.mp4 or Meta Media ID"
+                      : "https://example.com/document.pdf or Meta Media ID"
                   }
                   className="w-full text-xs bg-white"
                 />
                 <p className="mt-1 text-[11px] text-gray-500">
-                  Enter a public HTTPS URL for the {mediaFormat.toLowerCase()} file to send in the WhatsApp message header.
+                  Enter a public HTTPS URL or select a media item from your NiWa Media Library above.
                 </p>
               </div>
             </div>
