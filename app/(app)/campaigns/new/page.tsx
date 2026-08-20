@@ -9,6 +9,7 @@ import { Input } from "../../../../components/ui/input";
 import { useCreateCampaign } from "../../../../features/campaigns";
 import { useQuery } from "@tanstack/react-query";
 import { apiClient } from "../../../../lib/api/client";
+import { WhatsAppConnectionsResponse } from "../../../../lib/api/types";
 
 export default function NewCampaignPage() {
   const router = useRouter();
@@ -29,7 +30,7 @@ export default function NewCampaignPage() {
   const connectionsQuery = useQuery({
     queryKey: ["whatsapp-connections"],
     queryFn: async () => {
-      const { data } = await apiClient.get<{ connections: Array<{ _id: string; name: string }> }>("/whatsapp-connections");
+      const { data } = await apiClient.get<WhatsAppConnectionsResponse>("/whatsapp/connections");
       return data;
     }
   });
@@ -120,9 +121,16 @@ export default function NewCampaignPage() {
                   onChange={e => setConnectionId(e.target.value)}
                 >
                   <option value="" disabled>Select a connection</option>
-                  {connectionsQuery.data?.connections?.map((c: any) => (
-                    <option key={c._id} value={c._id}>{c.phoneNumber} ({c.name})</option>
-                  ))}
+                  {connectionsQuery.data?.connections?.map((c: any) => {
+                    const connId = c.id || c._id;
+                    const phone = c.displayPhoneNumber || c.phoneNumberId || c.phoneNumber || "WhatsApp Number";
+                    const name = c.verifiedName || c.displayName || c.name || "";
+                    return (
+                      <option key={connId} value={connId}>
+                        {phone} {name ? `(${name})` : ""}
+                      </option>
+                    );
+                  })}
                 </select>
               </div>
 
