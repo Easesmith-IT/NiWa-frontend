@@ -24,8 +24,11 @@ import {
 
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
-import { useContactImportsV1Query, useContactsV1Query } from "../../contacts/contact.queries";
-import { uploadContactImportV1, validateContactImportV1, commitContactImportV1, getContactImportV1 } from "../../contacts/contact.api";
+import {
+  useContactImportsV1Query,
+  useContactsV1Query,
+  useContactImportPipelineV1,
+} from "../../contacts/contact.queries";
 import { ContactImportRecordV1, ContactRecordV1 } from "../../contacts/contact.types";
 
 export interface ContactImportItem {
@@ -101,10 +104,13 @@ export const Step3Audience: React.FC<Step3Props> = ({
   const [page, setPage] = useState(1);
   const [limit] = useState(25);
 
-  // File Upload State
-  const [isUploading, setIsUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState("");
-  const [uploadError, setUploadError] = useState("");
+  // Contact Import Pipeline Hook (Upload, Validate, Commit, Poll)
+  const {
+    processImport,
+    isProcessing: isUploading,
+    progressText: uploadProgress,
+    pipelineError: uploadError,
+  } = useContactImportPipelineV1();
 
   // Debounce search input
   useEffect(() => {
@@ -164,58 +170,14 @@ export const Step3Audience: React.FC<Step3Props> = ({
   };
 
   // File Drag & Drop / File Pick Upload Flow
-  const handleFileUpload = async (file: File) => {
+  const handleFileUpload = (file: File) => {
     if (!file) return;
-    setIsUploading(true);
-    setUploadError("");
-    setUploadProgress("Uploading file...");
-
-    try {
-      // 1. Upload File
-      const uploadRes = await uploadContactImportV1(file);
-      const newImportId = uploadRes.id;
-
-      setUploadProgress("Validating contact columns...");
-
-      // 2. Validate Import with default mapping
-      await validateContactImportV1(newImportId, {
-        columnMapping: {
-          displayName: "displayName",
-          phoneNumber: "phoneNumber",
-          email: "email",
-        },
-      });
-
-      setUploadProgress("Importing contacts into workspace...");
-
-      // 3. Commit Import
-      await commitContactImportV1(newImportId);
-
-      // 4. Poll status
-      let attempts = 0;
-      while (attempts < 20) {
-        await new Promise((r) => setTimeout(r, 1000));
-        const pollRes = await getContactImportV1(newImportId);
-        if (pollRes.status === "completed" || pollRes.status === "ready") {
-          break;
-        }
-        attempts++;
-      }
-
-      await importsQuery.refetch();
-      setImportId(newImportId);
-      setUploadProgress("");
-    } catch (err: unknown) {
-      console.error("Upload failed:", err);
-      const msg = isAxiosError(err)
-        ? err.response?.data?.message
-        : err instanceof Error
-        ? err.message
-        : "Failed to process contact file.";
-      setUploadError(msg || "Failed to process contact file.");
-    } finally {
-      setIsUploading(false);
-    }
+    setError("");
+    processImport(file, {
+      onSuccess: (newImportId) => {
+        setImportId(newImportId);
+      },
+    });
   };
 
   // Toggle Single Contact Selection
