@@ -13,11 +13,13 @@
 - [x] `components/shared/ConfirmDialog.tsx`
 
 ## Phase 3: Campaigns Migration
-- [ ] Migrate `app/(app)/campaigns/page.tsx`
-- [ ] Migrate `app/(app)/campaigns/[id]/page.tsx`
+- [x] Migrate `app/(app)/campaigns/page.tsx`
+- [x] Migrate `app/(app)/campaigns/[id]/page.tsx`
 - [ ] Migrate `app/(app)/campaigns/new/page.tsx`
 - [ ] Fix realtime invalidation in `campaign.realtime.ts`
 - [ ] Replace inline modals with new Dialog UI components
+
+> **Note:** Phase 2B list/detail UI decomposition completed. Campaign creation wizard remains pending for a separate controlled migration.
 
 ## Phase 4: Contacts Migration
 - [ ] ...
