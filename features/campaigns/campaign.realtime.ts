@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { io, Socket } from "socket.io-client";
 import { campaignKeys } from "./campaign.queries";
+// TODO(V1-Migration): Replace this legacy import with V1 environment configuration
 import { getBaseApiUrl } from "../../lib/api/client";
 
 const resolveRealtimeUrl = () => {
@@ -65,7 +66,7 @@ export const useCampaignRealtime = () => {
       const { campaignId, type } = envelope.payload;
       
       // We use a bounded throttle. First event schedules the refresh, 
-      // subsequent events within the 1000ms window are simply ignored until the refresh fires.
+      // subsequent events within the 1500ms window are simply ignored until the refresh fires.
       const key = `${campaignId}-${type}`;
       
       if (pendingRefreshes[key]) {

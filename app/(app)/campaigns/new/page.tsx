@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Save, Loader2, Check, Trash2 } from "lucide-react";
 
 import { Button } from "../../../../components/ui/button";
-import { useCreateCampaign, useValidateCampaign, useDeleteCampaign } from "../../../../features/campaigns";
+import { useCreateCampaign, useValidateCampaign, useDeleteCampaign, CreateCampaignPayload } from "../../../../features/campaigns";
 import { createCampaignDraft, updateCampaignDraft, getCampaignById } from "../../../../features/campaigns/campaign.api";
 import { CampaignWizardStepper } from "../../../../features/campaigns/components/CampaignWizardStepper";
 import { Step1CampaignDetails } from "../../../../features/campaigns/components/Step1CampaignDetails";
@@ -18,6 +18,8 @@ import { MetaTemplate } from "../../../../features/campaigns/components/WhatsApp
 import { useWhatsAppConnections } from "../../../../features/whatsapp-connections/whatsapp-connections.queries";
 import { useContactImportsV1Query } from "../../../../features/contacts/contact.queries";
 import { listContactsV1 } from "../../../../features/contacts/contact.api";
+import { ContactRecordV1, ContactImportRecordV1 } from "../../../../features/contacts/contact.types";
+import { WhatsAppConnectionRecord } from "../../../../lib/api/types";
 
 export default function NewCampaignPage() {
   const router = useRouter();
@@ -87,8 +89,8 @@ export default function NewCampaignPage() {
               const contacts = contactsRes.data || [];
               const map: Record<string, ContactItem> = {};
               c.audience.contactIds.forEach((id) => {
-                const found = contacts.find((item: any) => item._id === id);
-                if (found) map[id] = found as any;
+                const found = contacts.find((item: ContactRecordV1) => item._id === id);
+                if (found) map[id] = found as unknown as ContactItem;
                 else map[id] = { _id: id, displayName: "Contact", phoneNumberE164: id };
               });
               setSelectedContactMap(map);
@@ -118,11 +120,9 @@ export default function NewCampaignPage() {
   }, [searchParams]);
 
   // Queries for helper details on review step
-  const connectionsQuery = useWhatsAppConnections();
-  const importsQuery = useContactImportsV1Query();
-
-  const connections = connectionsQuery.data?.connections || [];
-  const selectedConnectionRecord = connections.find((c: any) => c.id === connectionId) || null;
+  const { data: connectionsData } = useWhatsAppConnections();
+  const connections = connectionsData?.connections || [];
+  const selectedConnectionRecord = connections.find((c: WhatsAppConnectionRecord) => c.id === connectionId) || null;
   const connectionDetails = selectedConnectionRecord
     ? {
         phone: selectedConnectionRecord.displayPhoneNumber || selectedConnectionRecord.phoneNumberId,
@@ -131,8 +131,9 @@ export default function NewCampaignPage() {
       }
     : null;
 
+  const importsQuery = useContactImportsV1Query();
   const importsList = importsQuery.data?.data || [];
-  const selectedImportObj = importsList.find((i: any) => i.id === importId);
+  const selectedImportObj = importsList.find((i: ContactImportRecordV1) => i.id === importId);
   const importDetails = selectedImportObj
     ? {
         name: selectedImportObj.fileName,
@@ -167,7 +168,7 @@ export default function NewCampaignPage() {
     setIsSavingDraft(true);
     setLaunchError("");
 
-    const payload = {
+    const payload: CreateCampaignPayload = {
       name: name.trim() || "Untitled Draft",
       description: description.trim(),
       connectionId: connectionId || "pending",
@@ -180,17 +181,17 @@ export default function NewCampaignPage() {
           : { tags: tagsInput.split(",").map((t) => t.trim()).filter(Boolean) },
       schedule:
         scheduleType === "now"
-          ? { type: "now", timezone }
-          : { type: "scheduled", scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : new Date().toISOString(), timezone },
+          ? { type: "now" as const, timezone }
+          : { type: "scheduled" as const, scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : new Date().toISOString(), timezone },
       variables: variableValues,
     };
 
     try {
       let savedCampaignId = draftId;
       if (draftId) {
-        await updateCampaignDraft(draftId, payload as any);
+        await updateCampaignDraft(draftId, payload);
       } else {
-        const data = await createCampaignDraft(payload as any);
+        const data = await createCampaignDraft(payload);
         savedCampaignId = data.campaign._id;
         setDraftId(savedCampaignId);
         if (typeof window !== "undefined") {
@@ -200,7 +201,7 @@ export default function NewCampaignPage() {
 
       const now = new Date();
       setLastSavedTime(now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }));
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to save draft:", err);
     } finally {
       setIsSavingDraft(false);
@@ -213,8 +214,8 @@ export default function NewCampaignPage() {
       try {
         await deleteMutation.mutateAsync(draftId);
         router.push("/campaigns");
-      } catch (err: any) {
-        alert(err.response?.data?.message || "Failed to delete draft");
+      } catch (err: unknown) {
+        alert((err as any).response?.data?.message || "Failed to delete draft");
       }
     }
   };
@@ -228,7 +229,7 @@ export default function NewCampaignPage() {
     try {
       let campaignIdToLaunch = draftId;
 
-      const payload = {
+      const payload: CreateCampaignPayload = {
         name: name.trim() || "Untitled Campaign",
         description,
         connectionId,
@@ -241,16 +242,16 @@ export default function NewCampaignPage() {
             : { tags: tagsInput.split(",").map((t) => t.trim()).filter(Boolean) },
         schedule:
           scheduleType === "now"
-            ? { type: "now", timezone }
-            : { type: "scheduled", scheduledAt: new Date(scheduledAt).toISOString(), timezone },
+            ? { type: "now" as const, timezone }
+            : { type: "scheduled" as const, scheduledAt: new Date(scheduledAt).toISOString(), timezone },
         variables: variableValues,
       };
 
       if (!campaignIdToLaunch) {
-        const result = await createMutation.mutateAsync(payload as any);
+        const result = await createMutation.mutateAsync(payload);
         campaignIdToLaunch = result.campaign._id;
       } else {
-        await updateCampaignDraft(campaignIdToLaunch, payload as any);
+        await updateCampaignDraft(campaignIdToLaunch, payload);
       }
 
       // Validate & Materialize Campaign
@@ -258,9 +259,9 @@ export default function NewCampaignPage() {
 
       // Redirect to Campaign Detail / Monitoring Page
       router.push(`/campaigns/${campaignIdToLaunch}`);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Failed to launch campaign:", err);
-      const msg = err.response?.data?.message || err.message || "Failed to launch campaign.";
+      const msg = (err as any).response?.data?.message || (err as Error).message || "Failed to launch campaign.";
       setLaunchError(msg);
       setIsSubmitting(false);
     }

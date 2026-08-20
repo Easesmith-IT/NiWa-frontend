@@ -49,8 +49,8 @@ export default function CampaignsPage() {
     if (window.confirm(msg)) {
       try {
         await deleteMutation.mutateAsync(campaign._id);
-      } catch (err: any) {
-        alert(err.response?.data?.message || "Failed to delete campaign");
+      } catch (err) {
+        alert((err as any).response?.data?.message || (err as Error).message || "Failed to delete campaign");
       }
     }
   };

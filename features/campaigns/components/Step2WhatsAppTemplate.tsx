@@ -3,6 +3,7 @@
 import React from "react";
 import { ArrowLeft, ArrowRight, Smartphone, Loader2 } from "lucide-react";
 
+import { TemplateRecord, WhatsAppConnectionRecord } from "../../../lib/api/types";
 import { Button } from "../../../components/ui/button";
 import { WhatsAppMessagePreview, MetaTemplate } from "./WhatsAppMessagePreview";
 import { useWhatsAppConnections } from "../../whatsapp-connections/whatsapp-connections.queries";
@@ -38,13 +39,13 @@ export const Step2WhatsAppTemplate: React.FC<Step2Props> = ({
   // Auto-select first connection if only one exists and none selected
   React.useEffect(() => {
     if (!connectionId && activeConnections.length > 0) {
-      const firstConnected = activeConnections.find((c: any) => c.connectionStatus === "CONNECTED") || activeConnections[0];
+      const firstConnected = activeConnections.find((c: WhatsAppConnectionRecord) => c.connectionStatus === "CONNECTED") || activeConnections[0];
       if (firstConnected) setConnectionId(firstConnected.id);
     }
   }, [activeConnections, connectionId, setConnectionId]);
 
-  const selectedConnectionObj = activeConnections.find((c: any) => c.id === connectionId);
-  const selectedTemplate = templates.find((t: any) => t._id === templateId) || null;
+  const selectedConnectionObj = activeConnections.find((c: WhatsAppConnectionRecord) => c.id === connectionId);
+  const selectedTemplate = templates.find((t: MetaTemplate) => t._id === templateId) || null;
 
   React.useEffect(() => {
     setSelectedTemplateObj(selectedTemplate);
@@ -100,7 +101,7 @@ export const Step2WhatsAppTemplate: React.FC<Step2Props> = ({
               </div>
             ) : (
               <div className="grid gap-3 sm:grid-cols-2">
-                {activeConnections.map((conn: any) => {
+                {activeConnections.map((conn: WhatsAppConnectionRecord) => {
                   const isSelected = conn.id === connectionId;
                   const isConnected = conn.connectionStatus === "CONNECTED";
 
@@ -163,7 +164,7 @@ export const Step2WhatsAppTemplate: React.FC<Step2Props> = ({
                   <option value="" disabled>
                     -- Choose an approved template --
                   </option>
-                  {templates.map((t: any) => (
+                  {templates.map((t: MetaTemplate) => (
                     <option key={t._id} value={t._id}>
                       {t.name} ({t.language}) {t.category ? `• ${t.category}` : ""}
                     </option>

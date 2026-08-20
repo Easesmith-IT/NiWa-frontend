@@ -2,7 +2,7 @@ import type { V1ListResponse } from "../../lib/api/v1-types";
 import { v1ApiClient } from "../../lib/api/v1-client";
 import type { ContactRecordV1, ContactImportRecordV1 } from "./contact.types";
 
-export const listContactsV1 = async (params?: { search?: string }) => {
+export const listContactsV1 = async (params?: { search?: string; page?: number; limit?: number }) => {
   const response = await v1ApiClient.get<V1ListResponse<ContactRecordV1>>("/contacts", {
     params,
   });

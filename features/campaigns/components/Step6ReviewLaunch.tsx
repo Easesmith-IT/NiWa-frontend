@@ -376,7 +376,7 @@ export const Step6ReviewLaunch: React.FC<Step6Props> = ({
                         Estimated Rollover Schedule
                       </p>
                       <div className="divide-y divide-gray-200/60 rounded-lg border bg-white">
-                        {forecastData.schedule.map((item: any, idx: number) => (
+                        {forecastData.schedule.map((item: QuotaForecastResponse["data"]["schedule"][0], idx: number) => (
                           <div key={idx} className="flex items-center justify-between px-3 py-1.5 text-[11px]">
                             <span className="font-semibold text-gray-800">
                               {idx === 0 ? "Today" : `Day ${idx + 1}`} ({item.dateString})

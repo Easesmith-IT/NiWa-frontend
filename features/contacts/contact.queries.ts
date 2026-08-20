@@ -22,9 +22,9 @@ const invalidateContactSurfaces = async (queryClient: ReturnType<typeof useQuery
   ]);
 };
 
-export const useContactsV1Query = (params?: { search?: string }) =>
+export const useContactsV1Query = (params?: { search?: string; page?: number; limit?: number }) =>
   useQuery({
-    queryKey: [...v1QueryKeys.contacts, params?.search ?? ""],
+    queryKey: [...v1QueryKeys.contacts, params?.search ?? "", params?.page, params?.limit],
     queryFn: async () => {
       const result = await listContactsV1(params);
       return {

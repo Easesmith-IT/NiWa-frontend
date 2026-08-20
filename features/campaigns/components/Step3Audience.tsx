@@ -25,6 +25,7 @@ import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { useContactImportsV1Query, useContactsV1Query } from "../../contacts/contact.queries";
 import { uploadContactImportV1, validateContactImportV1, commitContactImportV1, getContactImportV1 } from "../../contacts/contact.api";
+import { ContactImportRecordV1, ContactRecordV1 } from "../../contacts/contact.types";
 
 export interface ContactImportItem {
   id: string;
@@ -47,10 +48,10 @@ export interface ContactItem {
   _id: string;
   displayName: string;
   phoneNumber?: string;
-  phoneNumberE164: string;
-  email?: string;
-  company?: string;
-  customFields?: Array<{ name: string; value: string }>;
+  phoneNumberE164?: string | null;
+  email?: string | null;
+  company?: string | null;
+  customFields?: Array<{ key: string; value: string; name?: string }>;
 }
 
 export interface ContactsResponse {
@@ -117,19 +118,19 @@ export const Step3Audience: React.FC<Step3Props> = ({
   const importsQuery = useContactImportsV1Query();
 
   const importsList = importsQuery.data?.data || [];
-  const completedImports = importsList.filter((i: any) => i.status === "completed" || i.status === "ready");
-  const selectedImport = completedImports.find((i: any) => i.id === importId);
+  const completedImports = importsList.filter((i: ContactImportRecordV1) => i.status === "completed" || i.status === "ready");
+  const selectedImport = completedImports.find((i: ContactImportRecordV1) => i.id === importId);
 
   // Query Contacts for Manual Selection Mode
-  const contactsQuery = useContactsV1Query({ search: debouncedSearch, page, limit } as any);
+  const contactsQuery = useContactsV1Query({ search: debouncedSearch, page, limit });
 
-  const contactsList = (contactsQuery.data?.data || (contactsQuery.data as any)?.items || []) as any[];
+  const contactsList = (contactsQuery.data?.data || []) as ContactRecordV1[];
   const pagination = (contactsQuery.data?.pagination || {
     page: 1,
     limit,
     total: contactsList.length,
     totalPages: 1,
-  }) as any;
+  }) as { page: number; limit: number; total: number; totalPages: number };
 
   // Auto-select first import if import mode active and no import selected
   useEffect(() => {
@@ -203,9 +204,9 @@ export const Step3Audience: React.FC<Step3Props> = ({
       await importsQuery.refetch();
       setImportId(newImportId);
       setUploadProgress("");
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Upload failed:", err);
-      setUploadError(err.response?.data?.message || err.message || "Failed to process contact file.");
+      setUploadError((err as any).response?.data?.message || (err as Error).message || "Failed to process contact file.");
     } finally {
       setIsUploading(false);
     }

@@ -34,6 +34,7 @@ import {
   useCampaignRealtime,
   useUpdateCampaignStatus,
   useValidateCampaign,
+  exportCampaignCSV,
 } from "../../../../features/campaigns";
 import { useQuota } from "../../../../features/quotas/quota.queries";
 
@@ -96,7 +97,6 @@ export default function CampaignDetailPage() {
 
   const handleExportCSV = async () => {
     try {
-      const { exportCampaignCSV } = await import("../../../../features/campaigns/campaign.api");
       const data = await exportCampaignCSV(id);
       const url = window.URL.createObjectURL(new Blob([data]));
       const link = document.createElement("a");
@@ -215,12 +215,12 @@ export default function CampaignDetailPage() {
                 <div className="overflow-hidden">
                   <span className="text-[10px] font-bold uppercase tracking-wider text-gray-500 block mb-1">Target Audience</span>
                   <span className="font-semibold text-gray-900 text-sm truncate block">
-                    {(campaign.audience as any)?.importId
+                    {campaign.audience?.importId
                       ? "CSV Import File"
-                      : (campaign.audience as any)?.contactIds?.length
-                      ? `${(campaign.audience as any).contactIds.length} Selected Contacts`
-                      : (campaign.audience as any)?.tags?.length
-                      ? `Tags: ${Array.isArray((campaign.audience as any).tags) ? (campaign.audience as any).tags.join(", ") : (campaign.audience as any).tags}`
+                      : campaign.audience?.contactIds?.length
+                      ? `${campaign.audience.contactIds.length} Selected Contacts`
+                      : campaign.audience?.tags?.length
+                      ? `Tags: ${Array.isArray(campaign.audience.tags) ? campaign.audience.tags.join(", ") : campaign.audience.tags}`
                       : "All Audience Contacts"}
                   </span>
                 </div>
