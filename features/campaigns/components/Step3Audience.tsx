@@ -23,7 +23,7 @@ import {
 
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
-import { apiClient } from "../../../lib/api/client";
+import { v1ApiClient } from "../../../lib/api/v1-client";
 
 export interface ContactImportItem {
   id: string;
@@ -115,7 +115,7 @@ export const Step3Audience: React.FC<Step3Props> = ({
   const importsQuery = useQuery({
     queryKey: ["contact-imports-list"],
     queryFn: async () => {
-      const { data } = await apiClient.get<{ data: ContactImportItem[] }>("/contact-imports");
+      const { data } = await v1ApiClient.get<{ data: ContactImportItem[] }>("/contact-imports");
       return data;
     },
   });
@@ -128,7 +128,7 @@ export const Step3Audience: React.FC<Step3Props> = ({
   const contactsQuery = useQuery({
     queryKey: ["contacts-audience-search", debouncedSearch, page, limit],
     queryFn: async () => {
-      const { data } = await apiClient.get<ContactsResponse>("/contacts", {
+      const { data } = await v1ApiClient.get<ContactsResponse>("/contacts", {
         params: { search: debouncedSearch, page, limit },
       });
       return data;
@@ -186,7 +186,7 @@ export const Step3Audience: React.FC<Step3Props> = ({
       formData.append("file", file);
 
       // 1. Upload File
-      const { data: uploadRes } = await apiClient.post<{ data: ContactImportItem }>("/contact-imports/upload", formData, {
+      const { data: uploadRes } = await v1ApiClient.post<{ data: ContactImportItem }>("/contact-imports/upload", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
@@ -194,7 +194,7 @@ export const Step3Audience: React.FC<Step3Props> = ({
       setUploadProgress("Validating contact columns...");
 
       // 2. Validate Import with default mapping
-      await apiClient.post(`/contact-imports/${newImportId}/validate`, {
+      await v1ApiClient.post(`/contact-imports/${newImportId}/validate`, {
         columnMapping: {
           displayName: "displayName",
           phoneNumber: "phoneNumber",
@@ -205,13 +205,13 @@ export const Step3Audience: React.FC<Step3Props> = ({
       setUploadProgress("Importing contacts into workspace...");
 
       // 3. Commit Import
-      await apiClient.post(`/contact-imports/${newImportId}/commit`);
+      await v1ApiClient.post(`/contact-imports/${newImportId}/commit`);
 
       // 4. Poll status
       let attempts = 0;
       while (attempts < 20) {
         await new Promise((r) => setTimeout(r, 1000));
-        const { data: pollRes } = await apiClient.get<{ data: ContactImportItem }>(`/contact-imports/${newImportId}`);
+        const { data: pollRes } = await v1ApiClient.get<{ data: ContactImportItem }>(`/contact-imports/${newImportId}`);
         if (pollRes.data.status === "completed" || pollRes.data.status === "ready") {
           break;
         }
