@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { CheckCheck, ExternalLink, Image as ImageIcon, Phone } from "lucide-react";
+import { CheckCheck, ExternalLink, Image as ImageIcon, Phone, Video } from "lucide-react";
 
 export interface TemplateComponent {
   type: "HEADER" | "BODY" | "FOOTER" | "BUTTONS";
@@ -53,6 +53,14 @@ export const WhatsAppMessagePreview: React.FC<WhatsAppMessagePreviewProps> = ({
   const footerComponent = template.components?.find((c) => c.type === "FOOTER");
   const buttonsComponent = template.components?.find((c) => c.type === "BUTTONS");
 
+  const mediaUrl =
+    variableValues["headerMediaUrl"] ||
+    variableValues["mediaUrl"] ||
+    variableValues["header_image"] ||
+    variableValues["header_video"] ||
+    variableValues["header_document"] ||
+    variableValues["header"];
+
   // Interpolate {{1}}, {{2}} in text
   const formatTextWithVariables = (text?: string) => {
     if (!text) return "";
@@ -86,14 +94,32 @@ export const WhatsAppMessagePreview: React.FC<WhatsAppMessagePreviewProps> = ({
           {headerComponent && (
             <div className="mb-2">
               {headerComponent.format === "IMAGE" && (
-                <div className="flex h-32 w-full items-center justify-center rounded-md bg-gray-100 text-gray-400">
-                  <ImageIcon className="h-8 w-8" />
-                  <span className="ml-2 text-xs font-medium">Header Image</span>
-                </div>
+                mediaUrl ? (
+                  <div className="overflow-hidden rounded-md border bg-gray-100">
+                    <img src={mediaUrl} alt="Header Preview" className="h-36 w-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="flex h-32 w-full items-center justify-center rounded-md bg-gray-100 text-gray-400">
+                    <ImageIcon className="h-8 w-8" />
+                    <span className="ml-2 text-xs font-medium">Header Image</span>
+                  </div>
+                )
+              )}
+              {headerComponent.format === "VIDEO" && (
+                mediaUrl ? (
+                  <div className="overflow-hidden rounded-md border bg-gray-100">
+                    <video src={mediaUrl} controls className="h-36 w-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="flex h-32 w-full items-center justify-center rounded-md bg-gray-100 text-gray-400">
+                    <Video className="h-8 w-8" />
+                    <span className="ml-2 text-xs font-medium">Header Video</span>
+                  </div>
+                )
               )}
               {headerComponent.format === "DOCUMENT" && (
                 <div className="flex items-center rounded-md bg-gray-100 p-2.5 text-xs font-medium text-gray-600">
-                  📄 Attachment Document
+                  📄 {mediaUrl ? "Document Attachment Linked" : "Attachment Document"}
                 </div>
               )}
               {headerComponent.format === "TEXT" && formattedHeader && (
