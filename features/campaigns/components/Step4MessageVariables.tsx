@@ -53,11 +53,14 @@ export const Step4MessageVariables: React.FC<Step4Props> = ({
         }
       }
       if (c.type === "BUTTONS" && c.buttons) {
-        c.buttons.forEach((btn) => {
+        c.buttons.forEach((btn, btnIdx) => {
           if (btn.url) {
             const matches = btn.url.match(/\{\{(\d+)\}\}/g);
             if (matches) {
-              matches.forEach((m) => found.add(m));
+              matches.forEach((m) => {
+                const varNum = m.replace(/\D/g, "");
+                found.add(`button_${btnIdx}_${varNum}`);
+              });
             }
           }
         });
@@ -225,7 +228,7 @@ export const Step4MessageVariables: React.FC<Step4Props> = ({
                 <div key={ph} className="rounded-xl border bg-white p-4 shadow-xs space-y-2">
                   <div className="flex items-center justify-between">
                     <span className="inline-flex items-center rounded-md bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-800">
-                      Variable {ph}
+                      {ph.startsWith("button_") ? `Button URL Variable {{${ph.split("_")[2]}}}` : `Variable ${ph}`}
                     </span>
                     <span className="text-[11px] text-gray-400">Parameter #{idx + 1}</span>
                   </div>
