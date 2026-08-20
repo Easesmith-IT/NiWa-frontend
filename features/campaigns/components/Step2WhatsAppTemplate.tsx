@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, CheckCircle2, AlertCircle, Smartphone, FileText, Loader2 } from "lucide-react";
 
 import { Button } from "../../../components/ui/button";
+import { v1ApiClient } from "../../../lib/api/v1-client";
 import { apiClient } from "../../../lib/api/client";
 import { WhatsAppConnectionsResponse, WhatsAppConnectionRecord } from "../../../lib/api/types";
 import { WhatsAppMessagePreview, MetaTemplate } from "./WhatsAppMessagePreview";
@@ -33,7 +34,7 @@ export const Step2WhatsAppTemplate: React.FC<Step2Props> = ({
   const connectionsQuery = useQuery({
     queryKey: ["whatsapp-connections"],
     queryFn: async () => {
-      const { data } = await apiClient.get<WhatsAppConnectionsResponse>("/whatsapp/connections");
+      const { data } = await v1ApiClient.get<WhatsAppConnectionsResponse>("/whatsapp/connections");
       return data;
     },
   });
@@ -41,7 +42,7 @@ export const Step2WhatsAppTemplate: React.FC<Step2Props> = ({
   const templatesQuery = useQuery({
     queryKey: ["templates"],
     queryFn: async () => {
-      const { data } = await apiClient.get<{ templates: MetaTemplate[] }>("/templates");
+      const { data } = await v1ApiClient.get<{ templates: MetaTemplate[] }>("/templates");
       return data;
     },
   });
