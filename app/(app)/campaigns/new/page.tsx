@@ -174,8 +174,13 @@ export default function NewCampaignPage() {
 
   // Explicit Save Draft Handler
   const handleSaveDraft = async () => {
+    if (!name.trim()) {
+      setLaunchError("Please enter at least a Campaign Name in Step 1 before saving a draft.");
+      return;
+    }
     if (isSavingDraft) return;
     setIsSavingDraft(true);
+    setLaunchError("");
 
     const payload = {
       name: name.trim() || "Untitled Draft",
