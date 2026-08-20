@@ -97,9 +97,16 @@ export default function ContactsPage() {
         setNewContactDraft(defaultNewContact);
         setSelectedContactId(result.data._id);
       },
-      onError: (err) => {
+      onError: (err: any) => {
+        const issues = err.response?.data?.issues?.fieldErrors;
+        const issueMsg = issues
+          ? Object.entries(issues)
+              .map(([k, v]) => `${k}: ${(v as any).join(", ")}`)
+              .join("; ")
+          : null;
+        const msg = issueMsg || err.response?.data?.message || (err instanceof Error ? err.message : "Failed to create contact.");
         setFeedback({
-          message: err instanceof Error ? err.message : "Failed to create contact.",
+          message: msg,
           tone: "error",
         });
       },
