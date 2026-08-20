@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback, useId } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "../../lib/utils";
 import { X } from "lucide-react";
@@ -8,11 +8,13 @@ import { X } from "lucide-react";
 interface DialogContextValue {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  titleId: string;
+  descriptionId: string;
 }
 
 const DialogContext = createContext<DialogContextValue | undefined>(undefined);
 
-function useDialogContext() {
+export function useDialogContext() {
   const context = useContext(DialogContext);
   if (!context) {
     throw new Error("Dialog components must be used within a Dialog");
@@ -30,6 +32,8 @@ export function Dialog({
   onOpenChange?: (open: boolean) => void;
 }) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const titleId = useId();
+  const descriptionId = useId();
   
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : uncontrolledOpen;
@@ -44,7 +48,7 @@ export function Dialog({
   }, [isControlled, controlledOnOpenChange]);
 
   return (
-    <DialogContext.Provider value={{ open, onOpenChange }}>
+    <DialogContext.Provider value={{ open, onOpenChange, titleId, descriptionId }}>
       {children}
     </DialogContext.Provider>
   );
@@ -54,23 +58,54 @@ export function DialogTrigger({
   children,
   asChild,
 }: {
-  children: React.ReactElement;
+  children: React.ReactNode;
   asChild?: boolean;
 }) {
   const { onOpenChange } = useDialogContext();
   
   const handleClick = (e: React.MouseEvent) => {
     onOpenChange(true);
-    if ((children.props as any).onClick) {
-      (children.props as any).onClick(e);
+    if (React.isValidElement<{ onClick?: (e: React.MouseEvent) => void }>(children) && children.props.onClick) {
+      children.props.onClick(e);
     }
   };
 
-  if (asChild && React.isValidElement(children)) {
-    return React.cloneElement(children as React.ReactElement<any>, { onClick: handleClick });
+  if (asChild && React.isValidElement<{ onClick?: (e: React.MouseEvent) => void }>(children)) {
+    return React.cloneElement(children, { onClick: handleClick });
   }
 
-  return <span onClick={handleClick}>{children}</span>;
+  return (
+    <button type="button" onClick={handleClick}>
+      {children}
+    </button>
+  );
+}
+
+export function DialogClose({
+  children,
+  asChild,
+}: {
+  children: React.ReactNode;
+  asChild?: boolean;
+}) {
+  const { onOpenChange } = useDialogContext();
+  
+  const handleClick = (e: React.MouseEvent) => {
+    onOpenChange(false);
+    if (React.isValidElement<{ onClick?: (e: React.MouseEvent) => void }>(children) && children.props.onClick) {
+      children.props.onClick(e);
+    }
+  };
+
+  if (asChild && React.isValidElement<{ onClick?: (e: React.MouseEvent) => void }>(children)) {
+    return React.cloneElement(children, { onClick: handleClick });
+  }
+
+  return (
+    <button type="button" onClick={handleClick}>
+      {children}
+    </button>
+  );
 }
 
 export function DialogContent({
@@ -78,15 +113,18 @@ export function DialogContent({
   className,
   onInteractOutside,
   hideClose = false,
+  role = "dialog",
 }: {
   children: React.ReactNode;
   className?: string;
   onInteractOutside?: (e: Event) => void;
   hideClose?: boolean;
+  role?: "dialog" | "alertdialog";
 }) {
-  const { open, onOpenChange } = useDialogContext();
+  const { open, onOpenChange, titleId, descriptionId } = useDialogContext();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [mounted, setMounted] = useState(false);
+  const overflowStateRef = useRef<string>("");
 
   useEffect(() => {
     setMounted(true);
@@ -98,18 +136,22 @@ export function DialogContent({
 
     if (open) {
       if (!dialog.open) {
+        overflowStateRef.current = document.body.style.overflow;
         dialog.showModal();
         document.body.style.overflow = "hidden";
       }
     } else {
       if (dialog.open) {
         dialog.close();
-        document.body.style.overflow = "";
+        document.body.style.overflow = overflowStateRef.current;
       }
     }
 
     return () => {
-      document.body.style.overflow = "";
+      // Ensure we restore if unmounted while open
+      if (open && dialog.open) {
+        document.body.style.overflow = overflowStateRef.current;
+      }
     };
   }, [open]);
 
@@ -151,6 +193,9 @@ export function DialogContent({
   return createPortal(
     <dialog
       ref={dialogRef}
+      role={role}
+      aria-labelledby={titleId}
+      aria-describedby={descriptionId}
       className={cn(
         "backdrop:bg-black/50 backdrop:backdrop-blur-sm",
         "m-auto rounded-lg border border-border bg-surface p-0 text-foreground shadow-modal",
@@ -204,8 +249,10 @@ export function DialogTitle({
   className,
   ...props
 }: React.HTMLAttributes<HTMLHeadingElement>) {
+  const { titleId } = useDialogContext();
   return (
     <h2
+      id={titleId}
       className={cn("text-lg font-semibold leading-none tracking-tight", className)}
       {...props}
     />
@@ -216,8 +263,10 @@ export function DialogDescription({
   className,
   ...props
 }: React.HTMLAttributes<HTMLParagraphElement>) {
+  const { descriptionId } = useDialogContext();
   return (
     <p
+      id={descriptionId}
       className={cn("text-sm text-foreground-secondary", className)}
       {...props}
     />

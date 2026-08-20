@@ -9,6 +9,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogClose,
 } from "./dialog";
 import { cn } from "../../lib/utils";
 import { Button } from "./button";
@@ -23,6 +24,7 @@ export function AlertDialogContent({
 }: React.ComponentProps<typeof DialogContent>) {
   return (
     <DialogContent
+      role="alertdialog"
       className={cn("max-w-md", className)}
       hideClose
       onInteractOutside={(e) => e.preventDefault()} // Prevent closing on backdrop click
@@ -43,9 +45,9 @@ export function AlertDialogCancel({
   ...props
 }: React.ComponentProps<typeof Button>) {
   return (
-    <DialogTrigger asChild>
+    <DialogClose asChild>
       <Button variant="secondary" className={cn("mt-2 sm:mt-0", className)} {...props} />
-    </DialogTrigger>
+    </DialogClose>
   );
 }
 

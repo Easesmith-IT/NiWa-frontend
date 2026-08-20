@@ -1,6 +1,6 @@
 "use client";
 
-import React, { createContext, useContext, useEffect, useRef, useState, useCallback } from "react";
+import React, { createContext, useContext, useEffect, useRef, useState, useCallback, useId } from "react";
 import { createPortal } from "react-dom";
 import { cn } from "../../lib/utils";
 import { X } from "lucide-react";
@@ -8,11 +8,13 @@ import { X } from "lucide-react";
 interface DrawerContextValue {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  titleId: string;
+  descriptionId: string;
 }
 
 const DrawerContext = createContext<DrawerContextValue | undefined>(undefined);
 
-function useDrawerContext() {
+export function useDrawerContext() {
   const context = useContext(DrawerContext);
   if (!context) {
     throw new Error("Drawer components must be used within a Drawer");
@@ -30,6 +32,8 @@ export function Drawer({
   onOpenChange?: (open: boolean) => void;
 }) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const titleId = useId();
+  const descriptionId = useId();
   
   const isControlled = controlledOpen !== undefined;
   const open = isControlled ? controlledOpen : uncontrolledOpen;
@@ -44,7 +48,7 @@ export function Drawer({
   }, [isControlled, controlledOnOpenChange]);
 
   return (
-    <DrawerContext.Provider value={{ open, onOpenChange }}>
+    <DrawerContext.Provider value={{ open, onOpenChange, titleId, descriptionId }}>
       {children}
     </DrawerContext.Provider>
   );
@@ -54,46 +58,54 @@ export function DrawerTrigger({
   children,
   asChild,
 }: {
-  children: React.ReactElement;
+  children: React.ReactNode;
   asChild?: boolean;
 }) {
   const { onOpenChange } = useDrawerContext();
   
   const handleClick = (e: React.MouseEvent) => {
     onOpenChange(true);
-    if ((children.props as any).onClick) {
-      (children.props as any).onClick(e);
+    if (React.isValidElement<{ onClick?: (e: React.MouseEvent) => void }>(children) && children.props.onClick) {
+      children.props.onClick(e);
     }
   };
 
-  if (asChild && React.isValidElement(children)) {
-    return React.cloneElement(children as React.ReactElement<any>, { onClick: handleClick });
+  if (asChild && React.isValidElement<{ onClick?: (e: React.MouseEvent) => void }>(children)) {
+    return React.cloneElement(children, { onClick: handleClick });
   }
 
-  return <span onClick={handleClick}>{children}</span>;
+  return (
+    <button type="button" onClick={handleClick}>
+      {children}
+    </button>
+  );
 }
 
 export function DrawerClose({
   children,
   asChild,
 }: {
-  children: React.ReactElement;
+  children: React.ReactNode;
   asChild?: boolean;
 }) {
   const { onOpenChange } = useDrawerContext();
   
   const handleClick = (e: React.MouseEvent) => {
     onOpenChange(false);
-    if ((children.props as any).onClick) {
-      (children.props as any).onClick(e);
+    if (React.isValidElement<{ onClick?: (e: React.MouseEvent) => void }>(children) && children.props.onClick) {
+      children.props.onClick(e);
     }
   };
 
-  if (asChild && React.isValidElement(children)) {
-    return React.cloneElement(children as React.ReactElement<any>, { onClick: handleClick });
+  if (asChild && React.isValidElement<{ onClick?: (e: React.MouseEvent) => void }>(children)) {
+    return React.cloneElement(children, { onClick: handleClick });
   }
 
-  return <span onClick={handleClick}>{children}</span>;
+  return (
+    <button type="button" onClick={handleClick}>
+      {children}
+    </button>
+  );
 }
 
 export function DrawerContent({
@@ -107,9 +119,10 @@ export function DrawerContent({
   onInteractOutside?: (e: Event) => void;
   side?: "right" | "bottom";
 }) {
-  const { open, onOpenChange } = useDrawerContext();
+  const { open, onOpenChange, titleId, descriptionId } = useDrawerContext();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [mounted, setMounted] = useState(false);
+  const overflowStateRef = useRef<string>("");
 
   useEffect(() => {
     setMounted(true);
@@ -121,18 +134,21 @@ export function DrawerContent({
 
     if (open) {
       if (!dialog.open) {
+        overflowStateRef.current = document.body.style.overflow;
         dialog.showModal();
         document.body.style.overflow = "hidden";
       }
     } else {
       if (dialog.open) {
         dialog.close();
-        document.body.style.overflow = "";
+        document.body.style.overflow = overflowStateRef.current;
       }
     }
 
     return () => {
-      document.body.style.overflow = "";
+      if (open && dialog.open) {
+        document.body.style.overflow = overflowStateRef.current;
+      }
     };
   }, [open]);
 
@@ -172,6 +188,8 @@ export function DrawerContent({
   return createPortal(
     <dialog
       ref={dialogRef}
+      aria-labelledby={titleId}
+      aria-describedby={descriptionId}
       className={cn(
         "backdrop:bg-black/50 backdrop:backdrop-blur-sm",
         "fixed m-0 bg-surface p-0 text-foreground shadow-modal border-border overflow-y-auto outline-none",
@@ -225,8 +243,10 @@ export function DrawerTitle({
   className,
   ...props
 }: React.HTMLAttributes<HTMLHeadingElement>) {
+  const { titleId } = useDrawerContext();
   return (
     <h2
+      id={titleId}
       className={cn("text-lg font-semibold leading-none tracking-tight", className)}
       {...props}
     />
@@ -237,8 +257,10 @@ export function DrawerDescription({
   className,
   ...props
 }: React.HTMLAttributes<HTMLParagraphElement>) {
+  const { descriptionId } = useDrawerContext();
   return (
     <p
+      id={descriptionId}
       className={cn("text-sm text-foreground-secondary", className)}
       {...props}
     />
