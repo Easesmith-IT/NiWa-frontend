@@ -10,6 +10,10 @@ interface DialogContextValue {
   onOpenChange: (open: boolean) => void;
   titleId: string;
   descriptionId: string;
+  hasTitle: boolean;
+  setHasTitle: (hasTitle: boolean) => void;
+  hasDescription: boolean;
+  setHasDescription: (hasDescription: boolean) => void;
 }
 
 const DialogContext = createContext<DialogContextValue | undefined>(undefined);
@@ -32,6 +36,8 @@ export function Dialog({
   onOpenChange?: (open: boolean) => void;
 }) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const [hasTitle, setHasTitle] = useState(false);
+  const [hasDescription, setHasDescription] = useState(false);
   const titleId = useId();
   const descriptionId = useId();
   
@@ -48,7 +54,7 @@ export function Dialog({
   }, [isControlled, controlledOnOpenChange]);
 
   return (
-    <DialogContext.Provider value={{ open, onOpenChange, titleId, descriptionId }}>
+    <DialogContext.Provider value={{ open, onOpenChange, titleId, descriptionId, hasTitle, setHasTitle, hasDescription, setHasDescription }}>
       {children}
     </DialogContext.Provider>
   );
@@ -121,7 +127,7 @@ export function DialogContent({
   hideClose?: boolean;
   role?: "dialog" | "alertdialog";
 }) {
-  const { open, onOpenChange, titleId, descriptionId } = useDialogContext();
+  const { open, onOpenChange, titleId, descriptionId, hasTitle, hasDescription } = useDialogContext();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [mounted, setMounted] = useState(false);
   const overflowStateRef = useRef<string>("");
@@ -146,14 +152,18 @@ export function DialogContent({
         document.body.style.overflow = overflowStateRef.current;
       }
     }
+  }, [open]);
 
+  // Unmount cleanup
+  useEffect(() => {
     return () => {
-      // Ensure we restore if unmounted while open
-      if (open && dialog.open) {
+      const dialog = dialogRef.current;
+      if (dialog && dialog.open) {
+        dialog.close();
         document.body.style.overflow = overflowStateRef.current;
       }
     };
-  }, [open]);
+  }, []);
 
   // Handle native cancel (Escape key)
   useEffect(() => {
@@ -194,8 +204,8 @@ export function DialogContent({
     <dialog
       ref={dialogRef}
       role={role}
-      aria-labelledby={titleId}
-      aria-describedby={descriptionId}
+      aria-labelledby={hasTitle ? titleId : undefined}
+      aria-describedby={hasDescription ? descriptionId : undefined}
       className={cn(
         "backdrop:bg-black/50 backdrop:backdrop-blur-sm",
         "m-auto rounded-lg border border-border bg-surface p-0 text-foreground shadow-modal",
@@ -249,7 +259,13 @@ export function DialogTitle({
   className,
   ...props
 }: React.HTMLAttributes<HTMLHeadingElement>) {
-  const { titleId } = useDialogContext();
+  const { titleId, setHasTitle } = useDialogContext();
+  
+  useEffect(() => {
+    setHasTitle(true);
+    return () => setHasTitle(false);
+  }, [setHasTitle]);
+
   return (
     <h2
       id={titleId}
@@ -263,7 +279,13 @@ export function DialogDescription({
   className,
   ...props
 }: React.HTMLAttributes<HTMLParagraphElement>) {
-  const { descriptionId } = useDialogContext();
+  const { descriptionId, setHasDescription } = useDialogContext();
+  
+  useEffect(() => {
+    setHasDescription(true);
+    return () => setHasDescription(false);
+  }, [setHasDescription]);
+
   return (
     <p
       id={descriptionId}

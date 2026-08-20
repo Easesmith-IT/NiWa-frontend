@@ -10,6 +10,10 @@ interface DrawerContextValue {
   onOpenChange: (open: boolean) => void;
   titleId: string;
   descriptionId: string;
+  hasTitle: boolean;
+  setHasTitle: (hasTitle: boolean) => void;
+  hasDescription: boolean;
+  setHasDescription: (hasDescription: boolean) => void;
 }
 
 const DrawerContext = createContext<DrawerContextValue | undefined>(undefined);
@@ -32,6 +36,8 @@ export function Drawer({
   onOpenChange?: (open: boolean) => void;
 }) {
   const [uncontrolledOpen, setUncontrolledOpen] = useState(false);
+  const [hasTitle, setHasTitle] = useState(false);
+  const [hasDescription, setHasDescription] = useState(false);
   const titleId = useId();
   const descriptionId = useId();
   
@@ -48,7 +54,7 @@ export function Drawer({
   }, [isControlled, controlledOnOpenChange]);
 
   return (
-    <DrawerContext.Provider value={{ open, onOpenChange, titleId, descriptionId }}>
+    <DrawerContext.Provider value={{ open, onOpenChange, titleId, descriptionId, hasTitle, setHasTitle, hasDescription, setHasDescription }}>
       {children}
     </DrawerContext.Provider>
   );
@@ -119,7 +125,7 @@ export function DrawerContent({
   onInteractOutside?: (e: Event) => void;
   side?: "right" | "bottom";
 }) {
-  const { open, onOpenChange, titleId, descriptionId } = useDrawerContext();
+  const { open, onOpenChange, titleId, descriptionId, hasTitle, hasDescription } = useDrawerContext();
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [mounted, setMounted] = useState(false);
   const overflowStateRef = useRef<string>("");
@@ -144,13 +150,18 @@ export function DrawerContent({
         document.body.style.overflow = overflowStateRef.current;
       }
     }
+  }, [open]);
 
+  // Unmount cleanup
+  useEffect(() => {
     return () => {
-      if (open && dialog.open) {
+      const dialog = dialogRef.current;
+      if (dialog && dialog.open) {
+        dialog.close();
         document.body.style.overflow = overflowStateRef.current;
       }
     };
-  }, [open]);
+  }, []);
 
   useEffect(() => {
     const dialog = dialogRef.current;
@@ -188,8 +199,8 @@ export function DrawerContent({
   return createPortal(
     <dialog
       ref={dialogRef}
-      aria-labelledby={titleId}
-      aria-describedby={descriptionId}
+      aria-labelledby={hasTitle ? titleId : undefined}
+      aria-describedby={hasDescription ? descriptionId : undefined}
       className={cn(
         "backdrop:bg-black/50 backdrop:backdrop-blur-sm",
         "fixed m-0 bg-surface p-0 text-foreground shadow-modal border-border overflow-y-auto outline-none",
@@ -243,7 +254,13 @@ export function DrawerTitle({
   className,
   ...props
 }: React.HTMLAttributes<HTMLHeadingElement>) {
-  const { titleId } = useDrawerContext();
+  const { titleId, setHasTitle } = useDrawerContext();
+  
+  useEffect(() => {
+    setHasTitle(true);
+    return () => setHasTitle(false);
+  }, [setHasTitle]);
+
   return (
     <h2
       id={titleId}
@@ -257,7 +274,13 @@ export function DrawerDescription({
   className,
   ...props
 }: React.HTMLAttributes<HTMLParagraphElement>) {
-  const { descriptionId } = useDrawerContext();
+  const { descriptionId, setHasDescription } = useDrawerContext();
+  
+  useEffect(() => {
+    setHasDescription(true);
+    return () => setHasDescription(false);
+  }, [setHasDescription]);
+
   return (
     <p
       id={descriptionId}
