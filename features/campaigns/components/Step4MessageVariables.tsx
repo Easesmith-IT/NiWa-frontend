@@ -41,7 +41,7 @@ export const Step4MessageVariables: React.FC<Step4Props> = ({
   const mediaList = mediaLibraryQuery.data || [];
   const selectedMediaId = variableValues["headerMediaUrl"] || "";
 
-  // Extract all {{1}}, {{2}} placeholders from template text
+  // Extract all {{1}}, {{2}} placeholders from template text and button URLs
   const extractPlaceholders = (tmpl: MetaTemplate | null): string[] => {
     if (!tmpl?.components) return [];
     const found = new Set<string>();
@@ -51,6 +51,16 @@ export const Step4MessageVariables: React.FC<Step4Props> = ({
         if (matches) {
           matches.forEach((m) => found.add(m));
         }
+      }
+      if (c.type === "BUTTONS" && c.buttons) {
+        c.buttons.forEach((btn) => {
+          if (btn.url) {
+            const matches = btn.url.match(/\{\{(\d+)\}\}/g);
+            if (matches) {
+              matches.forEach((m) => found.add(m));
+            }
+          }
+        });
       }
     });
     return Array.from(found).sort((a, b) => {
