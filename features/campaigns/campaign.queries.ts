@@ -5,6 +5,7 @@ import {
   getCampaignById,
   getCampaignRecipients,
   getCampaigns,
+  updateCampaignDraft,
   updateCampaignStatus,
   validateCampaign,
 } from "./campaign.api";
@@ -86,6 +87,19 @@ export const useDeleteCampaign = () => {
   return useMutation({
     mutationFn: (id: string) => deleteCampaign(id),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: campaignKeys.lists() });
+    },
+  });
+};
+
+export const useUpdateCampaignDraft = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<CreateCampaignPayload> }) =>
+      updateCampaignDraft(id, payload),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: campaignKeys.detail(variables.id) });
       queryClient.invalidateQueries({ queryKey: campaignKeys.lists() });
     },
   });
