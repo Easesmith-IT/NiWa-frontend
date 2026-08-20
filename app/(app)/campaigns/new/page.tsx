@@ -6,7 +6,7 @@ import { isAxiosError } from "axios";
 import { ArrowLeft, Save, Loader2, Check, Trash2 } from "lucide-react";
 
 import { Button } from "../../../../components/ui/button";
-import { useCreateCampaign, useValidateCampaign, useDeleteCampaign, CreateCampaignPayload } from "../../../../features/campaigns";
+import { useCreateCampaign, useValidateCampaign, useDeleteCampaign, CreateCampaignPayload, useCampaignWizardState } from "../../../../features/campaigns";
 import { createCampaignDraft, updateCampaignDraft, getCampaignById } from "../../../../features/campaigns/campaign.api";
 import { CampaignWizardStepper } from "../../../../features/campaigns/components/CampaignWizardStepper";
 import { Step1CampaignDetails } from "../../../../features/campaigns/components/Step1CampaignDetails";
@@ -29,41 +29,51 @@ export default function NewCampaignPage() {
   const validateMutation = useValidateCampaign();
   const deleteMutation = useDeleteCampaign();
 
-  // Wizard state
-  const [currentStep, setCurrentStep] = useState(1);
-  const [maxReachedStep, setMaxReachedStep] = useState(1);
-
-  // Draft state
-  const [draftId, setDraftId] = useState<string | null>(null);
-  const [isSavingDraft, setIsSavingDraft] = useState(false);
-  const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
-
-  // Step 1: Campaign Details
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-
-  // Step 2: WhatsApp & Template
-  const [connectionId, setConnectionId] = useState("");
-  const [templateId, setTemplateId] = useState("");
-  const [selectedTemplateObj, setSelectedTemplateObj] = useState<MetaTemplate | null>(null);
-
-  // Step 3: Audience
-  const [audienceType, setAudienceType] = useState<"import" | "select" | "tags">("import");
-  const [importId, setImportId] = useState("");
-  const [selectedContactMap, setSelectedContactMap] = useState<Record<string, ContactItem>>({});
-  const [tagsInput, setTagsInput] = useState("");
-
-  // Step 4: Message & Variables
-  const [variableValues, setVariableValues] = useState<Record<string, string>>({});
-
-  // Step 5: Schedule
-  const [scheduleType, setScheduleType] = useState<"now" | "scheduled">("now");
-  const [scheduledAt, setScheduledAt] = useState("");
-  const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
-
-  // Step 6: Launch submitting state
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [launchError, setLaunchError] = useState("");
+  const {
+    currentStep,
+    setCurrentStep,
+    maxReachedStep,
+    setMaxReachedStep,
+    draftId,
+    setDraftId,
+    isSavingDraft,
+    setIsSavingDraft,
+    lastSavedTime,
+    setLastSavedTime,
+    name,
+    setName,
+    description,
+    setDescription,
+    connectionId,
+    setConnectionId,
+    templateId,
+    setTemplateId,
+    selectedTemplateObj,
+    setSelectedTemplateObj,
+    audienceType,
+    setAudienceType,
+    importId,
+    setImportId,
+    selectedContactMap,
+    setSelectedContactMap,
+    tagsInput,
+    setTagsInput,
+    variableValues,
+    setVariableValues,
+    scheduleType,
+    setScheduleType,
+    scheduledAt,
+    setScheduledAt,
+    timezone,
+    setTimezone,
+    isSubmitting,
+    setIsSubmitting,
+    launchError,
+    setLaunchError,
+    goToStep,
+    handleNext,
+    handleBack,
+  } = useCampaignWizardState();
 
   // Hydrate draft from URL if ?draft=xxx is present
   useEffect(() => {
@@ -154,20 +164,7 @@ export default function NewCampaignPage() {
       }
     : null;
 
-  const goToStep = (step: number) => {
-    setCurrentStep(step);
-    if (step > maxReachedStep) {
-      setMaxReachedStep(step);
-    }
-  };
 
-  const handleNext = () => {
-    goToStep(Math.min(6, currentStep + 1));
-  };
-
-  const handleBack = () => {
-    setCurrentStep((prev) => Math.max(1, prev - 1));
-  };
 
   // Explicit Save Draft Handler
   const handleSaveDraft = async () => {
