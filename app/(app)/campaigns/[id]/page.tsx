@@ -29,6 +29,7 @@ import {
   useUpdateCampaignStatus,
   useValidateCampaign,
 } from "../../../../features/campaigns";
+import { v1ApiClient } from "../../../../lib/api/v1-client";
 import { apiClient } from "../../../../lib/api/client";
 
 export interface QuotaData {
@@ -63,7 +64,7 @@ export default function CampaignDetailPage() {
   const quotaQuery = useQuery({
     queryKey: ["quota", campaign?.connectionId],
     queryFn: async () => {
-      const { data } = await apiClient.get<{ data: QuotaData }>("/quotas", {
+      const { data } = await v1ApiClient.get<{ data: QuotaData }>("/quotas", {
         params: { connectionId: campaign?.connectionId },
       });
       return data.data;

@@ -34,6 +34,7 @@ export interface Campaign {
   name: string;
   description?: string;
   audience: CampaignAudience;
+  variables?: Record<string, string>;
   schedule: CampaignSchedule;
   status: CampaignStatus;
   stats: CampaignStats;
