@@ -2,11 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, Save, Loader2, Check } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Check, Trash2 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 
 import { Button } from "../../../../components/ui/button";
-import { useCreateCampaign, useValidateCampaign } from "../../../../features/campaigns";
+import { useCreateCampaign, useValidateCampaign, useDeleteCampaign } from "../../../../features/campaigns";
 import { CampaignWizardStepper } from "../../../../features/campaigns/components/CampaignWizardStepper";
 import { Step1CampaignDetails } from "../../../../features/campaigns/components/Step1CampaignDetails";
 import { Step2WhatsAppTemplate } from "../../../../features/campaigns/components/Step2WhatsAppTemplate";
@@ -222,6 +222,20 @@ export default function NewCampaignPage() {
     }
   };
 
+  const deleteMutation = useDeleteCampaign();
+
+  const handleDeleteDraft = async () => {
+    if (!draftId) return;
+    if (window.confirm("Are you sure you want to delete this draft campaign?")) {
+      try {
+        await deleteMutation.mutateAsync(draftId);
+        router.push("/campaigns");
+      } catch (err: any) {
+        alert(err.response?.data?.message || "Failed to delete draft");
+      }
+    }
+  };
+
   // Launch Campaign Handler
   const handleLaunch = async () => {
     if (isSubmitting) return;
@@ -297,12 +311,24 @@ export default function NewCampaignPage() {
           </div>
         </div>
 
-        {/* Global Save Draft Action */}
+        {/* Global Save / Delete Draft Action */}
         <div className="flex items-center gap-3">
           {lastSavedTime && (
             <span className="hidden sm:inline-block text-xs text-emerald-700 font-medium">
               Draft saved at {lastSavedTime}
             </span>
+          )}
+          {draftId && (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleDeleteDraft}
+              className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+            >
+              <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+              Delete Draft
+            </Button>
           )}
           <Button
             type="button"

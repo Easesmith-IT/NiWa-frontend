@@ -2,11 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Search, Megaphone, RefreshCw, Calendar, CheckCircle2, BarChart2 } from "lucide-react";
+import { Plus, Search, Megaphone, RefreshCw, Calendar, CheckCircle2, BarChart2, Trash2 } from "lucide-react";
 
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
-import { useCampaigns, useCampaignRealtime } from "../../../features/campaigns";
+import { useCampaigns, useCampaignRealtime, useDeleteCampaign } from "../../../features/campaigns";
 import type { Campaign } from "../../../features/campaigns";
 
 export default function CampaignsPage() {
@@ -18,6 +18,22 @@ export default function CampaignsPage() {
   useCampaignRealtime();
 
   const { data, isLoading, refetch } = useCampaigns();
+  const deleteMutation = useDeleteCampaign();
+
+  const handleDelete = async (campaign: Campaign) => {
+    const isDraft = campaign.status === "draft";
+    const msg = isDraft
+      ? `Are you sure you want to delete draft "${campaign.name}"?`
+      : `Are you sure you want to delete campaign "${campaign.name}"?`;
+
+    if (window.confirm(msg)) {
+      try {
+        await deleteMutation.mutateAsync(campaign._id);
+      } catch (err: any) {
+        alert(err.response?.data?.message || "Failed to delete campaign");
+      }
+    }
+  };
 
   const campaigns = useMemo(() => {
     if (!data?.campaigns) return [];
@@ -133,6 +149,7 @@ export default function CampaignsPage() {
                     <th className="px-5 py-3 font-semibold text-right">Read</th>
                     <th className="px-5 py-3 font-semibold text-right">Failed</th>
                     <th className="px-5 py-3 font-semibold">Created Date</th>
+                    <th className="px-5 py-3 font-semibold text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
@@ -179,6 +196,22 @@ export default function CampaignsPage() {
                           day: "numeric",
                           year: "numeric",
                         })}
+                      </td>
+                      <td className="px-5 py-3.5 text-right whitespace-nowrap">
+                        {!["running", "validating", "scheduled"].includes(campaign.status) && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-7 w-7 text-gray-400 hover:text-red-600 hover:bg-red-50"
+                            title="Delete Campaign"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleDelete(campaign);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        )}
                       </td>
                     </tr>
                   ))}

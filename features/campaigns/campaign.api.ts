@@ -39,3 +39,8 @@ export const getCampaignRecipients = async (
   const { data } = await v1ApiClient.get<CampaignRecipientsResponse>(`/campaigns/${id}/recipients`, { params });
   return data;
 };
+
+export const deleteCampaign = async (id: string) => {
+  const { data } = await v1ApiClient.delete<{ success: boolean }>(`/campaigns/${id}`);
+  return data;
+};

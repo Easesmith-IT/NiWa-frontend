@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   createCampaign,
+  deleteCampaign,
   getCampaignById,
   getCampaignRecipients,
   getCampaigns,
@@ -74,6 +75,17 @@ export const useValidateCampaign = () => {
     mutationFn: (id: string) => validateCampaign(id),
     onSuccess: (data, variables) => {
       queryClient.invalidateQueries({ queryKey: campaignKeys.detail(variables) });
+      queryClient.invalidateQueries({ queryKey: campaignKeys.lists() });
+    },
+  });
+};
+
+export const useDeleteCampaign = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => deleteCampaign(id),
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: campaignKeys.lists() });
     },
   });
