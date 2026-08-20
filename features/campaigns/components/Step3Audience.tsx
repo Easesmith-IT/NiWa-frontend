@@ -45,6 +45,7 @@ export interface ContactImportItem {
 export interface ContactItem {
   _id: string;
   displayName: string;
+  phoneNumber?: string;
   phoneNumberE164: string;
   email?: string;
   company?: string;
