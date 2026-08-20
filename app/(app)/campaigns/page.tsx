@@ -438,7 +438,7 @@ export default function CampaignsPage() {
                             View
                           </Button>
 
-                          {!["running", "validating", "scheduled"].includes(campaign.status) && (
+                          {!["running", "validating", "scheduled"].includes(campaign.status) ? (
                             <Button
                               variant="ghost"
                               size="icon"
@@ -448,6 +448,8 @@ export default function CampaignsPage() {
                             >
                               <Trash2 className="h-4 w-4" />
                             </Button>
+                          ) : (
+                            <div className="w-8" />
                           )}
                         </div>
                       </td>
