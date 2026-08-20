@@ -577,7 +577,7 @@ export const Step3Audience: React.FC<Step3Props> = ({
                             />
                           </td>
                           <td className="px-4 py-2.5 font-semibold text-gray-900">{contact.displayName}</td>
-                          <td className="px-4 py-2.5 font-mono text-gray-700">{contact.phoneNumberE164}</td>
+                          <td className="px-4 py-2.5 font-mono text-gray-700">{contact.phoneNumber || contact.phoneNumberE164}</td>
                           <td className="px-4 py-2.5 text-gray-500">
                             {contact.company || contact.email || "-"}
                           </td>
@@ -638,7 +638,7 @@ export const Step3Audience: React.FC<Step3Props> = ({
                     key={contact._id}
                     className="inline-flex items-center gap-1.5 rounded-md bg-white border border-emerald-300 px-2 py-1 text-[11px] font-medium text-emerald-900 shadow-2xs"
                   >
-                    {contact.displayName} ({contact.phoneNumberE164})
+                    {contact.displayName} ({contact.phoneNumber || contact.phoneNumberE164})
                     <X
                       className="h-3 w-3 cursor-pointer text-gray-400 hover:text-red-600"
                       onClick={(e) => {
