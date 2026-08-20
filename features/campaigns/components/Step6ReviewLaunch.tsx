@@ -36,8 +36,9 @@ interface Step6Props {
   connectionId: string;
   connectionDetails: { phone: string; name: string; status: string } | null;
   template: MetaTemplate | null;
-  audienceType: "import" | "tags";
+  audienceType: "import" | "select" | "tags";
   importDetails: { name: string; total: number; valid: number; invalid: number } | null;
+  selectedContactCount?: number;
   tagsInput: string;
   variableValues: Record<string, string>;
   scheduleType: "now" | "scheduled";
@@ -56,6 +57,7 @@ export const Step6ReviewLaunch: React.FC<Step6Props> = ({
   template,
   audienceType,
   importDetails,
+  selectedContactCount = 0,
   tagsInput,
   variableValues,
   scheduleType,
@@ -78,7 +80,7 @@ export const Step6ReviewLaunch: React.FC<Step6Props> = ({
   });
 
   const quota = quotaQuery.data;
-  const eligibleCount = audienceType === "import" ? importDetails?.valid || 0 : 0;
+  const eligibleCount = audienceType === "import" ? importDetails?.valid || 0 : audienceType === "select" ? selectedContactCount : 0;
   const isQuotaInsufficient = quota && eligibleCount > 0 && quota.available < eligibleCount;
 
   const warnings: string[] = [];
@@ -86,6 +88,7 @@ export const Step6ReviewLaunch: React.FC<Step6Props> = ({
   if (!connectionId) warnings.push("No WhatsApp connection selected.");
   if (!template) warnings.push("No Meta template selected.");
   if (audienceType === "import" && !importDetails) warnings.push("No contact import selected.");
+  if (audienceType === "select" && selectedContactCount === 0) warnings.push("No contacts selected.");
   if (audienceType === "tags" && !tagsInput.trim()) warnings.push("No contact tags specified.");
   if (isQuotaInsufficient) {
     warnings.push(

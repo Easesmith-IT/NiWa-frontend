@@ -13,6 +13,7 @@ export interface CampaignStats {
 
 export interface CampaignAudience {
   importId?: string;
+  contactIds?: string[];
   tags?: string[];
 }
 

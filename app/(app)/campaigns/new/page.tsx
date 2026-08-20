@@ -10,7 +10,7 @@ import { useCreateCampaign, useValidateCampaign } from "../../../../features/cam
 import { CampaignWizardStepper } from "../../../../features/campaigns/components/CampaignWizardStepper";
 import { Step1CampaignDetails } from "../../../../features/campaigns/components/Step1CampaignDetails";
 import { Step2WhatsAppTemplate } from "../../../../features/campaigns/components/Step2WhatsAppTemplate";
-import { Step3Audience, ContactImportItem } from "../../../../features/campaigns/components/Step3Audience";
+import { Step3Audience, ContactImportItem, ContactItem } from "../../../../features/campaigns/components/Step3Audience";
 import { Step4MessageVariables } from "../../../../features/campaigns/components/Step4MessageVariables";
 import { Step5Schedule } from "../../../../features/campaigns/components/Step5Schedule";
 import { Step6ReviewLaunch } from "../../../../features/campaigns/components/Step6ReviewLaunch";
@@ -37,8 +37,9 @@ export default function NewCampaignPage() {
   const [selectedTemplateObj, setSelectedTemplateObj] = useState<MetaTemplate | null>(null);
 
   // Step 3: Audience
-  const [audienceType, setAudienceType] = useState<"import" | "tags">("import");
+  const [audienceType, setAudienceType] = useState<"import" | "select" | "tags">("import");
   const [importId, setImportId] = useState("");
+  const [selectedContactMap, setSelectedContactMap] = useState<Record<string, ContactItem>>({});
   const [tagsInput, setTagsInput] = useState("");
 
   // Step 4: Message & Variables
@@ -121,6 +122,8 @@ export default function NewCampaignPage() {
         audience:
           audienceType === "import"
             ? { importId }
+            : audienceType === "select"
+            ? { contactIds: Object.keys(selectedContactMap) }
             : { tags: tagsInput.split(",").map((t) => t.trim()).filter(Boolean) },
         schedule:
           scheduleType === "now"
@@ -203,6 +206,8 @@ export default function NewCampaignPage() {
               setAudienceType={setAudienceType}
               importId={importId}
               setImportId={setImportId}
+              selectedContactMap={selectedContactMap}
+              setSelectedContactMap={setSelectedContactMap}
               tagsInput={tagsInput}
               setTagsInput={setTagsInput}
               onNext={handleNext}
@@ -242,6 +247,7 @@ export default function NewCampaignPage() {
               template={selectedTemplateObj}
               audienceType={audienceType}
               importDetails={importDetails}
+              selectedContactCount={Object.keys(selectedContactMap).length}
               tagsInput={tagsInput}
               variableValues={variableValues}
               scheduleType={scheduleType}
