@@ -4,18 +4,18 @@ import { useQuery } from "@tanstack/react-query";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect } from "react";
 
-import { apiClient } from "../lib/api/client";
+import { v1ApiClient } from "../lib/api/v1-client";
 import { getAccessToken } from "../lib/auth";
-import { ProfileResponse } from "../lib/api/types";
+import type { ProfileResponse } from "../lib/api/types";
 
 export const AuthGuard = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
   const pathname = usePathname();
   const hasToken = Boolean(getAccessToken());
   const profileQuery = useQuery({
-    queryKey: ["profile"],
+    queryKey: ["v1", "profile"],
     queryFn: async () => {
-      const response = await apiClient.get<ProfileResponse>("/auth/profile");
+      const response = await v1ApiClient.get<ProfileResponse>("/auth/profile");
       return response.data;
     },
     enabled: hasToken,

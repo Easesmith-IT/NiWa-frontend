@@ -24,7 +24,7 @@ import {
 
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
-import { apiClient } from "../../../lib/api/client";
+import { v1ApiClient } from "../../../lib/api/v1-client";
 import { setAccessToken } from "../../../lib/auth";
 import type { LoginResponse } from "../../../lib/api/types";
 
@@ -62,7 +62,7 @@ export default function LoginPage() {
   const onSubmit = async (values: LoginValues) => {
     try {
       setSubmitError(null);
-      const response = await apiClient.post<LoginResponse>("/auth/login", values);
+      const response = await v1ApiClient.post<LoginResponse>("/auth/login", values);
       setAccessToken(response.data.accessToken);
       router.push("/");
     } catch (error) {
@@ -284,4 +284,3 @@ export default function LoginPage() {
     </main>
   );
 }
-

@@ -5,7 +5,7 @@ import { Menu, Search, Wifi } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { clearAccessToken } from "../../lib/auth";
-import { apiClient } from "../../lib/api/client";
+import { v1ApiClient } from "../../lib/api/v1-client";
 import { Button } from "../ui/button";
 import { routeMeta } from "./navigation";
 import { ThemeSwitcher } from "./theme-switcher";
@@ -22,7 +22,7 @@ export const Topbar = ({ onOpenCommandPalette, onToggleSidebar }: TopbarProps) =
 
   const handleLogout = async () => {
     try {
-      await apiClient.post("/auth/logout");
+      await v1ApiClient.post("/auth/logout");
     } finally {
       clearAccessToken();
       queryClient.clear();
@@ -71,4 +71,3 @@ export const Topbar = ({ onOpenCommandPalette, onToggleSidebar }: TopbarProps) =
     </header>
   );
 };
-

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 import { CheckCircle2, AlertCircle, Loader2, ArrowRight, RefreshCw, ShieldCheck } from "lucide-react";
 import { Button } from "../ui/button";
-import { apiClient } from "../../lib/api/client";
+import { v1ApiClient } from "../../lib/api/v1-client";
 import { EmbeddedSignupResponse, WhatsAppConnectionRecord } from "../../lib/api/types";
 
 const META_CONFIG_ID = "981824644880745";
@@ -124,7 +124,7 @@ export const MetaEmbeddedSignup: React.FC<MetaEmbeddedSignupProps> = ({
       setStep("validating");
       setStatusMessage("Validating WhatsApp Business Account & Phone Number...");
 
-      const response = await apiClient.post<EmbeddedSignupResponse>(
+      const response = await v1ApiClient.post<EmbeddedSignupResponse>(
         "/whatsapp/connections/embedded-signup/complete",
         {
           code: data.code,

@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { v1QueryKeys } from "../../lib/api/v1-query-keys";
 import {
   changePassword,
   getProfile,
@@ -14,9 +15,9 @@ import type {
 } from "./settings.types";
 
 export const settingsKeys = {
-  all: ["settings"] as const,
-  settings: (showStoredSecrets?: boolean) => ["settings", showStoredSecrets] as const,
-  profile: ["profile", "settings-page"] as const,
+  all: v1QueryKeys.settings,
+  settings: (showStoredSecrets?: boolean) => [...settingsKeys.all, showStoredSecrets] as const,
+  profile: v1QueryKeys.profile,
 };
 
 export const useSettingsQuery = (showStoredSecrets: boolean) =>

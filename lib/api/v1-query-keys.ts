@@ -14,8 +14,10 @@ export const v1QueryKeys = {
   messageStudio: ["v1", "message-studio"] as const,
   messages: ["v1", "messages"] as const,
   notes: ["v1", "notes"] as const,
+  profile: ["v1", "profile"] as const,
   quickReplies: ["v1", "quick-replies"] as const,
   scheduledMessages: ["v1", "scheduled-messages"] as const,
   search: ["v1", "search"] as const,
+  settings: ["v1", "settings"] as const,
   tasks: ["v1", "tasks"] as const,
 };
