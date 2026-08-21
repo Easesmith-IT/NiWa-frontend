@@ -1,127 +1,14 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { AxiosError } from "axios";
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
 import { Textarea } from "../../../components/ui/textarea";
-import { clearAccessToken, redirectToLogin } from "../../../lib/auth";
-import {
-  useChangePasswordMutation,
-  useProfileQuery,
-  useSettingsQuery,
-  useTestConnectionMutation,
-  useUpdateProfileMutation,
-  useUpdateSettingsMutation,
-} from "../../../features/settings";
+import { useSettingsOrchestration } from "../../../features/settings";
 import { WhatsAppSettingsModule } from "../../../features/whatsapp-connections/WhatsAppSettingsModule";
 
-const settingsSchema = z.object({
-  appId: z.string(),
-  appSecret: z.string(),
-  accessToken: z.string(),
-  businessAccountId: z.string(),
-  phoneNumberId: z.string(),
-  verifyToken: z.string(),
-  webhookUrl: z.string(),
-  apiVersion: z.string(),
-  cloudApiBaseUrl: z.string(),
-});
-
-const profileSchema = z.object({
-  name: z.string().trim().min(2).max(100),
-});
-
-const passwordSchema = z
-  .object({
-    currentPassword: z.string().min(8),
-    newPassword: z.string().min(8),
-    confirmPassword: z.string().min(8),
-  })
-  .refine((value) => value.newPassword === value.confirmPassword, {
-    message: "Password confirmation does not match.",
-    path: ["confirmPassword"],
-  });
-
-type SettingsValues = z.infer<typeof settingsSchema>;
-type ProfileValues = z.infer<typeof profileSchema>;
-type PasswordValues = z.infer<typeof passwordSchema>;
-
-const getErrorMessage = (error: unknown, fallback: string) =>
-  error instanceof AxiosError ? error.response?.data?.message ?? fallback : fallback;
-
 export default function SettingsPage() {
-  const [showStoredSecrets, setShowStoredSecrets] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState<string | null>(null);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [profileMessage, setProfileMessage] = useState<string | null>(null);
-  const [profileError, setProfileError] = useState<string | null>(null);
-  const [passwordMessage, setPasswordMessage] = useState<string | null>(null);
-  const [passwordError, setPasswordError] = useState<string | null>(null);
-  const [connectionError, setConnectionError] = useState<string | null>(null);
-
-  const {
-    register,
-    handleSubmit,
-    reset,
-    formState: { isSubmitting },
-  } = useForm<SettingsValues>({
-    resolver: zodResolver(settingsSchema),
-    defaultValues: {
-      appId: "",
-      appSecret: "",
-      accessToken: "",
-      businessAccountId: "",
-      phoneNumberId: "",
-      verifyToken: "",
-      webhookUrl: "",
-      apiVersion: "v22.0",
-      cloudApiBaseUrl: "https://graph.facebook.com",
-    },
-  });
-
-  const profileForm = useForm<ProfileValues>({
-    resolver: zodResolver(profileSchema),
-    defaultValues: {
-      name: "",
-    },
-  });
-
-  const passwordForm = useForm<PasswordValues>({
-    resolver: zodResolver(passwordSchema),
-    defaultValues: {
-      currentPassword: "",
-      newPassword: "",
-      confirmPassword: "",
-    },
-  });
-
-  const settingsQuery = useSettingsQuery(showStoredSecrets);
-  const profileQuery = useProfileQuery();
-
-  useEffect(() => {
-    if (settingsQuery.data) {
-      reset(settingsQuery.data.settings);
-    }
-  }, [reset, settingsQuery.data]);
-
-  useEffect(() => {
-    if (profileQuery.data) {
-      profileForm.reset({
-        name: profileQuery.data.user.name,
-      });
-    }
-  }, [profileForm, profileQuery.data]);
-
-  const saveMutation = useUpdateSettingsMutation();
-  const connectionTestMutation = useTestConnectionMutation();
-  const profileMutation = useUpdateProfileMutation();
-  const passwordMutation = useChangePasswordMutation();
+  const { profile, security, meta } = useSettingsOrchestration();
 
   return (
     <div className="space-y-4">
@@ -148,42 +35,22 @@ export default function SettingsPage() {
           </div>
           <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 text-xs space-y-1 dark:border-[#292C2F] dark:bg-[#17191B]">
             <p className="text-muted-foreground">
-              Email: <span className="font-mono font-medium text-foreground">{profileQuery.data?.user.email ?? "Loading..."}</span>
+              Email: <span className="font-mono font-medium text-foreground">{profile.profileQuery.data?.user.email ?? "Loading..."}</span>
             </p>
             <p className="text-muted-foreground">
-              Role: <span className="font-semibold text-foreground capitalize">{profileQuery.data?.user.role ?? "..."}</span>
+              Role: <span className="font-semibold text-foreground capitalize">{profile.profileQuery.data?.user.role ?? "..."}</span>
             </p>
           </div>
-          <form
-            className="space-y-3"
-            onSubmit={profileForm.handleSubmit((values) => {
-              setProfileError(null);
-              setProfileMessage(null);
-              profileMutation.mutate(values, {
-                onSuccess: (data) => {
-                  setProfileError(null);
-                  setProfileMessage("Profile updated.");
-                  profileForm.reset({
-                    name: data.user.name,
-                  });
-                  profileQuery.refetch();
-                },
-                onError: (error) => {
-                  setProfileError(getErrorMessage(error, "Failed to update profile."));
-                  setProfileMessage(null);
-                },
-              });
-            })}
-          >
+          <form className="space-y-3" onSubmit={profile.handleProfileSubmit}>
             <div>
               <label className="mb-1 block text-xs font-medium text-foreground">Operator Display Name</label>
-              <Input placeholder="Operator name" {...profileForm.register("name")} />
+              <Input placeholder="Operator name" {...profile.profileForm.register("name")} />
             </div>
-            <Button disabled={profileMutation.isPending} type="submit" variant="primary">
-              {profileMutation.isPending ? "Saving..." : "Update Profile"}
+            <Button disabled={profile.profileMutation.isPending} type="submit" variant="primary">
+              {profile.profileMutation.isPending ? "Saving..." : "Update Profile"}
             </Button>
-            {profileMessage ? <p className="text-xs font-medium text-[#16803C] dark:text-[#3FA66F]">{profileMessage}</p> : null}
-            {profileError ? <p className="text-xs font-medium text-[#C2413A] dark:text-[#D7685C]">{profileError}</p> : null}
+            {profile.profileMessage ? <p className="text-xs font-medium text-[#16803C] dark:text-[#3FA66F]">{profile.profileMessage}</p> : null}
+            {profile.profileError ? <p className="text-xs font-medium text-[#C2413A] dark:text-[#D7685C]">{profile.profileError}</p> : null}
           </form>
         </Card>
 
@@ -194,34 +61,13 @@ export default function SettingsPage() {
               Change account password and refresh security tokens.
             </p>
           </div>
-          <form
-            className="space-y-3"
-            onSubmit={passwordForm.handleSubmit((values) => {
-              setPasswordError(null);
-              setPasswordMessage(null);
-              passwordMutation.mutate(values, {
-                onSuccess: (data) => {
-                  setPasswordError(null);
-                  setPasswordMessage(data.message);
-                  passwordForm.reset();
-                  clearAccessToken();
-                  window.setTimeout(() => {
-                    redirectToLogin();
-                  }, 1200);
-                },
-                onError: (error) => {
-                  setPasswordError(getErrorMessage(error, "Failed to update password."));
-                  setPasswordMessage(null);
-                },
-              });
-            })}
-          >
+          <form className="space-y-3" onSubmit={security.handlePasswordSubmit}>
             <div>
               <label className="mb-1 block text-xs font-medium text-foreground">Current Password</label>
               <Input
                 placeholder="Current password"
                 type="password"
-                {...passwordForm.register("currentPassword")}
+                {...security.passwordForm.register("currentPassword")}
               />
             </div>
             <div>
@@ -229,7 +75,7 @@ export default function SettingsPage() {
               <Input
                 placeholder="New password"
                 type="password"
-                {...passwordForm.register("newPassword")}
+                {...security.passwordForm.register("newPassword")}
               />
             </div>
             <div>
@@ -237,14 +83,14 @@ export default function SettingsPage() {
               <Input
                 placeholder="Confirm new password"
                 type="password"
-                {...passwordForm.register("confirmPassword")}
+                {...security.passwordForm.register("confirmPassword")}
               />
             </div>
-            <Button disabled={passwordMutation.isPending} type="submit" variant="secondary">
-              {passwordMutation.isPending ? "Updating..." : "Change Password"}
+            <Button disabled={security.passwordMutation.isPending} type="submit" variant="secondary">
+              {security.passwordMutation.isPending ? "Updating..." : "Change Password"}
             </Button>
-            {passwordMessage ? <p className="text-xs font-medium text-[#16803C] dark:text-[#3FA66F]">{passwordMessage}</p> : null}
-            {passwordError ? <p className="text-xs font-medium text-[#C2413A] dark:text-[#D7685C]">{passwordError}</p> : null}
+            {security.passwordMessage ? <p className="text-xs font-medium text-[#16803C] dark:text-[#3FA66F]">{security.passwordMessage}</p> : null}
+            {security.passwordError ? <p className="text-xs font-medium text-[#C2413A] dark:text-[#D7685C]">{security.passwordError}</p> : null}
           </form>
         </Card>
       </div>
@@ -263,7 +109,7 @@ export default function SettingsPage() {
               Meta Webhook Callback URL
             </p>
             <p className="mt-1 break-all font-mono text-xs text-foreground">
-              {settingsQuery.data?.metaWebhookEndpoint ?? "Loading..."}
+              {meta.settingsQuery.data?.metaWebhookEndpoint ?? "Loading..."}
             </p>
           </div>
           <div className="rounded-md border border-[#C4E8DA] bg-[#EDF8F3] p-3 dark:border-[#1F4D3C] dark:bg-[#13251E]">
@@ -271,19 +117,19 @@ export default function SettingsPage() {
               Connection Diagnostics
             </p>
             <p className="mt-1 text-xs text-foreground">
-              {connectionTestMutation.data?.message ?? "No connection test executed."}
+              {meta.connectionTestMutation.data?.message ?? "No connection test executed."}
             </p>
-            {connectionError ? (
-              <p className="mt-1 text-xs text-[#C2413A] dark:text-[#D7685C]">{connectionError}</p>
+            {meta.connectionError ? (
+              <p className="mt-1 text-xs text-[#C2413A] dark:text-[#D7685C]">{meta.connectionError}</p>
             ) : null}
-            {typeof connectionTestMutation.data?.statusCode === "number" ? (
+            {typeof meta.connectionTestMutation.data?.statusCode === "number" ? (
               <p className="mt-1 font-mono text-xs text-muted-foreground">
-                Meta Status: {connectionTestMutation.data.statusCode}
+                Meta Status: {meta.connectionTestMutation.data.statusCode}
               </p>
             ) : null}
-            {connectionTestMutation.data?.missingFields.length ? (
+            {meta.connectionTestMutation.data?.missingFields.length ? (
               <p className="mt-1 text-xs text-[#C2413A] dark:text-[#D7685C]">
-                Missing: {connectionTestMutation.data.missingFields.join(", ")}
+                Missing: {meta.connectionTestMutation.data.missingFields.join(", ")}
               </p>
             ) : null}
           </div>
@@ -292,142 +138,114 @@ export default function SettingsPage() {
         <div className="flex flex-wrap items-center justify-between gap-3 border-y border-[#F0F0F2] py-2.5 dark:border-[#202326]">
           <div className="flex flex-wrap gap-2 text-xs">
             <span className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] px-2.5 py-1 dark:border-[#292C2F] dark:bg-[#17191B]">
-              App Secret: <span className="font-semibold">{settingsQuery.data?.secretsConfigured?.appSecret ? "Stored" : "Missing"}</span>
+              App Secret: <span className="font-semibold">{meta.settingsQuery.data?.secretsConfigured?.appSecret ? "Stored" : "Missing"}</span>
             </span>
             <span className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] px-2.5 py-1 dark:border-[#292C2F] dark:bg-[#17191B]">
-              Access Token: <span className="font-semibold">{settingsQuery.data?.secretsConfigured?.accessToken ? "Stored" : "Missing"}</span>
+              Access Token: <span className="font-semibold">{meta.settingsQuery.data?.secretsConfigured?.accessToken ? "Stored" : "Missing"}</span>
             </span>
             <span className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] px-2.5 py-1 dark:border-[#292C2F] dark:bg-[#17191B]">
-              Verify Token: <span className="font-semibold">{settingsQuery.data?.secretsConfigured?.verifyToken ? "Stored" : "Missing"}</span>
+              Verify Token: <span className="font-semibold">{meta.settingsQuery.data?.secretsConfigured?.verifyToken ? "Stored" : "Missing"}</span>
             </span>
           </div>
           <Button
-            onClick={() => setShowStoredSecrets((current) => !current)}
+            onClick={meta.toggleShowStoredSecrets}
             size="sm"
             type="button"
             variant="secondary"
           >
-            {showStoredSecrets ? "Mask Stored Secrets" : "Reveal Stored Secrets"}
+            {meta.showStoredSecrets ? "Mask Stored Secrets" : "Reveal Stored Secrets"}
           </Button>
         </div>
 
-        <form
-          className="grid gap-3.5 md:grid-cols-2"
-          onSubmit={handleSubmit((values) => {
-            setSubmitError(null);
-            setSubmitMessage(null);
-            saveMutation.mutate(values, {
-              onSuccess: (data) => {
-                setSubmitError(null);
-                setSubmitMessage("Settings saved.");
-                reset(data.settings);
-                settingsQuery.refetch();
-              },
-              onError: (error) => {
-                setSubmitError(getErrorMessage(error, "Failed to save settings."));
-                setSubmitMessage(null);
-              },
-            });
-          })}
-        >
+        <form className="grid gap-3.5 md:grid-cols-2" onSubmit={meta.handleSaveSettings}>
           <div>
             <label className="mb-1 block text-xs font-medium text-foreground">
               App ID *
             </label>
-            <Input className="font-mono text-xs" placeholder="e.g. 27900924049538288" {...register("appId")} />
+            <Input className="font-mono text-xs" placeholder="e.g. 27900924049538288" {...meta.settingsForm.register("appId")} />
           </div>
 
           <div>
             <label className="mb-1 block text-xs font-medium text-foreground">
               App Secret *
             </label>
-            <Input className="font-mono text-xs" placeholder="Meta App Secret" {...register("appSecret")} />
+            <Input className="font-mono text-xs" placeholder="Meta App Secret" {...meta.settingsForm.register("appSecret")} />
           </div>
 
           <div className="md:col-span-2">
             <label className="mb-1 block text-xs font-medium text-foreground">
               Permanent Access Token *
             </label>
-            <Textarea className="font-mono text-xs min-h-24" placeholder="System User Access Token..." {...register("accessToken")} />
+            <Textarea className="font-mono text-xs min-h-24" placeholder="System User Access Token..." {...meta.settingsForm.register("accessToken")} />
           </div>
 
           <div>
             <label className="mb-1 block text-xs font-medium text-foreground">
               Business Account ID (WABA ID) *
             </label>
-            <Input className="font-mono text-xs" placeholder="e.g. 4433978036814896" {...register("businessAccountId")} />
+            <Input className="font-mono text-xs" placeholder="e.g. 4433978036814896" {...meta.settingsForm.register("businessAccountId")} />
           </div>
 
           <div>
             <label className="mb-1 block text-xs font-medium text-foreground">
               Phone Number ID *
             </label>
-            <Input className="font-mono text-xs" placeholder="e.g. 1295455696976455" {...register("phoneNumberId")} />
+            <Input className="font-mono text-xs" placeholder="e.g. 1295455696976455" {...meta.settingsForm.register("phoneNumberId")} />
           </div>
 
           <div>
             <label className="mb-1 block text-xs font-medium text-foreground">
               Verify Token *
             </label>
-            <Input className="font-mono text-xs" placeholder="Handshake verify token..." {...register("verifyToken")} />
+            <Input className="font-mono text-xs" placeholder="Handshake verify token..." {...meta.settingsForm.register("verifyToken")} />
           </div>
 
           <div>
             <label className="mb-1 block text-xs font-medium text-foreground">
               Webhook Callback URL *
             </label>
-            <Input className="font-mono text-xs" placeholder="https://niwaapi.easesmith.com/webhook" {...register("webhookUrl")} />
+            <Input className="font-mono text-xs" placeholder="https://niwaapi.easesmith.com/webhook" {...meta.settingsForm.register("webhookUrl")} />
           </div>
 
           <div>
             <label className="mb-1 block text-xs font-medium text-foreground">
               Meta API Version
             </label>
-            <Input className="font-mono text-xs" placeholder="v22.0" {...register("apiVersion")} />
+            <Input className="font-mono text-xs" placeholder="v22.0" {...meta.settingsForm.register("apiVersion")} />
           </div>
 
           <div>
             <label className="mb-1 block text-xs font-medium text-foreground">
               Cloud API Base URL
             </label>
-            <Input className="font-mono text-xs" placeholder="https://graph.facebook.com" {...register("cloudApiBaseUrl")} />
+            <Input className="font-mono text-xs" placeholder="https://graph.facebook.com" {...meta.settingsForm.register("cloudApiBaseUrl")} />
           </div>
 
           <div className="md:col-span-2 pt-2 border-t border-[#F0F0F2] dark:border-[#202326]">
             <div className="flex flex-wrap gap-2.5">
-              <Button disabled={isSubmitting || saveMutation.isPending} type="submit" variant="primary">
-                {saveMutation.isPending ? "Saving..." : "Save Settings"}
+              <Button disabled={meta.settingsForm.formState.isSubmitting || meta.saveMutation.isPending} type="submit" variant="primary">
+                {meta.saveMutation.isPending ? "Saving..." : "Save Settings"}
               </Button>
               <Button
-                disabled={connectionTestMutation.isPending}
-                onClick={() => {
-                  setConnectionError(null);
-                  connectionTestMutation.mutate(undefined, {
-                    onSuccess: () => {
-                      setConnectionError(null);
-                    },
-                    onError: (error) => {
-                      setConnectionError(getErrorMessage(error, "Failed to test Meta connection."));
-                    },
-                  });
-                }}
+                disabled={meta.connectionTestMutation.isPending}
+                onClick={meta.handleTestConnection}
                 type="button"
                 variant="secondary"
               >
-                {connectionTestMutation.isPending ? "Testing..." : "Test Connection"}
+                {meta.connectionTestMutation.isPending ? "Testing..." : "Test Connection"}
               </Button>
             </div>
-            {submitMessage ? <p className="mt-2 text-xs font-medium text-[#16803C] dark:text-[#3FA66F]">{submitMessage}</p> : null}
-            {submitError ? <p className="mt-2 text-xs font-medium text-[#C2413A] dark:text-[#D7685C]">{submitError}</p> : null}
+            {meta.submitMessage ? <p className="mt-2 text-xs font-medium text-[#16803C] dark:text-[#3FA66F]">{meta.submitMessage}</p> : null}
+            {meta.submitError ? <p className="mt-2 text-xs font-medium text-[#C2413A] dark:text-[#D7685C]">{meta.submitError}</p> : null}
           </div>
         </form>
-        {connectionTestMutation.data?.responseBody ? (
+        {meta.connectionTestMutation.data?.responseBody ? (
           <div className="mt-4 rounded-md border border-[#292C2F] bg-[#0F1112] p-3 text-[#E4E4E7]">
             <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
               Meta Response JSON
             </p>
             <pre className="mt-2 overflow-x-auto font-mono text-[11px]">
-              {JSON.stringify(connectionTestMutation.data.responseBody, null, 2)}
+              {JSON.stringify(meta.connectionTestMutation.data.responseBody, null, 2)}
             </pre>
           </div>
         ) : null}
