@@ -1,123 +1,174 @@
 # Frontend Architecture Standard
 
-## 1. Feature-Oriented Structure
+## 1. Architecture Model
 
-Organize application code around business capabilities rather than around technical file types alone.
+Use **Feature-Oriented Modular Architecture with Component-Based UI**.
+
+Organize code by business feature while separating responsibilities by layer.
 
 ```text
 app/
-  (app)/
-    <route>/page.tsx          # thin route composition
-
+├── routes/
+│   └── feature-page/
+│       └── page.tsx
+│
 features/
-  <feature>/
-    <feature>.api.ts          # HTTP/data-access functions
-    <feature>.queries.ts      # React Query/query-mutation definitions
-    <feature>.types.ts        # domain types
-    <feature>.mappers.ts      # API-to-domain mapping when required
-    hooks/                    # domain state and orchestration
-    components/               # feature presentation
-    index.ts                  # intentional public boundary
+├── feature-name/
+│   ├── components/
+│   ├── hooks/
+│   ├── feature-name.api.ts
+│   ├── feature-name.queries.ts
+│   ├── feature-name.types.ts
+│   ├── feature-name.utils.ts
+│   ├── feature-name.constants.ts
+│   └── index.ts
+│
+components/
+├── ui/
+├── layout/
+└── shared/
+│
+lib/
+├── api/
+├── auth/
+├── utils/
+└── ...
 ```
 
-The exact framework directory names may differ, but the ownership model should remain the same.
+Feature-oriented architecture determines **where code belongs**. Component-based architecture determines **how UI is constructed**. They are complementary.
 
 ## 2. Route/Page Responsibility
 
-A route should be a composition root, not the home of business logic.
+A page should primarily be a **composition root**.
 
-Preferred pattern:
+It may:
+
+- initialize the feature
+- connect feature hooks
+- connect queries/mutations
+- compose major components
+- handle route-level concerns
+
+It should not become the home for state, API calls, business logic, validation, and large JSX simply because those things were not organized elsewhere.
+
+Preferred:
 
 ```tsx
 export default function Page() {
-  const orchestration = useFeatureOrchestration();
-  return <FeatureShell orchestration={orchestration} />;
+  const feature = useFeatureOrchestration();
+
+  return (
+    <FeatureShell>
+      <FeatureHeader {...feature.header} />
+      <FeatureContent {...feature.content} />
+    </FeatureShell>
+  );
 }
 ```
 
-Avoid putting the following directly in a large route file:
+## 3. Feature-Oriented Structure
 
-- multiple unrelated `useState` calls
-- API calls
-- mutation definitions
-- business rules
-- large form handlers
-- lifecycle handlers
-- duplicated UI sections
-- large tables/cards/modals
+Every meaningful business domain should have its own feature boundary.
 
-A route may contain small route-specific composition when extracting it would make the architecture worse. The goal is clarity, not a magical six-line limit.
+A feature owns its:
 
-## 3. Orchestration Ownership
+- components
+- state
+- hooks
+- API layer
+- queries
+- types
+- feature utilities
 
-Domain state and behavior should be owned by a feature hook such as `useFeatureOrchestration`.
+A feature should be removable without requiring surgery across unrelated features.
 
-The orchestration layer may own:
+## 4. Component-Based UI
 
-- UI/domain state
-- derived state
-- form state
-- event handlers
-- mutation coordination
-- success/error handling
-- reset behavior
-- lifecycle transitions
-- navigation caused by domain actions
+Decompose UI according to **responsibility**, not arbitrary line counts.
 
-It should not become a second giant component. If an orchestration hook becomes too large, split it by domain responsibility.
-
-## 4. Component Decomposition
-
-Create components around meaningful responsibilities:
-
-- page shell/layout
-- header/toolbar
-- create/edit form
-- registry/list
-- item/card
-- detail drawer
-- modal/dialog
-- domain-specific editor
-
-Do **not** split every few lines into a component merely to satisfy a metric. A component should have a coherent responsibility and a useful interface.
-
-## 5. Dependency Direction
-
-The dependency direction should generally be:
+Example:
 
 ```text
-Route
-  ↓
-Feature orchestration + feature components
-  ↓
-Feature query/data layer
-  ↓
-Shared API/client infrastructure
+FeatureShell
+├── FeatureHeader
+├── FeatureToolbar
+├── FeatureSidebar
+├── FeatureContent
+│   ├── ItemList
+│   ├── Item
+│   └── ItemDetails
+└── FeatureActions
 ```
 
-Feature code must not import application route implementations. Avoid circular dependencies between feature modules.
+A component should generally have:
 
-## 6. Public Boundaries
+- one clear visual responsibility
+- explicit props
+- no unnecessary global knowledge
+- no direct API ownership
+- no duplicated business logic
 
-Use the feature `index.ts` as the intentional public export boundary when practical. Avoid deep imports into another feature's internal implementation unless there is a strong architectural reason.
+## 5. Reuse Before Creating
 
-## 7. Shared vs Feature-Specific Code
+Before creating a component:
 
-Put code in shared infrastructure only when it is genuinely reusable across multiple features.
+1. Search shared UI components.
+2. Search shared components.
+3. Search the current feature.
+4. Search other features for an existing reusable implementation.
+5. Determine whether an existing component can be generalized safely.
 
-Keep code inside the feature when it contains domain-specific behavior. Do not create a `utils` dumping ground for unrelated business logic.
+Prefer reusable primitives such as inputs, buttons, cards, modals, data tables, empty states, and confirmation dialogs when they genuinely fit.
 
-## 8. Architecture Refactoring Rule
+Do not force unrelated UI into a generic component merely to reduce file count. Reuse should improve consistency and maintainability, not create a God Component.
 
-Before modifying a feature:
+## 6. Shared Component Promotion
 
-1. inspect the route
-2. inspect API/data access
-3. inspect query/mutation ownership
-4. inspect existing components and hooks
-5. inventory states and effects
-6. identify business handlers
-7. identify unsafe typing and boundary violations
-8. determine the smallest safe migration plan
+Promote a component to shared infrastructure when:
 
-Do not refactor from filenames alone. Existing abstractions may already satisfy the standard.
+- it is genuinely reusable
+- its API is stable
+- its behavior is not feature-specific
+- multiple features benefit from it
+
+Feature-specific business behavior should remain feature-owned.
+
+## 7. State Architecture Boundary
+
+Separate state by responsibility. UI state may remain local when small. Feature state and complex orchestration belong in feature hooks.
+
+Avoid one giant hook containing every state variable in a feature. Prefer domain-focused hooks coordinated by an orchestration hook when complexity requires it.
+
+## 8. Dependency Direction
+
+Keep dependencies flowing inward:
+
+```text
+Page
+ ↓
+Feature Components
+ ↓
+Feature Hooks
+ ↓
+Feature Queries
+ ↓
+Feature API
+ ↓
+Backend
+```
+
+Shared primitives must not depend on feature-specific code.
+
+## 9. Feature Isolation
+
+Do not scatter feature logic across unrelated pages, shared folders, random hooks, or other features.
+
+Feature boundaries are a primary mechanism for keeping future upgrades cheap.
+
+## 10. Constants and Utilities
+
+Do not scatter repeated magic values through JSX. Use a feature constants module for supported modes, status values, configuration values, limits, and static mappings.
+
+Use feature utilities for pure, deterministic functions such as formatting, payload construction, calculations, response mapping, and display-name derivation.
+
+Utilities should not secretly perform network operations or mutate unrelated state.
