@@ -1,78 +1,24 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { AxiosError } from "axios";
 import {
   CheckCheck,
   CircleDot,
   MessageCircleMore,
   Search,
-  Sparkles,
   Tag,
   UserRound,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
 
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
 import { Textarea } from "../../../components/ui/textarea";
-import { getMediaDisplayName } from "../../../lib/media";
 import {
   buildTemplateOptionValue,
   findTemplateByOptionValue,
-  getActiveTemplates,
 } from "../../../lib/templates";
-import {
-  ConversationActivityRecord,
-  ConversationMessageRecord,
-  ConversationNoteRecord,
-  ConversationRecord,
-  MediaRecord,
-  TemplateRecord,
-} from "../../../lib/api/types";
-import {
-  useAddNoteMutation,
-  useClearUnreadMutation,
-  useConversationDetailQuery,
-  useConversationsQuery,
-  useUpdateLabelsMutation,
-  useMarkMessageReadMutation,
-  useReplyMediaQuery,
-  useReplyTemplatesQuery,
-  useSendReplyMutation,
-  useUpdateNoteMutation,
-  SendReplyRequest,
-} from "../../../features/conversations";
-
-const replySchema = z.discriminatedUnion("type", [
-  z.object({
-    type: z.literal("text"),
-    body: z.string().min(1, "Reply body is required."),
-  }),
-  z.object({
-    type: z.literal("template"),
-    templateName: z.string().min(1, "Template is required."),
-    languageCode: z.string().min(2, "Language code is required."),
-    bodyVariables: z.string().optional(),
-  }),
-  z.object({
-    type: z.enum(["image", "video", "audio", "document", "sticker"]),
-    mediaId: z.string().min(1, "Media selection is required."),
-    caption: z.string().optional(),
-    filename: z.string().optional(),
-  }),
-]);
-
-type ReplyValues = z.input<typeof replySchema>;
-
-const parseTemplateVariables = (value?: string) =>
-  (value ?? "")
-    .split("\n")
-    .map((item: string) => item.trim())
-    .filter(Boolean);
+import { ConversationMessageRecord, ConversationNoteRecord, ConversationRecord } from "../../../lib/api/types";
+import { useConversationsOrchestration } from "../../../features/conversations";
 
 const statusTone = (status: string, direction: "incoming" | "outgoing") => {
   if (direction === "incoming") {
@@ -174,20 +120,6 @@ const formatShortDate = (value?: string) => {
   });
 };
 
-const noteSort = (left: ConversationNoteRecord, right: ConversationNoteRecord) => {
-  if (left.pinned !== right.pinned) {
-    return left.pinned ? -1 : 1;
-  }
-
-  return new Date(right.updatedAt).getTime() - new Date(left.updatedAt).getTime();
-};
-
-const getConversationLabels = (conversation?: Pick<ConversationRecord, "labels"> | null) =>
-  Array.isArray(conversation?.labels) ? conversation.labels : [];
-
-const getTemplateVariables = (template?: Pick<TemplateRecord, "variables"> | null) =>
-  Array.isArray(template?.variables) ? template.variables : [];
-
 const getInitials = (name?: string, fallback?: string) => {
   const source = name?.trim() || fallback?.trim() || "N";
   return source
@@ -203,252 +135,43 @@ const messageTypeLabel = (type: string) =>
     .replace(/\b\w/g, (char) => char.toUpperCase());
 
 export default function ConversationsPage() {
-  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
-  const [replyError, setReplyError] = useState<string | null>(null);
-  const [readError, setReadError] = useState<string | null>(null);
-  const [workspaceError, setWorkspaceError] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [filterMode, setFilterMode] = useState<"all" | "unread">("all");
-  const [draftLabels, setDraftLabels] = useState<string[]>([]);
-  const [labelInput, setLabelInput] = useState("");
-  const [noteContent, setNoteContent] = useState("");
-  const [notePinned, setNotePinned] = useState(false);
-  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
-  const [editingNoteContent, setEditingNoteContent] = useState("");
-
-  const replyForm = useForm<ReplyValues>({
-    resolver: zodResolver(replySchema),
-    defaultValues: {
-      type: "text",
-      body: "",
+  const {
+    filters: { searchQuery, setSearchQuery, filterMode, setFilterMode },
+    selection: { selectedConversationId, setSelectedConversationId },
+    workspace: {
+      draftLabels,
+      labelInput,
+      setLabelInput,
+      noteContent,
+      setNoteContent,
+      replyError,
+      readError,
+      workspaceError,
+      addDraftLabel,
+      removeDraftLabel,
     },
-  });
-
-  const conversationsQuery = useConversationsQuery(searchQuery, filterMode);
-  const templatesQuery = useReplyTemplatesQuery();
-  const mediaQuery = useReplyMediaQuery();
-
-  const conversations = useMemo(
-    () => conversationsQuery.data?.conversations ?? [],
-    [conversationsQuery.data],
-  );
-  const allMedia = useMemo(() => mediaQuery.data?.media ?? [], [mediaQuery.data]);
-  const activeTemplates = useMemo(
-    () => getActiveTemplates(templatesQuery.data?.templates ?? []),
-    [templatesQuery.data],
-  );
-
-  useEffect(() => {
-    if (!selectedConversationId && conversations.length > 0) {
-      setSelectedConversationId(conversations[0]._id);
-    }
-  }, [conversations, selectedConversationId]);
-
-  const selectedConversation = useMemo(
-    () => conversations.find((conversation) => conversation._id === selectedConversationId) ?? null,
-    [conversations, selectedConversationId],
-  );
-
-  const detailQuery = useConversationDetailQuery(selectedConversationId);
-
-  const workspaceConversation = detailQuery.data?.conversation ?? selectedConversation;
-  const conversationMessages = detailQuery.data?.messages ?? [];
-  const sortedNotes = useMemo(
-    () => [...(workspaceConversation?.notes ?? [])].sort(noteSort),
-    [workspaceConversation?.notes],
-  );
-  const activityFeed = useMemo(
-    () => [...(workspaceConversation?.activityFeed ?? [])].reverse(),
-    [workspaceConversation?.activityFeed],
-  );
-  const selectedConversationLabels = useMemo(
-    () => getConversationLabels(workspaceConversation),
-    [workspaceConversation],
-  );
-
-  useEffect(() => {
-    setDraftLabels(selectedConversationLabels);
-  }, [selectedConversationLabels, workspaceConversation?._id]);
-
-  const lastIncomingMessageId = useMemo(() => {
-    const incomingMessage = [...conversationMessages]
-      .reverse()
-      .find((message) => message.direction === "incoming" && message.waMessageId);
-    return incomingMessage?.waMessageId ?? "";
-  }, [conversationMessages]);
-
-  const selectedReplyType = replyForm.watch("type");
-  const selectedTemplateName = selectedReplyType === "template" ? replyForm.watch("templateName") : undefined;
-  const selectedTemplateLanguage =
-    selectedReplyType === "template" ? replyForm.watch("languageCode") : undefined;
-  const selectedMediaId =
-    selectedReplyType !== "text" && selectedReplyType !== "template"
-      ? replyForm.watch("mediaId")
-      : undefined;
-  const selectedTemplate = useMemo(
-    () =>
-      findTemplateByOptionValue(
-        activeTemplates,
-        selectedTemplateName && selectedTemplateLanguage
-          ? `${selectedTemplateName}::${selectedTemplateLanguage}`
-          : "",
-      ),
-    [activeTemplates, selectedTemplateLanguage, selectedTemplateName],
-  );
-  const selectedTemplateVariables = useMemo(
-    () => getTemplateVariables(selectedTemplate),
-    [selectedTemplate],
-  );
-  const selectedMedia = useMemo(
-    () => allMedia.find((item: MediaRecord) => item.metaMediaId === selectedMediaId) ?? null,
-    [allMedia, selectedMediaId],
-  );
-
-  useEffect(() => {
-    if (selectedTemplate) {
-      replyForm.setValue("languageCode", selectedTemplate.language || "en");
-    }
-  }, [replyForm, selectedTemplate]);
-
-  const refreshConversationData = async () => {
-    await Promise.all([detailQuery.refetch(), conversationsQuery.refetch()]);
-  };
-
-  const toErrorMessage = (error: unknown, fallback: string) =>
-    error instanceof AxiosError
-      ? error.response?.data?.message ?? fallback
-      : error instanceof Error
-        ? error.message
-        : fallback;
-
-  const replyMutation = useSendReplyMutation();
-  const clearUnreadMutation = useClearUnreadMutation();
-  const markAsReadMutation = useMarkMessageReadMutation();
-  const labelsMutation = useUpdateLabelsMutation();
-  const addNoteMutation = useAddNoteMutation();
-  const updateNoteMutation = useUpdateNoteMutation();
-
-  const handleReplySubmit = (values: ReplyValues) => {
-    if (!selectedConversationId) {
-      setReplyError("No conversation selected.");
-      return;
-    }
-
-    const payload: SendReplyRequest =
-      values.type === "text"
-        ? {
-            conversationId: selectedConversationId,
-            type: "text",
-            body: values.body,
-          }
-        : values.type === "template"
-          ? {
-              conversationId: selectedConversationId,
-              type: "template",
-              templateName: values.templateName,
-              languageCode: values.languageCode,
-              bodyVariables: parseTemplateVariables(values.bodyVariables),
-            }
-          : {
-              conversationId: selectedConversationId,
-              type: values.type,
-              mediaId: values.mediaId,
-              caption: values.caption,
-              filename: values.filename,
-            };
-
-    replyMutation.mutate(payload, {
-      onSuccess: async () => {
-        setReplyError(null);
-        replyForm.reset({ type: "text", body: "" });
-        await refreshConversationData();
-      },
-      onError: (error: unknown) => {
-        setReplyError(toErrorMessage(error, "Reply failed."));
-      },
-    });
-  };
-
-  const handleClearUnread = () => {
-    if (!selectedConversationId) {
-      return;
-    }
-    clearUnreadMutation.mutate(selectedConversationId, {
-      onSuccess: async () => {
-        setReadError(null);
-        await refreshConversationData();
-      },
-      onError: (error: unknown) => {
-        setReadError(toErrorMessage(error, "Failed to clear unread count."));
-      },
-    });
-  };
-
-  const handleSaveLabels = () => {
-    if (!selectedConversationId) {
-      return;
-    }
-    labelsMutation.mutate(
-      { conversationId: selectedConversationId, labels: draftLabels },
-      {
-        onSuccess: async (response) => {
-          setWorkspaceError(null);
-          setDraftLabels(response.conversation.labels);
-          setLabelInput("");
-          await refreshConversationData();
-        },
-        onError: (error: unknown) => {
-          setWorkspaceError(toErrorMessage(error, "Failed to update labels."));
-        },
-      },
-    );
-  };
-
-  const handleAddNote = () => {
-    if (!selectedConversationId || !noteContent.trim()) {
-      return;
-    }
-    addNoteMutation.mutate(
-      {
-        conversationId: selectedConversationId,
-        payload: { content: noteContent, pinned: notePinned },
-      },
-      {
-        onSuccess: async () => {
-          setWorkspaceError(null);
-          setNoteContent("");
-          setNotePinned(false);
-          await refreshConversationData();
-        },
-        onError: (error: unknown) => {
-          setWorkspaceError(toErrorMessage(error, "Failed to add note."));
-        },
-      },
-    );
-  };
-
-  const addDraftLabel = () => {
-    const nextValue = labelInput.trim();
-
-    if (!nextValue) {
-      return;
-    }
-
-    if (draftLabels.some((label) => label.toLowerCase() === nextValue.toLowerCase())) {
-      setLabelInput("");
-      return;
-    }
-
-    setDraftLabels((current) => [...current, nextValue]);
-    setLabelInput("");
-  };
-
-  const removeDraftLabel = (value: string) => {
-    setDraftLabels((current) => current.filter((label) => label !== value));
-  };
-
-  const isWorkspaceBusy =
-    labelsMutation.isPending || addNoteMutation.isPending || updateNoteMutation.isPending;
+    reply: {
+      replyForm,
+      selectedReplyType,
+      selectedTemplateName,
+      selectedTemplateLanguage,
+    },
+    conversations,
+    activeTemplates,
+    workspaceConversation,
+    conversationMessages,
+    sortedNotes,
+    isWorkspaceBusy,
+    isLoadingConversations,
+    isLoadingDetail,
+    isSendingReply,
+    isClearingUnread,
+    isAddingNote,
+    handleReplySubmit,
+    handleClearUnread,
+    handleSaveLabels,
+    handleAddNote,
+  } = useConversationsOrchestration();
 
   return (
     <div className="space-y-4">
@@ -519,7 +242,6 @@ export default function ConversationsPage() {
             {conversations.map((conversation) => {
               const isActive = conversation._id === selectedConversationId;
               const title = conversation.contactName || conversation.contactPhoneNumber;
-              const labels = getConversationLabels(conversation);
 
               return (
                 <button
@@ -563,7 +285,7 @@ export default function ConversationsPage() {
                 </button>
               );
             })}
-            {!conversationsQuery.isLoading && conversations.length === 0 ? (
+            {!isLoadingConversations && conversations.length === 0 ? (
               <div className="p-4 text-xs text-muted-foreground text-center">
                 No active conversations.
               </div>
@@ -592,7 +314,7 @@ export default function ConversationsPage() {
             </div>
             <div className="flex gap-1.5">
               <Button
-                disabled={!selectedConversationId || clearUnreadMutation.isPending}
+                disabled={!selectedConversationId || isClearingUnread}
                 onClick={handleClearUnread}
                 size="sm"
                 type="button"
@@ -649,7 +371,7 @@ export default function ConversationsPage() {
               );
             })}
 
-            {!detailQuery.isLoading && conversationMessages.length === 0 ? (
+            {!isLoadingDetail && conversationMessages.length === 0 ? (
               <div className="flex h-full min-h-[200px] items-center justify-center">
                 <div className="text-center text-xs text-muted-foreground">
                   <MessageCircleMore className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
@@ -663,10 +385,7 @@ export default function ConversationsPage() {
           <div className="border-t border-[#E4E4E7] bg-white p-3.5">
             <form
               className="space-y-3"
-              onSubmit={replyForm.handleSubmit((values) => {
-                setReplyError(null);
-                handleReplySubmit(values);
-              })}
+              onSubmit={replyForm.handleSubmit(handleReplySubmit)}
             >
               <div className="flex gap-1.5">
                 <button
@@ -737,10 +456,11 @@ export default function ConversationsPage() {
               )}
 
               {replyError ? <p className="text-xs text-[#C2413A]">{replyError}</p> : null}
+              {readError ? <p className="text-xs text-[#C2413A]">{readError}</p> : null}
 
               <div className="flex justify-end">
-                <Button disabled={!selectedConversationId || replyMutation.isPending} type="submit" variant="primary">
-                  {replyMutation.isPending ? "Sending..." : "Send Reply"}
+                <Button disabled={!selectedConversationId || isSendingReply} type="submit" variant="primary">
+                  {isSendingReply ? "Sending..." : "Send Reply"}
                 </Button>
               </div>
             </form>
@@ -786,6 +506,7 @@ export default function ConversationsPage() {
                 Save
               </Button>
             </div>
+            {workspaceError ? <p className="text-xs text-[#C2413A]">{workspaceError}</p> : null}
             <div className="flex flex-wrap gap-1.5">
               {draftLabels.map((label) => (
                 <span
@@ -821,7 +542,7 @@ export default function ConversationsPage() {
             />
             <Button
               className="w-full"
-              disabled={!selectedConversationId || !noteContent.trim() || addNoteMutation.isPending}
+              disabled={!selectedConversationId || !noteContent.trim() || isAddingNote}
               onClick={handleAddNote}
               size="sm"
               type="button"
