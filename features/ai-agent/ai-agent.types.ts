@@ -56,6 +56,60 @@ export interface AgentLibraryTabProps {
   onSetDefaultAgent: (agentId: string) => void;
 }
 
+export interface AgentConfigurationHeaderProps {
+  activeAgent: AIAgent | undefined;
+  agents: AIAgent[];
+  templates: AgentTemplatePreset[];
+  onSelectAgentId: (agentId: string) => void;
+}
+
+export interface AgentIdentitySectionProps {
+  currentData: BusinessAISettings;
+  onUpdateField: <K extends keyof BusinessAISettings>(key: K, value: BusinessAISettings[K]) => void;
+}
+
+export interface AgentBehaviorSectionProps {
+  currentData: BusinessAISettings;
+  onUpdateField: <K extends keyof BusinessAISettings>(key: K, value: BusinessAISettings[K]) => void;
+  onUpdateBehavior: (key: keyof BusinessAISettings["behavior"], value: boolean) => void;
+}
+
+export interface AgentScopeSectionProps {
+  currentData: BusinessAISettings;
+  showAdvancedInstructions: boolean;
+  onUpdateField: <K extends keyof BusinessAISettings>(key: K, value: BusinessAISettings[K]) => void;
+  onToggleShowAdvancedInstructions: () => void;
+}
+
+export interface AgentInstructionsSectionProps {
+  currentData: BusinessAISettings;
+  showAdvancedInstructions: boolean;
+  onUpdateField: <K extends keyof BusinessAISettings>(key: K, value: BusinessAISettings[K]) => void;
+  onResetToTemplateDefaults: () => void;
+  onToggleShowAdvancedInstructions: () => void;
+}
+
+export interface AgentLanguageSectionProps {
+  currentData: BusinessAISettings;
+  onUpdateField: <K extends keyof BusinessAISettings>(key: K, value: BusinessAISettings[K]) => void;
+}
+
+export interface AgentMemorySectionProps {
+  currentData: BusinessAISettings;
+  showAdvancedMemory: boolean;
+  onUpdateField: <K extends keyof BusinessAISettings>(key: K, value: BusinessAISettings[K]) => void;
+  onOpenAddMemoryModal: () => void;
+  onOpenEditMemoryModal: (item: MemoryFieldDefinition) => void;
+  onDeleteMemoryField: (key: string) => void;
+  onToggleShowAdvancedMemory: () => void;
+}
+
+export interface AgentHandoffSectionProps {
+  currentData: BusinessAISettings;
+  onUpdateField: <K extends keyof BusinessAISettings>(key: K, value: BusinessAISettings[K]) => void;
+  onUpdateHandoffTrigger: (key: keyof HumanHandoffTriggers, value: boolean) => void;
+}
+
 export interface AgentConfigurationTabProps {
   activeAgent: AIAgent | undefined;
   agents: AIAgent[];
