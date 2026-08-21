@@ -6,4 +6,7 @@ export * from "./components/ContactDetailDrawer";
 export * from "./components/ContactMergeModal";
 export * from "./components/ContactsDataTable";
 export * from "./components/ContactImportWizard";
+export * from "./components/ContactsHeader";
+export * from "./components/ContactCreateModal";
+export * from "./components/ContactsShell";
 export * from "./hooks/useContactsOrchestration";
