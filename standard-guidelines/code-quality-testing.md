@@ -1,118 +1,124 @@
-# Code Quality and Testing Standard
+# Frontend Code Quality and Testing Standard
 
 ## 1. TypeScript Safety
 
-The default standard is strict typing.
+Use explicit domain types.
 
 Avoid:
 
 - `any`
+- unnecessary `unknown`
 - `as any`
-- `unknown as SomeType` used to bypass type checking
 - `@ts-ignore`
-- `@ts-expect-error` unless there is a documented, unavoidable compiler limitation
+- `@ts-expect-error`
 
-Prefer type guards, explicit interfaces, discriminated unions, generics, and safe narrowing.
+unless there is an explicitly documented exceptional reason.
+
+Type errors should expose architectural problems rather than be buried.
 
 ## 2. Complexity Control
 
-Complexity should be reduced when it harms comprehension or ownership.
+Reduce complexity when it harms comprehension or ownership.
 
 Warning signs include:
 
 - very large route files
-- many unrelated `useState` values
+- many unrelated state variables
 - repeated business handlers
 - large JSX trees containing multiple domains
-- direct API calls mixed with presentation
+- API calls mixed with presentation
 - duplicated form logic
 - components with several unrelated responsibilities
 
-Do not use line count as the only quality metric. A 200-line coherent component can be better than ten meaningless 20-line components.
+Do not use line count as the only quality metric. Decompose by responsibility.
 
 ## 3. Duplication
 
-Remove duplicated behavior when the abstraction is clear and stable. Avoid premature abstraction when two pieces only look similar but have different domain semantics.
+Remove duplicated behavior when the abstraction is clear and stable.
 
-## 4. Verification Requirements
+Do not create abstractions merely because two pieces look similar. Different domain semantics should remain separate when forcing reuse would make the design worse.
 
-A completed code change should normally pass:
+## 4. Testing Strategy
 
-```bash
-npm run typecheck
-npm run build
-```
+Tests should follow architectural boundaries.
 
-For behavior-sensitive changes, also perform targeted checks relevant to the feature.
+### Unit tests
 
-Before completion verify:
+Prioritize pure utilities and business rules.
 
-- no unintended files changed
-- no unsafe typing introduced
-- no feature-boundary violations
-- no direct HTTP calls leaked into UI
-- no duplicate query/mutation definitions were introduced
-- intended behavior remains intact
+### Hook tests
 
-## 5. Refactoring Verification
+Use for complex state orchestration.
 
-Architecture-only refactors must preserve:
+### Component tests
+
+Use for important reusable UI behavior.
+
+### Integration tests
+
+Use for feature workflows.
+
+### E2E tests
+
+Use for critical user journeys.
+
+Do not attempt to E2E-test every tiny UI primitive.
+
+## 5. Verification
+
+A completed implementation should verify:
+
+- functional behavior
+- architectural boundaries
+- type safety
+- build integrity
+- relevant tests
+- loading/error/empty behavior
+- accessibility where applicable
+
+For projects using the standard commands, typecheck and build should pass before completion.
+
+## 6. Refactoring Verification
+
+Architecture-only refactors should preserve:
 
 - user-visible behavior
-- routes
 - API contracts
-- loading/error states
+- routes
 - validation
-- lifecycle actions
+- loading/error states
+- lifecycle behavior
 - responsive behavior
 - theme behavior
 
-If behavior changes are intended, document them separately from the structural refactor.
+If behavior changes are intentional, treat those changes as a separate concern and document them.
 
-## 6. Build and Typecheck Are Not Enough
+## 7. Definition of Done
 
-A successful build proves that the project can compile/build. It does not prove that the feature is correct.
+A feature is not complete merely because it works.
 
-Review the actual use cases and interaction paths after structural changes.
+It should satisfy four dimensions:
 
-## 7. Code Review Checklist
+### Functional
 
-Reviewers should check:
+It behaves correctly.
 
-### Architecture
-- Is ownership clear?
-- Is the route thin enough to be understandable?
-- Are feature boundaries respected?
-- Are abstractions justified?
+### Architectural
 
-### State and data
-- Is state owned at the correct level?
-- Are server state and UI state separated?
-- Are mutations and cache invalidation correct?
+It follows feature and responsibility boundaries.
 
-### UI
-- Is the UI consistent with existing patterns?
-- Are loading, empty, error, and disabled states handled?
-- Is responsive behavior preserved?
+### Maintainability
 
-### Safety
-- Are types strict?
-- Are destructive actions handled safely?
-- Is user input validated?
+Another developer can understand and modify it without archaeology.
 
-### Regression
-- Were existing behaviors preserved?
-- Were unrelated modules left untouched?
+### Upgradeability
 
-## 8. Definition of Done
+Backend, UI, state management, or individual components can be changed without rewriting the entire feature.
 
-A feature/refactor is complete when:
+## 8. Non-Negotiable Rule
 
-- architecture matches the applicable standard
-- implementation is behaviorally verified
-- typecheck passes
-- build passes
-- relevant targeted checks pass
-- working tree is clean
-- changes are committed with a meaningful message
-- the commit is pushed when the workflow requires it
+No feature should require a monolithic page, monolithic hook, or monolithic component to function.
+
+Every feature must have clear ownership boundaries for UI, state, data fetching, API communication, domain types, and business logic.
+
+Reuse existing components and abstractions wherever they genuinely fit. Create new abstractions only when they establish a clear reusable boundary.
