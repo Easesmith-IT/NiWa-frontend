@@ -1,143 +1,118 @@
-# Frontend Development Workflow Standard
+# Frontend Development and Refactoring Workflow Standard
 
-## 1. Audit Before Editing
+## 1. Migration / Refactoring Rule
 
-Never begin a structural refactor by immediately creating files.
+When working on an existing monolith, do not mix every structural change together.
 
-First inspect:
+Use controlled phases when they reduce risk:
 
-1. current route/page
-2. feature directory
-3. API layer
-4. query/mutation layer
-5. types and mappers
-6. existing hooks
-7. existing components
-8. current state/effect usage
-9. direct HTTP usage
-10. unsafe typing
-11. feature-boundary violations
+```text
+A → Audit
+B → Types + API + Queries
+C → State orchestration
+D → UI decomposition
+E → Cleanup + verification
+```
 
-Record what is already compliant. Do not refactor code merely because it looks old.
+The objective is to build the architecture correctly from the beginning so migration phases are rarely needed for new work.
 
-## 2. Classify the Feature
+## 2. Mandatory Pre-Implementation Audit
 
-Use a simple classification:
+Before implementing a substantial feature:
 
-- **A: Fully compliant** - no migration required.
-- **B: Partially compliant** - some layers are correct, some need extraction.
-- **C: Monolithic** - substantial route/state/UI restructuring required.
+1. Inspect the existing architecture.
+2. Search for reusable components.
+3. Search for existing hooks.
+4. Search for existing API functions.
+5. Search for existing query patterns.
+6. Search for existing domain types.
+7. Identify duplicated functionality.
+8. Identify expected state ownership.
+9. Identify API boundaries.
+10. Define the feature structure before writing substantial JSX.
 
-Estimate complexity as small, medium, or large based on actual work rather than file count alone.
+Do not refactor code merely because it looks old. First determine what already satisfies the standard.
 
-## 3. Phase Planning
+## 3. Implementation Order
 
-Use separate phases when separation reduces risk or improves reviewability.
-
-Typical structure for a medium feature:
-
-### Phase A - Audit
-Read-only analysis. No source changes.
-
-### Phase B - State/Data Orchestration
-Extract state, derived logic, handlers, and domain coordination.
-
-### Phase C - UI Decomposition
-Extract meaningful presentational components and reduce the route to a composition root.
-
-For small modules, **merge B and C into one implementation phase** when doing so does not make verification or review materially worse. Quality is more important than maintaining artificial phase boundaries.
-
-## 4. Protected Areas
-
-Once a feature is completed and verified, treat it as protected during unrelated migrations.
-
-Do not modify completed modules accidentally while restructuring another feature.
-
-If a cross-feature dependency genuinely requires a change, document it and verify both features.
-
-## 5. Implementation Order
-
-Preferred order:
+Use this sequence when it improves safety and reviewability:
 
 ```text
 Audit
   ↓
 Plan ownership
   ↓
-Extract orchestration
+Types / API / Queries
   ↓
-Extract UI
+State orchestration
   ↓
-Verify behavior
+UI decomposition
   ↓
-Typecheck
+Cleanup
   ↓
-Build
-  ↓
-Inspect diff/status
-  ↓
-Commit
-  ↓
-Push
+Verification
 ```
 
-## 6. Commit Discipline
+For a feature that is already compliant, do nothing. For a small feature, phases may be combined when separation would add ceremony without reducing risk.
 
-Use focused commit messages that describe the architectural change, for example:
+## 4. Mandatory Implementation Checklist
+
+Before considering a feature complete:
 
 ```text
-refactor(feature): extract state orchestration
-refactor(feature): finalize modular architecture
+[ ] Feature has a clear boundary
+[ ] Page is a composition root
+[ ] UI is componentized
+[ ] Shared components reused where appropriate
+[ ] No unnecessary duplicate components
+[ ] State has clear ownership
+[ ] Complex state lives in hooks
+[ ] API calls are isolated
+[ ] React Query is isolated
+[ ] Query keys are centralized
+[ ] Types are explicit
+[ ] No unnecessary any
+[ ] No ignored TypeScript errors
+[ ] Business logic is outside JSX
+[ ] Payload construction has one owner
+[ ] Loading state exists
+[ ] Error state exists
+[ ] Empty state exists
+[ ] Accessibility considered
+[ ] Responsive behavior considered
+[ ] Dark/light theme considered where applicable
+[ ] Typecheck passes
+[ ] Build passes
+[ ] Relevant tests pass
+[ ] Git diff reviewed
+[ ] No unrelated files modified
 ```
 
-Avoid mixing unrelated fixes into a structural migration.
+## 5. Protected Boundaries
 
-## 7. Strict Stop Rule
+During unrelated migrations, completed features should remain untouched.
 
-After completing a planned phase:
+If a cross-feature change is genuinely required, document the dependency and verify the affected features together.
 
-- report what changed
-- report verification results
-- report commit hash
-- confirm working tree status
-- stop before starting the next phase unless explicitly authorized by the workflow
+## 6. Completion Standard
 
-This prevents accidental scope expansion and makes review checkpoints meaningful.
+A feature is complete only when it is:
 
-## 8. Small-Module Rule
+- functionally correct
+- architecturally compliant
+- maintainable
+- upgradeable
 
-Do not force every feature through the same number of phases.
+Do not declare completion solely because the application builds.
 
-If a feature is already API-compliant and only has a small page, combine orchestration and UI decomposition where practical. If it is already compliant, do nothing.
+## 7. Verification
 
-The objective is a clean, maintainable codebase, not a collection of ceremonial commits.
+After structural changes, verify behavior and architecture, then run the project's typecheck, build, and relevant tests.
 
-## 9. Refactor Scope
+Review the final diff and confirm no unrelated files were changed.
 
-A refactor should change structure, not silently change product behavior.
+## 8. Existing-Code Refactoring Principle
 
-If a bug is discovered during migration:
+Refactoring should change structure without silently changing product behavior.
 
-1. verify it is real
-2. determine whether fixing it is required for safe migration
-3. keep the fix isolated where possible
-4. mention it explicitly in the completion report
-
-## 10. Completion Report
-
-Every migration report should state:
-
-- baseline commit
-- final commit
-- files created/modified
-- major responsibilities moved
-- architecture status
-- unsafe-type count
-- boundary audit
-- typecheck result
-- build result
-- behavioral preservation status
-- working tree status
-- protected areas respected
-
-Do not claim behavior is preserved merely because the build passes.
+If a behavioral bug is discovered during migration, verify it, determine whether the fix is required for safe migration, keep the fix isolated where possible, and report it explicitly.
