@@ -1,6 +1,5 @@
 "use client";
 
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import {
   CheckCircle2,
@@ -13,12 +12,12 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
+import { useMessageStudioTemplates, useMessageStudioMedia, useSendMessageMutation, useTemplateHeaderUploadMutation, ComposerMode } from "../../../features/message-studio";
 
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
 import { Textarea } from "../../../components/ui/textarea";
-import { apiClient } from "../../../lib/api/client";
 import { getMediaDisplayName } from "../../../lib/media";
 import {
   buildTemplateOptionValue,
@@ -40,22 +39,6 @@ import {
   parseListSections,
 } from "../../../lib/message-studio";
 
-type ComposerMode =
-  | "text"
-  | "template"
-  | "image"
-  | "video"
-  | "audio"
-  | "document"
-  | "sticker"
-  | "contact"
-  | "location"
-  | "button"
-  | "list"
-  | "reaction"
-  | "cta_url"
-  | "location_request"
-  | "typing_indicator";
 
 const messageModes: Array<{ key: ComposerMode; label: string }> = [
   { key: "text", label: "Text" },
@@ -149,21 +132,9 @@ export default function MessageStudioPage() {
   const [locationRequestBody, setLocationRequestBody] = useState("");
   const [typingMessageId, setTypingMessageId] = useState("");
 
-  const templatesQuery = useQuery({
-    queryKey: ["templates", "message-studio"],
-    queryFn: async () => {
-      const response = await apiClient.get<TemplatesResponse>("/templates");
-      return response.data;
-    },
-  });
+  const templatesQuery = useMessageStudioTemplates();
 
-  const mediaQuery = useQuery({
-    queryKey: ["media", "message-studio"],
-    queryFn: async () => {
-      const response = await apiClient.get<MediaListResponse>("/media");
-      return response.data;
-    },
-  });
+  const mediaQuery = useMessageStudioMedia();
 
   const activeTemplates = useMemo(
     () => getActiveTemplates(templatesQuery.data?.templates ?? []),
@@ -257,181 +228,181 @@ export default function MessageStudioPage() {
     setTemplateButtonVariables([]);
   }, [selectedTemplate?.name, selectedTemplate?.language]);
 
-  const sendMutation = useMutation({
-    mutationFn: async () => {
-      let endpoint = "";
-      let payload: Record<string, unknown> = {};
+  const sendMutation = useSendMessageMutation();
 
-      if (mode === "text") {
-        endpoint = "/messages/text";
-        payload = { to: commonTo, body: textBody, previewUrl };
-      } else if (mode === "template") {
-        const structuredBodyVariables = templateBodyVariableValues.map((value) => value.trim());
-        const fallbackBodyVariables = parseLines(templateVariables);
-        endpoint = "/messages/template";
-        payload = {
-          to: commonTo,
-          templateName,
-          languageCode: templateLanguage,
-          bodyVariables:
-            structuredBodyVariables.filter(Boolean).length > 0
-              ? structuredBodyVariables
-              : fallbackBodyVariables,
-          ...(templateHeaderVariableValues.filter((value) => value.trim()).length > 0
-            ? {
-                headerVariables: templateHeaderVariableValues.map((value) => value.trim()),
-              }
-            : {}),
-          ...(templateHeaderMediaId ? { headerMediaId: templateHeaderMediaId } : {}),
-          ...(templateUrlButtons.length > 0
-            ? { buttonVariables: templateButtonVariables.map((value) => value.trim()) }
-            : {}),
-        };
-      } else if (["image", "video", "audio", "document", "sticker"].includes(mode)) {
-        endpoint = `/messages/${mode}`;
-        payload = {
-          to: commonTo,
-          type: mode,
-          mediaId: selectedMediaId,
-          ...(mediaCaption ? { caption: mediaCaption } : {}),
-          ...(mode === "document" && documentFilename ? { filename: documentFilename } : {}),
-        };
-      } else if (mode === "location") {
-        endpoint = "/messages/location";
-        payload = {
-          to: commonTo,
-          latitude: Number(latitude),
-          longitude: Number(longitude),
-          ...(locationName ? { name: locationName } : {}),
-          ...(locationAddress ? { address: locationAddress } : {}),
-        };
-      } else if (mode === "contact") {
-        endpoint = "/messages/contact";
-        payload = {
-          to: commonTo,
-          contacts: [
-            {
-              name: {
-                formatted_name: contactFormattedName,
-                first_name: contactFirstName,
-                ...(contactLastName ? { last_name: contactLastName } : {}),
+  const handleSend = () => {
+    let endpoint = "";
+    let payload: Record<string, unknown> = {};
+
+    if (mode === "text") {
+      endpoint = "/messages/text";
+      payload = { to: commonTo, body: textBody, previewUrl };
+    } else if (mode === "template") {
+      const structuredBodyVariables = templateBodyVariableValues.map((value) => value.trim());
+      const fallbackBodyVariables = parseLines(templateVariables);
+      endpoint = "/messages/template";
+      payload = {
+        to: commonTo,
+        templateName,
+        languageCode: templateLanguage,
+        bodyVariables:
+          structuredBodyVariables.filter(Boolean).length > 0
+            ? structuredBodyVariables
+            : fallbackBodyVariables,
+        ...(templateHeaderVariableValues.filter((value) => value.trim()).length > 0
+          ? {
+              headerVariables: templateHeaderVariableValues.map((value) => value.trim()),
+            }
+          : {}),
+        ...(templateHeaderMediaId ? { headerMediaId: templateHeaderMediaId } : {}),
+        ...(templateUrlButtons.length > 0
+          ? { buttonVariables: templateButtonVariables.map((value) => value.trim()) }
+          : {}),
+      };
+    } else if (["image", "video", "audio", "document", "sticker"].includes(mode)) {
+      endpoint = `/messages/${mode}`;
+      payload = {
+        to: commonTo,
+        type: mode,
+        mediaId: selectedMediaId,
+        ...(mediaCaption ? { caption: mediaCaption } : {}),
+        ...(mode === "document" && documentFilename ? { filename: documentFilename } : {}),
+      };
+    } else if (mode === "location") {
+      endpoint = "/messages/location";
+      payload = {
+        to: commonTo,
+        latitude: Number(latitude),
+        longitude: Number(longitude),
+        ...(locationName ? { name: locationName } : {}),
+        ...(locationAddress ? { address: locationAddress } : {}),
+      };
+    } else if (mode === "contact") {
+      endpoint = "/messages/contact";
+      payload = {
+        to: commonTo,
+        contacts: [
+          {
+            name: {
+              formatted_name: contactFormattedName,
+              first_name: contactFirstName,
+              ...(contactLastName ? { last_name: contactLastName } : {}),
+            },
+            phones: [
+              {
+                phone: contactPhone,
+                type: "CELL",
               },
-              phones: [
-                {
-                  phone: contactPhone,
-                  type: "CELL",
-                },
-              ],
-            },
-          ],
-        };
-      } else if (mode === "button") {
-        endpoint = "/messages/button";
-        payload = {
-          to: commonTo,
-          ...(buttonHeader ? { headerText: buttonHeader } : {}),
-          bodyText: buttonBody,
-          ...(buttonFooter ? { footerText: buttonFooter } : {}),
-          buttons: parseLines(buttonRows).slice(0, 3).map((line, index) => {
-            const [id, title] = line.split("|").map((part) => part.trim());
-            return {
-              id: id || `btn-${index + 1}`,
-              title: title || id || `Button ${index + 1}`,
-            };
-          }),
-        };
-      } else if (mode === "list") {
-        endpoint = "/messages/list";
-        payload = {
-          to: commonTo,
-          ...(listHeader ? { headerText: listHeader } : {}),
-          bodyText: listBody,
-          ...(listFooter ? { footerText: listFooter } : {}),
-          buttonText: listButtonText,
-          sections: [
-            {
-              title: "Options",
-              rows: parseListSections(listRows),
-            },
-          ],
-        };
-      } else if (mode === "reaction") {
-        endpoint = "/messages/reaction";
-        payload = {
-          to: commonTo,
-          messageId: reactionMessageId,
-          emoji: reactionEmoji,
-        };
-      } else if (mode === "cta_url") {
-        endpoint = "/messages/cta-url";
-        payload = {
-          to: commonTo,
-          ...(ctaHeader ? { headerText: ctaHeader } : {}),
-          bodyText: ctaBody,
-          ...(ctaFooter ? { footerText: ctaFooter } : {}),
-          displayText: ctaDisplayText,
-          url: ctaUrl,
-        };
-      } else if (mode === "location_request") {
-        endpoint = "/messages/location-request";
-        payload = {
-          to: commonTo,
-          bodyText: locationRequestBody,
-        };
-      } else {
-        endpoint = "/messages/typing-indicator";
-        payload = {
-          messageId: typingMessageId,
-        };
-      }
+            ],
+          },
+        ],
+      };
+    } else if (mode === "button") {
+      endpoint = "/messages/button";
+      payload = {
+        to: commonTo,
+        ...(buttonHeader ? { headerText: buttonHeader } : {}),
+        bodyText: buttonBody,
+        ...(buttonFooter ? { footerText: buttonFooter } : {}),
+        buttons: parseLines(buttonRows).slice(0, 3).map((line, index) => {
+          const [id, title] = line.split("|").map((part) => part.trim());
+          return {
+            id: id || `btn-${index + 1}`,
+            title: title || id || `Button ${index + 1}`,
+          };
+        }),
+      };
+    } else if (mode === "list") {
+      endpoint = "/messages/list";
+      payload = {
+        to: commonTo,
+        ...(listHeader ? { headerText: listHeader } : {}),
+        bodyText: listBody,
+        ...(listFooter ? { footerText: listFooter } : {}),
+        buttonText: listButtonText,
+        sections: [
+          {
+            title: "Options",
+            rows: parseListSections(listRows),
+          },
+        ],
+      };
+    } else if (mode === "reaction") {
+      endpoint = "/messages/reaction";
+      payload = {
+        to: commonTo,
+        messageId: reactionMessageId,
+        emoji: reactionEmoji,
+      };
+    } else if (mode === "cta_url") {
+      endpoint = "/messages/cta-url";
+      payload = {
+        to: commonTo,
+        ...(ctaHeader ? { headerText: ctaHeader } : {}),
+        bodyText: ctaBody,
+        ...(ctaFooter ? { footerText: ctaFooter } : {}),
+        displayText: ctaDisplayText,
+        url: ctaUrl,
+      };
+    } else if (mode === "location_request") {
+      endpoint = "/messages/location-request";
+      payload = {
+        to: commonTo,
+        bodyText: locationRequestBody,
+      };
+    } else {
+      endpoint = "/messages/typing-indicator";
+      payload = {
+        messageId: typingMessageId,
+      };
+    }
 
-      setRequestPreview(payload);
-      const response = await apiClient.post<OutboundMessageResponse>(endpoint, payload);
-      return response.data;
-    },
-    onSuccess: (data) => {
-      setSubmitError(null);
-      setResponsePreview(data.response);
-    },
-    onError: (error) => {
-      const message =
-        error instanceof AxiosError
-          ? error.response?.data?.message ?? "Message request failed."
-          : "Message request failed.";
-      setSubmitError(message);
-    },
-  });
+    setRequestPreview(payload);
 
-  const templateHeaderUploadMutation = useMutation({
-    mutationFn: async ({ customName, file }: { customName: string; file: File }) => {
-      const formData = new FormData();
-      formData.append("file", file);
-      if (customName.trim()) {
-        formData.append("customName", customName.trim());
-      }
-      const response = await apiClient.post<MediaUploadResponse>("/media/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
+    sendMutation.mutate(
+      { endpoint, payload },
+      {
+        onSuccess: (data) => {
+          setSubmitError(null);
+          setResponsePreview(data.response);
         },
-      });
-      return response.data;
-    },
-    onSuccess: async (data) => {
-      setTemplateHeaderUploadError(null);
-      setTemplateHeaderUploadMessage(`Uploaded ${getMediaDisplayName(data.media)} successfully.`);
-      setTemplateHeaderUploadName("");
-      setTemplateHeaderMediaId(data.media.metaMediaId);
-      await mediaQuery.refetch();
-    },
-    onError: (error) => {
-      setTemplateHeaderUploadMessage(null);
-      setTemplateHeaderUploadError(
-        error instanceof AxiosError
-          ? error.response?.data?.message ?? "Header media upload failed."
-          : "Header media upload failed.",
-      );
-    },
-  });
+        onError: (error) => {
+          const message =
+            error instanceof AxiosError
+              ? error.response?.data?.message ?? "Message request failed."
+              : "Message request failed.";
+          setSubmitError(message);
+        },
+      }
+    );
+  };
+
+  const templateHeaderUploadMutation = useTemplateHeaderUploadMutation();
+
+  const handleTemplateHeaderUpload = (customName: string, file: File) => {
+    setTemplateHeaderUploadMessage(null);
+    setTemplateHeaderUploadError(null);
+    templateHeaderUploadMutation.mutate(
+      { customName, file },
+      {
+        onSuccess: (data) => {
+          setTemplateHeaderUploadError(null);
+          setTemplateHeaderUploadMessage(`Uploaded ${getMediaDisplayName(data.media)} successfully.`);
+          setTemplateHeaderUploadName("");
+          setTemplateHeaderMediaId(data.media.metaMediaId);
+          mediaQuery.refetch();
+        },
+        onError: (error) => {
+          setTemplateHeaderUploadMessage(null);
+          setTemplateHeaderUploadError(
+            error instanceof AxiosError
+              ? error.response?.data?.message ?? "Header media upload failed."
+              : "Header media upload failed.",
+          );
+        },
+      }
+    );
+  };
 
   const filteredMedia = useMemo(() => {
     const allMedia = mediaQuery.data?.media ?? [];
@@ -673,12 +644,7 @@ export default function MessageStudioPage() {
                                 if (!file) {
                                   return;
                                 }
-                                setTemplateHeaderUploadMessage(null);
-                                setTemplateHeaderUploadError(null);
-                                templateHeaderUploadMutation.mutate({
-                                  customName: templateHeaderUploadName,
-                                  file,
-                                });
+                                handleTemplateHeaderUpload(templateHeaderUploadName, file);
                                 event.currentTarget.value = "";
                               }}
                               type="file"
@@ -776,7 +742,7 @@ export default function MessageStudioPage() {
                     disabled={sendMutation.isPending}
                     onClick={() => {
                       setSubmitError(null);
-                      sendMutation.mutate();
+                      handleSend();
                     }}
                     type="button"
                     variant="primary"
