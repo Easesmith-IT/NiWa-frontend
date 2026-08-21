@@ -1,115 +1,120 @@
-# UI/UX Standard
+# Frontend UI and Quality Standard
 
-## 1. Visual Consistency
+## 1. Component Size and Responsibility
 
-Use the project's established design system instead of inventing page-specific styles.
+Line count is not the primary architectural metric, but large components should trigger review.
 
-Maintain consistency for:
+Warning signs:
 
-- typography hierarchy
-- spacing scale
-- border radius
-- buttons and controls
-- form fields
-- cards and panels
-- status badges
-- icons
-- shadows and elevation
-- light/dark themes where supported
+- many independent `useState` calls
+- many `useEffect` calls
+- many event handlers
+- multiple unrelated JSX sections
+- API calls
+- payload construction
+- validation
+- business rules
+- modal implementations
+- large conditional rendering trees
 
-A new feature should look like it belongs to the product.
+A component around **300-400+ lines** should be reviewed for decomposition. A component approaching **700-800+ lines** is a serious architectural smell unless there is a strong documented reason.
 
-## 2. Component Reuse
+The rule is:
 
-Prefer existing shared UI primitives before creating new ones.
+> Decompose by responsibility, not merely by line count.
 
-Before adding a component, check whether an existing component can be reused or extended without making its API confusing.
+## 2. Hook Size
 
-Do not duplicate the same visual pattern across multiple pages.
+Hooks can also become monoliths.
 
-## 3. Responsive Design
+Warning signs include a hook containing large numbers of unrelated state variables, effects, callbacks, API calls, validation, and payload construction.
 
-Every user-facing screen must be considered at:
+Prefer focused hooks such as:
 
-- mobile
-- tablet
-- desktop
-- large desktop where relevant
+```text
+useFeatureFilters
+useFeatureSelection
+useFeatureForm
+useFeatureMedia
+useFeatureWorkspace
+useFeatureOrchestration
+```
 
-Do not rely on desktop-only layouts and assume CSS will magically save them. Humans have been disappointed by this approach for decades.
+The orchestration hook coordinates. It should not become another monolith.
 
-Tables, drawers, modals, forms, navigation, and action toolbars require explicit responsive behavior.
+## 3. Avoid Duplicate UI
 
-## 4. Interaction Quality
+Before implementing UI:
 
-Important actions should provide clear feedback:
+```text
+Search existing components
+        ↓
+Reuse
+        ↓
+Extend
+        ↓
+Generalize
+        ↓
+Create new component only if necessary
+```
 
-- loading state
-- disabled state where appropriate
-- success feedback
-- useful error feedback
-- empty state
-- skeleton/loading presentation for data-heavy screens
-- confirmation for destructive actions when appropriate
+Do not copy an existing component merely because modifying the original is inconvenient. Also avoid premature abstraction.
 
-Avoid silent failures.
+## 4. Loading / Error / Empty States
 
-## 5. Forms
+Every data-driven feature should explicitly consider:
 
-Forms should:
+- Loading
+- Success
+- Empty
+- Error
+- Partial/disabled
 
-- use clear labels
-- validate required fields
-- preserve useful input when possible after recoverable errors
-- disable duplicate submission while submitting
-- show field-level errors when useful
-- reset only when the operation succeeds or when explicitly intended
+Do not allow each component to invent inconsistent behavior. Create reusable primitives where patterns repeat.
 
-Do not bury business rules inside JSX event handlers when they belong in orchestration/domain logic.
+## 5. Accessibility
 
-## 6. Data-Heavy Screens
+Every reusable component should consider:
 
-For registries and dashboards, provide deliberate handling for:
+- keyboard navigation
+- focus management
+- semantic HTML
+- labels
+- ARIA where necessary
+- visible focus states
+- screen-reader behavior
 
-- loading
-- empty results
-- search/filter states
-- pagination or large datasets where required
-- errors
-- selection state
-- row/card actions
+Accessibility is part of component design, not a final emergency patch.
 
-Avoid rendering a large screen as one undifferentiated block.
+## 6. Performance
 
-## 7. Accessibility
+Do not optimize blindly. First maintain clean boundaries.
 
-Use semantic HTML and accessible controls.
+Then investigate:
 
-Ensure:
+- unnecessary renders
+- expensive calculations
+- large lists
+- unnecessary API requests
+- duplicate queries
+- oversized client components
 
-- buttons are real buttons
-- links are real links
-- inputs have labels
-- dialogs have appropriate semantics
-- keyboard navigation works for interactive UI
-- focus behavior is sensible
-- color is not the only indicator of state
-- contrast remains readable in supported themes
+Use memoization only where it solves an identified problem.
 
-## 8. Dark Mode and Themes
+`useMemo` is not an architectural deodorizer.
 
-Theme support must be intentional. Do not hard-code colors that break an existing theme.
+## 7. Responsive and Theme Behavior
 
-When modifying an existing screen, preserve its established theme behavior unless the task explicitly changes the design.
+Responsive behavior and supported themes are part of component quality. Do not introduce architecture changes that silently break existing responsive or theme behavior.
 
-## 9. Visual Refactoring Rule
+## 8. Visual Refactoring
 
-When refactoring architecture without a design change:
+When performing an architecture refactor without a design change, preserve visual behavior. Do not mix structural migration with unrelated redesign unless the task explicitly requires it.
 
-**behavior and visual appearance must remain stable.**
+## 9. Security
 
-Do not mix a large architecture refactor with an unrelated redesign. Separate concerns so regressions can be identified.
+Frontend architecture must never assume the client is trusted. Authorization and sensitive business rules remain server responsibilities.
 
-## 10. Avoid Cosmetic Overengineering
+## 10. Error Presentation
 
-Do not add animations, gradients, shadows, abstractions, or decorative elements merely because they are available. Visual decisions must improve usability or communicate hierarchy.
+UI should receive predictable, typed errors from the feature/data layers and present useful feedback. Avoid ad-hoc error handling scattered across presentation components.
