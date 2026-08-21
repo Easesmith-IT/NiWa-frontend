@@ -10,6 +10,8 @@ export const v1QueryKeys = {
   inboxSearch: ["v1", "inbox-search"] as const,
   inboxThread: ["v1", "inbox-thread"] as const,
   labels: ["v1", "labels"] as const,
+  media: ["v1", "media"] as const,
+  messageStudio: ["v1", "message-studio"] as const,
   messages: ["v1", "messages"] as const,
   notes: ["v1", "notes"] as const,
   quickReplies: ["v1", "quick-replies"] as const,

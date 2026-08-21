@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { v1QueryKeys } from "../../lib/api/v1-query-keys";
 import {
   deleteMedia,
   getMediaDetail,
@@ -16,7 +17,7 @@ import type {
 } from "./media.types";
 
 export const mediaKeys = {
-  all: ["media"] as const,
+  all: v1QueryKeys.media,
   lists: () => [...mediaKeys.all, "list"] as const,
   list: (filters: MediaListFilters) => [...mediaKeys.lists(), filters] as const,
   details: () => [...mediaKeys.all, "detail"] as const,
@@ -62,7 +63,7 @@ export const useUpdateMediaMetadataMutation = () => {
   const queryClient = useQueryClient();
   return useMutation<MediaDetailResponse, Error, MediaUpdateMetadataPayload>({
     mutationFn: (payload: MediaUpdateMetadataPayload) => updateMediaMetadata(payload),
-    onSuccess: (data, variables) => {
+    onSuccess: (_data, variables) => {
       queryClient.invalidateQueries({ queryKey: mediaKeys.lists() });
       queryClient.invalidateQueries({ queryKey: mediaKeys.detail(variables.id) });
     },
