@@ -146,7 +146,6 @@ export const useCommitContactImportV1Mutation = () => {
   return useMutation({
     mutationFn: (importId: string) => commitContactImportV1(importId),
     onSuccess: async () => {
-      await invalidateContactSurfaces(queryClient);
       queryClient.invalidateQueries({ queryKey: [...v1QueryKeys.contacts, "imports"] });
     },
   });
@@ -184,20 +183,32 @@ export const useContactImportPipelineV1 = () => {
 
   const statusQuery = useContactImportStatusV1Query(activeImportId, isPolling);
 
-  const attemptCountRef = useRef(0);
+  const activePipelineIdRef = useRef(0);
+  const isMountedRef = useRef(true);
+  const pollingStartedAtRef = useRef(0);
   const callbacksRef = useRef<ProcessContactImportOptions>({});
 
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
   const processImport = async (file: File, options?: ProcessContactImportOptions) => {
+    const pipelineId = ++activePipelineIdRef.current;
     callbacksRef.current = options || {};
     setActiveImportId(null);
     setIsPolling(false);
-    attemptCountRef.current = 0;
+    pollingStartedAtRef.current = 0;
     setPipelineError("");
     setStatusStep("uploading");
 
     try {
       // 1. Upload File
       const uploadedRecord = await uploadMutation.mutateAsync(file);
+      if (!isMountedRef.current || pipelineId !== activePipelineIdRef.current) return;
+
       const newImportId = uploadedRecord.id;
 
       // 2. Validate Import
@@ -210,16 +221,20 @@ export const useContactImportPipelineV1 = () => {
           email: "email",
         },
       });
+      if (!isMountedRef.current || pipelineId !== activePipelineIdRef.current) return;
 
       // 3. Commit Import
       setStatusStep("commit");
       await commitMutation.mutateAsync(newImportId);
+      if (!isMountedRef.current || pipelineId !== activePipelineIdRef.current) return;
 
       // 4. Start Polling
       setStatusStep("polling");
+      pollingStartedAtRef.current = Date.now();
       setActiveImportId(newImportId);
       setIsPolling(true);
     } catch (err: unknown) {
+      if (!isMountedRef.current || pipelineId !== activePipelineIdRef.current) return;
       setStatusStep("");
       const msg = isAxiosError(err)
         ? err.response?.data?.message
@@ -233,9 +248,10 @@ export const useContactImportPipelineV1 = () => {
   };
 
   useEffect(() => {
-    if (!isPolling || !activeImportId || !statusQuery.data) return;
+    if (!isPolling || !activeImportId || !statusQuery.data || !isMountedRef.current) return;
 
     const currentStatus = statusQuery.data.status;
+    const currentPipelineId = activePipelineIdRef.current;
 
     if (currentStatus === "completed" || currentStatus === "ready") {
       setIsPolling(false);
@@ -244,23 +260,30 @@ export const useContactImportPipelineV1 = () => {
       setActiveImportId(null);
       invalidateContactSurfaces(queryClient);
       queryClient.invalidateQueries({ queryKey: [...v1QueryKeys.contacts, "imports"] });
-      callbacksRef.current.onSuccess?.(completedId);
+      if (isMountedRef.current && currentPipelineId === activePipelineIdRef.current) {
+        callbacksRef.current.onSuccess?.(completedId);
+      }
     } else if (currentStatus === "failed") {
       setIsPolling(false);
       setStatusStep("");
       setActiveImportId(null);
       const errorMsg = "Contact import failed on server.";
-      setPipelineError(errorMsg);
-      callbacksRef.current.onError?.(errorMsg);
+      if (isMountedRef.current && currentPipelineId === activePipelineIdRef.current) {
+        setPipelineError(errorMsg);
+        callbacksRef.current.onError?.(errorMsg);
+      }
     } else {
-      attemptCountRef.current += 1;
-      if (attemptCountRef.current >= 20) {
+      // Still in progress ("uploaded", "validating", "importing")
+      const elapsed = Date.now() - pollingStartedAtRef.current;
+      if (elapsed >= 20000) {
         setIsPolling(false);
         setStatusStep("");
         setActiveImportId(null);
         const timeoutMsg = "Contact import timed out while processing.";
-        setPipelineError(timeoutMsg);
-        callbacksRef.current.onError?.(timeoutMsg);
+        if (isMountedRef.current && currentPipelineId === activePipelineIdRef.current) {
+          setPipelineError(timeoutMsg);
+          callbacksRef.current.onError?.(timeoutMsg);
+        }
       }
     }
   }, [isPolling, activeImportId, statusQuery.data, statusQuery.dataUpdatedAt, queryClient]);
