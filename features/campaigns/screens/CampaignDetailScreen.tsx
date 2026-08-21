@@ -9,7 +9,7 @@ import {
 } from "../campaign.queries";
 import { useCampaignRealtime } from "../campaign.realtime";
 import { exportCampaignCSV } from "../campaign.api";
-import { useQuota } from "../../quotas/quota.queries";
+import { useQuota } from "../../quotas";
 import { CampaignDetailHeader } from "../components/CampaignDetailHeader";
 import { CampaignDetailStats } from "../components/CampaignDetailStats";
 import { CampaignRecipientsTable } from "../components/CampaignRecipientsTable";

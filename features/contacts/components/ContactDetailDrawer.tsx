@@ -19,7 +19,7 @@ import {
   usePatchNoteV1Mutation,
   useSetNotePinnedV1Mutation,
 } from "../../notes";
-import type { LabelRecordV1 } from "../../labels/label.types";
+import type { LabelRecordV1 } from "../../labels";
 
 interface ContactDetailDrawerProps {
   availableLabels: LabelRecordV1[];

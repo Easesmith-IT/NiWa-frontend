@@ -1,29 +1,11 @@
 import { v1ApiClient } from "../../lib/api/v1-client";
+import type {
+  QuotaData,
+  QuotaForecastQueryParams,
+  QuotaForecastResponse,
+} from "./quota.types";
 
-export interface QuotaData {
-  limit: number;
-  used: number;
-  reserved: number;
-  released: number;
-  available: number;
-  dateString: string;
-}
-
-export interface QuotaScheduleItem {
-  dateString: string;
-  recipientsPlanned: number;
-  availableCapacity: number;
-  remaining: number;
-}
-
-export interface QuotaForecastResponse {
-  data: {
-    forecast: number;
-    current?: QuotaData;
-    estimatedCompletionDate?: string;
-    schedule?: QuotaScheduleItem[];
-  };
-}
+export * from "./quota.types";
 
 export const getQuota = async (connectionId?: string) => {
   const { data } = await v1ApiClient.get<{ data: QuotaData }>("/quotas", {
@@ -32,7 +14,7 @@ export const getQuota = async (connectionId?: string) => {
   return data.data;
 };
 
-export const getQuotaForecast = async (params: { connectionId?: string; timezone?: string; recipientCount?: number; startDate?: string }) => {
+export const getQuotaForecast = async (params: QuotaForecastQueryParams) => {
   const { data } = await v1ApiClient.get<QuotaForecastResponse>("/quotas/forecast", {
     params,
   });

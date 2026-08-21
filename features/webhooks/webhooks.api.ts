@@ -1,11 +1,7 @@
 import { v1ApiClient } from "../../lib/api/v1-client";
-import type { WebhookReconcileResponse, WebhooksResponse } from "../../lib/api/types";
+import type { GetWebhooksParams, WebhookReconcileResponse, WebhooksResponse } from "./webhooks.types";
 
-export interface GetWebhooksParams {
-  eventCategory?: string;
-  eventType?: string;
-  processingState?: string;
-}
+export * from "./webhooks.types";
 
 export const getWebhooksV1 = async (params?: GetWebhooksParams) => {
   const { data } = await v1ApiClient.get<WebhooksResponse>("/webhooks", { params });

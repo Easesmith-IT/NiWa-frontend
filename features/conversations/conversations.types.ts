@@ -5,7 +5,7 @@ import type {
   ConversationRecord,
   TemplateRecord,
 } from "../../lib/api/types";
-import type { ConversationRecordV1 } from "./conversation.types";
+import type { ConversationRecordV1 } from "../../lib/api/v1-types";
 import type { ReplyValues } from "./hooks/useConversationReplyState";
 
 export type { ConversationRecordV1 };

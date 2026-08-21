@@ -1,3 +1,4 @@
+export * from "./webhooks.types";
 export * from "./webhooks.api";
 export * from "./webhooks.queries";
 export * from "./hooks/useWebhooksOrchestration";
