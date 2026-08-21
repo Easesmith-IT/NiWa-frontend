@@ -1,28 +1,59 @@
-# Standard Frontend Guidelines
+# Frontend Engineering Standard
 
-These documents define the default frontend engineering standard for Easesmith projects. They are **project-independent** and should be treated as the baseline unless a project has an explicit, documented exception.
+## Feature-Oriented Modular Architecture with Component-Based UI
 
-## Documents
+This directory contains the **project-independent frontend engineering standard** derived from the approved frontend rules. It is intended to be the default standard for future frontend projects, not a NiWa-specific implementation guide.
 
-- `frontend-architecture.md` - feature boundaries, route composition, component decomposition, and dependency direction.
-- `ui-ux-standards.md` - reusable UI, responsive behavior, visual consistency, accessibility, and interaction quality.
-- `state-data-api.md` - state ownership, API/query separation, forms, async flows, and data boundaries.
-- `code-quality-testing.md` - TypeScript safety, complexity control, verification, regression prevention, and review criteria.
-- `development-workflow.md` - audit-first implementation, phased refactoring, Git discipline, and completion criteria.
+> Organize code by business feature, keep responsibilities separated by layer, build UI from reusable components, and keep every module small enough to understand, test, debug, replace, and upgrade independently.
 
-## Core Principles
+## Standard documents
 
-1. **Feature-first architecture:** domain code lives with its feature, not in route files.
-2. **Thin route composition:** route/page files should primarily connect orchestration to presentation.
-3. **Single ownership:** every piece of state, API access, and business rule should have one clear owner.
-4. **Composition over monoliths:** split large screens into meaningful components, not arbitrary fragments.
-5. **Strict typing:** avoid `any`, unsafe casts, and suppression comments.
-6. **Reuse before duplication:** prefer shared primitives and domain components when the abstraction is genuinely reusable.
-7. **Behavior before refactoring:** preserve existing behavior unless the task explicitly changes it.
-8. **Verify before declaring complete:** typecheck, build, targeted checks, and Git status are part of the implementation, not optional cleanup.
-9. **Small modules can be merged into one implementation phase:** phase boundaries exist to control risk, not to create ceremony.
-10. **No speculative architecture:** do not add abstractions, libraries, or layers without a demonstrated need.
+- [`frontend-architecture.md`](./frontend-architecture.md) - architecture model, routes, features, components, reuse, dependency direction, and feature isolation.
+- [`state-data-api.md`](./state-data-api.md) - state, effects, APIs, queries, types, business logic, payloads, and forms.
+- [`ui-ux-standards.md`](./ui-ux-standards.md) - component quality, loading/error/empty states, accessibility, performance, security, and error handling.
+- [`code-quality-testing.md`](./code-quality-testing.md) - complexity, duplication, testing strategy, verification, and definition of done.
+- [`development-workflow.md`](./development-workflow.md) - audit-first development and controlled refactoring phases.
 
-## Scope
+## Canonical architecture
 
-These guidelines apply to new development, refactoring, code review, and architecture audits across projects. Project-specific requirements may extend these rules but should not silently weaken them.
+```text
+APPLICATION
+│
+├── ROUTES
+│   └── composition roots
+│
+├── FEATURES
+│   └── business-domain boundaries
+│       ├── components/
+│       ├── hooks/
+│       ├── feature.api.ts
+│       ├── feature.queries.ts
+│       ├── feature.types.ts
+│       ├── feature.utils.ts
+│       ├── feature.constants.ts
+│       └── index.ts
+│
+├── SHARED
+│   ├── ui/
+│   ├── layout/
+│   └── shared components
+│
+└── LIB
+    ├── api/
+    ├── auth/
+    └── generic utilities
+```
+
+Feature-oriented architecture determines **where code belongs**. Component-based architecture determines **how UI is constructed**. They are complementary.
+
+## Non-negotiable rule
+
+No feature should require a monolithic page, monolithic hook, or monolithic component to function.
+
+Every feature should have clear ownership boundaries for UI, state, data fetching, API communication, domain types, and business logic.
+
+Reuse existing components and abstractions wherever they genuinely fit. Create new abstractions only when they establish a clear reusable boundary.
+
+## Applicability
+
+These rules apply to new frontend development, architecture reviews, and refactoring across projects. Project-specific requirements may extend the standard, but should not silently weaken its architectural principles.
