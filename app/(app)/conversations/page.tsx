@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import {
   CheckCheck,
@@ -20,7 +19,6 @@ import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
 import { Textarea } from "../../../components/ui/textarea";
-import { apiClient } from "../../../lib/api/client";
 import { getMediaDisplayName } from "../../../lib/media";
 import {
   buildTemplateOptionValue,
@@ -29,20 +27,25 @@ import {
 } from "../../../lib/templates";
 import {
   ConversationActivityRecord,
-  ConversationDetailResponse,
-  ConversationLabelsResponse,
   ConversationMessageRecord,
-  ConversationNoteMutationResponse,
   ConversationNoteRecord,
-  ConversationReadResponse,
   ConversationRecord,
-  ConversationsResponse,
-  MediaListResponse,
   MediaRecord,
-  OutboundMessageResponse,
   TemplateRecord,
-  TemplatesResponse,
 } from "../../../lib/api/types";
+import {
+  useAddNoteMutation,
+  useClearUnreadMutation,
+  useConversationDetailQuery,
+  useConversationsQuery,
+  useUpdateLabelsMutation,
+  useMarkMessageReadMutation,
+  useReplyMediaQuery,
+  useReplyTemplatesQuery,
+  useSendReplyMutation,
+  useUpdateNoteMutation,
+  SendReplyRequest,
+} from "../../../features/conversations";
 
 const replySchema = z.discriminatedUnion("type", [
   z.object({
@@ -89,11 +92,11 @@ const statusTone = (status: string, direction: "incoming" | "outgoing") => {
 };
 
 const renderMessageBody = (message: ConversationMessageRecord) => {
-  const payload = message.payload as Record<string, any> | null;
+  const payload = message.payload as Record<string, unknown> | null;
   const type = message.messageType;
 
   if (type === "location") {
-    const location = payload?.location;
+    const location = payload?.location as { name?: string; address?: string; latitude?: number; longitude?: number } | undefined;
     return [
       location?.name,
       location?.address,
@@ -106,14 +109,14 @@ const renderMessageBody = (message: ConversationMessageRecord) => {
   }
 
   if (type === "document") {
-    const document = payload?.document ?? {};
+    const document = (payload?.document ?? {}) as { filename?: string; caption?: string };
     return [document.filename, document.caption].filter(Boolean).join("\n") || message.previewText;
   }
 
   if (type === "contacts") {
     const contacts = Array.isArray(payload?.contacts) ? payload.contacts : [];
     return contacts
-      .map((contact: any) => {
+      .map((contact: { name?: { formatted_name?: string }; phones?: Array<{ phone?: string }> }) => {
         const name = contact?.name?.formatted_name ?? "Contact";
         const phone = contact?.phones?.[0]?.phone ?? "";
         return `${name}${phone ? ` - ${phone}` : ""}`;
@@ -122,16 +125,17 @@ const renderMessageBody = (message: ConversationMessageRecord) => {
   }
 
   if (type === "interactive") {
-    const interactive = payload?.interactive ?? {};
+    const interactive = (payload?.interactive ?? {}) as { button_reply?: { title?: string }; list_reply?: { title?: string } };
     return interactive?.button_reply?.title ?? interactive?.list_reply?.title ?? message.previewText;
   }
 
   if (type === "reaction") {
-    return payload?.reaction?.emoji ? `Reaction: ${payload.reaction.emoji}` : message.previewText;
+    const reaction = payload?.reaction as { emoji?: string } | undefined;
+    return reaction?.emoji ? `Reaction: ${reaction.emoji}` : message.previewText;
   }
 
   if (["image", "video", "audio", "sticker"].includes(type)) {
-    const mediaPayload = payload?.[type] ?? {};
+    const mediaPayload = (payload?.[type] ?? {}) as { id?: string };
     return [message.previewText, mediaPayload?.id ? `Media ID: ${mediaPayload.id}` : null]
       .filter(Boolean)
       .join("\n");
@@ -184,9 +188,6 @@ const getConversationLabels = (conversation?: Pick<ConversationRecord, "labels">
 const getTemplateVariables = (template?: Pick<TemplateRecord, "variables"> | null) =>
   Array.isArray(template?.variables) ? template.variables : [];
 
-const getNoteHistory = (note?: Pick<ConversationNoteRecord, "history"> | null) =>
-  Array.isArray(note?.history) ? note.history : [];
-
 const getInitials = (name?: string, fallback?: string) => {
   const source = name?.trim() || fallback?.trim() || "N";
   return source
@@ -223,35 +224,9 @@ export default function ConversationsPage() {
     },
   });
 
-  const conversationsQuery = useQuery({
-    queryKey: ["conversations", searchQuery, filterMode],
-    queryFn: async () => {
-      const response = await apiClient.get<ConversationsResponse>("/conversations", {
-        params: {
-          query: searchQuery || undefined,
-          unreadOnly: filterMode === "unread" ? "true" : undefined,
-          limit: 50,
-        },
-      });
-      return response.data;
-    },
-  });
-
-  const templatesQuery = useQuery({
-    queryKey: ["templates", "conversations-reply"],
-    queryFn: async () => {
-      const response = await apiClient.get<TemplatesResponse>("/templates");
-      return response.data;
-    },
-  });
-
-  const mediaQuery = useQuery({
-    queryKey: ["media", "conversations-reply"],
-    queryFn: async () => {
-      const response = await apiClient.get<MediaListResponse>("/media");
-      return response.data;
-    },
-  });
+  const conversationsQuery = useConversationsQuery(searchQuery, filterMode);
+  const templatesQuery = useReplyTemplatesQuery();
+  const mediaQuery = useReplyMediaQuery();
 
   const conversations = useMemo(
     () => conversationsQuery.data?.conversations ?? [],
@@ -274,16 +249,7 @@ export default function ConversationsPage() {
     [conversations, selectedConversationId],
   );
 
-  const detailQuery = useQuery({
-    queryKey: ["conversation-detail", selectedConversationId],
-    queryFn: async () => {
-      const response = await apiClient.get<ConversationDetailResponse>(
-        `/conversations/${selectedConversationId}`,
-      );
-      return response.data;
-    },
-    enabled: Boolean(selectedConversationId),
-  });
+  const detailQuery = useConversationDetailQuery(selectedConversationId);
 
   const workspaceConversation = detailQuery.data?.conversation ?? selectedConversation;
   const conversationMessages = detailQuery.data?.messages ?? [];
@@ -355,166 +321,111 @@ export default function ConversationsPage() {
         ? error.message
         : fallback;
 
-  const replyMutation = useMutation({
-    mutationFn: async (values: ReplyValues) => {
-      if (!selectedConversationId) {
-        throw new Error("No conversation selected.");
-      }
+  const replyMutation = useSendReplyMutation();
+  const clearUnreadMutation = useClearUnreadMutation();
+  const markAsReadMutation = useMarkMessageReadMutation();
+  const labelsMutation = useUpdateLabelsMutation();
+  const addNoteMutation = useAddNoteMutation();
+  const updateNoteMutation = useUpdateNoteMutation();
 
-      const payload =
-        values.type === "text"
+  const handleReplySubmit = (values: ReplyValues) => {
+    if (!selectedConversationId) {
+      setReplyError("No conversation selected.");
+      return;
+    }
+
+    const payload: SendReplyRequest =
+      values.type === "text"
+        ? {
+            conversationId: selectedConversationId,
+            type: "text",
+            body: values.body,
+          }
+        : values.type === "template"
           ? {
               conversationId: selectedConversationId,
-              type: "text" as const,
-              body: values.body,
+              type: "template",
+              templateName: values.templateName,
+              languageCode: values.languageCode,
+              bodyVariables: parseTemplateVariables(values.bodyVariables),
             }
-          : values.type === "template"
-            ? {
-                conversationId: selectedConversationId,
-                type: "template" as const,
-                templateName: values.templateName,
-                languageCode: values.languageCode,
-                bodyVariables: parseTemplateVariables(values.bodyVariables),
-              }
-            : {
-                conversationId: selectedConversationId,
-                type: values.type,
-                mediaId: values.mediaId,
-                caption: values.caption,
-                filename: values.filename,
-              };
+          : {
+              conversationId: selectedConversationId,
+              type: values.type,
+              mediaId: values.mediaId,
+              caption: values.caption,
+              filename: values.filename,
+            };
 
-      const response = await apiClient.post<OutboundMessageResponse>("/conversations/reply", payload);
-      return response.data;
-    },
-    onSuccess: async () => {
-      setReplyError(null);
-      replyForm.reset({ type: "text", body: "" });
-      await refreshConversationData();
-    },
-    onError: (error) => {
-      setReplyError(toErrorMessage(error, "Reply failed."));
-    },
-  });
+    replyMutation.mutate(payload, {
+      onSuccess: async () => {
+        setReplyError(null);
+        replyForm.reset({ type: "text", body: "" });
+        await refreshConversationData();
+      },
+      onError: (error: unknown) => {
+        setReplyError(toErrorMessage(error, "Reply failed."));
+      },
+    });
+  };
 
-  const clearUnreadMutation = useMutation({
-    mutationFn: async () => {
-      if (!selectedConversationId) {
-        throw new Error("No conversation selected.");
-      }
+  const handleClearUnread = () => {
+    if (!selectedConversationId) {
+      return;
+    }
+    clearUnreadMutation.mutate(selectedConversationId, {
+      onSuccess: async () => {
+        setReadError(null);
+        await refreshConversationData();
+      },
+      onError: (error: unknown) => {
+        setReadError(toErrorMessage(error, "Failed to clear unread count."));
+      },
+    });
+  };
 
-      const response = await apiClient.post<ConversationReadResponse>(
-        `/conversations/${selectedConversationId}/read`,
-      );
-      return response.data;
-    },
-    onSuccess: async () => {
-      setReadError(null);
-      await refreshConversationData();
-    },
-    onError: (error) => {
-      setReadError(toErrorMessage(error, "Failed to clear unread count."));
-    },
-  });
-
-  const markAsReadMutation = useMutation({
-    mutationFn: async (messageId: string) => {
-      const response = await apiClient.post<OutboundMessageResponse>("/messages/read", {
-        messageId,
-      });
-      return response.data;
-    },
-    onSuccess: async () => {
-      setReadError(null);
-      await refreshConversationData();
-    },
-    onError: (error) => {
-      setReadError(toErrorMessage(error, "Failed to mark message as read."));
-    },
-  });
-
-  const labelsMutation = useMutation({
-    mutationFn: async (labels: string[]) => {
-      if (!selectedConversationId) {
-        throw new Error("No conversation selected.");
-      }
-
-      const response = await apiClient.put<ConversationLabelsResponse>(
-        `/conversations/${selectedConversationId}/labels`,
-        { labels },
-      );
-      return response.data;
-    },
-    onSuccess: async (response) => {
-      setWorkspaceError(null);
-      setDraftLabels(response.conversation.labels);
-      setLabelInput("");
-      await refreshConversationData();
-    },
-    onError: (error) => {
-      setWorkspaceError(toErrorMessage(error, "Failed to update labels."));
-    },
-  });
-
-  const addNoteMutation = useMutation({
-    mutationFn: async () => {
-      if (!selectedConversationId) {
-        throw new Error("No conversation selected.");
-      }
-
-      const response = await apiClient.post<ConversationNoteMutationResponse>(
-        `/conversations/${selectedConversationId}/notes`,
-        {
-          content: noteContent,
-          pinned: notePinned,
+  const handleSaveLabels = () => {
+    if (!selectedConversationId) {
+      return;
+    }
+    labelsMutation.mutate(
+      { conversationId: selectedConversationId, labels: draftLabels },
+      {
+        onSuccess: async (response) => {
+          setWorkspaceError(null);
+          setDraftLabels(response.conversation.labels);
+          setLabelInput("");
+          await refreshConversationData();
         },
-      );
-      return response.data;
-    },
-    onSuccess: async () => {
-      setWorkspaceError(null);
-      setNoteContent("");
-      setNotePinned(false);
-      await refreshConversationData();
-    },
-    onError: (error) => {
-      setWorkspaceError(toErrorMessage(error, "Failed to add note."));
-    },
-  });
-
-  const updateNoteMutation = useMutation({
-    mutationFn: async ({
-      noteId,
-      content,
-      pinned,
-    }: {
-      noteId: string;
-      content?: string;
-      pinned?: boolean;
-    }) => {
-      if (!selectedConversationId) {
-        throw new Error("No conversation selected.");
-      }
-
-      const response = await apiClient.patch<ConversationNoteMutationResponse>(
-        `/conversations/${selectedConversationId}/notes/${noteId}`,
-        {
-          ...(typeof content === "string" ? { content } : {}),
-          ...(typeof pinned === "boolean" ? { pinned } : {}),
+        onError: (error: unknown) => {
+          setWorkspaceError(toErrorMessage(error, "Failed to update labels."));
         },
-      );
-      return response.data;
-    },
-    onSuccess: async () => {
-      setWorkspaceError(null);
-      setEditingNoteId(null);
-      setEditingNoteContent("");
-      await refreshConversationData();
-    },
-    onError: (error) => {
-      setWorkspaceError(toErrorMessage(error, "Failed to update note."));
-    },
-  });
+      },
+    );
+  };
+
+  const handleAddNote = () => {
+    if (!selectedConversationId || !noteContent.trim()) {
+      return;
+    }
+    addNoteMutation.mutate(
+      {
+        conversationId: selectedConversationId,
+        payload: { content: noteContent, pinned: notePinned },
+      },
+      {
+        onSuccess: async () => {
+          setWorkspaceError(null);
+          setNoteContent("");
+          setNotePinned(false);
+          await refreshConversationData();
+        },
+        onError: (error: unknown) => {
+          setWorkspaceError(toErrorMessage(error, "Failed to add note."));
+        },
+      },
+    );
+  };
 
   const addDraftLabel = () => {
     const nextValue = labelInput.trim();
@@ -682,7 +593,7 @@ export default function ConversationsPage() {
             <div className="flex gap-1.5">
               <Button
                 disabled={!selectedConversationId || clearUnreadMutation.isPending}
-                onClick={() => clearUnreadMutation.mutate()}
+                onClick={handleClearUnread}
                 size="sm"
                 type="button"
                 variant="secondary"
@@ -754,7 +665,7 @@ export default function ConversationsPage() {
               className="space-y-3"
               onSubmit={replyForm.handleSubmit((values) => {
                 setReplyError(null);
-                replyMutation.mutate(values);
+                handleReplySubmit(values);
               })}
             >
               <div className="flex gap-1.5">
@@ -867,7 +778,7 @@ export default function ConversationsPage() {
               </div>
               <Button
                 disabled={!selectedConversationId || isWorkspaceBusy}
-                onClick={() => labelsMutation.mutate(draftLabels)}
+                onClick={handleSaveLabels}
                 size="sm"
                 type="button"
                 variant="primary"
@@ -911,7 +822,7 @@ export default function ConversationsPage() {
             <Button
               className="w-full"
               disabled={!selectedConversationId || !noteContent.trim() || addNoteMutation.isPending}
-              onClick={() => addNoteMutation.mutate()}
+              onClick={handleAddNote}
               size="sm"
               type="button"
               variant="secondary"
@@ -933,4 +844,3 @@ export default function ConversationsPage() {
     </div>
   );
 }
-
