@@ -13,12 +13,13 @@ import {
   Zap,
   FileText,
   Layers,
-  Trash2,
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
 import { MetaEmbeddedSignup } from "../../components/whatsapp/MetaEmbeddedSignup";
 import { useWhatsAppSettingsState } from "./hooks/useWhatsAppSettingsState";
+import { WhatsAppConnectionDetailsModal } from "./components/WhatsAppConnectionDetailsModal";
+import { WhatsAppDisconnectModal } from "./components/WhatsAppDisconnectModal";
 
 export const WhatsAppSettingsModule: React.FC = () => {
   const {
@@ -245,140 +246,22 @@ export const WhatsAppSettingsModule: React.FC = () => {
       )}
 
       {/* Detail Drawer / Modal */}
-      {isDetailOpen && selectedConnection && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex justify-end transition-opacity">
-          <div className="w-full max-w-lg bg-white dark:bg-slate-900 h-full overflow-y-auto p-6 space-y-6 shadow-2xl flex flex-col justify-between">
-            <div className="space-y-6">
-              <div className="flex items-center justify-between pb-4 border-b border-slate-200 dark:border-slate-800">
-                <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                  <Settings className="w-5 h-5 text-emerald-600" />
-                  Connection Overview
-                </h3>
-                <button
-                  onClick={() => setIsDetailOpen(false)}
-                  className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              {/* Overview Section */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  Overview
-                </h4>
-                <div className="space-y-2 text-xs bg-slate-50 dark:bg-slate-950 p-4 rounded-xl">
-                  <div className="flex justify-between py-1 border-b border-slate-200 dark:border-slate-800">
-                    <span className="text-slate-500">Business Name</span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200">{selectedConnection.displayName}</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-slate-200 dark:border-slate-800">
-                    <span className="text-slate-500">WhatsApp Phone</span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200">{selectedConnection.displayPhoneNumber}</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-slate-200 dark:border-slate-800">
-                    <span className="text-slate-500">Verified Display Name</span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200">{selectedConnection.verifiedName || "N/A"}</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-slate-200 dark:border-slate-800">
-                    <span className="text-slate-500">Connection Status</span>
-                    <span className="font-semibold text-emerald-600 capitalize">{selectedConnection.connectionStatus}</span>
-                  </div>
-                  <div className="flex justify-between py-1">
-                    <span className="text-slate-500">Connected Date</span>
-                    <span className="font-semibold text-slate-800 dark:text-slate-200">{formatDate(selectedConnection.connectedAt)}</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Technical Information */}
-              <div className="space-y-3">
-                <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider">
-                  Technical Information
-                </h4>
-                <div className="space-y-2 text-xs bg-slate-50 dark:bg-slate-950 p-4 rounded-xl font-mono">
-                  <div className="flex justify-between py-1 border-b border-slate-200 dark:border-slate-800">
-                    <span className="text-slate-500">WABA ID</span>
-                    <span className="text-slate-800 dark:text-slate-200">{selectedConnection.wabaId || "N/A"}</span>
-                  </div>
-                  <div className="flex justify-between py-1 border-b border-slate-200 dark:border-slate-800">
-                    <span className="text-slate-500">Phone Number ID</span>
-                    <span className="text-slate-800 dark:text-slate-200">{selectedConnection.phoneNumberId}</span>
-                  </div>
-                  <div className="flex justify-between py-1">
-                    <span className="text-slate-500">Meta Business ID</span>
-                    <span className="text-slate-800 dark:text-slate-200">{selectedConnection.metaBusinessId || "N/A"}</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Footer Actions */}
-            <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => setIsDisconnectModalOpen(true)}
-                className="text-xs gap-1.5"
-              >
-                <Trash2 className="w-3.5 h-3.5" />
-                Disconnect Account
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsDetailOpen(false)}
-                className="text-xs"
-              >
-                Close
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      <WhatsAppConnectionDetailsModal
+        isOpen={isDetailOpen}
+        selectedConnection={selectedConnection}
+        onClose={() => setIsDetailOpen(false)}
+        onOpenDisconnectModal={() => setIsDisconnectModalOpen(true)}
+        formatDate={formatDate}
+      />
 
       {/* Disconnect Confirmation Modal */}
-      {isDisconnectModalOpen && selectedConnection && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
-          <Card className="w-full max-w-md p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center gap-3 text-red-600 dark:text-red-400">
-              <AlertCircle className="w-6 h-6 shrink-0" />
-              <h3 className="text-base font-bold text-slate-900 dark:text-slate-100">
-                Disconnect WhatsApp Connection?
-              </h3>
-            </div>
-
-            <p className="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
-              Disconnecting will pause messaging and automated workflows for this WhatsApp Business number. Historical conversations, messages, templates, and analytics will remain preserved in NiWa.
-            </p>
-
-            <div className="flex justify-end gap-2 pt-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setIsDisconnectModalOpen(false)}
-                className="text-xs"
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => handleDisconnect(selectedConnection.id)}
-                disabled={disconnectMutation.isPending}
-                className="text-xs gap-1.5"
-              >
-                {disconnectMutation.isPending ? (
-                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-                ) : (
-                  <Trash2 className="w-3.5 h-3.5" />
-                )}
-                Confirm Disconnect
-              </Button>
-            </div>
-          </Card>
-        </div>
-      )}
+      <WhatsAppDisconnectModal
+        isOpen={isDisconnectModalOpen}
+        selectedConnection={selectedConnection}
+        isPending={disconnectMutation.isPending}
+        onClose={() => setIsDisconnectModalOpen(false)}
+        onConfirmDisconnect={handleDisconnect}
+      />
     </div>
   );
 };
