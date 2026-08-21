@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { useMessageStudioTemplates, useMessageStudioMedia, useSendMessageMutation, useTemplateHeaderUploadMutation, ComposerMode } from "../../../features/message-studio";
+import { useMessageStudioTemplates, useMessageStudioMedia, useSendMessageMutation, useTemplateHeaderUploadMutation, ComposerMode, useMessageStudioOrchestration } from "../../../features/message-studio";
 
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
@@ -73,65 +73,6 @@ export default function MessageStudioPage() {
   const initialLanguage = searchParams.get("language") ?? "en";
   const initialMediaId = searchParams.get("mediaId") ?? "";
 
-  const [mode, setMode] = useState<ComposerMode>(initialMode);
-  const [requestPreview, setRequestPreview] = useState<unknown>(null);
-  const [responsePreview, setResponsePreview] = useState<unknown>(null);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-
-  const [commonTo, setCommonTo] = useState("");
-  const [textBody, setTextBody] = useState("");
-  const [previewUrl, setPreviewUrl] = useState(false);
-
-  const [templateName, setTemplateName] = useState(initialTemplate);
-  const [templateLanguage, setTemplateLanguage] = useState(initialLanguage);
-  const [templateVariables, setTemplateVariables] = useState("");
-  const [templateBodyVariableValues, setTemplateBodyVariableValues] = useState<string[]>([]);
-  const [templateHeaderVariableValues, setTemplateHeaderVariableValues] = useState<string[]>([]);
-  const [templateHeaderMediaId, setTemplateHeaderMediaId] = useState(
-    initialMode === "template" ? initialMediaId : "",
-  );
-  const [templateButtonVariables, setTemplateButtonVariables] = useState<string[]>([]);
-  const [templateHeaderUploadName, setTemplateHeaderUploadName] = useState("");
-  const [templateHeaderUploadMessage, setTemplateHeaderUploadMessage] = useState<string | null>(null);
-  const [templateHeaderUploadError, setTemplateHeaderUploadError] = useState<string | null>(null);
-
-  const [selectedMediaId, setSelectedMediaId] = useState(initialMediaId);
-  const [mediaCaption, setMediaCaption] = useState("");
-  const [documentFilename, setDocumentFilename] = useState("");
-
-  const [locationName, setLocationName] = useState("");
-  const [locationAddress, setLocationAddress] = useState("");
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
-
-  const [contactFormattedName, setContactFormattedName] = useState("");
-  const [contactFirstName, setContactFirstName] = useState("");
-  const [contactLastName, setContactLastName] = useState("");
-  const [contactPhone, setContactPhone] = useState("");
-
-  const [buttonHeader, setButtonHeader] = useState("");
-  const [buttonBody, setButtonBody] = useState("");
-  const [buttonFooter, setButtonFooter] = useState("");
-  const [buttonRows, setButtonRows] = useState("");
-
-  const [listHeader, setListHeader] = useState("");
-  const [listBody, setListBody] = useState("");
-  const [listFooter, setListFooter] = useState("");
-  const [listButtonText, setListButtonText] = useState("");
-  const [listRows, setListRows] = useState("");
-
-  const [reactionMessageId, setReactionMessageId] = useState("");
-  const [reactionEmoji, setReactionEmoji] = useState("");
-
-  const [ctaHeader, setCtaHeader] = useState("");
-  const [ctaBody, setCtaBody] = useState("");
-  const [ctaFooter, setCtaFooter] = useState("");
-  const [ctaDisplayText, setCtaDisplayText] = useState("");
-  const [ctaUrl, setCtaUrl] = useState("");
-
-  const [locationRequestBody, setLocationRequestBody] = useState("");
-  const [typingMessageId, setTypingMessageId] = useState("");
-
   const templatesQuery = useMessageStudioTemplates();
 
   const mediaQuery = useMessageStudioMedia();
@@ -141,222 +82,51 @@ export default function MessageStudioPage() {
     [templatesQuery.data],
   );
 
-  const selectedTemplate = useMemo(
-    () =>
-      findTemplateByOptionValue(
-        activeTemplates,
-        templateName && templateLanguage ? `${templateName}::${templateLanguage}` : "",
-      ),
-    [activeTemplates, templateLanguage, templateName],
-  );
+  const {
+    composer: {
+      mode, setMode, commonTo, setCommonTo, textBody, setTextBody, previewUrl, setPreviewUrl,
+      requestPreview, setRequestPreview, responsePreview, setResponsePreview, submitError, setSubmitError,
+    },
+    template: {
+      templateName, setTemplateName, templateLanguage, setTemplateLanguage, templateVariables, setTemplateVariables,
+      templateBodyVariableValues, setTemplateBodyVariableValues, templateHeaderVariableValues, setTemplateHeaderVariableValues,
+      templateHeaderMediaId, setTemplateHeaderMediaId, templateButtonVariables, setTemplateButtonVariables,
+      templateHeaderUploadName, setTemplateHeaderUploadName, templateHeaderUploadMessage, setTemplateHeaderUploadMessage,
+      templateHeaderUploadError, setTemplateHeaderUploadError, selectedTemplate, templateHeaderFormat, templateUrlButtons, templateHeaderMediaAccept,
+    },
+    media: {
+      selectedMediaId, setSelectedMediaId, mediaCaption, setMediaCaption, documentFilename, setDocumentFilename,
+      selectedMedia, selectedTemplateHeaderMedia, filteredTemplateHeaderMedia, filteredMedia,
+    },
+    location: {
+      locationName, setLocationName, locationAddress, setLocationAddress, latitude, setLatitude, longitude, setLongitude,
+    },
+    contact: {
+      contactFormattedName, setContactFormattedName, contactFirstName, setContactFirstName, contactLastName, setContactLastName, contactPhone, setContactPhone,
+    },
+    interactive: {
+      buttonHeader, setButtonHeader, buttonBody, setButtonBody, buttonFooter, setButtonFooter, buttonRows, setButtonRows,
+      listHeader, setListHeader, listBody, setListBody, listFooter, setListFooter, listButtonText, setListButtonText, listRows, setListRows,
+      reactionMessageId, setReactionMessageId, reactionEmoji, setReactionEmoji, ctaHeader, setCtaHeader, ctaBody, setCtaBody, ctaFooter, setCtaFooter,
+      ctaDisplayText, setCtaDisplayText, ctaUrl, setCtaUrl, locationRequestBody, setLocationRequestBody, typingMessageId, setTypingMessageId,
+    },
+    previewSummary,
+    buildPayload,
+  } = useMessageStudioOrchestration({
+    initialMode: initialMode,
+    initialTemplate: initialTemplate,
+    initialLanguage: initialLanguage,
+    initialMediaId: initialMediaId,
+    activeTemplates,
+    mediaList: mediaQuery.data?.media ?? [],
+  });
 
-  const selectedMedia = useMemo(
-    () =>
-      (mediaQuery.data?.media ?? []).find(
-        (media: MediaRecord) => media.metaMediaId === selectedMediaId,
-      ) ?? null,
-    [selectedMediaId, mediaQuery.data],
-  );
 
-  const templateHeaderFormat = useMemo(() => {
-    if (
-      selectedTemplate?.headerFormat &&
-      ["IMAGE", "VIDEO", "DOCUMENT"].includes(selectedTemplate.headerFormat)
-    ) {
-      return selectedTemplate.headerFormat;
-    }
-
-    const headerComponent = selectedTemplate?.components.find(
-      (component) =>
-        component.type === "HEADER" &&
-        ["IMAGE", "VIDEO", "DOCUMENT"].includes(component.format ?? ""),
-    );
-
-    return headerComponent?.format ?? "";
-  }, [selectedTemplate]);
-
-  const selectedTemplateHeaderMedia = useMemo(
-    () =>
-      (mediaQuery.data?.media ?? []).find(
-        (media: MediaRecord) => media.metaMediaId === templateHeaderMediaId,
-      ) ?? null,
-    [templateHeaderMediaId, mediaQuery.data],
-  );
-
-  const filteredTemplateHeaderMedia = useMemo(() => {
-    if (!templateHeaderFormat) {
-      return [];
-    }
-
-    return (mediaQuery.data?.media ?? []).filter(
-      (media: MediaRecord) => media.mediaType === templateHeaderFormat.toLowerCase(),
-    );
-  }, [mediaQuery.data, templateHeaderFormat]);
-
-  const templateUrlButtons = useMemo(
-    () => getTemplateUrlButtons(selectedTemplate),
-    [selectedTemplate],
-  );
-
-  useEffect(() => {
-    if (selectedTemplate && selectedTemplate.language !== templateLanguage) {
-      setTemplateLanguage(selectedTemplate.language);
-    }
-  }, [selectedTemplate, templateLanguage]);
-
-  useEffect(() => {
-    const bodyKeys = getBodyVariableKeys(selectedTemplate);
-    const headerKeys = selectedTemplate?.headerVariables ?? [];
-
-    setTemplateBodyVariableValues((current) =>
-      bodyKeys.map((_, index) => current[index] ?? ""),
-    );
-    setTemplateHeaderVariableValues((current) =>
-      headerKeys.map((_, index) => current[index] ?? ""),
-    );
-  }, [selectedTemplate]);
-
-  useEffect(() => {
-    setTemplateVariables(templateBodyVariableValues.join("\n"));
-  }, [templateBodyVariableValues]);
-
-  useEffect(() => {
-    setTemplateHeaderMediaId("");
-  }, [selectedTemplate?.name, selectedTemplate?.language]);
-
-  useEffect(() => {
-    setTemplateButtonVariables([]);
-  }, [selectedTemplate?.name, selectedTemplate?.language]);
 
   const sendMutation = useSendMessageMutation();
 
   const handleSend = () => {
-    let endpoint = "";
-    let payload: Record<string, unknown> = {};
-
-    if (mode === "text") {
-      endpoint = "/messages/text";
-      payload = { to: commonTo, body: textBody, previewUrl };
-    } else if (mode === "template") {
-      const structuredBodyVariables = templateBodyVariableValues.map((value) => value.trim());
-      const fallbackBodyVariables = parseLines(templateVariables);
-      endpoint = "/messages/template";
-      payload = {
-        to: commonTo,
-        templateName,
-        languageCode: templateLanguage,
-        bodyVariables:
-          structuredBodyVariables.filter(Boolean).length > 0
-            ? structuredBodyVariables
-            : fallbackBodyVariables,
-        ...(templateHeaderVariableValues.filter((value) => value.trim()).length > 0
-          ? {
-              headerVariables: templateHeaderVariableValues.map((value) => value.trim()),
-            }
-          : {}),
-        ...(templateHeaderMediaId ? { headerMediaId: templateHeaderMediaId } : {}),
-        ...(templateUrlButtons.length > 0
-          ? { buttonVariables: templateButtonVariables.map((value) => value.trim()) }
-          : {}),
-      };
-    } else if (["image", "video", "audio", "document", "sticker"].includes(mode)) {
-      endpoint = `/messages/${mode}`;
-      payload = {
-        to: commonTo,
-        type: mode,
-        mediaId: selectedMediaId,
-        ...(mediaCaption ? { caption: mediaCaption } : {}),
-        ...(mode === "document" && documentFilename ? { filename: documentFilename } : {}),
-      };
-    } else if (mode === "location") {
-      endpoint = "/messages/location";
-      payload = {
-        to: commonTo,
-        latitude: Number(latitude),
-        longitude: Number(longitude),
-        ...(locationName ? { name: locationName } : {}),
-        ...(locationAddress ? { address: locationAddress } : {}),
-      };
-    } else if (mode === "contact") {
-      endpoint = "/messages/contact";
-      payload = {
-        to: commonTo,
-        contacts: [
-          {
-            name: {
-              formatted_name: contactFormattedName,
-              first_name: contactFirstName,
-              ...(contactLastName ? { last_name: contactLastName } : {}),
-            },
-            phones: [
-              {
-                phone: contactPhone,
-                type: "CELL",
-              },
-            ],
-          },
-        ],
-      };
-    } else if (mode === "button") {
-      endpoint = "/messages/button";
-      payload = {
-        to: commonTo,
-        ...(buttonHeader ? { headerText: buttonHeader } : {}),
-        bodyText: buttonBody,
-        ...(buttonFooter ? { footerText: buttonFooter } : {}),
-        buttons: parseLines(buttonRows).slice(0, 3).map((line, index) => {
-          const [id, title] = line.split("|").map((part) => part.trim());
-          return {
-            id: id || `btn-${index + 1}`,
-            title: title || id || `Button ${index + 1}`,
-          };
-        }),
-      };
-    } else if (mode === "list") {
-      endpoint = "/messages/list";
-      payload = {
-        to: commonTo,
-        ...(listHeader ? { headerText: listHeader } : {}),
-        bodyText: listBody,
-        ...(listFooter ? { footerText: listFooter } : {}),
-        buttonText: listButtonText,
-        sections: [
-          {
-            title: "Options",
-            rows: parseListSections(listRows),
-          },
-        ],
-      };
-    } else if (mode === "reaction") {
-      endpoint = "/messages/reaction";
-      payload = {
-        to: commonTo,
-        messageId: reactionMessageId,
-        emoji: reactionEmoji,
-      };
-    } else if (mode === "cta_url") {
-      endpoint = "/messages/cta-url";
-      payload = {
-        to: commonTo,
-        ...(ctaHeader ? { headerText: ctaHeader } : {}),
-        bodyText: ctaBody,
-        ...(ctaFooter ? { footerText: ctaFooter } : {}),
-        displayText: ctaDisplayText,
-        url: ctaUrl,
-      };
-    } else if (mode === "location_request") {
-      endpoint = "/messages/location-request";
-      payload = {
-        to: commonTo,
-        bodyText: locationRequestBody,
-      };
-    } else {
-      endpoint = "/messages/typing-indicator";
-      payload = {
-        messageId: typingMessageId,
-      };
-    }
-
+    const { endpoint, payload } = buildPayload();
     setRequestPreview(payload);
 
     sendMutation.mutate(
@@ -403,87 +173,6 @@ export default function MessageStudioPage() {
       }
     );
   };
-
-  const filteredMedia = useMemo(() => {
-    const allMedia = mediaQuery.data?.media ?? [];
-    if (["image", "video", "audio", "document", "sticker"].includes(mode)) {
-      return allMedia.filter((item) => item.mediaType === mode);
-    }
-    return allMedia;
-  }, [mediaQuery.data, mode]);
-
-  const templateHeaderMediaAccept = useMemo(() => {
-    if (templateHeaderFormat === "IMAGE") {
-      return "image/*";
-    }
-    if (templateHeaderFormat === "VIDEO") {
-      return "video/*";
-    }
-    if (templateHeaderFormat === "DOCUMENT") {
-      return ".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,application/*";
-    }
-    return undefined;
-  }, [templateHeaderFormat]);
-
-  const previewSummary = useMemo(
-    () =>
-      buildMessageStudioPreview({
-        mode,
-        textBody,
-        selectedTemplate,
-        templateHeaderFormat,
-        selectedMedia,
-        selectedTemplateHeaderMedia,
-        templateBodyVariables: templateBodyVariableValues,
-        templateHeaderVariables: templateHeaderVariableValues,
-        templateButtonVariables: templateButtonVariables.map((value) => value.trim()).filter(Boolean),
-        mediaCaption,
-        locationName,
-        locationAddress,
-        latitude,
-        longitude,
-        contactFormattedName,
-        contactPhone,
-        buttonBody,
-        buttonRows,
-        listBody,
-        listRows,
-        reactionEmoji,
-        ctaBody,
-        ctaDisplayText,
-        ctaUrl,
-        locationRequestBody,
-        typingMessageId,
-      }),
-    [
-      mode,
-      textBody,
-      selectedTemplate,
-      templateHeaderFormat,
-      selectedMedia,
-      selectedTemplateHeaderMedia,
-      templateBodyVariableValues,
-      templateHeaderVariableValues,
-      templateButtonVariables,
-      mediaCaption,
-      locationName,
-      locationAddress,
-      latitude,
-      longitude,
-      contactFormattedName,
-      contactPhone,
-      buttonBody,
-      buttonRows,
-      listBody,
-      listRows,
-      reactionEmoji,
-      ctaBody,
-      ctaDisplayText,
-      ctaUrl,
-      locationRequestBody,
-      typingMessageId,
-    ],
-  );
 
   return (
     <div className="space-y-4">

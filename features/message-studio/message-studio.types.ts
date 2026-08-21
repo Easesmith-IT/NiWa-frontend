@@ -43,7 +43,7 @@ export interface ComposerModeProps {
 }
 
 export interface TemplateSelectorProps {
-  activeTemplates: TemplateRecord[]; // Using any[] temporarily, replace with TemplateRecord[] in actual extraction if needed
+  activeTemplates: TemplateRecord[]; 
   selectedTemplateName: string;
   selectedLanguage: string;
   onTemplateSelect: (templateName: string, language: string) => void;
