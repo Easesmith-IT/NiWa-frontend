@@ -370,7 +370,7 @@ export const Step6ReviewLaunch: React.FC<Step6Props> = ({
                   </div>
 
                   {/* Day-by-Day Rollover Schedule Breakdown */}
-                  {forecastData.schedule.length > 1 && (
+                  {forecastData?.schedule && forecastData.schedule.length > 1 && (
                     <div className="mt-3 border-t pt-2.5 space-y-1.5 text-xs">
                       <p className="text-[11px] font-bold text-gray-500 uppercase tracking-wider">
                         Estimated Rollover Schedule

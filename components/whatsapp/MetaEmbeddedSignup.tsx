@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { CheckCircle2, AlertCircle, Loader2, ArrowRight, RefreshCw, ShieldCheck } from "lucide-react";
+import { AxiosError } from "axios";
 import { Button } from "../ui/button";
 import { v1ApiClient } from "../../lib/api/v1-client";
 import { EmbeddedSignupResponse, WhatsAppConnectionRecord } from "../../lib/api/types";
@@ -11,7 +12,13 @@ const META_CONFIG_ID = "981824644880745";
 declare global {
   interface Window {
     fbAsyncInit?: () => void;
-    FB?: any;
+    FB?: {
+      init: (options: Record<string, unknown>) => void;
+      login: (
+        callback: (response: { authResponse?: { code?: string }; status?: string }) => void,
+        options: Record<string, unknown>,
+      ) => void;
+    };
   }
 }
 
@@ -43,7 +50,7 @@ export const MetaEmbeddedSignup: React.FC<MetaEmbeddedSignupProps> = ({
     if (window.FB) return;
 
     window.fbAsyncInit = function () {
-      window.FB.init({
+      window.FB?.init({
         appId: "", // Optional app ID for SDK init
         cookie: true,
         xfbml: true,
@@ -70,7 +77,11 @@ export const MetaEmbeddedSignup: React.FC<MetaEmbeddedSignupProps> = ({
         // Safe fallthrough for postMessage string parsing
       }
 
-      let payload: any = null;
+      let payload: {
+        type?: string;
+        event?: string;
+        data?: { phone_number_id?: string; waba_id?: string; business_id?: string; error_message?: string };
+      } | null = null;
       try {
         payload = typeof event.data === "string" ? JSON.parse(event.data) : event.data;
       } catch {
@@ -146,11 +157,12 @@ export const MetaEmbeddedSignup: React.FC<MetaEmbeddedSignupProps> = ({
       if (onSuccess && response.data.connection) {
         onSuccess(response.data.connection);
       }
-    } catch (err: any) {
+    } catch (err) {
       setStep("failed");
       const msg =
-        err.response?.data?.message ||
-        "Failed to verify WhatsApp connection with server. Please try again.";
+        err instanceof AxiosError
+          ? err.response?.data?.message ?? "Failed to verify WhatsApp connection with server. Please try again."
+          : "Failed to verify WhatsApp connection with server. Please try again.";
       setErrorMessage(msg);
       if (onError) onError(msg);
     }
@@ -166,11 +178,12 @@ export const MetaEmbeddedSignup: React.FC<MetaEmbeddedSignupProps> = ({
       setStatusMessage("Authenticating with Meta...");
 
       window.FB.login(
-        (response: any) => {
-          if (response.authResponse?.code) {
+        (response) => {
+          const authCode = response?.authResponse?.code;
+          if (authCode) {
             setCapturedData((prev) => ({
               ...prev,
-              code: response.authResponse.code,
+              code: authCode,
             }));
 
             if (capturedData.wabaId && capturedData.phoneNumberId) {
@@ -178,7 +191,7 @@ export const MetaEmbeddedSignup: React.FC<MetaEmbeddedSignupProps> = ({
                 wabaId: capturedData.wabaId,
                 phoneNumberId: capturedData.phoneNumberId,
                 businessId: capturedData.businessId,
-                code: response.authResponse.code,
+                code: authCode,
               });
             }
           } else if (response.status === "not_authorized" || response.status === "unknown") {

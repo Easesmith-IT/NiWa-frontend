@@ -12,6 +12,9 @@ export interface QuotaData {
 export interface QuotaForecastResponse {
   data: {
     forecast: number;
+    current?: QuotaData;
+    estimatedCompletionDate?: string;
+    schedule?: any[];
   };
 }
 
@@ -23,7 +26,7 @@ export const getQuota = async (connectionId?: string) => {
 };
 
 export const getQuotaForecast = async (params: { connectionId?: string; timezone?: string; recipientCount?: number; startDate?: string }) => {
-  const { data } = await v1ApiClient.get<any>("/quotas/forecast", {
+  const { data } = await v1ApiClient.get<QuotaForecastResponse>("/quotas/forecast", {
     params,
   });
   return data;
