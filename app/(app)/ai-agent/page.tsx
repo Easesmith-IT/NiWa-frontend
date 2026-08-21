@@ -58,6 +58,7 @@ import {
   useUpdateKnowledgeSourceMutation,
   AIAgent,
   BusinessAISettings,
+  HumanHandoffTriggers,
   KnowledgeSource,
   AIActivityLog,
   MemoryFieldDefinition,
@@ -159,7 +160,7 @@ export default function AIAgentPage() {
         setSaveFeedback({ type: "success", message: `AI Agent '${data.agent.name}' created successfully.` });
         setTimeout(() => setSaveFeedback(null), 3000);
       },
-      onError: (err: any) => {
+      onError: (err: Error) => {
         setSaveFeedback({ type: "error", message: `Failed to create agent: ${err?.message}` });
       },
     });
@@ -212,12 +213,14 @@ export default function AIAgentPage() {
         ...(formData.behavior || {}),
       },
       handoffTriggers: {
+      ...({
         explicitHumanRequest: true,
         unableToAnswer: true,
         dissatisfied: true,
         sensitiveRequest: false,
+      } as HumanHandoffTriggers),
         ...(serverSettings?.handoffTriggers || {}),
-        ...((base as any).handoffTriggers || {}),
+        ...(base.handoffTriggers || {}),
         ...(formData.handoffTriggers || {}),
       },
       ...formData,
@@ -285,7 +288,7 @@ export default function AIAgentPage() {
           setSaveFeedback({ type: "success", message: `AI Agent '${activeAgent.name}' saved successfully.` });
           setTimeout(() => setSaveFeedback(null), 3000);
         },
-        onError: (err: any) => {
+        onError: (err: Error) => {
           setSaveFeedback({ type: "error", message: `Error saving agent: ${err?.message || "Failed to update"}` });
         },
       },
@@ -334,7 +337,7 @@ export default function AIAgentPage() {
           setSaveFeedback({ type: "success", message: `Template '${tpl.name}' applied to ${activeAgent.name}.` });
           setTimeout(() => setSaveFeedback(null), 3000);
         },
-        onError: (err: any) => {
+        onError: (err: Error) => {
           setIsTemplateModalOpen(false);
           setSaveFeedback({ type: "error", message: `Failed to apply template: ${err?.message}` });
         },
@@ -761,7 +764,7 @@ export default function AIAgentPage() {
                   <label className="text-xs font-bold text-foreground">Conversation Style</label>
                   <select
                     value={currentData.conversationStyle || "consultative"}
-                    onChange={(e) => handleUpdateField("conversationStyle", e.target.value as any)}
+                    onChange={(e) => handleUpdateField("conversationStyle", e.target.value as BusinessAISettings["conversationStyle"])}
                     className="w-full h-9 rounded-md border border-border bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
                   >
                     <option value="direct">Direct</option>
@@ -776,7 +779,7 @@ export default function AIAgentPage() {
                   <label className="text-xs font-bold text-foreground">Response Tone</label>
                   <select
                     value={currentData.responseStyle || "professional"}
-                    onChange={(e) => handleUpdateField("responseStyle", e.target.value as any)}
+                    onChange={(e) => handleUpdateField("responseStyle", e.target.value as BusinessAISettings["responseStyle"])}
                     className="w-full h-9 rounded-md border border-border bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
                   >
                     <option value="professional">Professional</option>
@@ -790,7 +793,7 @@ export default function AIAgentPage() {
                   <label className="text-xs font-bold text-foreground">Response Length</label>
                   <select
                     value={currentData.responseLength || "short"}
-                    onChange={(e) => handleUpdateField("responseLength", e.target.value as any)}
+                    onChange={(e) => handleUpdateField("responseLength", e.target.value as BusinessAISettings["responseLength"])}
                     className="w-full h-9 rounded-md border border-border bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
                   >
                     <option value="short">Short (1-2 sentences)</option>
@@ -825,7 +828,7 @@ export default function AIAgentPage() {
                     { key: "useNumbersWhenUseful", label: "Use numbers when useful", desc: "Incorporate metrics & data points into diagnosis" },
                     { key: "avoidGenericRecommendations", label: "Avoid generic recommendations", desc: "Refuse cliché advice like 'do paid ads' prematurely" },
                   ].map((item) => {
-                    const isChecked = Boolean((currentData.behavior as any)?.[item.key]);
+                    const isChecked = Boolean(currentData.behavior?.[item.key as keyof typeof currentData.behavior]);
                     return (
                       <label
                         key={item.key}
@@ -837,7 +840,7 @@ export default function AIAgentPage() {
                         <input
                           type="checkbox"
                           checked={isChecked}
-                          onChange={(e) => handleUpdateBehavior(item.key as any, e.target.checked)}
+                          onChange={(e) => handleUpdateBehavior(item.key as keyof BusinessAISettings["behavior"], e.target.checked)}
                           className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary"
                         />
                         <div>
@@ -880,7 +883,7 @@ export default function AIAgentPage() {
                     return (
                       <div
                         key={aut.id}
-                        onClick={() => handleUpdateField("autonomyLevel", aut.id as any)}
+                        onClick={() => handleUpdateField("autonomyLevel", aut.id as BusinessAISettings["autonomyLevel"])}
                         className={cn(
                           "p-3 rounded-lg border cursor-pointer transition-all text-xs flex flex-col justify-between space-y-1.5",
                           isSelected
@@ -941,7 +944,7 @@ export default function AIAgentPage() {
                         { key: "allowCasualConversation", label: "Allow Casual Conversation", desc: "Process greetings and acknowledgements gracefully" },
                         { key: "redirectOutOfScope", label: "Redirect Out-of-Scope Questions", desc: "Politely redirect queries exceeding scope boundaries" },
                       ].map((tog) => {
-                        const isChecked = Boolean((currentData as any)[tog.key] !== false);
+                        const isChecked = Boolean(currentData[tog.key as keyof BusinessAISettings] !== false);
                         return (
                           <label
                             key={tog.key}
@@ -953,7 +956,7 @@ export default function AIAgentPage() {
                             <input
                               type="checkbox"
                               checked={isChecked}
-                              onChange={(e) => handleUpdateField(tog.key as any, e.target.checked)}
+                              onChange={(e) => handleUpdateField(tog.key as keyof BusinessAISettings, e.target.checked)}
                               className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary"
                             />
                             <div>
@@ -1064,7 +1067,7 @@ export default function AIAgentPage() {
                   <label className="text-xs font-bold text-foreground">Language Mode</label>
                   <select
                     value={currentData.languageMode || "auto"}
-                    onChange={(e) => handleUpdateField("languageMode", e.target.value as any)}
+                    onChange={(e) => handleUpdateField("languageMode", e.target.value as BusinessAISettings["languageMode"])}
                     className="w-full h-9 rounded-md border border-border bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
                   >
                     <option value="auto">Auto Detect Customer Language</option>
@@ -1090,7 +1093,7 @@ export default function AIAgentPage() {
                   { key: "allowHinglish", label: "Allow Hinglish", desc: "Support Hinglish when customer speaks Hindi/Hinglish" },
                   { key: "preserveTechnicalEnglish", label: "Preserve Tech Terms", desc: "Keep business & technical English terms intact" },
                 ].map((item) => {
-                  const isChecked = Boolean((currentData as any)[item.key]);
+                  const isChecked = Boolean(currentData[item.key as keyof BusinessAISettings]);
                   return (
                     <label
                       key={item.key}
@@ -1102,7 +1105,7 @@ export default function AIAgentPage() {
                       <input
                         type="checkbox"
                         checked={isChecked}
-                        onChange={(e) => handleUpdateField(item.key as any, e.target.checked)}
+                        onChange={(e) => handleUpdateField(item.key as keyof BusinessAISettings, e.target.checked)}
                         className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary"
                       />
                       <div>
@@ -1268,7 +1271,7 @@ export default function AIAgentPage() {
                       <button
                         key={opt.value}
                         type="button"
-                        onClick={() => handleUpdateField("unknownAnswerBehavior", opt.value as any)}
+                        onClick={() => handleUpdateField("unknownAnswerBehavior", opt.value as BusinessAISettings["unknownAnswerBehavior"])}
                         className={cn(
                           "flex flex-col text-left p-3 rounded-lg border text-xs space-y-1 transition-all",
                           isSelected
@@ -1328,7 +1331,7 @@ export default function AIAgentPage() {
                         { key: "dissatisfied", label: "Customer appears dissatisfied", desc: "Negative sentiment or frustration detected" },
                         { key: "sensitiveRequest", label: "Sensitive / high-risk request", desc: "Payment, legal, or account risk query" },
                       ].map((trig) => {
-                        const isChecked = Boolean((currentData.handoffTriggers as any)?.[trig.key]);
+                        const isChecked = Boolean(currentData.handoffTriggers?.[trig.key as keyof typeof currentData.handoffTriggers]);
                         return (
                           <label
                             key={trig.key}
@@ -1340,7 +1343,7 @@ export default function AIAgentPage() {
                             <input
                               type="checkbox"
                               checked={isChecked}
-                              onChange={(e) => handleUpdateHandoffTrigger(trig.key as any, e.target.checked)}
+                              onChange={(e) => handleUpdateHandoffTrigger(trig.key as keyof HumanHandoffTriggers, e.target.checked)}
                               className="mt-0.5 h-4 w-4 rounded border-border text-primary focus:ring-primary"
                             />
                             <div>
@@ -1614,7 +1617,7 @@ export default function AIAgentPage() {
                 <label className="font-bold text-foreground">Data Type</label>
                 <select
                   value={memoryFieldType}
-                  onChange={(e) => setMemoryFieldType(e.target.value as any)}
+                  onChange={(e) => setMemoryFieldType(e.target.value as MemoryFieldDefinition["type"])}
                   className="w-full h-9 rounded-md border border-border bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
                 >
                   <option value="string">Text (String)</option>

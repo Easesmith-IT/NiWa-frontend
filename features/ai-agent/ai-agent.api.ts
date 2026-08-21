@@ -99,6 +99,7 @@ export interface AIAgent {
   conversationStyle: "direct" | "consultative" | "supportive" | "sales_oriented" | "custom";
   responseStyle: "professional" | "friendly" | "casual" | "custom";
   responseLength: "short" | "balanced" | "detailed";
+  questionsPerReply: number;
   behavior: AgentBehaviorConfig;
   scopeLevel: ScopeLevel;
   autonomyLevel: AutonomyLevel;
@@ -115,11 +116,29 @@ export interface AIAgent {
   knowledgePackIds: string[];
   recommendedIntegrations: string[];
   enabledTools: string[];
+  languageMode: "auto" | "english" | "hindi" | "hinglish" | "custom";
+  matchCustomerLanguage: boolean;
+  allowHinglish: boolean;
+  preserveTechnicalEnglish: boolean;
+  preferredLanguage: string;
+  agentInstructions: string;
+  systemPrompt: string;
   memoryEnabled: boolean;
   memorySchema: MemoryFieldDefinition[];
+  maxFactsPerConversation: number;
+  maxFactLength: number;
+  unknownAnswerBehavior: "ask_customer" | "explain_unavailable" | "safe_response" | "no_response" | "handoff";
+  fallbackResponse: string;
+  humanHandoffEnabled: boolean;
+  handoffTriggers: HumanHandoffTriggers;
+  handoffMessage: string;
   aiModel: string;
   temperature: number;
   maxTokens: number;
+  useConversationHistory: boolean;
+  maxHistoryMessages: number;
+  greetingFastPathEnabled: boolean;
+  acknowledgementFastPathEnabled: boolean;
   createdAt: string;
   updatedAt: string;
 }
