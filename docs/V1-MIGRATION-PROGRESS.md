@@ -37,7 +37,7 @@
 - [x] Phase 2D-B: Inbox Type Safety & API Boundary (`3ee92d2`)
 - [x] Phase 2D-C: Inbox State Orchestration (`9f3c903`)
 - [x] Phase 2D-D: Inbox UI Decomposition - Thread List & Layout (`5f674ce`)
-- [x] Phase 2D-E: Inbox UI Decomposition - Chat Window & Composer (`InboxChatWindow`, `ChatMessageList`, `ChatMessageItem`, `ChatComposer`, `MessageMedia`)
-- [ ] Phase 2D-F: Inbox UI Decomposition - Contact Sidebar
+- [x] Phase 2D-E: Inbox UI Decomposition - Chat Window & Composer (`ca01f2e`)
+- [x] Phase 2D-F: Inbox UI Decomposition - Contact Sidebar (`InboxContactSidebar`, `ContactProfileSection`, `ContactLabelsSection`, `ContactNotesSection`, `ContactTasksSection`, `ScheduledMessagesSection`, `ContactActivitySection`, `PanelSection`)
 - [ ] Phase 2D-G: Inbox Final Cleanup & Verification
 - [ ] AI Agent V1 Migration

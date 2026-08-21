@@ -46,6 +46,7 @@ import {
   ContactAvatar,
   ImageLightboxModal,
   InboxChatWindow,
+  InboxContactSidebar,
   InboxLayout,
   InboxThreadList,
   MessageRecordV1,
@@ -175,21 +176,6 @@ const getErrorMessage = (error: unknown, fallback: string) =>
     : error instanceof Error
       ? error.message
       : fallback;
-
-const PanelSection = ({
-  title,
-  children,
-}: {
-  children: ReactNode;
-  title: string;
-}) => (
-  <section className="border-t border-[#E4E4E7] px-5 py-4 first:border-t-0">
-    <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
-      {title}
-    </h3>
-    <div className="mt-3">{children}</div>
-  </section>
-);
 
 export default function InboxPage() {
   const searchParams = useSearchParams();
@@ -885,460 +871,134 @@ export default function InboxPage() {
         />
 
         {detail && contactInfoOpen ? (
-          <aside className="niwa-scrollbar min-h-0 overflow-y-auto border-l border-[#ddd2c3] bg-[#fbf7f1]">
-            <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#e5ddd3] bg-[#fbf7f1] px-6 py-5">
-              <div>
-                <h2 className="text-[18px] font-semibold text-[#25342f]">Contact info</h2>
-                <p className="text-sm text-[#6f7f75]">CRM context for the active conversation</p>
-              </div>
-              <button
-                className="rounded-full p-2 text-[#6f7f75] transition hover:bg-[#efe7db] hover:text-[#25342f]"
-                onClick={() => setContactInfoOpen(false)}
-                type="button"
-              >
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-
-            <div className="px-6 pb-8 pt-6">
-              {editingContact ? (
-                <div className="space-y-3 text-left">
-                  <div>
-                    <label className="mb-1 block text-xs uppercase tracking-[0.12em] text-[#6f7f75]">
-                      Display Name
-                    </label>
-                    <Input
-                      className="border-[#ddd2c3] bg-white text-[#25342f]"
-                      onChange={(e) => setEditDisplayName(e.target.value)}
-                      placeholder="Display Name"
-                      value={editDisplayName}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs uppercase tracking-[0.12em] text-[#6f7f75]">
-                      Company
-                    </label>
-                    <Input
-                      className="border-[#ddd2c3] bg-white text-[#25342f]"
-                      onChange={(e) => setEditCompany(e.target.value)}
-                      placeholder="Company Name"
-                      value={editCompany}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs uppercase tracking-[0.12em] text-[#6f7f75]">
-                      Email Address
-                    </label>
-                    <Input
-                      className="border-[#ddd2c3] bg-white text-[#25342f]"
-                      onChange={(e) => setEditEmail(e.target.value)}
-                      placeholder="email@example.com"
-                      type="email"
-                      value={editEmail}
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs uppercase tracking-[0.12em] text-[#6f7f75]">
-                      Custom Avatar Image URL
-                    </label>
-                    <Input
-                      className="border-[#ddd2c3] bg-white text-[#25342f]"
-                      onChange={(e) => setEditAvatarUrl(e.target.value)}
-                      placeholder="https://example.com/avatar.jpg"
-                      value={editAvatarUrl}
-                    />
-                  </div>
-                  <div className="flex gap-2 pt-2">
-                    <Button
-                      className="bg-[#2d644d] text-white hover:bg-[#255440]"
-                      disabled={!editDisplayName.trim() || patchContactMutation.isPending}
-                      onClick={() =>
-                        patchContactMutation.mutate(
-                          {
-                            contactId: detail.contact._id,
-                            payload: {
-                              avatarUrl: editAvatarUrl.trim(),
-                              company: editCompany.trim(),
-                              displayName: editDisplayName.trim(),
-                              email: editEmail.trim(),
-                            },
-                          },
-                          {
-                            onSuccess: () => setEditingContact(false),
-                          },
-                        )
-                      }
-                      size="sm"
-                      type="button"
-                    >
-                      Save changes
-                    </Button>
-                    <Button
-                      onClick={() => setEditingContact(false)}
-                      size="sm"
-                      type="button"
-                      variant="secondary"
-                    >
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center text-center">
-                  <ContactAvatar
-                    avatarUrl={detail.contact.avatarUrl}
-                    className="h-24 w-24 text-2xl"
-                    name={detail.contact.displayName}
-                  />
-                  <h3 className="mt-4 text-[28px] font-semibold tracking-[-0.03em] text-[#25342f]">
-                    {detail.contact.displayName}
-                  </h3>
-                  <p className="mt-2 text-[16px] text-[#56675d]">
-                    {detail.contact.phoneNumber || "No phone available"}
-                  </p>
-                  {detail.contact.profileName && detail.contact.profileName !== detail.contact.displayName ? (
-                    <p className="mt-1 text-sm text-[#7a8b82]">
-                      WhatsApp profile: {detail.contact.profileName}
-                    </p>
-                  ) : null}
-                  {detail.contact.company ? (
-                    <p className="mt-1 text-sm text-[#7a8b82]">{detail.contact.company}</p>
-                  ) : null}
-                  <Button
-                    className="mt-4 border-[#ddd2c3] bg-white text-[#25342f] hover:bg-[#f6f1e9]"
-                    onClick={() => {
-                      setEditDisplayName(detail.contact.displayName ?? "");
-                      setEditCompany(detail.contact.company ?? "");
-                      setEditEmail(detail.contact.email ?? "");
-                      setEditAvatarUrl(detail.contact.avatarUrl ?? "");
-                      setEditingContact(true);
-                    }}
-                    size="sm"
-                    type="button"
-                    variant="secondary"
-                  >
-                    Edit contact details
-                  </Button>
-                </div>
-              )}
-            </div>
-
-            <PanelSection title="Labels">
-              <div className="flex flex-wrap gap-2">
-                {contactLabels.map((label) => (
-                  <button
-                    className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm"
-                    disabled={removeLabelMutation.isPending}
-                    key={label._id}
-                    onClick={() =>
-                      removeLabelMutation.mutate({ contactId: detail.contact._id, labelId: label._id })
-                    }
-                    style={{ backgroundColor: label.color, color: "#1b2521" }}
-                    type="button"
-                  >
-                    {label.name}
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                ))}
-                {contactLabels.length === 0 ? (
-                  <p className="text-sm text-[#7a8b82]">No labels assigned.</p>
-                ) : null}
-              </div>
-              <div className="mt-4 flex gap-2">
-                <select
-                  className="h-10 flex-1 rounded-lg border border-[#ddd2c3] bg-white px-3 text-sm text-[#25342f] outline-none"
-                  onChange={(event) => setSelectedLabelId(event.target.value)}
-                  value={selectedLabelId}
-                >
-                  <option value="">Add a label</option>
-                  {availableLabels.map((label) => (
-                    <option key={label._id} value={label._id}>
-                      {label.name}
-                    </option>
-                  ))}
-                </select>
-                <Button
-                  className="border-[#ddd2c3] bg-white text-[#25342f] hover:bg-[#f6f1e9]"
-                  disabled={!selectedLabelId || addLabelMutation.isPending}
-                  onClick={() =>
-                    addLabelMutation.mutate(
-                      { contactId: detail.contact._id, labelId: selectedLabelId },
-                      { onSuccess: () => setSelectedLabelId("") },
-                    )
-                  }
-                  size="sm"
-                  type="button"
-                  variant="secondary"
-                >
-                  <Tags className="h-4 w-4" />
-                </Button>
-              </div>
-            </PanelSection>
-
-            <PanelSection title="Notes">
-              <Textarea
-                className="min-h-24 border-[#ddd2c3] bg-white text-[#25342f]"
-                onChange={(event) => setNoteContent(event.target.value)}
-                placeholder="Add internal note"
-                value={noteContent}
-              />
-              <label className="mt-3 flex items-center gap-2 text-sm text-[#6f7f75]">
-                <input
-                  checked={notePinned}
-                  onChange={(event) => setNotePinned(event.target.checked)}
-                  type="checkbox"
-                />
-                Pin note
-              </label>
-              <Button
-                className="mt-3 w-full border-[#ddd2c3] bg-white text-[#25342f] hover:bg-[#f6f1e9]"
-                disabled={!noteContent.trim() || createNoteMutation.isPending}
-                onClick={() =>
-                  createNoteMutation.mutate(
-                    {
-                      contactId: detail.contact._id,
-                      payload: {
-                        content: noteContent.trim(),
-                        conversationId: activeConversationId ?? undefined,
-                        pinned: notePinned,
-                      },
-                    },
-                    {
-                      onSuccess: () => {
-                        setNoteContent("");
-                        setNotePinned(false);
-                      },
-                    },
-                  )
-                }
-                type="button"
-                variant="secondary"
-              >
-                Add note
-              </Button>
-              <div className="mt-4 space-y-3">
-                {detail.notes.slice(0, 6).map((note) => (
-                  <div className="rounded-xl bg-white px-4 py-4" key={note._id}>
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-medium text-[#25342f]">{note.authorName}</p>
-                      <button
-                        className="rounded-full p-1.5 text-[#6f7f75] transition hover:bg-[#f3ede4] hover:text-[#25342f]"
-                        onClick={() =>
-                          setNotePinnedMutation.mutate({ noteId: note._id, pinned: !note.pinned })
-                        }
-                        type="button"
-                      >
-                        <Pin className="h-4 w-4" />
-                      </button>
-                    </div>
-                    {editingNoteId === note._id ? (
-                      <div className="mt-3 space-y-2">
-                        <Textarea
-                          className="min-h-20 border-[#ddd2c3] bg-[#fffdf9] text-[#25342f]"
-                          onChange={(event) => setEditingNoteContent(event.target.value)}
-                          value={editingNoteContent}
-                        />
-                        <div className="flex gap-2">
-                          <Button
-                            disabled={!editingNoteContent.trim() || patchNoteMutation.isPending}
-                            onClick={() =>
-                              patchNoteMutation.mutate(
-                                { noteId: note._id, payload: { content: editingNoteContent.trim() } },
-                                {
-                                  onSuccess: () => {
-                                    setEditingNoteId(null);
-                                    setEditingNoteContent("");
-                                  },
-                                },
-                              )
-                            }
-                            size="sm"
-                            type="button"
-                          >
-                            Save
-                          </Button>
-                          <Button
-                            onClick={() => {
-                              setEditingNoteId(null);
-                              setEditingNoteContent("");
-                            }}
-                            size="sm"
-                            type="button"
-                            variant="secondary"
-                          >
-                            Cancel
-                          </Button>
-                        </div>
-                      </div>
-                    ) : (
-                      <p className="mt-2 whitespace-pre-wrap text-sm text-[#5c6d63]">{note.content}</p>
-                    )}
-                    <div className="mt-3 flex gap-2">
-                      <Button
-                        className="border-[#ddd2c3] bg-white text-[#25342f] hover:bg-[#f6f1e9]"
-                        onClick={() => {
-                          setEditingNoteId(note._id);
-                          setEditingNoteContent(note.content);
-                        }}
-                        size="sm"
-                        type="button"
-                        variant="secondary"
-                      >
-                        Edit
-                      </Button>
-                      <Button
-                        className="border-[#ddd2c3] bg-white text-[#25342f] hover:bg-[#f6f1e9]"
-                        disabled={deleteNoteMutation.isPending}
-                        onClick={() => deleteNoteMutation.mutate(note._id)}
-                        size="sm"
-                        type="button"
-                        variant="secondary"
-                      >
-                        Delete
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-                {detail.notes.length === 0 ? (
-                  <p className="text-sm text-[#7a8b82]">No notes yet.</p>
-                ) : null}
-              </div>
-            </PanelSection>
-
-            <PanelSection title="Tasks">
-              <div className="space-y-3">
-                <Input
-                  className="border-[#ddd2c3] bg-white text-[#25342f]"
-                  onChange={(event) => setTaskTitle(event.target.value)}
-                  placeholder="Create task"
-                  value={taskTitle}
-                />
-                <div className="grid grid-cols-[minmax(0,1fr)_110px] gap-2">
-                  <Input
-                    className="border-[#ddd2c3] bg-white text-[#25342f]"
-                    onChange={(event) => setTaskDueDate(event.target.value)}
-                    type="date"
-                    value={taskDueDate}
-                  />
-                  <select
-                    className="h-10 rounded-lg border border-[#ddd2c3] bg-white px-3 text-sm text-[#25342f] outline-none"
-                    onChange={(event) => setTaskPriority(event.target.value as "high" | "low" | "medium")}
-                    value={taskPriority}
-                  >
-                    {priorityOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-                <Button
-                  className="w-full border-[#ddd2c3] bg-white text-[#25342f] hover:bg-[#f6f1e9]"
-                  disabled={!taskTitle.trim() || createTaskMutation.isPending}
-                  onClick={() =>
-                    createTaskMutation.mutate(
-                      {
-                        contactId: detail.contact._id,
-                        conversationId: activeConversationId ?? undefined,
-                        dueAt: toIsoFromDateInput(taskDueDate),
-                        priority: taskPriority,
-                        title: taskTitle.trim(),
-                      },
-                      {
-                        onSuccess: () => {
-                          setTaskTitle("");
-                          setTaskDueDate("");
-                          setTaskPriority("medium");
-                        },
-                      },
-                    )
-                  }
-                  type="button"
-                  variant="secondary"
-                >
-                  Add task
-                </Button>
-              </div>
-              <div className="mt-4 space-y-3">
-                {tasks.map((task) => (
-                  <div className="rounded-xl bg-white px-4 py-4" key={task._id}>
-                    <div className="flex items-start justify-between gap-3">
-                      <div>
-                        <p className="text-sm font-medium text-[#25342f]">{task.title}</p>
-                        <p className="mt-1 text-xs text-[#7a8b82]">
-                          {task.priority} • {task.status}
-                        </p>
-                        <p className="mt-1 text-xs text-[#7a8b82]">
-                          Due {task.dueAt ? formatDateInput(task.dueAt) : "unscheduled"}
-                        </p>
-                      </div>
-                      {task.status === "todo" ? (
-                        <div className="flex gap-1">
-                          <button
-                            className="rounded-full p-1.5 text-[#6f7f75] transition hover:bg-[#f3ede4] hover:text-[#25342f]"
-                            disabled={completeTaskMutation.isPending}
-                            onClick={() => completeTaskMutation.mutate(task._id)}
-                            type="button"
-                          >
-                            <Check className="h-4 w-4" />
-                          </button>
-                          <button
-                            className="rounded-full p-1.5 text-[#6f7f75] transition hover:bg-[#f3ede4] hover:text-[#25342f]"
-                            disabled={cancelTaskMutation.isPending}
-                            onClick={() => cancelTaskMutation.mutate(task._id)}
-                            type="button"
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
-                        </div>
-                      ) : null}
-                    </div>
-                  </div>
-                ))}
-                {tasks.length === 0 ? <p className="text-sm text-[#7a8b82]">No tasks yet.</p> : null}
-              </div>
-            </PanelSection>
-
-            <PanelSection title="Scheduled messages">
-              <div className="space-y-3">
-                {scheduledItems.slice(0, 5).map((item) => (
-                  <div className="rounded-xl bg-white px-4 py-4" key={item._id}>
-                    <p className="text-sm font-medium text-[#25342f]">{getSchedulePreview(item.payload)}</p>
-                    <p className="mt-1 text-xs text-[#7a8b82]">
-                      {item.status} • {item.scheduleType}
-                    </p>
-                    <p className="mt-1 text-xs text-[#7a8b82]">
-                      {formatDateTime(item.nextRunAt ?? item.scheduledFor)}
-                    </p>
-                  </div>
-                ))}
-                {scheduledItems.length === 0 ? (
-                  <p className="text-sm text-[#7a8b82]">No scheduled sends.</p>
-                ) : null}
-              </div>
-            </PanelSection>
-
-            <PanelSection title="Activity">
-              <div className="space-y-3">
-                {detail.activities.slice(0, 6).map((activity) => (
-                  <div className="rounded-xl bg-white px-4 py-4" key={activity._id}>
-                    <div className="flex items-start justify-between gap-3">
-                      <p className="text-sm text-[#25342f]">{activity.description}</p>
-                      <span className="rounded-full bg-[#f6f1e9] px-2 py-1 text-[10px] uppercase tracking-[0.14em] text-[#7a8b82]">
-                        {activity.type}
-                      </span>
-                    </div>
-                    <p className="mt-2 text-xs text-[#7a8b82]">
-                      {activity.actorName} • {formatDateTime(activity.createdAt)}
-                    </p>
-                  </div>
-                ))}
-                {detail.activities.length === 0 ? (
-                  <p className="text-sm text-[#7a8b82]">No activity recorded.</p>
-                ) : null}
-              </div>
-            </PanelSection>
-          </aside>
+          <InboxContactSidebar
+            activities={detail.activities}
+            availableLabels={availableLabels}
+            contactLabels={contactLabels}
+            detail={detail}
+            editAvatarUrl={editAvatarUrl}
+            editCompany={editCompany}
+            editDisplayName={editDisplayName}
+            editEmail={editEmail}
+            editingContact={editingContact}
+            editingNoteContent={editingNoteContent}
+            editingNoteId={editingNoteId}
+            isAddingLabel={addLabelMutation.isPending}
+            isCancelingTask={cancelTaskMutation.isPending}
+            isCompletingTask={completeTaskMutation.isPending}
+            isCreatingNote={createNoteMutation.isPending}
+            isCreatingTask={createTaskMutation.isPending}
+            isDeletingNote={deleteNoteMutation.isPending}
+            isPatchingNote={patchNoteMutation.isPending}
+            isRemovingLabel={removeLabelMutation.isPending}
+            isSavingContact={patchContactMutation.isPending}
+            noteContent={noteContent}
+            notePinned={notePinned}
+            notes={detail.notes}
+            onAddLabel={() => {
+              if (!selectedLabelId) return;
+              addLabelMutation.mutate(
+                { contactId: detail.contact._id, labelId: selectedLabelId },
+                { onSuccess: () => setSelectedLabelId("") },
+              );
+            }}
+            onAddNote={() => {
+              if (!noteContent.trim()) return;
+              createNoteMutation.mutate(
+                {
+                  contactId: detail.contact._id,
+                  payload: {
+                    content: noteContent.trim(),
+                    conversationId: activeConversationId ?? undefined,
+                    pinned: notePinned,
+                  },
+                },
+                {
+                  onSuccess: () => {
+                    setNoteContent("");
+                    setNotePinned(false);
+                  },
+                },
+              );
+            }}
+            onAddTask={() => {
+              if (!taskTitle.trim()) return;
+              createTaskMutation.mutate(
+                {
+                  contactId: detail.contact._id,
+                  conversationId: activeConversationId ?? undefined,
+                  dueAt: toIsoFromDateInput(taskDueDate),
+                  priority: taskPriority,
+                  title: taskTitle.trim(),
+                },
+                {
+                  onSuccess: () => {
+                    setTaskTitle("");
+                    setTaskDueDate("");
+                    setTaskPriority("medium");
+                  },
+                },
+              );
+            }}
+            onCancelTask={(taskId) => cancelTaskMutation.mutate(taskId)}
+            onClose={() => setContactInfoOpen(false)}
+            onCompleteTask={(taskId) => completeTaskMutation.mutate(taskId)}
+            onDeleteNote={(noteId) => deleteNoteMutation.mutate(noteId)}
+            onEditAvatarUrlChange={setEditAvatarUrl}
+            onEditCompanyChange={setEditCompany}
+            onEditDisplayNameChange={setEditDisplayName}
+            onEditEmailChange={setEditEmail}
+            onEditingContactChange={setEditingContact}
+            onEditingNoteContentChange={setEditingNoteContent}
+            onEditingNoteIdChange={setEditingNoteId}
+            onNoteContentChange={setNoteContent}
+            onNotePinnedChange={setNotePinned}
+            onRemoveLabel={(labelId) =>
+              removeLabelMutation.mutate({ contactId: detail.contact._id, labelId })
+            }
+            onSaveContact={() => {
+              if (!editDisplayName.trim()) return;
+              patchContactMutation.mutate(
+                {
+                  contactId: detail.contact._id,
+                  payload: {
+                    avatarUrl: editAvatarUrl.trim(),
+                    company: editCompany.trim(),
+                    displayName: editDisplayName.trim(),
+                    email: editEmail.trim(),
+                  },
+                },
+                {
+                  onSuccess: () => setEditingContact(false),
+                },
+              );
+            }}
+            onSaveNoteEdit={(noteId) => {
+              if (!editingNoteContent.trim()) return;
+              patchNoteMutation.mutate(
+                { noteId, payload: { content: editingNoteContent.trim() } },
+                {
+                  onSuccess: () => {
+                    setEditingNoteId(null);
+                    setEditingNoteContent("");
+                  },
+                },
+              );
+            }}
+            onSelectLabelId={setSelectedLabelId}
+            onTaskDueDateChange={setTaskDueDate}
+            onTaskPriorityChange={setTaskPriority}
+            onTaskTitleChange={setTaskTitle}
+            onTogglePinNote={(noteId, currentPinned) =>
+              setNotePinnedMutation.mutate({ noteId, pinned: !currentPinned })
+            }
+            scheduledItems={scheduledItems}
+            selectedLabelId={selectedLabelId}
+            taskDueDate={taskDueDate}
+            taskPriority={taskPriority}
+            taskTitle={taskTitle}
+            tasks={tasks}
+          />
         ) : null}
       </InboxLayout>
 

@@ -16,10 +16,19 @@ export * from "./components/ChatMessageList";
 export * from "./components/ChatComposer";
 export * from "./components/InboxChatWindow";
 export * from "./components/MessageMedia";
+export * from "./components/PanelSection";
+export * from "./components/ContactProfileSection";
+export * from "./components/ContactLabelsSection";
+export * from "./components/ContactNotesSection";
+export * from "./components/ContactTasksSection";
+export * from "./components/ScheduledMessagesSection";
+export * from "./components/ContactActivitySection";
+export * from "./components/InboxContactSidebar";
 export * from "./components/ThreadListSkeleton";
 export * from "./components/ChatWindowSkeleton";
 export * from "./components/ImageLightboxModal";
 export * from "./utils/formatters";
+
 
 
 
