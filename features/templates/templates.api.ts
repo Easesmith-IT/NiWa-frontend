@@ -1,21 +1,8 @@
 import { v1ApiClient } from "../../lib/api/v1-client";
 import type { TemplatesResponse, TemplateSyncResponse } from "../../lib/api/types";
+import type { GetTemplatesParams, MetaTemplate } from "./templates.types";
 
-export interface MetaTemplate {
-  _id: string;
-  name: string;
-  language: string;
-  status: string;
-  category: string;
-  components: any[];
-}
-
-export interface GetTemplatesParams {
-  category?: string;
-  language?: string;
-  query?: string;
-  status?: string;
-}
+export * from "./templates.types";
 
 export const getTemplatesV1 = async (params?: GetTemplatesParams) => {
   const { data } = await v1ApiClient.get<TemplatesResponse>("/templates", { params });

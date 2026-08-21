@@ -3,30 +3,9 @@
 import React from "react";
 import { CheckCheck, ExternalLink, Image as ImageIcon, Phone, Video } from "lucide-react";
 
-export interface TemplateComponent {
-  type: "HEADER" | "BODY" | "FOOTER" | "BUTTONS";
-  format?: "TEXT" | "IMAGE" | "DOCUMENT" | "VIDEO";
-  text?: string;
-  example?: {
-    header_text?: string[];
-    body_text?: string[][];
-  };
-  buttons?: Array<{
-    type: "QUICK_REPLY" | "URL" | "PHONE_NUMBER";
-    text: string;
-    url?: string;
-    phone_number?: string;
-  }>;
-}
+import type { MetaTemplate, TemplateComponent } from "../../templates/templates.types";
 
-export interface MetaTemplate {
-  _id: string;
-  name: string;
-  language: string;
-  category?: string;
-  status?: string;
-  components?: TemplateComponent[];
-}
+export type { MetaTemplate, TemplateComponent };
 
 interface WhatsAppMessagePreviewProps {
   template: MetaTemplate | null;

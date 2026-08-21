@@ -1,3 +1,4 @@
+export * from "./templates.types";
 export * from "./templates.api";
 export * from "./templates.queries";
 export * from "./hooks/useTemplatesOrchestration";
