@@ -40,4 +40,7 @@
 - [x] Phase 2D-E: Inbox UI Decomposition - Chat Window & Composer (`ca01f2e`)
 - [x] Phase 2D-F: Inbox UI Decomposition - Contact Sidebar (`1cfac9c`)
 - [x] Phase 2D-G: Inbox Final Cleanup & Verification (`page.tsx` thin composition, 0 unsafe types, 0 direct HTTP in UI components, verified V1 queries & single realtime subscriber)
-- [ ] AI Agent V1 Migration
+- [x] AI Agent V1 Migration (Started Phase 6)
+
+## Phase 6: AI Agent Migration
+- [x] Phase 2E-A: AI Agent Architecture Audit & Map
