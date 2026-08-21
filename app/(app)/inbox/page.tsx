@@ -40,9 +40,12 @@ import {
   useRemoveContactLabelV1Mutation,
 } from "../../../features/contacts";
 import {
+  ChatComposer,
+  ChatMessageList,
   ChatWindowSkeleton,
   ContactAvatar,
   ImageLightboxModal,
+  InboxChatWindow,
   InboxLayout,
   InboxThreadList,
   MessageRecordV1,
@@ -51,6 +54,7 @@ import {
   formatDateInput,
   formatDateTime,
   formatMessageDay,
+  getMessageTimestamp,
   mergeAndReconcileMessages,
   toIsoFromDateInput,
   useAsyncMessageBatchQueue,
@@ -171,161 +175,6 @@ const getErrorMessage = (error: unknown, fallback: string) =>
     : error instanceof Error
       ? error.message
       : fallback;
-
-const renderOutgoingStatusIcon = (status?: string) => {
-  switch ((status ?? "").toLowerCase()) {
-    case "read":
-    case "seen":
-      return (
-        <span title="Read / Seen by customer">
-          <CheckCheck className="h-4 w-4 text-[#34b7f1]" />
-        </span>
-      );
-    case "delivered":
-      return (
-        <span title="Delivered to recipient's phone">
-          <CheckCheck className="h-4 w-4 text-[#7a8b82]" />
-        </span>
-      );
-    case "sent":
-    case "submitted":
-      return (
-        <span title="Sent to WhatsApp servers">
-          <Check className="h-4 w-4 text-[#7a8b82]" />
-        </span>
-      );
-    case "queued":
-    case "accepted":
-      return (
-        <span title="Sending / Queued in dispatch">
-          <Clock3 className="h-4 w-4 text-[#7a8b82] animate-pulse" />
-        </span>
-      );
-    case "failed":
-      return (
-        <span title="Failed to send">
-          <X className="h-4 w-4 text-[#bf5b4b]" />
-        </span>
-      );
-    default:
-      return (
-        <span title="Sent">
-          <Check className="h-4 w-4 text-[#7a8b82]" />
-        </span>
-      );
-  }
-};
-
-const getMessageTimestamp = (message: {
-  createdAt?: string;
-  metaTimestamp?: string | null;
-}) => message.metaTimestamp || message.createdAt || "";
-
-const buildMessageStatusDetails = (message: {
-  errorDetails?: string | null;
-  status?: string;
-  statusTimestamps?: {
-    deliveredAt?: string | null;
-    failedAt?: string | null;
-    queuedAt?: string | null;
-    readAt?: string | null;
-    sentAt?: string | null;
-  };
-}) => {
-  const currentStatus = (message.status ?? "sent").toUpperCase();
-  const parts = [
-    `Current Status: ${currentStatus}`,
-    message.statusTimestamps?.queuedAt ? `Queued: ${formatDateTime(message.statusTimestamps.queuedAt)}` : null,
-    message.statusTimestamps?.sentAt ? `Sent: ${formatDateTime(message.statusTimestamps.sentAt)}` : null,
-    message.statusTimestamps?.deliveredAt
-      ? `Delivered: ${formatDateTime(message.statusTimestamps.deliveredAt)}`
-      : null,
-    message.statusTimestamps?.readAt ? `Read / Seen: ${formatDateTime(message.statusTimestamps.readAt)}` : null,
-    message.statusTimestamps?.failedAt ? `Failed: ${formatDateTime(message.statusTimestamps.failedAt)}` : null,
-    message.status === "failed" && message.errorDetails ? `Failure Reason: ${message.errorDetails}` : null,
-  ].filter(Boolean);
-
-  return parts.join("\n");
-};
-
-const MessageMedia = ({
-  messageId,
-  mimeType,
-  onImageClick,
-}: {
-  messageId: string;
-  mimeType?: string | null;
-  onImageClick?: () => void;
-}) => {
-  const [mediaUrl, setMediaUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    let disposed = false;
-    let objectUrl: string | null = null;
-
-    const load = async () => {
-      try {
-        const blob = await fetchMessageMediaBlobV1(messageId);
-        objectUrl = URL.createObjectURL(blob);
-
-        if (!disposed) {
-          setMediaUrl(objectUrl);
-        }
-      } catch {
-        if (!disposed) {
-          setMediaUrl(null);
-        }
-      }
-    };
-
-    void load();
-
-    return () => {
-      disposed = true;
-      if (objectUrl) {
-        URL.revokeObjectURL(objectUrl);
-      }
-    };
-  }, [messageId]);
-
-  if (!mediaUrl) {
-    return (
-      <div className="mt-2 rounded-xl bg-black/5 px-3 py-2 text-xs text-[#6f7f75]">
-        Loading media...
-      </div>
-    );
-  }
-
-  if (mimeType?.startsWith("image/")) {
-    return (
-      <img
-        alt="WhatsApp media"
-        className="mt-2 max-h-72 rounded-xl object-cover cursor-pointer hover:opacity-95 transition shadow-sm"
-        onClick={onImageClick}
-        src={mediaUrl}
-      />
-    );
-  }
-
-  if (mimeType?.startsWith("video/")) {
-    return <video className="mt-2 max-h-72 rounded-xl" controls src={mediaUrl} />;
-  }
-
-  if (mimeType?.startsWith("audio/")) {
-    return <audio className="mt-2 w-full" controls src={mediaUrl} />;
-  }
-
-  return (
-    <a
-      className="mt-2 inline-flex rounded-xl bg-black/5 px-3 py-2 text-sm text-[#2d644d] underline-offset-2 hover:underline"
-      href={mediaUrl}
-      rel="noreferrer"
-      target="_blank"
-    >
-      Open attachment
-    </a>
-  );
-};
 
 const PanelSection = ({
   title,
@@ -915,624 +764,125 @@ export default function InboxPage() {
           />
         }
       >
-        <section className="flex min-h-0 flex-col bg-[#F7F8FA] relative">
-          {detailQuery.isPending || detailQuery.isLoading ? (
-            <ChatWindowSkeleton />
-          ) : !detail ? (
-            <div className="flex h-full items-center justify-center px-6">
-              <div className="max-w-md text-center">
-                <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-[#EDF8F3] text-[#176B4D]">
-                  <MessageSquareDot className="h-7 w-7" />
-                </div>
-                <h2 className="mt-5 text-2xl font-semibold tracking-tight text-foreground">
-                  NiWa Operational Desk
-                </h2>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Select a conversation to manage communication and customer context.
-                </p>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className="relative flex h-14 items-center justify-between border-b border-[#E4E4E7] bg-white px-4 dark:border-[#24272A] dark:bg-[#121416]">
-                <button
-                  className="flex min-w-0 items-center gap-2.5 rounded-md px-2 py-1 text-left transition-colors hover:bg-[#F4F4F5] dark:hover:bg-[#191C1E]"
-                  onClick={() => setContactInfoOpen(true)}
-                  type="button"
-                >
-                  <ContactAvatar
-                    avatarUrl={detail.contact.avatarUrl}
-                    className="h-9 w-9 shrink-0 text-xs"
-                    name={detail.contact.displayName}
-                  />
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <p className="truncate text-sm font-semibold text-foreground">
-                        {withDisplayPhoneNumber(detail.contact.displayName) ?? detail.contact.displayName}
-                      </p>
-                      {(() => {
-                        const closesAt = detail.conversation.customerServiceWindowClosesAt;
-                        if (!closesAt) return null;
-                        const closeDate = new Date(closesAt);
-                        const now = new Date();
-                        const diffMs = closeDate.getTime() - now.getTime();
-
-                        if (diffMs <= 0) {
-                          return (
-                            <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 border border-rose-200 px-2 py-0.5 text-[10px] font-semibold text-rose-700">
-                              <span className="h-1.5 w-1.5 rounded-full bg-rose-600" />
-                              24h Expired
-                            </span>
-                          );
-                        }
-
-                        const hours = Math.floor(diffMs / (1000 * 60 * 60));
-                        const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-
-                        return (
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EDF8F3] border border-emerald-200 px-2 py-0.5 text-[10px] font-semibold text-[#176B4D]">
-                            <span className="h-1.5 w-1.5 rounded-full bg-[#176B4D] animate-pulse" />
-                            24h Active ({hours}h {mins}m)
-                          </span>
-                        );
-                      })()}
-                    </div>
-                    <p className="truncate text-xs text-muted-foreground">
-                      {withDisplayPhoneNumber(detail.contact.phoneNumber || detail.conversation.waId)}
-                    </p>
-                  </div>
-                </button>
-
-                <div className="flex items-center gap-1.5">
-                  <div className="relative flex items-center">
-                    {(() => {
-                      const currentAiMode =
-                        detail.conversation.aiMode ||
-                        detail.conversation.metadata?.aiMode ||
-                        "AI_ACTIVE";
-                      return (
-                        <select
-                          className={cn(
-                            "h-7 rounded-md border px-2 text-xs font-semibold transition-colors focus:ring-2 focus:ring-emerald-500/20",
-                            currentAiMode === "AI_ACTIVE"
-                              ? "border-emerald-300 bg-[#EDF8F3] text-[#176B4D] dark:border-emerald-800 dark:bg-[#14251E] dark:text-[#2D8A67]"
-                              : currentAiMode === "AI_PAUSED"
-                                ? "border-amber-300 bg-amber-50 text-amber-800 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
-                                : "border-zinc-300 bg-zinc-100 text-zinc-700 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300",
-                          )}
-                          onChange={(e) => {
-                            const nextMode = e.target.value as "AI_ACTIVE" | "AI_PAUSED" | "HUMAN_ONLY";
-                            updateAIModeMutation.mutate({
-                              conversationId: detail.conversation._id,
-                              aiMode: nextMode,
-                            });
-                          }}
-                          value={currentAiMode}
-                        >
-                          <option value="AI_ACTIVE">◆ AI Active</option>
-                          <option value="AI_PAUSED">⏸ AI Paused</option>
-                          <option value="HUMAN_ONLY">👤 Human Only</option>
-                        </select>
-                      );
-                    })()}
-
-                    {/* Assigned AI Agent Selector Dropdown */}
-                    {(() => {
-                      const agents = agentsQuery.data?.agents || [];
-                      if (agents.length === 0) return null;
-
-                      const defaultAgent = agents.find((a) => a.isDefault) || agents[0];
-                      const assignedAgentId = detail.conversation.assignedAgentId
-                        ? typeof detail.conversation.assignedAgentId === "object"
-                          ? detail.conversation.assignedAgentId._id
-                          : detail.conversation.assignedAgentId
-                        : defaultAgent?._id || "";
-
-                      return (
-                        <select
-                          className="h-7 rounded-md border border-indigo-200 bg-indigo-50/70 dark:bg-indigo-950/40 dark:text-indigo-200 dark:border-indigo-800/80 px-2.5 py-1 text-xs font-bold text-indigo-950 shadow-xs transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-indigo-500/20 disabled:opacity-50"
-                          value={assignedAgentId}
-                          disabled={transferAgentMutation.isPending}
-                          title="Select assigned AI Agent instance for this conversation"
-                          onChange={(e) => {
-                            const targetAgentId = e.target.value;
-                            transferAgentMutation.mutate({
-                              conversationId: detail.conversation._id,
-                              agentId: targetAgentId,
-                            });
-                          }}
-                        >
-                          {agents.map((agent) => (
-                            <option key={agent._id} value={agent._id}>
-                              🤖 {agent.name} {agent.isDefault ? "⭐ (Default)" : ""}
-                            </option>
-                          ))}
-                        </select>
-                      );
-                    })()}
-                  </div>
-
-                  <button
-                    className="flex items-center gap-1.5 rounded-md border border-[#E4E4E7] bg-white px-2.5 py-1 text-xs font-medium text-[#52525B] transition-colors hover:border-[#D4D4D8] hover:bg-[#FAFAFA] disabled:opacity-50"
-                    disabled={syncHistoryMutation.isPending}
-                    onClick={handleSyncHistory}
-                    title="Sync & Reconcile Chat History"
-                    type="button"
-                  >
-                    <RefreshCw className={cn("h-3.5 w-3.5 text-[#71717A]", syncHistoryMutation.isPending && "animate-spin")} />
-                    <span>{syncHistoryMutation.isPending ? "Syncing..." : "Sync History"}</span>
-                  </button>
-                  <button
-                    className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-[#F4F4F5] hover:text-foreground"
-                    type="button"
-                  >
-                    <Search className="h-4 w-4" />
-                  </button>
-                  <div className="relative">
-                    <button
-                      className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-[#F4F4F5] hover:text-foreground"
-                      onClick={() => setActionsOpen((current) => !current)}
-                      type="button"
-                    >
-                      <MoreHorizontal className="h-4 w-4" />
-                    </button>
-                    {actionsOpen ? (
-                      <div className="absolute right-0 top-10 z-20 w-48 rounded-md border border-[#E4E4E7] bg-white p-1 shadow-floating">
-                        {messageActionLabels.map((item) => (
-                          <button
-                            className="block w-full rounded-md px-2.5 py-1.5 text-left text-xs font-medium text-foreground transition-colors hover:bg-[#F4F4F5]"
-                            key={item.action}
-                            onClick={() =>
-                              performThreadAction(
-                                item.action === "pin" && detail.conversation.pinnedAt
-                                  ? "unpin"
-                                  : item.action === "star" && detail.conversation.starred
-                                    ? "unstar"
-                                    : item.action === "archive" && detail.conversation.status === "archived"
-                                      ? "unarchive"
-                                      : item.action,
-                              )
-                            }
-                            type="button"
-                          >
-                            {item.label}
-                          </button>
-                        ))}
-                      </div>
-                    ) : null}
-                  </div>
-                </div>
-              </div>
-
-              <div
-                className="niwa-scrollbar min-h-0 flex-1 overflow-y-auto px-6 py-4 relative bg-repeat bg-center bg-[#F7F8FA] dark:bg-[#101312] dark:bg-blend-multiply"
-                onScroll={handleMessageContainerScroll}
-                ref={messagesContainerRef}
-                style={{ backgroundImage: "url('/whatsapp-bg.png')", backgroundSize: "450px" }}
-              >
-                {isLoadingNextBatch ? (
-                  <div className="flex justify-center pb-3">
-                    <div className="inline-flex items-center gap-1.5 rounded-full border border-border bg-card/90 backdrop-blur px-3.5 py-1 text-xs font-semibold text-muted-foreground shadow-xs">
-                      <RefreshCw className="h-3 w-3 animate-spin text-primary" />
-                      <span>Loading earlier messages...</span>
-                    </div>
-                  </div>
-                ) : paginationError ? (
-                  <div className="flex justify-center pb-3">
-                    <div className="inline-flex items-center gap-2 rounded-full border border-destructive/30 bg-destructive/10 px-3.5 py-1 text-xs font-semibold text-destructive shadow-xs">
-                      <span>{paginationError}</span>
-                      <button
-                        type="button"
-                        onClick={() => void retryLoadOlder()}
-                        className="font-bold underline underline-offset-2 hover:opacity-80 cursor-pointer"
-                      >
-                        Retry
-                      </button>
-                    </div>
-                  </div>
-                ) : !hasMoreOlderMessages && !detailQuery.isLoading && messageGroups.length > 0 ? (
-                  <div className="flex justify-center pb-3">
-                    <span className="text-[11px] font-medium text-muted-foreground/70 tracking-wide uppercase">
-                      Beginning of conversation
-                    </span>
-                  </div>
-                ) : null}
-
-                {detailQuery.isLoading ? (
-                  <div className="space-y-3">
-                    {Array.from({ length: 6 }).map((_, index) => (
-                      <div
-                        className={cn(
-                          "h-16 w-[60%] animate-pulse rounded-lg bg-[#E4E4E7] dark:bg-[#1B1D20]",
-                          index % 2 === 0 ? "ml-auto" : "",
-                        )}
-                        key={index}
-                      />
-                    ))}
-                  </div>
-                ) : null}
-
-                {!detailQuery.isLoading && messageGroups.length === 0 ? (
-                  <div className="flex h-full min-h-[200px] items-center justify-center">
-                    <div className="rounded-lg border border-[#E4E4E7] bg-white px-5 py-4 text-center dark:border-[#303438] dark:bg-[#121416]">
-                      <p className="text-xs font-medium text-foreground">No messages in this thread yet.</p>
-                      <p className="mt-0.5 text-xs text-muted-foreground">
-                        Messages will appear here in real-time.
-                      </p>
-                    </div>
-                  </div>
-                ) : null}
-
-                {messageGroups.map((group) => (
-                  <div className="mb-5" key={group.day}>
-                    <div className="mb-3 flex justify-center">
-                      <span className="rounded-full border border-[#E4E4E7] bg-white px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground shadow-subtle dark:border-[#292C2F] dark:bg-[#121416]">
-                        {group.day}
-                      </span>
-                    </div>
-                    <div className="space-y-2">
-                      {group.messages.map((message) => {
-                        const outgoing = message.direction === "outgoing";
-                        const mediaMimeType = message.media?.mimeType ?? null;
-                        const messageTime = getMessageTimestamp(message);
-                        const statusDetails = outgoing ? buildMessageStatusDetails(message) : "";
-                        const locationData = (message.locationData ?? {}) as {
-                          address?: string;
-                          latitude?: number;
-                          longitude?: number;
-                          name?: string;
-                        };
-                        const hasLocation =
-                          typeof locationData.latitude === "number" &&
-                          typeof locationData.longitude === "number";
-
-                        return (
-                          <div
-                            className={cn("flex", outgoing ? "justify-end" : "justify-start")}
-                            data-message-id={message._id}
-                            key={message._id}
-                          >
-                            <div
-                              className={cn(
-                                "max-w-[65%] rounded-xl px-3.5 py-2.5 border shadow-subtle",
-                                outgoing
-                                  ? "rounded-br-xs bg-[#EDF8F3] border-[#C4E8DA] text-foreground dark:bg-[#14251E] dark:border-[#203D31] dark:text-[#E8F3EE]"
-                                  : "rounded-bl-xs bg-white border-[#E4E4E7] text-foreground dark:bg-[#1C1F21] dark:border-[#282C2F] dark:text-[#ECEDEE]",
-                              )}
-                            >
-                              {message.replyTo ? (
-                                <div className="mb-1.5 rounded-md border-l-2 border-primary/30 bg-black/5 px-2.5 py-1 text-xs text-muted-foreground">
-                                  {message.replyTo.previewText || `[${message.replyTo.messageType}]`}
-                                </div>
-                              ) : null}
-                              {message.textBody ? (
-                                <p className="whitespace-pre-wrap text-xs leading-5">
-                                  {message.textBody}
-                                </p>
-                              ) : message.messageType === "text" || (message.previewText && message.previewText !== "[image]") ? (
-                                <p className="whitespace-pre-wrap text-xs leading-5">
-                                  {message.previewText}
-                                </p>
-                              ) : null}
-                              {message.media?.metaMediaId ? (
-                                <MessageMedia
-                                  messageId={message._id}
-                                  mimeType={mediaMimeType}
-                                  onImageClick={() => setLightboxImageId(message._id)}
-                                />
-                              ) : null}
-                              {message.media?.caption && message.media.caption !== message.textBody ? (
-                                <p className="mt-1.5 whitespace-pre-wrap text-xs leading-4 opacity-90">
-                                  {message.media.caption}
-                                </p>
-                              ) : null}
-                              {hasLocation ? (
-                                <a
-                                  className="mt-1.5 block rounded-md bg-black/5 px-2.5 py-1.5 text-xs underline-offset-2 hover:underline"
-                                  href={`https://maps.google.com/?q=${locationData.latitude},${locationData.longitude}`}
-                                  rel="noreferrer"
-                                  target="_blank"
-                                >
-                                  {locationData.name || locationData.address || "Open location"}
-                                </a>
-                              ) : null}
-                              <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-muted-foreground opacity-80">
-                                {message.generatedByAI || message.source === "ai" ? (
-                                  <span className="mr-1 inline-flex items-center gap-0.5 font-[#176B4D] font-bold text-[#176B4D] dark:text-[#2D8A67]" title="AI Generated Response">
-                                    <span>◆</span>
-                                    <span>AI</span>
-                                  </span>
-                                ) : null}
-                                <span>{formatConversationTime(messageTime)}</span>
-                                {outgoing ? (
-                                  <span title={statusDetails || undefined}>{renderOutgoingStatusIcon(message.status)}</span>
-                                ) : null}
-                              </div>
-                              {message.status === "failed" && message.errorDetails ? (
-                                <p className="mt-1 text-[11px] text-[#C2413A]">{message.errorDetails}</p>
-                              ) : null}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                ))}
-                {(showJumpToBottom || newMessageCount > 0) && (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setNewMessageCount(0);
-                      scrollToBottom(true);
-                    }}
-                    className="absolute bottom-4 right-8 z-20 inline-flex items-center gap-1.5 rounded-full border border-border bg-primary text-primary-foreground px-3.5 py-1.5 text-xs font-semibold shadow-md transition-all hover:scale-105 cursor-pointer"
-                  >
-                    <ArrowDown className="h-3.5 w-3.5" />
-                    <span>
-                      {newMessageCount > 0
-                        ? `${newMessageCount} new message${newMessageCount > 1 ? "s" : ""}`
-                        : "Jump to bottom"}
-                    </span>
-                  </button>
-                )}
-                <div ref={messagesEndRef} />
-              </div>
-
-              <div className="border-t border-[#E4E4E7] bg-white px-4 py-2.5 dark:border-[#24272A] dark:bg-[#121416]">
-                {(selectedQuickReply && quickReplyPanelOpen) ? (
-                  <div className="mb-2.5 rounded-lg border border-[#E4E4E7] bg-[#FAFAFA] p-3">
-                    <div className="mb-2 flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
-                        <Sparkles className="h-3.5 w-3.5 text-[#176B4D]" />
-                        Quick reply variables
-                      </div>
-                      <Button
-                        className="h-7 border-[#E4E4E7] bg-white text-xs hover:bg-[#F4F4F5]"
-                        disabled={patchQuickReplyMutation.isPending}
-                        onClick={() =>
-                          patchQuickReplyMutation.mutate({
-                            payload: { variables: selectedQuickReplyVariables },
-                            quickReplyId: selectedQuickReply._id,
-                          })
-                        }
-                        size="sm"
-                        type="button"
-                        variant="secondary"
-                      >
-                        Sync vars
-                      </Button>
-                    </div>
-                    <div className="grid gap-2 md:grid-cols-2">
-                      {selectedQuickReplyVariables.map((variable) => (
-                        <div key={variable}>
-                          <label className="mb-1 block text-[11px] font-medium text-muted-foreground">
-                            {variable}
-                          </label>
-                          <Input
-                            className="h-8 border-[#E4E4E7] bg-white text-xs"
-                            onChange={(event) =>
-                              setQuickReplyVariableValues((current) => ({
-                                ...current,
-                                [variable]: event.target.value,
-                              }))
-                            }
-                            value={quickReplyVariableValues[variable] ?? ""}
-                          />
-                        </div>
-                      ))}
-                    </div>
-                    <div className="mt-2 rounded-md bg-[#F4F4F5] px-2.5 py-1.5 text-xs text-[#52525B]">
-                      {quickReplyPreview || "Resolved quick reply preview appears here."}
-                    </div>
-                  </div>
-                ) : null}
-
-                {quickReplySuggestions.length > 0 ? (
-                  <div className="mb-2.5 rounded-lg border border-[#E4E4E7] bg-white shadow-floating">
-                    {quickReplySuggestions.slice(0, 6).map((reply) => (
-                      <button
-                        className="block w-full border-b border-[#F0F0F2] px-3 py-2 text-left last:border-b-0 hover:bg-[#FAFAFA]"
-                        key={reply._id}
-                        onClick={() => insertQuickReply(reply._id)}
-                        type="button"
-                      >
-                        <p className="text-xs font-semibold text-foreground">{reply.shortcut}</p>
-                        <p className="mt-0.5 text-[11px] text-muted-foreground">{reply.title}</p>
-                      </button>
-                    ))}
-                  </div>
-                ) : null}
-
-                <div className="flex items-end gap-2">
-                  <div className="relative">
-                    <button
-                      className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-[#F4F4F5] hover:text-foreground"
-                      onClick={() => setComposerMenuOpen((current) => !current)}
-                      type="button"
-                    >
-                      <Plus className="h-4 w-4" />
-                    </button>
-                    {composerMenuOpen ? (
-                      <div className="absolute bottom-10 left-0 z-20 w-48 rounded-md border border-[#E4E4E7] bg-white p-1 shadow-floating">
-                        <button
-                          className="block w-full rounded-md px-2.5 py-1.5 text-left text-xs font-medium text-foreground transition-colors hover:bg-[#F4F4F5]"
-                          onClick={() => {
-                            setQuickReplyPanelOpen(true);
-                            setComposerMenuOpen(false);
-                            if (!selectedQuickReplyId && quickReplies[0]) {
-                              setSelectedQuickReplyId(quickReplies[0]._id);
-                            }
-                          }}
-                          type="button"
-                        >
-                          Quick reply
-                        </button>
-                        <button
-                          className="block w-full rounded-md px-2.5 py-1.5 text-left text-xs font-medium text-foreground transition-colors hover:bg-[#F4F4F5]"
-                          onClick={() => {
-                            setScheduleDialogOpen(true);
-                            setComposerMenuOpen(false);
-                          }}
-                          type="button"
-                        >
-                          Schedule message
-                        </button>
-                      </div>
-                    ) : null}
-                  </div>
-                  <button
-                    className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-[#F4F4F5] hover:text-foreground"
-                    type="button"
-                  >
-                    <Smile className="h-4 w-4" />
-                  </button>
-                  <div className="relative min-w-0 flex-1">
-                    <Textarea
-                      className="min-h-[44px] rounded-md border-[#D4D4D8] bg-white px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/15"
-                      disabled={sendTextMutation.isPending}
-                      onChange={(event) => setComposerBody(event.target.value)}
-                      onKeyDown={handleComposerKeyDown}
-                      placeholder="Type a message..."
-                      value={composerBody}
-                    />
-                  </div>
-                  <button
-                    className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-[#F4F4F5] hover:text-foreground"
-                    onClick={() => {
-                      setQuickReplyPanelOpen((current) => !current);
-                      if (!selectedQuickReplyId && quickReplies[0]) {
-                        setSelectedQuickReplyId(quickReplies[0]._id);
-                      }
-                    }}
-                    type="button"
-                  >
-                    <Command className="h-4 w-4" />
-                  </button>
-                  <Button
-                    className="h-9 rounded-md px-3 font-medium"
-                    disabled={sendTextMutation.isPending || !composerBody.trim()}
-                    onClick={sendMessage}
-                    size="sm"
-                    type="button"
-                    variant="primary"
-                  >
-                    {sendTextMutation.isPending ? (
-                      <Clock3 className="h-3.5 w-3.5 animate-pulse" />
-                    ) : (
-                      <Send className="h-3.5 w-3.5" />
-                    )}
-                  </Button>
-                </div>
-
-                {composerFeedback ? (
-                  <div
-                    className={cn(
-                      "mt-3 rounded-md px-3 py-2 text-xs font-medium",
-                      composerFeedback.tone === "success"
-                        ? "bg-[#EDF8F3] text-[#16803C] border border-[#C4E8DA]"
-                        : "bg-[#FEF2F2] text-[#C2413A] border border-[#FEE2E2]",
-                    )}
-                  >
-                    {composerFeedback.message}
-                  </div>
-                ) : null}
-
-                {scheduleDialogOpen ? (
-                  <div className="mt-3 rounded-2xl border border-[#e2d8ca] bg-[#fffdf9] p-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="text-sm font-semibold text-[#25342f]">Schedule message</h3>
-                        <p className="mt-1 text-xs text-[#7a8b82]">
-                          Keep scheduling contextual instead of permanent in the composer.
-                        </p>
-                      </div>
-                      <button
-                        className="rounded-full p-1.5 text-[#6f7f75] transition hover:bg-[#f3ede4] hover:text-[#25342f]"
-                        onClick={() => setScheduleDialogOpen(false)}
-                        type="button"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                    <div className="mt-4 grid gap-2 md:grid-cols-[minmax(0,1fr)_150px_130px_auto]">
-                      <Input
-                        className="border-[#ddd2c3] bg-white text-[#25342f]"
-                        onChange={(event) => setScheduledDate(event.target.value)}
-                        placeholder="Schedule date"
-                        type="date"
-                        value={scheduledDate}
-                      />
-                      <select
-                        className="h-10 rounded-lg border border-[#ddd2c3] bg-white px-3 text-sm text-[#25342f] outline-none"
-                        onChange={(event) => setScheduledType(event.target.value as "one_time" | "recurring")}
-                        value={scheduledType}
-                      >
-                        <option value="one_time">One time</option>
-                        <option value="recurring">Recurring</option>
-                      </select>
-                      <select
-                        className="h-10 rounded-lg border border-[#ddd2c3] bg-white px-3 text-sm text-[#25342f] outline-none"
-                        disabled={scheduledType !== "recurring"}
-                        onChange={(event) => setScheduledRule(event.target.value as "daily" | "monthly" | "weekly")}
-                        value={scheduledRule}
-                      >
-                        <option value="daily">Daily</option>
-                        <option value="weekly">Weekly</option>
-                        <option value="monthly">Monthly</option>
-                      </select>
-                      <Button
-                        className="border-[#ddd2c3] bg-white text-[#25342f] hover:bg-[#f6f1e9]"
-                        disabled={
-                          !detail.contact._id ||
-                          !composerBody.trim() ||
-                          !scheduledDate ||
-                          createScheduledMessageMutation.isPending
-                        }
-                        onClick={() =>
-                          createScheduledMessageMutation.mutate(
-                            {
-                              contactId: detail.contact._id,
-                              conversationId: activeConversationId ?? undefined,
-                              payload: { body: composerBody.trim() },
-                              payloadType: "text",
-                              recurrenceRule: scheduledType === "recurring" ? scheduledRule : undefined,
-                              scheduleType: scheduledType,
-                              scheduledFor: toIsoFromDateInput(scheduledDate) ?? new Date().toISOString(),
-                              timezone: "Asia/Calcutta",
-                            },
-                            {
-                              onSuccess: () => {
-                                setScheduledDate("");
-                                setScheduledType("one_time");
-                                setScheduledRule("daily");
-                                setScheduleDialogOpen(false);
-                                setComposerFeedback({
-                                  message: "Message scheduled successfully.",
-                                  tone: "success",
-                                });
-                              },
-                              onError: (error) => {
-                                setComposerFeedback({
-                                  message: getErrorMessage(error, "Message could not be scheduled."),
-                                  tone: "error",
-                                });
-                              },
-                            },
-                          )
-                        }
-                        type="button"
-                        variant="secondary"
-                      >
-                        <CalendarClock className="h-4 w-4" />
-                        Schedule
-                      </Button>
-                    </div>
-                  </div>
-                ) : null}
-              </div>
-            </>
-          )}
-        </section>
+        <InboxChatWindow
+          actionsOpen={actionsOpen}
+          agents={agentsQuery.data?.agents || []}
+          composer={
+            <ChatComposer
+              composerBody={composerBody}
+              composerFeedback={composerFeedback}
+              composerMenuOpen={composerMenuOpen}
+              contactId={detail?.contact._id}
+              isPatchingQuickReply={patchQuickReplyMutation.isPending}
+              isScheduling={createScheduledMessageMutation.isPending}
+              isSending={sendTextMutation.isPending}
+              onComposerBodyChange={setComposerBody}
+              onComposerMenuOpenChange={setComposerMenuOpen}
+              onInsertQuickReply={insertQuickReply}
+              onPatchQuickReplyVars={(id, vars) =>
+                patchQuickReplyMutation.mutate({
+                  payload: { variables: vars },
+                  quickReplyId: id,
+                })
+              }
+              onQuickReplyPanelOpenChange={setQuickReplyPanelOpen}
+              onQuickReplyVariableValuesChange={setQuickReplyVariableValues}
+              onScheduleDialogOpenChange={setScheduleDialogOpen}
+              onScheduleMessage={() => {
+                if (!detail?.contact._id || !composerBody.trim() || !scheduledDate) return;
+                createScheduledMessageMutation.mutate(
+                  {
+                    contactId: detail.contact._id,
+                    conversationId: activeConversationId ?? undefined,
+                    payload: { body: composerBody.trim() },
+                    payloadType: "text",
+                    recurrenceRule: scheduledType === "recurring" ? scheduledRule : undefined,
+                    scheduleType: scheduledType,
+                    scheduledFor: toIsoFromDateInput(scheduledDate) ?? new Date().toISOString(),
+                    timezone: "Asia/Calcutta",
+                  },
+                  {
+                    onSuccess: () => {
+                      setScheduledDate("");
+                      setScheduledType("one_time");
+                      setScheduledRule("daily");
+                      setScheduleDialogOpen(false);
+                      setComposerFeedback({
+                        message: "Message scheduled successfully.",
+                        tone: "success",
+                      });
+                    },
+                    onError: (error) => {
+                      setComposerFeedback({
+                        message: getErrorMessage(error, "Message could not be scheduled."),
+                        tone: "error",
+                      });
+                    },
+                  },
+                );
+              }}
+              onScheduledDateChange={setScheduledDate}
+              onScheduledRuleChange={setScheduledRule}
+              onScheduledTypeChange={setScheduledType}
+              onSelectQuickReplyId={setSelectedQuickReplyId}
+              onSendMessage={sendMessage}
+              quickReplies={quickReplies}
+              quickReplyPanelOpen={quickReplyPanelOpen}
+              quickReplyPreview={quickReplyPreview}
+              quickReplySuggestions={quickReplySuggestions}
+              scheduleDialogOpen={scheduleDialogOpen}
+              scheduledDate={scheduledDate}
+              scheduledRule={scheduledRule}
+              scheduledType={scheduledType}
+              selectedQuickReply={selectedQuickReply}
+              selectedQuickReplyId={selectedQuickReplyId}
+              selectedQuickReplyVariables={selectedQuickReplyVariables}
+              quickReplyVariableValues={quickReplyVariableValues}
+            />
+          }
+          detail={detail}
+          isLoadingDetail={detailQuery.isPending || detailQuery.isLoading}
+          isSyncingHistory={syncHistoryMutation.isPending}
+          isTransferringAgent={transferAgentMutation.isPending}
+          messageList={
+            <ChatMessageList
+              hasMoreOlderMessages={hasMoreOlderMessages}
+              isLoadingDetail={detailQuery.isLoading}
+              isLoadingNextBatch={isLoadingNextBatch}
+              messageGroups={messageGroups}
+              messagesContainerRef={messagesContainerRef}
+              messagesEndRef={messagesEndRef}
+              newMessageCount={newMessageCount}
+              onImageClick={(id) => setLightboxImageId(id)}
+              onJumpToBottom={() => {
+                setNewMessageCount(0);
+                scrollToBottom(true);
+              }}
+              onScroll={handleMessageContainerScroll}
+              paginationError={paginationError}
+              retryLoadOlder={retryLoadOlder}
+              showJumpToBottom={showJumpToBottom}
+            />
+          }
+          onActionsOpenChange={setActionsOpen}
+          onOpenContactInfo={() => setContactInfoOpen(true)}
+          onPerformThreadAction={performThreadAction}
+          onSyncHistory={handleSyncHistory}
+          onTransferAgent={(targetAgentId) => {
+            if (!detail) return;
+            transferAgentMutation.mutate({
+              conversationId: detail.conversation._id,
+              agentId: targetAgentId,
+            });
+          }}
+          onUpdateAIMode={(nextMode) => {
+            if (!detail) return;
+            updateAIModeMutation.mutate({
+              conversationId: detail.conversation._id,
+              aiMode: nextMode,
+            });
+          }}
+        />
 
         {detail && contactInfoOpen ? (
           <aside className="niwa-scrollbar min-h-0 overflow-y-auto border-l border-[#ddd2c3] bg-[#fbf7f1]">

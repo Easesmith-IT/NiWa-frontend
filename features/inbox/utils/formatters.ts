@@ -76,3 +76,9 @@ export const toIsoFromDateInput = (value: string) => {
 
   return new Date(`${value}T09:00:00.000Z`).toISOString();
 };
+
+export const getMessageTimestamp = (message: {
+  createdAt?: string;
+  metaTimestamp?: string | null;
+}) => message.metaTimestamp || message.createdAt || "";
+
