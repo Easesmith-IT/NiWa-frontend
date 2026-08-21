@@ -28,5 +28,6 @@ export * from "./components/InboxContactSidebar";
 export * from "./components/ThreadListSkeleton";
 export * from "./components/ChatWindowSkeleton";
 export * from "./components/ImageLightboxModal";
+export * from "./components/InboxShell";
 export * from "./utils/formatters";
 export * from "./utils/quick-replies";
