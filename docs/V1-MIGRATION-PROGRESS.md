@@ -19,7 +19,8 @@
 - [ ] Fix realtime invalidation in `campaign.realtime.ts`
 - [ ] Replace inline modals with new Dialog UI components
 
-> **Note:** Phase 2B list/detail UI decomposition completed. Campaign creation wizard remains pending for a separate controlled migration.
+> **Note:** Phase 2B list/detail UI decomposition completed. Campaign creation wizard decomposed into `CampaignCreateScreen.tsx` with wizard state hook `useCampaignWizardState()`.
+> **Note:** Phase 2C-D contact import polling migrated to `useContactImportPipelineV1()` in `contact.queries.ts` and hardened for concurrent uploads, unmount safety, and deterministic timeout.
 > **Note:** Minor Campaign list visual/content refresh occurred during UI decomposition.
 > **Note:** Alert-based error handling on Campaign delete remains as future UX debt (pending a global notification/toast primitive).
 
