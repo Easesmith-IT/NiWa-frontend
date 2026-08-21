@@ -152,7 +152,6 @@ export function ImageLightboxModal({
         {/* Main Image Preview */}
         {activeSrc ? (
           <div className="flex flex-col items-center">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               alt="Preview"
               className="max-h-[72vh] max-w-[85vw] rounded-lg object-contain shadow-2xl transition-all"
@@ -191,7 +190,6 @@ export function ImageLightboxModal({
                   type="button"
                 >
                   {thumbSrc ? (
-                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       alt="Thumbnail"
                       className="h-full w-full object-cover"
