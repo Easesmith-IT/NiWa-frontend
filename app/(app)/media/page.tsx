@@ -1,21 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { AxiosError } from "axios";
-import { useEffect, useMemo, useState } from "react";
-
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
 import { getMediaDisplayName } from "../../../lib/media";
-import {
-  useDeleteMediaMutation,
-  useMediaDetailQuery,
-  useMediaListQuery,
-  useUpdateMediaMetadataMutation,
-  useUploadMediaMutation,
-  type MediaRecord,
-} from "../../../features/media";
+import { useMediaOrchestration, type MediaRecord } from "../../../features/media";
 
 const formatSize = (bytes: number) => {
   if (bytes < 1024) {
@@ -29,114 +19,37 @@ const formatSize = (bytes: number) => {
 };
 
 export default function MediaPage() {
-  const [query, setQuery] = useState("");
-  const [type, setType] = useState("");
-  const [folder, setFolder] = useState("");
-  const [tag, setTag] = useState("");
-  const [submitMessage, setSubmitMessage] = useState<string | null>(null);
-  const [submitError, setSubmitError] = useState<string | null>(null);
-  const [selectedId, setSelectedId] = useState<string | null>(null);
-  const [uploadCustomName, setUploadCustomName] = useState("");
-  const [metadataCustomName, setMetadataCustomName] = useState("");
-  const [metadataFolder, setMetadataFolder] = useState("");
-  const [metadataTags, setMetadataTags] = useState("");
-
-  const mediaQuery = useMediaListQuery({ query, type, folder, tag });
-  const mediaDetailQuery = useMediaDetailQuery(selectedId);
-
-  const uploadMutation = useUploadMediaMutation();
-  const deleteMutation = useDeleteMediaMutation();
-  const metadataMutation = useUpdateMediaMetadataMutation();
-
-  const media = useMemo(() => mediaQuery.data?.media ?? [], [mediaQuery.data]);
-
-  useEffect(() => {
-    if (!mediaDetailQuery.data?.media) {
-      setMetadataCustomName("");
-      setMetadataFolder("");
-      setMetadataTags("");
-      return;
-    }
-
-    setMetadataCustomName(mediaDetailQuery.data.media.customName ?? "");
-    setMetadataFolder(mediaDetailQuery.data.media.folder ?? "");
-    setMetadataTags((mediaDetailQuery.data.media.tags ?? []).join(", "));
-  }, [mediaDetailQuery.data]);
-
-  const handleUpload = (file: File) => {
-    setSubmitMessage(null);
-    setSubmitError(null);
-    uploadMutation.mutate(
-      { customName: uploadCustomName, file },
-      {
-        onSuccess: (data) => {
-          setSubmitError(null);
-          setSubmitMessage(`Uploaded ${getMediaDisplayName(data.media)} successfully.`);
-          setUploadCustomName("");
-        },
-        onError: (error) => {
-          setSubmitMessage(null);
-          setSubmitError(
-            error instanceof AxiosError
-              ? error.response?.data?.message ?? "Upload failed."
-              : "Upload failed.",
-          );
-        },
-      },
-    );
-  };
-
-  const handleDelete = (id: string) => {
-    deleteMutation.mutate(id, {
-      onSuccess: () => {
-        setSubmitError(null);
-        setSubmitMessage("Media deleted.");
-        setSelectedId(null);
-      },
-      onError: (error) => {
-        setSubmitMessage(null);
-        setSubmitError(
-          error instanceof AxiosError
-            ? error.response?.data?.message ?? "Delete failed."
-            : "Delete failed.",
-        );
-      },
-    });
-  };
-
-  const handleUpdateMetadata = () => {
-    if (!mediaDetailQuery.data?.media?._id) {
-      return;
-    }
-
-    setSubmitMessage(null);
-    setSubmitError(null);
-    metadataMutation.mutate(
-      {
-        customName: metadataCustomName,
-        id: mediaDetailQuery.data.media._id,
-        folder: metadataFolder,
-        tags: metadataTags
-          .split(",")
-          .map((value) => value.trim())
-          .filter(Boolean),
-      },
-      {
-        onSuccess: () => {
-          setSubmitError(null);
-          setSubmitMessage("Media metadata updated.");
-        },
-        onError: (error) => {
-          setSubmitMessage(null);
-          setSubmitError(
-            error instanceof AxiosError
-              ? error.response?.data?.message ?? "Metadata update failed."
-              : "Metadata update failed.",
-          );
-        },
-      },
-    );
-  };
+  const {
+    query,
+    setQuery,
+    type,
+    setType,
+    folder,
+    setFolder,
+    tag,
+    setTag,
+    submitMessage,
+    submitError,
+    setSelectedId,
+    uploadCustomName,
+    setUploadCustomName,
+    metadataCustomName,
+    setMetadataCustomName,
+    metadataFolder,
+    setMetadataFolder,
+    metadataTags,
+    setMetadataTags,
+    mediaQuery,
+    media,
+    selectedMedia,
+    isUploading,
+    isDeleting,
+    isUpdatingMetadata,
+    handleUpload,
+    handleDelete,
+    handleUpdateMetadata,
+    handleCopyMediaId,
+  } = useMediaOrchestration();
 
   return (
     <div className="space-y-4">
@@ -173,7 +86,7 @@ export default function MediaPage() {
           <Input onChange={(event) => setFolder(event.target.value)} placeholder="Folder..." value={folder} />
           <Input onChange={(event) => setTag(event.target.value)} placeholder="Tag..." value={tag} />
           <label className="inline-flex cursor-pointer items-center justify-center rounded-md bg-[#176B4D] px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-[#12563E] dark:bg-[#2D8A67] dark:hover:bg-[#26785B]">
-            {uploadMutation.isPending ? "Uploading..." : "Upload File"}
+            {isUploading ? "Uploading..." : "Upload File"}
             <input
               className="hidden"
               onChange={(event) => {
@@ -219,10 +132,7 @@ export default function MediaPage() {
                     Details
                   </Button>
                   <Button
-                    onClick={async () => {
-                      await navigator.clipboard.writeText(item.metaMediaId);
-                      setSubmitMessage("Media ID copied.");
-                    }}
+                    onClick={() => handleCopyMediaId(item.metaMediaId)}
                     size="sm"
                     type="button"
                     variant="secondary"
@@ -234,7 +144,7 @@ export default function MediaPage() {
                       Reuse
                     </Button>
                   </Link>
-                  <Button disabled={deleteMutation.isPending} onClick={() => handleDelete(item._id)} size="sm" type="button" variant="secondary">
+                  <Button disabled={isDeleting} onClick={() => handleDelete(item._id)} size="sm" type="button" variant="secondary">
                     Delete
                   </Button>
                 </div>
@@ -250,15 +160,15 @@ export default function MediaPage() {
           <div className="border-b border-[#F0F0F2] pb-2 dark:border-[#202326]">
             <h3 className="text-sm font-semibold text-foreground">Media Asset Detail</h3>
           </div>
-          {mediaDetailQuery.data?.media ? (
+          {selectedMedia ? (
             <div className="space-y-3 text-xs">
               <div className="rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 space-y-1 dark:border-[#292C2F] dark:bg-[#17191B]">
-                <p className="font-semibold text-foreground">{getMediaDisplayName(mediaDetailQuery.data.media)}</p>
-                {mediaDetailQuery.data.media.customName ? (
-                  <p className="text-muted-foreground">Original: {mediaDetailQuery.data.media.fileName}</p>
+                <p className="font-semibold text-foreground">{getMediaDisplayName(selectedMedia)}</p>
+                {selectedMedia.customName ? (
+                  <p className="text-muted-foreground">Original: {selectedMedia.fileName}</p>
                 ) : null}
-                <p className="text-muted-foreground">{mediaDetailQuery.data.media.mediaType} • {mediaDetailQuery.data.media.mimeType}</p>
-                <p className="font-mono text-[11px] text-[#176B4D] dark:text-[#359B76]">Media ID: {mediaDetailQuery.data.media.metaMediaId}</p>
+                <p className="text-muted-foreground">{selectedMedia.mediaType} • {selectedMedia.mimeType}</p>
+                <p className="font-mono text-[11px] text-[#176B4D] dark:text-[#359B76]">Media ID: {selectedMedia.metaMediaId}</p>
               </div>
 
               <div className="space-y-2 rounded-md border border-[#E4E4E7] bg-white p-3 dark:border-[#292C2F] dark:bg-[#121416]">
@@ -289,13 +199,13 @@ export default function MediaPage() {
                 </div>
                 <Button
                   className="w-full mt-1"
-                  disabled={metadataMutation.isPending}
+                  disabled={isUpdatingMetadata}
                   onClick={handleUpdateMetadata}
                   size="sm"
                   type="button"
                   variant="primary"
                 >
-                  {metadataMutation.isPending ? "Saving..." : "Save Metadata"}
+                  {isUpdatingMetadata ? "Saving..." : "Save Metadata"}
                 </Button>
               </div>
 
@@ -304,8 +214,8 @@ export default function MediaPage() {
                 <pre className="overflow-x-auto rounded-md border border-[#292C2F] bg-[#0F1112] p-2.5 font-mono text-[10px] text-[#E4E4E7]">
                   {JSON.stringify(
                     {
-                      requestPayload: mediaDetailQuery.data.media.requestPayload,
-                      responsePayload: mediaDetailQuery.data.media.responsePayload,
+                      requestPayload: selectedMedia.requestPayload,
+                      responsePayload: selectedMedia.responsePayload,
                     },
                     null,
                     2,
