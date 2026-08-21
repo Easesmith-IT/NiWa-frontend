@@ -33,4 +33,6 @@
 - [ ] ...
 
 ## Phase 5: Inbox & AI Agent Refactoring
-- [ ] ...
+- [x] Inbox V1 Architecture Audit (`INBOX-V1-AUDIT.md`)
+- [ ] Inbox UI Decomposition
+- [ ] AI Agent V1 Migration
