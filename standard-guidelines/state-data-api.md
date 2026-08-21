@@ -1,124 +1,204 @@
 # State, Data and API Standard
 
-## 1. API Ownership
+## 1. State Architecture
 
-HTTP access belongs in the feature data-access layer.
+Separate state by responsibility.
 
-Preferred:
+### UI state
+
+Local component state is appropriate for small visual concerns such as:
+
+- modal open/closed state
+- selected tab
+- temporary input
+- dropdown state
+
+### Feature state
+
+Use feature hooks for domain state such as:
+
+- filters
+- selection
+- forms
+- workspace state
+
+### Complex orchestration
+
+Use an orchestration hook to coordinate multiple domain concerns.
+
+Avoid one giant hook containing every state variable in a feature.
+
+## 2. Avoid Duplicate State
+
+There should be one authoritative owner for a piece of state.
+
+Bad:
 
 ```text
-feature.api.ts
-    ↓
-feature.queries.ts
-    ↓
-feature orchestration
-    ↓
-feature components
+page.tsx
+  └── selectedId
+
+component.tsx
+  └── selectedId
 ```
 
-Routes and presentational components should not call `fetch`, `axios`, or the application's API client directly.
+Prefer:
 
-## 2. React Query Ownership
+```text
+useFeatureSelection
+       ↓
+single source of truth
+       ↓
+components
+```
 
-Query and mutation definitions should live in the feature query layer.
+## 3. Side Effects
 
-Do not create ad-hoc `useQuery` or `useMutation` calls inside a large page component when the operation belongs to the feature domain.
+`useEffect` must not become a dumping ground for business logic.
+
+Every effect should have:
+
+- a clear reason
+- explicit dependencies
+- a predictable lifecycle
+
+Prefer moving reusable effects into domain hooks. If an effect represents server synchronization, consider whether the query/data abstraction is the correct owner.
+
+## 4. API Architecture
+
+UI components must **not directly perform HTTP requests**.
+
+HTTP operations belong in the feature API layer:
+
+```text
+features/messages/
+├── messages.api.ts
+├── messages.queries.ts
+└── messages.types.ts
+```
+
+Components consume typed hooks/actions instead.
+
+## 5. React Query Architecture
+
+Queries and mutations belong in the feature query layer.
 
 Centralize:
 
 - query keys
-- API invocation
-- mutation behavior
-- cache invalidation
-- standard query options where appropriate
+- queries
+- mutations
+- invalidation
+- caching behavior
+- optimistic updates where appropriate
 
-## 3. State Ownership
+Avoid scattering `useQuery` and `useMutation` through large page components.
 
-Classify state before deciding where it belongs.
+## 6. API and Query Separation
 
-| State | Preferred owner |
-|---|---|
-| Server data | Query/cache layer |
-| Domain interaction state | Feature orchestration hook |
-| Form draft | Feature orchestration or dedicated form hook |
-| Small local visual state | Component |
-| Global application state | Shared/global store only when genuinely global |
+These are different responsibilities:
 
-Do not duplicate server state into local state without a clear reason.
+```text
+API
+ ↓
+HTTP / endpoint interaction
 
-## 4. Derived State
+Queries
+ ↓
+Caching / fetching / mutations / invalidation
 
-Prefer deriving values from existing state/data rather than maintaining duplicate state.
+Hooks
+ ↓
+Feature state / orchestration
 
-Use `useMemo` only when the derivation is meaningful or computationally expensive enough to justify it. Do not memoize everything because React developers enjoy making simple things complicated.
+Components
+ ↓
+Presentation
+```
 
-## 5. Effects
+Do not collapse all four layers into one file.
 
-Use `useEffect` for synchronization with external systems, not as a general-purpose place to run business logic.
+## 7. Types
 
-Before adding an effect, ask whether the behavior can instead be expressed as:
+Types should live close to the domain that owns them.
 
-- derived state
-- an event handler
-- a query/mutation lifecycle
-- a callback
-- server-side logic
+Use explicit domain types. Avoid `any` and unnecessary `unknown`.
 
-## 6. Forms and Mutations
+Do not silence the compiler with:
 
-Mutation handlers should coordinate the complete operation:
+- `as any`
+- `@ts-ignore`
+- `@ts-expect-error`
 
-1. validate/prepare input
-2. submit mutation
-3. handle success
-4. invalidate/update relevant data
-5. reset appropriate state
-6. expose useful feedback
-7. handle errors safely
+unless there is an explicitly documented exceptional reason.
 
-Do not leave half of the workflow inside JSX and the other half inside an API function.
+Type errors should expose architectural problems rather than be buried.
 
-## 7. Error Handling
+## 8. Business Logic
 
-Never use `any` merely to make error handling compile.
+Business logic should not live inside JSX.
 
-Use available type guards or narrow unknown values safely. Error messages should be useful to the user and sufficiently structured for debugging.
-
-## 8. API Types
-
-Keep API/domain types explicit.
+Move complex business rules into feature utilities or domain hooks/services.
 
 Prefer:
 
-```ts
-interface ContactRecord {
-  id: string;
-  displayName: string;
-}
+```tsx
+const status = getConversationStatus(conversation);
 ```
 
-over loosely typed objects.
+over embedding complex conditions directly in JSX.
 
-Map external API representations into domain representations when the API shape should not leak throughout the UI.
+## 9. Payload Construction
 
-## 9. Cache and Invalidation
+Payload construction must have a clear owner.
 
-When mutations change server data, identify the affected query/cache entries explicitly. Avoid broad, unnecessary invalidation when a targeted update is possible.
+For complex features, use the orchestration layer or a dedicated domain utility.
 
-## 10. Navigation
+Components should provide values and trigger actions. They should not know API payload formats.
 
-Navigation caused by a domain action may be coordinated by the feature orchestration layer. The UI component should communicate intent rather than contain a large navigation/business workflow.
+## 10. Forms
 
-## 11. Data Ownership Audit
+Small forms can remain local.
 
-For every feature, be able to answer:
+Complex forms should use a feature form hook and, where appropriate, a schema such as Zod.
 
-- Where does data come from?
-- Where is it transformed?
-- Where is it cached?
-- Where is mutable UI state stored?
-- Where are mutations defined?
-- Where are errors handled?
-- Who owns lifecycle transitions?
+Keep these concerns separated from visual components:
 
-If those answers are spread across several unrelated files without a clear reason, the feature needs architectural cleanup.
+```text
+form state
+validation
+transformation
+payload preparation
+```
+
+## 11. Error Ownership
+
+Errors should follow predictable ownership:
+
+```text
+API
+ ↓
+typed error
+ ↓
+query/mutation
+ ↓
+feature orchestration
+ ↓
+UI presentation
+```
+
+Avoid random `console.error(...)` calls and ad-hoc error strings scattered throughout components.
+
+## 12. Server and Client Responsibility
+
+Frontend architecture must never assume the client is trusted.
+
+Do not rely on frontend validation for authorization.
+
+Keep the following on the server:
+
+- secrets
+- authorization decisions
+- sensitive business rules
+
+Frontend validation exists primarily for UX and early feedback.
