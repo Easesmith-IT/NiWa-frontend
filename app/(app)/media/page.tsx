@@ -1,16 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { useEffect, useMemo, useState } from "react";
 
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
-import { apiClient } from "../../../lib/api/client";
-import { MediaDetailResponse, MediaListResponse, MediaRecord, MediaUploadResponse } from "../../../lib/api/types";
 import { getMediaDisplayName } from "../../../lib/media";
+import {
+  useDeleteMediaMutation,
+  useMediaDetailQuery,
+  useMediaListQuery,
+  useUpdateMediaMetadataMutation,
+  useUploadMediaMutation,
+  type MediaRecord,
+} from "../../../features/media";
 
 const formatSize = (bytes: number) => {
   if (bytes < 1024) {
@@ -36,104 +41,12 @@ export default function MediaPage() {
   const [metadataFolder, setMetadataFolder] = useState("");
   const [metadataTags, setMetadataTags] = useState("");
 
-  const mediaQuery = useQuery({
-    queryKey: ["media", query, type, folder, tag],
-    queryFn: async () => {
-      const response = await apiClient.get<MediaListResponse>("/media", {
-        params: {
-          ...(query ? { query } : {}),
-          ...(type ? { type } : {}),
-          ...(folder ? { folder } : {}),
-          ...(tag ? { tag } : {}),
-        },
-      });
-      return response.data;
-    },
-  });
+  const mediaQuery = useMediaListQuery({ query, type, folder, tag });
+  const mediaDetailQuery = useMediaDetailQuery(selectedId);
 
-  const mediaDetailQuery = useQuery({
-    queryKey: ["media-detail", selectedId],
-    queryFn: async () => {
-      const response = await apiClient.get<MediaDetailResponse>(`/media/${selectedId}`);
-      return response.data;
-    },
-    enabled: Boolean(selectedId),
-  });
-
-  const uploadMutation = useMutation({
-    mutationFn: async ({ customName, file }: { customName: string; file: File }) => {
-      const formData = new FormData();
-      formData.append("file", file);
-      if (customName.trim()) {
-        formData.append("customName", customName.trim());
-      }
-      const response = await apiClient.post<MediaUploadResponse>("/media/upload", formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-      return response.data;
-    },
-    onSuccess: (data) => {
-      setSubmitError(null);
-      setSubmitMessage(`Uploaded ${getMediaDisplayName(data.media)} successfully.`);
-      setUploadCustomName("");
-      mediaQuery.refetch();
-    },
-    onError: (error) => {
-      setSubmitMessage(null);
-      setSubmitError(
-        error instanceof AxiosError
-          ? error.response?.data?.message ?? "Upload failed."
-          : "Upload failed.",
-      );
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      await apiClient.delete(`/media/${id}`);
-    },
-    onSuccess: () => {
-      setSubmitError(null);
-      setSubmitMessage("Media deleted.");
-      setSelectedId(null);
-      mediaQuery.refetch();
-    },
-    onError: (error) => {
-      setSubmitMessage(null);
-      setSubmitError(
-        error instanceof AxiosError
-          ? error.response?.data?.message ?? "Delete failed."
-          : "Delete failed.",
-      );
-    },
-  });
-
-  const metadataMutation = useMutation({
-    mutationFn: async (payload: { customName: string; id: string; folder: string; tags: string[] }) => {
-      const response = await apiClient.patch<MediaDetailResponse>(`/media/${payload.id}`, {
-        customName: payload.customName.trim() || null,
-        folder: payload.folder.trim() || null,
-        tags: payload.tags,
-      });
-      return response.data;
-    },
-    onSuccess: () => {
-      setSubmitError(null);
-      setSubmitMessage("Media metadata updated.");
-      mediaQuery.refetch();
-      mediaDetailQuery.refetch();
-    },
-    onError: (error) => {
-      setSubmitMessage(null);
-      setSubmitError(
-        error instanceof AxiosError
-          ? error.response?.data?.message ?? "Metadata update failed."
-          : "Metadata update failed.",
-      );
-    },
-  });
+  const uploadMutation = useUploadMediaMutation();
+  const deleteMutation = useDeleteMediaMutation();
+  const metadataMutation = useUpdateMediaMetadataMutation();
 
   const media = useMemo(() => mediaQuery.data?.media ?? [], [mediaQuery.data]);
 
@@ -149,6 +62,81 @@ export default function MediaPage() {
     setMetadataFolder(mediaDetailQuery.data.media.folder ?? "");
     setMetadataTags((mediaDetailQuery.data.media.tags ?? []).join(", "));
   }, [mediaDetailQuery.data]);
+
+  const handleUpload = (file: File) => {
+    setSubmitMessage(null);
+    setSubmitError(null);
+    uploadMutation.mutate(
+      { customName: uploadCustomName, file },
+      {
+        onSuccess: (data) => {
+          setSubmitError(null);
+          setSubmitMessage(`Uploaded ${getMediaDisplayName(data.media)} successfully.`);
+          setUploadCustomName("");
+        },
+        onError: (error) => {
+          setSubmitMessage(null);
+          setSubmitError(
+            error instanceof AxiosError
+              ? error.response?.data?.message ?? "Upload failed."
+              : "Upload failed.",
+          );
+        },
+      },
+    );
+  };
+
+  const handleDelete = (id: string) => {
+    deleteMutation.mutate(id, {
+      onSuccess: () => {
+        setSubmitError(null);
+        setSubmitMessage("Media deleted.");
+        setSelectedId(null);
+      },
+      onError: (error) => {
+        setSubmitMessage(null);
+        setSubmitError(
+          error instanceof AxiosError
+            ? error.response?.data?.message ?? "Delete failed."
+            : "Delete failed.",
+        );
+      },
+    });
+  };
+
+  const handleUpdateMetadata = () => {
+    if (!mediaDetailQuery.data?.media?._id) {
+      return;
+    }
+
+    setSubmitMessage(null);
+    setSubmitError(null);
+    metadataMutation.mutate(
+      {
+        customName: metadataCustomName,
+        id: mediaDetailQuery.data.media._id,
+        folder: metadataFolder,
+        tags: metadataTags
+          .split(",")
+          .map((value) => value.trim())
+          .filter(Boolean),
+      },
+      {
+        onSuccess: () => {
+          setSubmitError(null);
+          setSubmitMessage("Media metadata updated.");
+        },
+        onError: (error) => {
+          setSubmitMessage(null);
+          setSubmitError(
+            error instanceof AxiosError
+              ? error.response?.data?.message ?? "Metadata update failed."
+              : "Metadata update failed.",
+          );
+        },
+      },
+    );
+  };
 
   return (
     <div className="space-y-4">
@@ -191,12 +179,7 @@ export default function MediaPage() {
               onChange={(event) => {
                 const file = event.target.files?.[0];
                 if (file) {
-                  setSubmitMessage(null);
-                  setSubmitError(null);
-                  uploadMutation.mutate({
-                    customName: uploadCustomName,
-                    file,
-                  });
+                  handleUpload(file);
                   event.currentTarget.value = "";
                 }
               }}
@@ -251,7 +234,7 @@ export default function MediaPage() {
                       Reuse
                     </Button>
                   </Link>
-                  <Button disabled={deleteMutation.isPending} onClick={() => deleteMutation.mutate(item._id)} size="sm" type="button" variant="secondary">
+                  <Button disabled={deleteMutation.isPending} onClick={() => handleDelete(item._id)} size="sm" type="button" variant="secondary">
                     Delete
                   </Button>
                 </div>
@@ -307,23 +290,7 @@ export default function MediaPage() {
                 <Button
                   className="w-full mt-1"
                   disabled={metadataMutation.isPending}
-                  onClick={() => {
-                    if (!mediaDetailQuery.data?.media?._id) {
-                      return;
-                    }
-
-                    setSubmitMessage(null);
-                    setSubmitError(null);
-                    metadataMutation.mutate({
-                      customName: metadataCustomName,
-                      id: mediaDetailQuery.data.media._id,
-                      folder: metadataFolder,
-                      tags: metadataTags
-                        .split(",")
-                        .map((value) => value.trim())
-                        .filter(Boolean),
-                    });
-                  }}
+                  onClick={handleUpdateMetadata}
                   size="sm"
                   type="button"
                   variant="primary"
@@ -356,4 +323,3 @@ export default function MediaPage() {
     </div>
   );
 }
-
