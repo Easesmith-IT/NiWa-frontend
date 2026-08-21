@@ -1,8 +1,7 @@
 import axios from "axios";
 
 import { clearAccessToken, getAccessToken, redirectToLogin, setAccessToken } from "../auth";
-
-import { apiClient, getBaseApiUrl } from "./client";
+import { getBaseApiUrl } from "./base-url";
 
 const getV1BaseUrl = () => `${getBaseApiUrl()}/v1`;
 
@@ -31,7 +30,7 @@ v1ApiClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshResponse = await apiClient.post("/auth/refresh");
+        const refreshResponse = await v1ApiClient.post("/auth/refresh");
         const nextAccessToken = refreshResponse.data?.accessToken;
 
         if (typeof nextAccessToken === "string" && nextAccessToken.length > 0) {

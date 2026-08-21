@@ -2,8 +2,7 @@ import { useEffect } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { io, Socket } from "socket.io-client";
 import { campaignKeys } from "./campaign.queries";
-// TODO(V1-Migration): Replace this legacy import with V1 environment configuration
-import { getBaseApiUrl } from "../../lib/api/client";
+import { getBaseApiUrl } from "../../lib/api/base-url";
 
 const resolveRealtimeUrl = () => {
   const isBrowser = typeof window !== "undefined";

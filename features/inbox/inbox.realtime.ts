@@ -5,7 +5,7 @@ import { io } from "socket.io-client";
 import { useQueryClient } from "@tanstack/react-query";
 
 import { v1QueryKeys } from "../../lib/api/v1-query-keys";
-import { getBaseApiUrl } from "../../lib/api/client";
+import { getBaseApiUrl } from "../../lib/api/base-url";
 
 const isSocketIoRealtimeEnabled = () => {
   return process.env.NEXT_PUBLIC_REALTIME_TRANSPORT === "socket_io";
