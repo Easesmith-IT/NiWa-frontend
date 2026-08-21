@@ -248,10 +248,28 @@ export const useContactImportPipelineV1 = () => {
   };
 
   useEffect(() => {
-    if (!isPolling || !activeImportId || !statusQuery.data || !isMountedRef.current) return;
+    if (!isPolling || !activeImportId || !isMountedRef.current) return;
+
+    const currentPipelineId = activePipelineIdRef.current;
+    const elapsed = Date.now() - pollingStartedAtRef.current;
+
+    // 1. Authoritative 20-second deadline check regardless of statusQuery.data presence
+    if (elapsed >= 20000) {
+      setIsPolling(false);
+      setStatusStep("");
+      setActiveImportId(null);
+      const timeoutMsg = "Contact import timed out while processing.";
+      if (isMountedRef.current && currentPipelineId === activePipelineIdRef.current) {
+        setPipelineError(timeoutMsg);
+        callbacksRef.current.onError?.(timeoutMsg);
+      }
+      return;
+    }
+
+    // 2. Data evaluation when statusQuery.data is present
+    if (!statusQuery.data) return;
 
     const currentStatus = statusQuery.data.status;
-    const currentPipelineId = activePipelineIdRef.current;
 
     if (currentStatus === "completed" || currentStatus === "ready") {
       setIsPolling(false);
@@ -272,21 +290,16 @@ export const useContactImportPipelineV1 = () => {
         setPipelineError(errorMsg);
         callbacksRef.current.onError?.(errorMsg);
       }
-    } else {
-      // Still in progress ("uploaded", "validating", "importing")
-      const elapsed = Date.now() - pollingStartedAtRef.current;
-      if (elapsed >= 20000) {
-        setIsPolling(false);
-        setStatusStep("");
-        setActiveImportId(null);
-        const timeoutMsg = "Contact import timed out while processing.";
-        if (isMountedRef.current && currentPipelineId === activePipelineIdRef.current) {
-          setPipelineError(timeoutMsg);
-          callbacksRef.current.onError?.(timeoutMsg);
-        }
-      }
     }
-  }, [isPolling, activeImportId, statusQuery.data, statusQuery.dataUpdatedAt, queryClient]);
+  }, [
+    isPolling,
+    activeImportId,
+    statusQuery.data,
+    statusQuery.dataUpdatedAt,
+    statusQuery.errorUpdatedAt,
+    statusQuery.fetchStatus,
+    queryClient,
+  ]);
 
   const isProcessing =
     uploadMutation.isPending ||
