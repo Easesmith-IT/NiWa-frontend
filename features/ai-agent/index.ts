@@ -4,3 +4,8 @@ export * from "./ai-agent.types";
 export * from "./hooks/useAIAgentTabs";
 export * from "./hooks/useAIAgentForms";
 export * from "./hooks/useAgentKnowledge";
+export * from "./components/AgentLibraryTab";
+export * from "./components/AgentConfigurationTab";
+export * from "./components/AgentKnowledgeTab";
+export * from "./components/AgentPlaygroundTab";
+export * from "./components/AgentActivityTab";

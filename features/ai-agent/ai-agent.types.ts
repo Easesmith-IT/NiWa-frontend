@@ -1,4 +1,3 @@
-
 import { 
   AIAgent, 
   BusinessAISettings, 
@@ -9,6 +8,8 @@ import {
   HumanHandoffTriggers,
   AITestResponse
 } from "./ai-agent.api";
+
+import { AccessFilter } from "../../app/(app)/ai-agent/components/KnowledgeFilters";
 
 // ----------------------------------------------------------------------
 // CALLBACK CONTRACTS
@@ -49,50 +50,57 @@ export interface AgentLibraryTabProps {
   templates: AgentTemplatePreset[];
   activeAgentId: string;
   isCreating: boolean;
-  onSelectAgent: (agentId: string) => void;
+  onSelectAgent: (agent: AIAgent) => void;
   onCreateAgent: (payload: AgentCreatePayload) => void;
   onDeleteAgent: (agentId: string) => void;
   onSetDefaultAgent: (agentId: string) => void;
-  onApplyTemplate: (agentId: string, templateId: string) => void;
 }
 
 export interface AgentConfigurationTabProps {
-  currentData: BusinessAISettings;
-  activeAgentId: string;
+  activeAgent: AIAgent | undefined;
   agents: AIAgent[];
-  isSaving: boolean;
-  onSelectAgent: (agentId: string) => void;
+  templates: AgentTemplatePreset[];
+  currentData: BusinessAISettings;
+  isApplyingTemplate: boolean;
+  showAdvancedInstructions: boolean;
+  showAdvancedMemory: boolean;
+  onSelectAgentId: (agentId: string) => void;
   onUpdateField: <K extends keyof BusinessAISettings>(key: K, value: BusinessAISettings[K]) => void;
   onUpdateBehavior: (key: keyof BusinessAISettings["behavior"], value: boolean) => void;
   onUpdateHandoffTrigger: (key: keyof HumanHandoffTriggers, value: boolean) => void;
-  onSave: () => void;
+  onApplyTemplate: (templateId: string) => void;
+  onResetToTemplateDefaults: () => void;
+  onOpenAddMemoryModal: () => void;
+  onOpenEditMemoryModal: (item: MemoryFieldDefinition) => void;
+  onDeleteMemoryField: (key: string) => void;
+  onToggleShowAdvancedInstructions: () => void;
+  onToggleShowAdvancedMemory: () => void;
 }
 
 export interface AgentKnowledgeTabProps {
   sources: KnowledgeSource[];
   agents: AIAgent[];
-  isLoading: boolean;
+  selectedKnowledgeAgentId: string;
+  accessFilter: AccessFilter;
+  onSelectKnowledgeAgent: (agentId: string) => void;
+  onChangeAccessFilter: (filter: AccessFilter) => void;
   onAddSource: (type: "text" | "faq") => void;
   onEditSource: (source: KnowledgeSource) => void;
   onDeleteSource: (sourceId: string) => void;
-  onToggleSourceStatus: (sourceId: string, isActive: boolean) => void;
+  onToggleSourceStatus: (sourceId: string, status: "ready" | "disabled") => void;
 }
 
 export interface AgentPlaygroundTabProps {
-  agents: AIAgent[];
-  activeAgentId: string;
   testQuery: string;
   isTesting: boolean;
-  testResult: AITestResponse | null;
-  onSelectAgent: (agentId: string) => void;
+  testResult: AITestResponse | null | undefined;
   onQueryChange: (query: string) => void;
-  onRunTest: () => void;
+  onRunTest: (e: React.FormEvent) => void;
 }
 
 export interface AgentActivityTabProps {
   logs: AIActivityLog[];
-  isLoading: boolean;
-  onRefresh: () => void;
+  isLoading?: boolean;
 }
 
 export interface AgentMemoryConfiguratorProps {
@@ -112,4 +120,3 @@ export interface AgentKnowledgeFormProps {
   onSave: (payload: KnowledgeSourceCreatePayload | KnowledgeSourceUpdatePayload) => void;
   onCancel: () => void;
 }
-
