@@ -131,8 +131,8 @@ export const useAsyncMessageBatchQueue = (
         });
       }
     } catch (err: unknown) {
-      const errorObj = err as { name?: string };
-      if (errorObj?.name === "CanceledError" || errorObj?.name === "AbortError") {
+      const errorName = err instanceof Error ? err.name : undefined;
+      if (errorName === "CanceledError" || errorName === "AbortError") {
         return;
       }
       console.error("Async batch message queue fetch error:", err);

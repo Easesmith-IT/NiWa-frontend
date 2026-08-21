@@ -47,7 +47,8 @@ import {
   fetchMessageMediaBlobV1,
   mergeAndReconcileMessages,
   useAsyncMessageBatchQueue,
-  useInboxRealtime,
+  useInboxRealtimeHandlers,
+  useInboxState,
   useInboxThreadDetailV1Query,
   useInboxThreadStateMutation,
   useInboxThreadsV1Query,
@@ -484,15 +485,6 @@ const MessageMedia = ({
   );
 };
 
-type OptimisticInboxMessage = {
-  _id: string;
-  createdAt: string;
-  direction: "outgoing";
-  messageType: "text";
-  previewText: string;
-  status: "failed" | "queued" | "sent";
-};
-
 const PanelSection = ({
   title,
   children,
@@ -510,34 +502,85 @@ const PanelSection = ({
 
 export default function InboxPage() {
   const searchParams = useSearchParams();
-  const [filter, setFilter] = useState<(typeof filters)[number]["key"]>("all");
-  const [search, setSearch] = useState("");
-  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
-  const [composerBody, setComposerBody] = useState("");
-  const [selectedQuickReplyId, setSelectedQuickReplyId] = useState("");
-  const [quickReplyVariableValues, setQuickReplyVariableValues] = useState<Record<string, string>>({});
-  const [selectedLabelId, setSelectedLabelId] = useState("");
-  const [taskTitle, setTaskTitle] = useState("");
-  const [taskDueDate, setTaskDueDate] = useState("");
-  const [taskPriority, setTaskPriority] = useState<"high" | "low" | "medium">("medium");
-  const [noteContent, setNoteContent] = useState("");
-  const [notePinned, setNotePinned] = useState(false);
-  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
-  const [editingNoteContent, setEditingNoteContent] = useState("");
-  const [scheduledDate, setScheduledDate] = useState("");
-  const [scheduledType, setScheduledType] = useState<"one_time" | "recurring">("one_time");
-  const [scheduledRule, setScheduledRule] = useState<"daily" | "monthly" | "weekly">("daily");
-  const [contactInfoOpen, setContactInfoOpen] = useState(false);
-  const [actionsOpen, setActionsOpen] = useState(false);
-  const [composerMenuOpen, setComposerMenuOpen] = useState(false);
-  const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
-  const [quickReplyPanelOpen, setQuickReplyPanelOpen] = useState(false);
-  const [optimisticMessages, setOptimisticMessages] = useState<OptimisticInboxMessage[]>([]);
-  const [composerFeedback, setComposerFeedback] = useState<{
-    message: string;
-    tone: "error" | "success";
-  } | null>(null);
-  const [hasInitialScrollCompleted, setHasInitialScrollCompleted] = useState(false);
+
+  const {
+    filter,
+    setFilter,
+    search,
+    setSearch,
+    selectedConversationId,
+    setSelectedConversationId,
+
+    composerBody,
+    setComposerBody,
+    composerMenuOpen,
+    setComposerMenuOpen,
+    composerFeedback,
+    setComposerFeedback,
+    optimisticMessages,
+    setOptimisticMessages,
+
+    selectedQuickReplyId,
+    setSelectedQuickReplyId,
+    quickReplyVariableValues,
+    setQuickReplyVariableValues,
+    quickReplyPanelOpen,
+    setQuickReplyPanelOpen,
+
+    selectedLabelId,
+    setSelectedLabelId,
+    contactInfoOpen,
+    setContactInfoOpen,
+    actionsOpen,
+    setActionsOpen,
+    editingContact,
+    setEditingContact,
+    editDisplayName,
+    setEditDisplayName,
+    editCompany,
+    setEditCompany,
+    editEmail,
+    setEditEmail,
+    editAvatarUrl,
+    setEditAvatarUrl,
+
+    taskTitle,
+    setTaskTitle,
+    taskDueDate,
+    setTaskDueDate,
+    taskPriority,
+    setTaskPriority,
+
+    noteContent,
+    setNoteContent,
+    notePinned,
+    setNotePinned,
+    editingNoteId,
+    setEditingNoteId,
+    editingNoteContent,
+    setEditingNoteContent,
+
+    scheduledDate,
+    setScheduledDate,
+    scheduledType,
+    setScheduledType,
+    scheduledRule,
+    setScheduledRule,
+    scheduleDialogOpen,
+    setScheduleDialogOpen,
+
+    hasInitialScrollCompleted,
+    setHasInitialScrollCompleted,
+    showJumpToBottom,
+    setShowJumpToBottom,
+    newMessageCount,
+    setNewMessageCount,
+    lightboxImageId,
+    setLightboxImageId,
+
+    resetThreadDependentState,
+  } = useInboxState();
+
   const paginationCallWindowRef = useRef<number[]>([]);
 
   const threadsQuery = useInboxThreadsV1Query({ filter, search });
@@ -588,7 +631,7 @@ export default function InboxPage() {
     if (requestedConversationId) {
       setSelectedConversationId(requestedConversationId);
     }
-  }, [searchParams]);
+  }, [searchParams, setSelectedConversationId]);
 
   useEffect(() => {
     if (threads.length === 0) {
@@ -605,7 +648,7 @@ export default function InboxPage() {
     if (!hasSelectedConversation) {
       setSelectedConversationId(threads[0]?.conversation._id ?? null);
     }
-  }, [selectedConversationId, threads]);
+  }, [selectedConversationId, threads, setSelectedConversationId]);
 
   const selectedThread = useMemo(
     () =>
@@ -615,39 +658,12 @@ export default function InboxPage() {
   );
 
   const activeConversationId = selectedThread?.conversation._id ?? null;
-  const threadMutationRef = useRef(threadMutation.mutate);
-  useEffect(() => {
-    threadMutationRef.current = threadMutation.mutate;
+
+  useInboxRealtimeHandlers({
+    activeConversationId,
+    unreadCount: selectedThread?.conversation?.unreadCount,
+    mutateThreadState: threadMutation.mutate,
   });
-
-  const markedReadSetRef = useRef<Set<string>>(new Set());
-
-  const handleActiveMessageReceived = useCallback(
-    (conversationId: string) => {
-      if (activeConversationId && conversationId === activeConversationId) {
-        markedReadSetRef.current.add(activeConversationId);
-        threadMutationRef.current({
-          action: "read",
-          conversationId,
-        });
-      }
-    },
-    [activeConversationId],
-  );
-
-  useInboxRealtime(activeConversationId, handleActiveMessageReceived);
-
-  useEffect(() => {
-    if (!activeConversationId) return;
-    const unread = selectedThread?.conversation?.unreadCount ?? 0;
-    if (unread > 0 && !markedReadSetRef.current.has(activeConversationId)) {
-      markedReadSetRef.current.add(activeConversationId);
-      threadMutationRef.current({
-        action: "read",
-        conversationId: activeConversationId,
-      });
-    }
-  }, [activeConversationId, selectedThread?.conversation?.unreadCount]);
 
   const detailQuery = useInboxThreadDetailV1Query(activeConversationId, { messageLimit: 50 });
   const syncHistoryMutation = useSyncInboxThreadHistoryV1Mutation();
@@ -665,11 +681,6 @@ export default function InboxPage() {
     retryLoadOlder,
   } = useAsyncMessageBatchQueue(activeConversationId, initialPagination);
 
-  const [editingContact, setEditingContact] = useState(false);
-  const [editDisplayName, setEditDisplayName] = useState("");
-  const [editCompany, setEditCompany] = useState("");
-  const [editEmail, setEditEmail] = useState("");
-  const [editAvatarUrl, setEditAvatarUrl] = useState("");
   const tasksQuery = useTasksV1Query(detail?.contact?._id ? { contactId: detail.contact._id } : undefined);
   const scheduledMessagesQuery = useScheduledMessagesV1Query(
     detail?.contact?._id ? { contactId: detail.contact._id } : undefined,
@@ -693,8 +704,6 @@ export default function InboxPage() {
 
   const messagesContainerRef = useRef<HTMLDivElement>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const [showJumpToBottom, setShowJumpToBottom] = useState(false);
-  const [newMessageCount, setNewMessageCount] = useState(0);
 
   const anchorRef = useRef<{
     anchorId: string | null;
@@ -789,37 +798,15 @@ export default function InboxPage() {
   };
 
   useEffect(() => {
-    setHasInitialScrollCompleted(false);
+    resetThreadDependentState();
     paginationCallWindowRef.current = [];
-    setContactInfoOpen(false);
-    setSelectedQuickReplyId("");
-    setSelectedLabelId("");
-    setTaskTitle("");
-    setTaskDueDate("");
-    setTaskPriority("medium");
-    setNoteContent("");
-    setNotePinned(false);
-    setEditingNoteId(null);
-    setEditingNoteContent("");
-    setQuickReplyVariableValues({});
-    setScheduledDate("");
-    setScheduledType("one_time");
-    setScheduledRule("daily");
-    setActionsOpen(false);
-    setComposerMenuOpen(false);
-    setScheduleDialogOpen(false);
-    setQuickReplyPanelOpen(false);
-    setOptimisticMessages([]);
-    setComposerFeedback(null);
-    setShowJumpToBottom(false);
-    setNewMessageCount(0);
 
     const timer = setTimeout(() => {
       scrollToBottom(false);
       setHasInitialScrollCompleted(true);
     }, 50);
     return () => clearTimeout(timer);
-  }, [activeConversationId]);
+  }, [activeConversationId, resetThreadDependentState, setHasInitialScrollCompleted]);
 
   const selectedQuickReply = useMemo(
     () => quickReplies.find((quickReply) => quickReply._id === selectedQuickReplyId) ?? null,
@@ -865,8 +852,6 @@ export default function InboxPage() {
       return searchValue.includes(quickReplyTrigger);
     });
   }, [quickReplies, quickReplyTrigger]);
-
-  const [lightboxImageId, setLightboxImageId] = useState<string | null>(null);
 
   const displayedMessages = useMemo(() => {
     return mergeAndReconcileMessages({
