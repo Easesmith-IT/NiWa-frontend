@@ -7,7 +7,9 @@ import type {
   ProfileUpdatePayload,
   SettingsPayload,
   SettingsResponse,
-} from "../../lib/api/types";
+} from "./settings.types";
+
+export * from "./settings.types";
 
 export const getSettings = async (showStoredSecrets?: boolean) => {
   const response = await v1ApiClient.get<SettingsResponse>("/settings", {

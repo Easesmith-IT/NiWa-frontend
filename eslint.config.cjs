@@ -31,6 +31,26 @@ module.exports = [
               group: ["**/lib/api/client", "**/lib/api/client.ts"],
               message: "Legacy apiClient has been removed. Use v1ApiClient from lib/api/v1-client or getBaseApiUrl from lib/api/base-url.",
             },
+            {
+              group: ["**/app/(app)/**", "**/app/(auth)/**"],
+              message: "Features and components must not import from app/ route composition roots.",
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    files: ["components/ui/**/*.tsx", "features/*/components/**/*.tsx"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["**/lib/api/v1-client", "**/lib/api/v1-client.ts"],
+              message: "Presentational UI components must not perform HTTP requests directly. Use domain feature API modules.",
+            },
           ],
         },
       ],

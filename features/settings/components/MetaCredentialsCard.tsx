@@ -43,7 +43,7 @@ export const MetaCredentialsCard: React.FC<MetaCredentialsCardProps> = ({ meta }
               Meta Status: {meta.connectionTestMutation.data.statusCode}
             </p>
           ) : null}
-          {meta.connectionTestMutation.data?.missingFields.length ? (
+          {meta.connectionTestMutation.data?.missingFields?.length ? (
             <p className="mt-1 text-xs text-[#C2413A] dark:text-[#D7685C]">
               Missing: {meta.connectionTestMutation.data.missingFields.join(", ")}
             </p>

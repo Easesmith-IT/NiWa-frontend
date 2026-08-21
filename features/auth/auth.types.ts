@@ -12,13 +12,25 @@ export interface LoginResponse {
     name: string;
     role?: string;
   };
-}
-
-export interface ProfileResponse {
-  operator: {
+  user?: {
     id: string;
     email: string;
     name: string;
     role?: string;
+  };
+}
+
+export interface ProfileResponse {
+  operator?: {
+    id: string;
+    email: string;
+    name: string;
+    role?: string;
+  };
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    role: string;
   };
 }

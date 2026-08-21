@@ -1,5 +1,7 @@
 import { v1ApiClient } from "../../lib/api/v1-client";
-import type { ApiLogsResponse, WebhookLogsResponse } from "../../lib/api/types";
+import type { ApiLogsResponse, WebhookLogsResponse } from "./logs.types";
+
+export * from "./logs.types";
 
 export interface GetApiLogsParams {
   endpoint?: string;

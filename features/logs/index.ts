@@ -1,3 +1,4 @@
+export * from "./logs.types";
 export * from "./logs.api";
 export * from "./logs.queries";
 export * from "./hooks/useApiLogsOrchestration";
