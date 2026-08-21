@@ -54,11 +54,16 @@ export interface ConversationRecordV1 extends V1RecordBase {
   status: "archived" | "closed" | "open";
   unreadCount: number;
   waId: string;
-  aiMode?: "co-pilot" | "off" | "on";
-  assignedAgentId?: string | null;
+  aiMode?: "AI_ACTIVE" | "AI_PAUSED" | "HUMAN_ONLY" | "co-pilot" | "off" | "on" | string;
+  assignedAgentId?: string | { _id: string } | null;
+  metadata?: {
+    aiMode?: string;
+    [key: string]: unknown;
+  };
 }
 
 export interface MessageRecordV1 extends V1RecordBase {
+  clientCorrelationId?: string;
   contactData?: Array<Record<string, unknown>>;
   conversationId?: string;
   contextData?: Record<string, unknown>;
@@ -67,6 +72,7 @@ export interface MessageRecordV1 extends V1RecordBase {
   errorCode?: string | null;
   errorDetails?: string | null;
   errorTitle?: string | null;
+  generatedByAI?: boolean;
   interactiveData?: Record<string, unknown>;
   interactiveType?: string | null;
   locationData?: Record<string, unknown>;
@@ -91,7 +97,7 @@ export interface MessageRecordV1 extends V1RecordBase {
   } | null;
   replyToMessageId?: string | null;
   replyToMetaMessageId?: string | null;
-  source?: "api" | "automation" | "manual" | "scheduled" | "template" | "webhook";
+  source?: "api" | "automation" | "manual" | "scheduled" | "template" | "webhook" | "ai" | string;
   status: string;
   statusTimeline?: Array<{
     at: string;
@@ -105,6 +111,7 @@ export interface MessageRecordV1 extends V1RecordBase {
     receivedAt?: string | null;
     sentAt?: string | null;
   };
+  tempId?: string;
   templateLanguageCode?: string | null;
   templateName?: string | null;
   textBody?: string;

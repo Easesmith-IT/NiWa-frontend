@@ -22,8 +22,8 @@ export const mapInboxThreadDetailV1 = (record: InboxThreadDetailV1): InboxThread
     ? {
         ...record.conversation,
         aiMode:
-          (record.conversation as any)?.aiMode ||
-          (record.conversation as any)?.metadata?.aiMode ||
+          record.conversation.aiMode ||
+          record.conversation.metadata?.aiMode ||
           "AI_ACTIVE",
       }
     : record.conversation,

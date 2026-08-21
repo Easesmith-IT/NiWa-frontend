@@ -32,7 +32,6 @@ import {
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Textarea } from "../../../components/ui/textarea";
-import { getAccessToken } from "../../../lib/auth";
 import { cn } from "../../../lib/utils";
 import { withDisplayPhoneNumber } from "../../../features/shared/mappers";
 import {
@@ -45,6 +44,7 @@ import {
   ImageLightboxModal,
   MessageRecordV1,
   ThreadListSkeleton,
+  fetchMessageMediaBlobV1,
   mergeAndReconcileMessages,
   useAsyncMessageBatchQueue,
   useInboxRealtime,
@@ -55,7 +55,6 @@ import {
 } from "../../../features/inbox";
 import { useLabelsV1Query } from "../../../features/labels";
 import { useSendTextMessageV1Mutation } from "../../../features/messages";
-import { getMessageMediaUrlV1 } from "../../../features/messages/message.api";
 import {
   useCreateContactNoteV1Mutation,
   useDeleteNoteV1Mutation,
@@ -423,17 +422,7 @@ const MessageMedia = ({
 
     const load = async () => {
       try {
-        const token = getAccessToken();
-        const response = await fetch(getMessageMediaUrlV1(messageId), {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-          credentials: "include",
-        });
-
-        if (!response.ok) {
-          return;
-        }
-
-        const blob = await response.blob();
+        const blob = await fetchMessageMediaBlobV1(messageId);
         objectUrl = URL.createObjectURL(blob);
 
         if (!disposed) {
@@ -1291,8 +1280,8 @@ export default function InboxPage() {
                   <div className="relative flex items-center">
                     {(() => {
                       const currentAiMode =
-                        (detail.conversation as any).aiMode ||
-                        (detail.conversation as any).metadata?.aiMode ||
+                        detail.conversation.aiMode ||
+                        detail.conversation.metadata?.aiMode ||
                         "AI_ACTIVE";
                       return (
                         <select
@@ -1328,7 +1317,7 @@ export default function InboxPage() {
                       const defaultAgent = agents.find((a) => a.isDefault) || agents[0];
                       const assignedAgentId = detail.conversation.assignedAgentId
                         ? typeof detail.conversation.assignedAgentId === "object"
-                          ? (detail.conversation.assignedAgentId as any)._id
+                          ? detail.conversation.assignedAgentId._id
                           : detail.conversation.assignedAgentId
                         : defaultAgent?._id || "";
 
@@ -1541,7 +1530,7 @@ export default function InboxPage() {
                                 </a>
                               ) : null}
                               <div className="mt-1 flex items-center justify-end gap-1 text-[10px] text-muted-foreground opacity-80">
-                                {(message as any).generatedByAI || (message as any).source === "ai" ? (
+                                {message.generatedByAI || message.source === "ai" ? (
                                   <span className="mr-1 inline-flex items-center gap-0.5 font-[#176B4D] font-bold text-[#176B4D] dark:text-[#2D8A67]" title="AI Generated Response">
                                     <span>◆</span>
                                     <span>AI</span>

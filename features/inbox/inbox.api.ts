@@ -56,3 +56,16 @@ export const syncInboxThreadHistoryV1 = async (conversationId: string) => {
   return response.data;
 };
 
+export const fetchMessageMediaBlobV1 = async (
+  messageId: string,
+  options?: { signal?: AbortSignal },
+): Promise<Blob> => {
+  const response = await v1ApiClient.get<Blob>(`/messages/${messageId}/media`, {
+    responseType: "blob",
+    signal: options?.signal,
+  });
+
+  return response.data;
+};
+
+

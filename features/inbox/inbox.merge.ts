@@ -32,7 +32,7 @@ export function mergeAndReconcileMessages(params: {
     if (msg.metaMessageId && typeof msg.metaMessageId === "string" && msg.metaMessageId.length > 0) {
       serverByMetaId.set(msg.metaMessageId, msg);
     }
-    const correlationId = (msg as any).clientCorrelationId || (msg as any).tempId;
+    const correlationId = msg.clientCorrelationId || msg.tempId;
     if (correlationId && typeof correlationId === "string") {
       serverByCorrelationId.set(correlationId, msg);
     }
@@ -45,7 +45,7 @@ export function mergeAndReconcileMessages(params: {
       return false;
     }
     // 2. Client correlation ID match
-    const optCorrelationId = (optMsg as any).clientCorrelationId || (optMsg as any).tempId;
+    const optCorrelationId = optMsg.clientCorrelationId || optMsg.tempId;
     if (optCorrelationId && serverByCorrelationId.has(optCorrelationId)) {
       return false;
     }
