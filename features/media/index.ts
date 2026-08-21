@@ -2,3 +2,8 @@ export * from "./media.api";
 export * from "./media.queries";
 export * from "./media.types";
 export * from "./hooks/useMediaOrchestration";
+export * from "./components/MediaHeader";
+export * from "./components/MediaFilters";
+export * from "./components/MediaCardList";
+export * from "./components/MediaDetailCard";
+export * from "./components/MediaShell";
