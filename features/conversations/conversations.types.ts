@@ -1,19 +1,9 @@
 import type { UseFormReturn } from "react-hook-form";
 import type {
-  ConversationActivityRecord,
-  ConversationDetailResponse,
-  ConversationLabelsResponse,
   ConversationMessageRecord,
-  ConversationNoteMutationResponse,
   ConversationNoteRecord,
-  ConversationReadResponse,
   ConversationRecord,
-  ConversationsResponse,
-  MediaListResponse,
-  MediaRecord,
-  OutboundMessageResponse,
   TemplateRecord,
-  TemplatesResponse,
 } from "../../lib/api/types";
 import type { ConversationRecordV1 } from "./conversation.types";
 import type { ReplyValues } from "./hooks/useConversationReplyState";
