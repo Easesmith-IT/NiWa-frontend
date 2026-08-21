@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
 import { Bot, PlayCircle, PauseCircle, Archive, Plus, Workflow } from "lucide-react";
 
 import { Button } from "../../../components/ui/button";
@@ -9,41 +8,43 @@ import { Card } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
 import { Textarea } from "../../../components/ui/textarea";
 import {
-  useAutomationLifecycleV1Mutation,
-  useAutomationTestV1Mutation,
-  useAutomationsV1Query,
-  useCreateAutomationV1Mutation,
+  useAutomationOrchestration,
   type AutomationConditionRecordV1,
   type AutomationStepRecordV1,
 } from "../../../features/automations";
 
-const newCondition = (): AutomationConditionRecordV1 => ({
-  operator: "contains",
-  source: "trigger.previewText",
-  value: "",
-});
-
-const newStep = (): AutomationStepRecordV1 => ({
-  config: { body: "" },
-  type: "send_message",
-});
-
 export default function AutomationsPage() {
-  const [statusFilter, setStatusFilter] = useState<"active" | "all" | "archived" | "paused">("all");
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [triggerType, setTriggerType] = useState<"incoming_message" | "manual">("incoming_message");
-  const [messageTypeFilter, setMessageTypeFilter] = useState("");
-  const [conditions, setConditions] = useState<AutomationConditionRecordV1[]>([newCondition()]);
-  const [steps, setSteps] = useState<AutomationStepRecordV1[]>([newStep()]);
-  const [testContactId, setTestContactId] = useState("");
-
-  const automationsQuery = useAutomationsV1Query(statusFilter === "all" ? undefined : { status: statusFilter });
-  const createAutomationMutation = useCreateAutomationV1Mutation();
-  const lifecycleMutation = useAutomationLifecycleV1Mutation();
-  const testAutomationMutation = useAutomationTestV1Mutation();
-
-  const automations = automationsQuery.data?.data ?? [];
+  const {
+    statusFilter,
+    setStatusFilter,
+    name,
+    setName,
+    description,
+    setDescription,
+    triggerType,
+    setTriggerType,
+    messageTypeFilter,
+    setMessageTypeFilter,
+    conditions,
+    steps,
+    testContactId,
+    setTestContactId,
+    createAutomationMutation,
+    testAutomationMutation,
+    automations,
+    handleAddCondition,
+    handleUpdateConditionSource,
+    handleUpdateConditionOperator,
+    handleUpdateConditionValue,
+    handleAddStep,
+    handleUpdateStepType,
+    handleUpdateStepConfig,
+    handleCreateAutomation,
+    handleActivateAutomation,
+    handlePauseAutomation,
+    handleArchiveAutomation,
+    handleRunTest,
+  } = useAutomationOrchestration();
 
   return (
     <div className="space-y-4">
@@ -109,7 +110,7 @@ export default function AutomationsPage() {
                 size="sm"
                 type="button"
                 variant="secondary"
-                onClick={() => setConditions((current) => [...current, newCondition()])}
+                onClick={handleAddCondition}
               >
                 <Plus className="h-3.5 w-3.5" />
                 Add Rule
@@ -121,27 +122,15 @@ export default function AutomationsPage() {
                   className="bg-white dark:bg-[#121416]"
                   placeholder="Source path"
                   value={condition.source}
-                  onChange={(event) =>
-                    setConditions((current) =>
-                      current.map((item, itemIndex) =>
-                        itemIndex === index ? { ...item, source: event.target.value } : item,
-                      ),
-                    )
-                  }
+                  onChange={(event) => handleUpdateConditionSource(index, event.target.value)}
                 />
                 <select
                   className="h-8.5 rounded-md border border-[#D4D4D8] bg-white px-2 text-xs text-foreground outline-none dark:border-[#303438] dark:bg-[#121416]"
                   value={condition.operator}
                   onChange={(event) =>
-                    setConditions((current) =>
-                      current.map((item, itemIndex) =>
-                        itemIndex === index
-                          ? {
-                              ...item,
-                              operator: event.target.value as AutomationConditionRecordV1["operator"],
-                            }
-                          : item,
-                      ),
+                    handleUpdateConditionOperator(
+                      index,
+                      event.target.value as AutomationConditionRecordV1["operator"],
                     )
                   }
                 >
@@ -154,13 +143,7 @@ export default function AutomationsPage() {
                   className="bg-white dark:bg-[#121416]"
                   placeholder="Match value"
                   value={condition.value ?? ""}
-                  onChange={(event) =>
-                    setConditions((current) =>
-                      current.map((item, itemIndex) =>
-                        itemIndex === index ? { ...item, value: event.target.value } : item,
-                      ),
-                    )
-                  }
+                  onChange={(event) => handleUpdateConditionValue(index, event.target.value)}
                 />
               </div>
             ))}
@@ -173,7 +156,7 @@ export default function AutomationsPage() {
                 size="sm"
                 type="button"
                 variant="secondary"
-                onClick={() => setSteps((current) => [...current, newStep()])}
+                onClick={handleAddStep}
               >
                 <Plus className="h-3.5 w-3.5" />
                 Add Step
@@ -185,22 +168,9 @@ export default function AutomationsPage() {
                   className="h-8.5 w-full rounded-md border border-[#D4D4D8] bg-[#FAFAFA] px-2.5 text-xs text-foreground outline-none dark:border-[#303438] dark:bg-[#17191B]"
                   value={step.type}
                   onChange={(event) =>
-                    setSteps((current) =>
-                      current.map((item, itemIndex) =>
-                        itemIndex === index
-                          ? {
-                              type: event.target.value as AutomationStepRecordV1["type"],
-                              config:
-                                event.target.value === "send_message"
-                                  ? { body: "" }
-                                  : event.target.value === "create_task"
-                                    ? { title: "", priority: "medium", dueInMinutes: 60 }
-                                    : event.target.value === "create_note"
-                                      ? { content: "", pinned: false }
-                                      : { delayMinutes: 5 },
-                            }
-                          : item,
-                      ),
+                    handleUpdateStepType(
+                      index,
+                      event.target.value as AutomationStepRecordV1["type"],
                     )
                   }
                 >
@@ -216,11 +186,7 @@ export default function AutomationsPage() {
                     placeholder="Message body, supports {{contact.displayName}} and {{trigger.previewText}}"
                     value={String(step.config.body ?? "")}
                     onChange={(event) =>
-                      setSteps((current) =>
-                        current.map((item, itemIndex) =>
-                          itemIndex === index ? { ...item, config: { body: event.target.value } } : item,
-                        ),
-                      )
+                      handleUpdateStepConfig(index, { body: event.target.value })
                     }
                   />
                 ) : null}
@@ -232,13 +198,10 @@ export default function AutomationsPage() {
                       placeholder="Task title"
                       value={String(step.config.title ?? "")}
                       onChange={(event) =>
-                        setSteps((current) =>
-                          current.map((item, itemIndex) =>
-                            itemIndex === index
-                              ? { ...item, config: { ...item.config, title: event.target.value } }
-                              : item,
-                          ),
-                        )
+                        handleUpdateStepConfig(index, {
+                          ...step.config,
+                          title: event.target.value,
+                        })
                       }
                     />
                     <Input
@@ -247,32 +210,20 @@ export default function AutomationsPage() {
                       type="number"
                       value={String(step.config.dueInMinutes ?? 60)}
                       onChange={(event) =>
-                        setSteps((current) =>
-                          current.map((item, itemIndex) =>
-                            itemIndex === index
-                              ? {
-                                  ...item,
-                                  config: {
-                                    ...item.config,
-                                    dueInMinutes: Number(event.target.value || 0),
-                                  },
-                                }
-                              : item,
-                          ),
-                        )
+                        handleUpdateStepConfig(index, {
+                          ...step.config,
+                          dueInMinutes: Number(event.target.value || 0),
+                        })
                       }
                     />
                     <select
                       className="h-8.5 rounded-md border border-[#D4D4D8] bg-white px-2 text-xs text-foreground outline-none dark:border-[#303438] dark:bg-[#17191B]"
                       value={String(step.config.priority ?? "medium")}
                       onChange={(event) =>
-                        setSteps((current) =>
-                          current.map((item, itemIndex) =>
-                            itemIndex === index
-                              ? { ...item, config: { ...item.config, priority: event.target.value } }
-                              : item,
-                          ),
-                        )
+                        handleUpdateStepConfig(index, {
+                          ...step.config,
+                          priority: event.target.value,
+                        })
                       }
                     >
                       <option value="high">High</option>
@@ -289,13 +240,10 @@ export default function AutomationsPage() {
                       placeholder="Internal note body"
                       value={String(step.config.content ?? "")}
                       onChange={(event) =>
-                        setSteps((current) =>
-                          current.map((item, itemIndex) =>
-                            itemIndex === index
-                              ? { ...item, config: { ...item.config, content: event.target.value } }
-                              : item,
-                          ),
-                        )
+                        handleUpdateStepConfig(index, {
+                          ...step.config,
+                          content: event.target.value,
+                        })
                       }
                     />
                     <label className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -303,13 +251,10 @@ export default function AutomationsPage() {
                         type="checkbox"
                         checked={Boolean(step.config.pinned)}
                         onChange={(event) =>
-                          setSteps((current) =>
-                            current.map((item, itemIndex) =>
-                              itemIndex === index
-                                ? { ...item, config: { ...item.config, pinned: event.target.checked } }
-                                : item,
-                            ),
-                          )
+                          handleUpdateStepConfig(index, {
+                            ...step.config,
+                            pinned: event.target.checked,
+                          })
                         }
                       />
                       Pin note
@@ -324,16 +269,9 @@ export default function AutomationsPage() {
                     type="number"
                     value={String(step.config.delayMinutes ?? 5)}
                     onChange={(event) =>
-                      setSteps((current) =>
-                        current.map((item, itemIndex) =>
-                          itemIndex === index
-                            ? {
-                                ...item,
-                                config: { delayMinutes: Number(event.target.value || 0) },
-                              }
-                            : item,
-                        ),
-                      )
+                      handleUpdateStepConfig(index, {
+                        delayMinutes: Number(event.target.value || 0),
+                      })
                     }
                   />
                 ) : null}
@@ -344,38 +282,7 @@ export default function AutomationsPage() {
           <Button
             className="w-full font-medium"
             disabled={!name.trim() || steps.length === 0 || createAutomationMutation.isPending}
-            onClick={() =>
-              createAutomationMutation.mutate(
-                {
-                  conditions: conditions
-                    .filter((item) => item.source.trim())
-                    .map((item) => ({
-                      ...item,
-                      value: item.value ?? undefined,
-                    })),
-                  description: description.trim() || undefined,
-                  name: name.trim(),
-                  steps: steps,
-                  trigger: {
-                    config:
-                      triggerType === "incoming_message" && messageTypeFilter.trim()
-                        ? { messageTypes: [messageTypeFilter.trim()] }
-                        : {},
-                    type: triggerType,
-                  },
-                },
-                {
-                  onSuccess: () => {
-                    setName("");
-                    setDescription("");
-                    setTriggerType("incoming_message");
-                    setMessageTypeFilter("");
-                    setConditions([newCondition()]);
-                    setSteps([newStep()]);
-                  },
-                },
-              )
-            }
+            onClick={handleCreateAutomation}
             type="button"
             variant="primary"
           >
@@ -433,9 +340,7 @@ export default function AutomationsPage() {
                         size="sm"
                         type="button"
                         variant="secondary"
-                        onClick={() =>
-                          lifecycleMutation.mutate({ action: "activate", automationId: automation._id })
-                        }
+                        onClick={() => handleActivateAutomation(automation._id)}
                       >
                         <PlayCircle className="h-3.5 w-3.5" />
                         Activate
@@ -446,9 +351,7 @@ export default function AutomationsPage() {
                         size="sm"
                         type="button"
                         variant="secondary"
-                        onClick={() =>
-                          lifecycleMutation.mutate({ action: "pause", automationId: automation._id })
-                        }
+                        onClick={() => handlePauseAutomation(automation._id)}
                       >
                         <PauseCircle className="h-3.5 w-3.5" />
                         Pause
@@ -459,9 +362,7 @@ export default function AutomationsPage() {
                         size="sm"
                         type="button"
                         variant="secondary"
-                        onClick={() =>
-                          lifecycleMutation.mutate({ action: "archive", automationId: automation._id })
-                        }
+                        onClick={() => handleArchiveAutomation(automation._id)}
                       >
                         <Archive className="h-3.5 w-3.5" />
                         Archive
@@ -472,14 +373,7 @@ export default function AutomationsPage() {
                       size="sm"
                       type="button"
                       variant="primary"
-                      onClick={() =>
-                        testAutomationMutation.mutate({
-                          automationId: automation._id,
-                          payload: {
-                            contactId: testContactId.trim(),
-                          },
-                        })
-                      }
+                      onClick={() => handleRunTest(automation._id)}
                     >
                       Run Test
                     </Button>
@@ -528,4 +422,3 @@ export default function AutomationsPage() {
     </div>
   );
 }
-
