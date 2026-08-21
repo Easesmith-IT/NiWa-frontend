@@ -6,7 +6,6 @@ import {
   BookOpen,
   Bot,
   CheckCircle2,
-  Play,
   RefreshCw,
   Save,
   Sliders,
@@ -15,8 +14,6 @@ import {
 } from "lucide-react";
 
 import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
-import { Textarea } from "../../../components/ui/textarea";
 import { cn } from "../../../lib/utils";
 import {
   useAgentsQuery,
@@ -43,11 +40,11 @@ import {
   AgentKnowledgeTab,
   AgentPlaygroundTab,
   AgentActivityTab,
+  AgentTemplateOverwriteModal,
+  AgentMemoryModal,
+  AgentKnowledgeModal,
   AIAgent,
-  MemoryFieldDefinition,
 } from "../../../features/ai-agent";
-
-import { KnowledgeAccessSelector } from "./components/KnowledgeAccessSelector";
 
 export default function AIAgentPage() {
   const [testQuery, setTestQuery] = useState("");
@@ -162,7 +159,7 @@ export default function AIAgentPage() {
 
   const handleCreateAgent = (payload: { name: string; templateId: string; isDefault?: boolean }) => {
     createAgentMutation.mutate(payload, {
-      onSuccess: (data) => {
+      onSuccess: (data: { agent: AIAgent }) => {
         setActiveEditingAgentId(data.agent._id);
         setSaveFeedback({ type: "success", message: `AI Agent '${data.agent.name}' created successfully.` });
         setTimeout(() => setSaveFeedback(null), 3000);
@@ -347,13 +344,13 @@ export default function AIAgentPage() {
         </div>
       </div>
 
-      {/* Main Content Body - Extracted Primary Tabs */}
+      {/* Main Content Body */}
       <div className="flex-1 p-6">
         {activeTab === "agents" && (
           <AgentLibraryTab
             agents={agentsQuery.data?.agents || []}
             templates={templates}
-            activeAgentId={activeEditingAgentId || (agentsQuery.data?.agents.find((a) => a.isDefault)?._id || "")}
+            activeAgentId={activeEditingAgentId || (agentsQuery.data?.agents.find((a: AIAgent) => a.isDefault)?._id || "")}
             isCreating={createAgentMutation.isPending}
             onSelectAgent={(agent: AIAgent) => {
               setActiveEditingAgentId(agent._id);
@@ -398,8 +395,8 @@ export default function AIAgentPage() {
             onChangeAccessFilter={setAccessFilter}
             onAddSource={handleOpenAddKnowledge}
             onEditSource={handleOpenEditKnowledge}
-            onDeleteSource={(id) => deleteKnowledgeMutation.mutate(id)}
-            onToggleSourceStatus={(id, status) => toggleKnowledgeStatusMutation.mutate({ id, status })}
+            onDeleteSource={(id: string) => deleteKnowledgeMutation.mutate(id)}
+            onToggleSourceStatus={(id: string, status: "ready" | "disabled") => toggleKnowledgeStatusMutation.mutate({ id, status })}
           />
         )}
 
@@ -440,152 +437,50 @@ export default function AIAgentPage() {
         </div>
       )}
 
-      {/* Template Overwrite Confirmation Modal */}
-      {isTemplateModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-card border border-border rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center gap-3 text-amber-500">
-              <AlertTriangle className="h-6 w-6" />
-              <h3 className="text-lg font-bold text-foreground">Apply Template Preset?</h3>
-            </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Applying this template will replace current agent behavior, diagnostic rules, and recommended memory schema. Organization info and Knowledge Base content will be preserved.
-            </p>
-            <div className="flex justify-end gap-3 pt-2">
-              <Button variant="outline" size="sm" onClick={() => setIsTemplateModalOpen(false)}>
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => pendingTemplateId && executeApplyTemplate(pendingTemplateId)}
-                disabled={applyTemplateMutation.isPending}
-              >
-                {applyTemplateMutation.isPending ? "Applying..." : "Apply Template"}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Modals */}
+      <AgentTemplateOverwriteModal
+        isOpen={isTemplateModalOpen}
+        pendingTemplateId={pendingTemplateId}
+        isApplying={applyTemplateMutation.isPending}
+        onConfirm={executeApplyTemplate}
+        onClose={() => setIsTemplateModalOpen(false)}
+      />
 
-      {/* Add / Edit Memory Field Modal */}
-      {isMemoryModalOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <form onSubmit={handleSaveMemoryField} className="bg-card border border-border rounded-xl max-w-md w-full p-6 space-y-4 shadow-2xl">
-            <div className="flex items-center justify-between border-b border-border pb-3">
-              <h3 className="text-base font-bold text-foreground">
-                {editingMemoryKey ? "Edit Memory Field" : "Add Memory Field"}
-              </h3>
-              <button type="button" onClick={() => setIsMemoryModalOpen(false)} className="text-muted-foreground hover:text-foreground">
-                ×
-              </button>
-            </div>
+      <AgentMemoryModal
+        isOpen={isMemoryModalOpen}
+        editingMemoryKey={editingMemoryKey}
+        fieldName={memoryFieldName}
+        fieldDesc={memoryFieldDesc}
+        fieldType={memoryFieldType}
+        error={memoryFieldError}
+        onFieldNameChange={setMemoryFieldName}
+        onFieldDescChange={setMemoryFieldDesc}
+        onFieldTypeChange={setMemoryFieldType}
+        onSave={handleSaveMemoryField}
+        onClose={() => setIsMemoryModalOpen(false)}
+        generateSafeKey={generateSafeKey}
+      />
 
-            {memoryFieldError && (
-              <div className="p-2.5 rounded bg-destructive/10 text-destructive text-xs font-semibold">
-                {memoryFieldError}
-              </div>
-            )}
-
-            <div className="space-y-3 text-xs">
-              <div className="space-y-1">
-                <label className="font-bold text-foreground">Field Name</label>
-                <Input
-                  value={memoryFieldName}
-                  onChange={(e) => setMemoryFieldName(e.target.value)}
-                  placeholder="e.g. Average Order Value"
-                />
-                <p className="text-[11px] text-muted-foreground">
-                  Internal key: <code className="font-mono font-bold text-primary">{editingMemoryKey || generateSafeKey(memoryFieldName || "field_name")}</code>
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-bold text-foreground">Description</label>
-                <Textarea
-                  rows={2}
-                  value={memoryFieldDesc}
-                  onChange={(e) => setMemoryFieldDesc(e.target.value)}
-                  placeholder="Explicit description of what this field tracks..."
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-bold text-foreground">Data Type</label>
-                <select
-                  value={memoryFieldType}
-                  onChange={(e) => setMemoryFieldType(e.target.value as MemoryFieldDefinition["type"])}
-                  className="w-full h-9 rounded-md border border-border bg-background px-3 py-1 text-sm shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                >
-                  <option value="string">Text (String)</option>
-                  <option value="number">Number</option>
-                  <option value="boolean">Yes / No (Boolean)</option>
-                  <option value="string_array">List of Text (Array)</option>
-                </select>
-              </div>
-            </div>
-
-            <div className="flex justify-end gap-3 pt-3 border-t border-border">
-              <Button type="button" variant="outline" size="sm" onClick={() => setIsMemoryModalOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" size="sm">
-                Save Memory Field
-              </Button>
-            </div>
-          </form>
-        </div>
-      )}
-
-      {/* Add / Edit Knowledge Modal */}
-      {isAddKnowledgeOpen && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <form onSubmit={handleSaveKnowledge} className="bg-card border border-border rounded-xl max-w-lg w-full p-6 space-y-4 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-base font-bold">{editingSource ? "Edit Knowledge Source" : "Add Knowledge Source"}</h3>
-            <div className="space-y-3 text-xs">
-              <div className="space-y-1">
-                <label className="font-bold">Source Title</label>
-                <Input value={sourceTitle} onChange={(e) => setSourceTitle(e.target.value)} required />
-              </div>
-              {sourceType === "text" ? (
-                <div className="space-y-1">
-                  <label className="font-bold">Content</label>
-                  <Textarea rows={4} value={sourceContent} onChange={(e) => setSourceContent(e.target.value)} required />
-                </div>
-              ) : (
-                <>
-                  <div className="space-y-1">
-                    <label className="font-bold">Question</label>
-                    <Input value={sourceQuestion} onChange={(e) => setSourceQuestion(e.target.value)} required />
-                  </div>
-                  <div className="space-y-1">
-                    <label className="font-bold">Answer</label>
-                    <Textarea rows={3} value={sourceAnswer} onChange={(e) => setSourceAnswer(e.target.value)} required />
-                  </div>
-                </>
-              )}
-
-              {/* Agent Access Control Selector */}
-              <div className="pt-3 border-t border-border">
-                <KnowledgeAccessSelector
-                  accessMode={sourceAccessMode}
-                  assignedAgentIds={sourceAssignedAgentIds}
-                  agents={agentsQuery.data?.agents || []}
-                  onChangeAccessMode={setSourceAccessMode}
-                  onChangeAssignedAgents={setSourceAssignedAgentIds}
-                />
-              </div>
-            </div>
-            <div className="flex justify-end gap-3 pt-2 border-t border-border">
-              <Button type="button" variant="outline" size="sm" onClick={() => setIsAddKnowledgeOpen(false)}>
-                Cancel
-              </Button>
-              <Button type="submit" size="sm">
-                Save Source
-              </Button>
-            </div>
-          </form>
-        </div>
-      )}
+      <AgentKnowledgeModal
+        isOpen={isAddKnowledgeOpen}
+        editingSource={editingSource}
+        sourceType={sourceType}
+        title={sourceTitle}
+        content={sourceContent}
+        question={sourceQuestion}
+        answer={sourceAnswer}
+        accessMode={sourceAccessMode}
+        assignedAgentIds={sourceAssignedAgentIds}
+        agents={agentsQuery.data?.agents || []}
+        onTitleChange={setSourceTitle}
+        onContentChange={setSourceContent}
+        onQuestionChange={setSourceQuestion}
+        onAnswerChange={setSourceAnswer}
+        onAccessModeChange={setSourceAccessMode}
+        onAssignedAgentIdsChange={setSourceAssignedAgentIds}
+        onSave={handleSaveKnowledge}
+        onClose={() => setIsAddKnowledgeOpen(false)}
+      />
     </div>
   );
 }

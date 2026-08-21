@@ -17,3 +17,6 @@ export * from "./components/AgentInstructionsSection";
 export * from "./components/AgentLanguageSection";
 export * from "./components/AgentMemorySection";
 export * from "./components/AgentHandoffSection";
+export * from "./components/AgentTemplateOverwriteModal";
+export * from "./components/AgentMemoryModal";
+export * from "./components/AgentKnowledgeModal";
