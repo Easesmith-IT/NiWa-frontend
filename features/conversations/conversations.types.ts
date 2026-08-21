@@ -1,3 +1,4 @@
+import type { UseFormReturn } from "react-hook-form";
 import type {
   ConversationActivityRecord,
   ConversationDetailResponse,
@@ -15,6 +16,7 @@ import type {
   TemplatesResponse,
 } from "../../lib/api/types";
 import type { ConversationRecordV1 } from "./conversation.types";
+import type { ReplyValues } from "./hooks/useConversationReplyState";
 
 export type { ConversationRecordV1 };
 
@@ -93,20 +95,23 @@ export interface ConversationsMessageListProps {
 export interface ConversationsReplyComposerProps {
   selectedConversationId: string | null;
   activeTemplates: TemplateRecord[];
-  allMedia: MediaRecord[];
   isSending: boolean;
   replyError: string | null;
-  onSendReply: (values: SendReplyRequest) => void;
+  readError: string | null;
+  replyForm: UseFormReturn<ReplyValues>;
+  selectedReplyType: string;
+  selectedTemplateName?: string;
+  selectedTemplateLanguage?: string;
+  onSubmit: (values: ReplyValues) => void;
 }
 
 export interface ConversationsChatWindowProps {
-  selectedConversation: ConversationRecord | null;
   workspaceConversation: ConversationRecord | null;
-  messages: ConversationMessageRecord[];
-  isLoadingDetail: boolean;
-  onClearUnread: () => void;
+  selectedConversationId: string | null;
   isClearingUnread: boolean;
-  composerNode: React.ReactNode;
+  onClearUnread: () => void;
+  messageListNode: React.ReactNode;
+  replyComposerNode: React.ReactNode;
 }
 
 export interface ConversationsContactProfileProps {
@@ -121,11 +126,12 @@ export interface ConversationsLabelsCardProps {
   onRemoveLabel: (label: string) => void;
   onSaveLabels: () => void;
   isBusy: boolean;
+  workspaceError: string | null;
   disabled: boolean;
 }
 
 export interface ConversationsNotesCardProps {
-  notes: ConversationNoteRecord[];
+  sortedNotes: ConversationNoteRecord[];
   noteContent: string;
   onNoteContentChange: (value: string) => void;
   onAddNote: () => void;
@@ -134,9 +140,9 @@ export interface ConversationsNotesCardProps {
 }
 
 export interface ConversationsInfoSidebarProps {
-  conversation: ConversationRecord | null;
-  labelsNode: React.ReactNode;
-  notesNode: React.ReactNode;
+  contactProfileNode: React.ReactNode;
+  labelsCardNode: React.ReactNode;
+  notesCardNode: React.ReactNode;
 }
 
 export interface ConversationsShellProps {
