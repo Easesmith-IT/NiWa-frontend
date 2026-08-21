@@ -1,39 +1,9 @@
 "use client";
 
 import { AxiosError } from "axios";
-import { KeyboardEvent, ReactNode, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef } from "react";
 import { useSearchParams } from "next/navigation";
-import {
-  Archive,
-  ArrowDown,
-  CalendarClock,
-  Check,
-  CheckCheck,
-  ChevronDown,
-  Clock3,
-  Command,
-  MessageSquareDot,
-  MoreHorizontal,
-  Paperclip,
-  Pin,
-  Plus,
-  RefreshCw,
-  Search,
-  Send,
-  SendHorizonal,
-  Smile,
-  Sparkles,
-  Star,
-  Tags,
-  UserRound,
-  X,
-} from "lucide-react";
 
-import { Button } from "../../../components/ui/button";
-import { Input } from "../../../components/ui/input";
-import { Textarea } from "../../../components/ui/textarea";
-import { cn } from "../../../lib/utils";
-import { withDisplayPhoneNumber } from "../../../features/shared/mappers";
 import {
   useAddContactLabelV1Mutation,
   usePatchContactV1Mutation,
@@ -42,21 +12,20 @@ import {
 import {
   ChatComposer,
   ChatMessageList,
-  ChatWindowSkeleton,
-  ContactAvatar,
   ImageLightboxModal,
   InboxChatWindow,
   InboxContactSidebar,
   InboxLayout,
   InboxThreadList,
   MessageRecordV1,
-  fetchMessageMediaBlobV1,
+  areVariableValuesEqual,
+  extractTemplateVariables,
   formatConversationTime,
-  formatDateInput,
-  formatDateTime,
   formatMessageDay,
+  getContactVariableDefaults,
   getMessageTimestamp,
   mergeAndReconcileMessages,
+  resolveQuickReplyBody,
   toIsoFromDateInput,
   useAsyncMessageBatchQueue,
   useInboxRealtimeHandlers,
@@ -90,85 +59,6 @@ import {
   useTransferConversationAgentMutation,
   useUpdateConversationAIModeMutation,
 } from "../../../features/ai-agent";
-
-const priorityOptions = [
-  { value: "high", label: "High" },
-  { value: "medium", label: "Medium" },
-  { value: "low", label: "Low" },
-] as const;
-
-const getContactVariableDefaults = (contact?: {
-  company?: string | null;
-  displayName?: string;
-  phoneNumber?: string;
-  profileName?: string | null;
-}) => {
-  const displayName = contact?.displayName ?? "";
-  const firstName = displayName.trim().split(/\s+/)[0] ?? "";
-
-  return {
-    company: contact?.company ?? "",
-    displayName,
-    firstName,
-    name: displayName,
-    phoneNumber: contact?.phoneNumber ?? "",
-    profileName: contact?.profileName ?? "",
-  };
-};
-
-const extractTemplateVariables = (body: string, explicitVariables: string[]) => {
-  const placeholders = Array.from(body.matchAll(/{{\s*([^}]+?)\s*}}/g))
-    .map((match) => match[1]?.trim())
-    .filter((value): value is string => Boolean(value));
-
-  return Array.from(new Set([...explicitVariables, ...placeholders]));
-};
-
-const resolveQuickReplyBody = (
-  body: string,
-  variables: string[],
-  values: Record<string, string>,
-) =>
-  body.replace(/{{\s*([^}]+?)\s*}}/g, (_match, rawName: string) => {
-    const name = rawName.trim();
-
-    if (name in values) {
-      return values[name] ?? "";
-    }
-
-    const numericIndex = Number(name);
-    if (!Number.isNaN(numericIndex) && numericIndex >= 1) {
-      return values[variables[numericIndex - 1] ?? ""] ?? "";
-    }
-
-    return "";
-  });
-
-const areVariableValuesEqual = (left: Record<string, string>, right: Record<string, string>) => {
-  const leftKeys = Object.keys(left);
-  const rightKeys = Object.keys(right);
-
-  if (leftKeys.length !== rightKeys.length) {
-    return false;
-  }
-
-  return leftKeys.every((key) => left[key] === right[key]);
-};
-
-const getSchedulePreview = (payload: Record<string, unknown>) => {
-  if (typeof payload.body === "string" && payload.body.trim()) {
-    return payload.body;
-  }
-
-  return "Scheduled payload";
-};
-
-const messageActionLabels = [
-  { action: "read" as const, label: "Mark as read" },
-  { action: "pin" as const, label: "Pin conversation" },
-  { action: "star" as const, label: "Star conversation" },
-  { action: "archive" as const, label: "Archive conversation" },
-];
 
 const getErrorMessage = (error: unknown, fallback: string) =>
   error instanceof AxiosError
@@ -609,7 +499,7 @@ export default function InboxPage() {
     setQuickReplyVariableValues((current) =>
       areVariableValuesEqual(current, nextValues) ? current : nextValues,
     );
-  }, [detail?.contact, selectedQuickReply, selectedQuickReplyVariables]);
+  }, [detail?.contact, selectedQuickReply, selectedQuickReplyVariables, setQuickReplyVariableValues]);
 
   const performThreadAction = (
     action: "archive" | "pin" | "read" | "star" | "unarchive" | "unpin" | "unstar",
@@ -725,13 +615,6 @@ export default function InboxPage() {
     );
   };
 
-  const handleComposerKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-      sendMessage();
-    }
-  };
-
   return (
     <>
       <InboxLayout
@@ -816,6 +699,7 @@ export default function InboxPage() {
               quickReplyPanelOpen={quickReplyPanelOpen}
               quickReplyPreview={quickReplyPreview}
               quickReplySuggestions={quickReplySuggestions}
+              quickReplyVariableValues={quickReplyVariableValues}
               scheduleDialogOpen={scheduleDialogOpen}
               scheduledDate={scheduledDate}
               scheduledRule={scheduledRule}
@@ -823,7 +707,6 @@ export default function InboxPage() {
               selectedQuickReply={selectedQuickReply}
               selectedQuickReplyId={selectedQuickReplyId}
               selectedQuickReplyVariables={selectedQuickReplyVariables}
-              quickReplyVariableValues={quickReplyVariableValues}
             />
           }
           detail={detail}

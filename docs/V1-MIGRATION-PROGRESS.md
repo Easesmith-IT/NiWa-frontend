@@ -38,6 +38,6 @@
 - [x] Phase 2D-C: Inbox State Orchestration (`9f3c903`)
 - [x] Phase 2D-D: Inbox UI Decomposition - Thread List & Layout (`5f674ce`)
 - [x] Phase 2D-E: Inbox UI Decomposition - Chat Window & Composer (`ca01f2e`)
-- [x] Phase 2D-F: Inbox UI Decomposition - Contact Sidebar (`InboxContactSidebar`, `ContactProfileSection`, `ContactLabelsSection`, `ContactNotesSection`, `ContactTasksSection`, `ScheduledMessagesSection`, `ContactActivitySection`, `PanelSection`)
-- [ ] Phase 2D-G: Inbox Final Cleanup & Verification
+- [x] Phase 2D-F: Inbox UI Decomposition - Contact Sidebar (`1cfac9c`)
+- [x] Phase 2D-G: Inbox Final Cleanup & Verification (`page.tsx` thin composition, 0 unsafe types, 0 direct HTTP in UI components, verified V1 queries & single realtime subscriber)
 - [ ] AI Agent V1 Migration
