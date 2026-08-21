@@ -15,12 +15,17 @@
 ## Phase 3: Campaigns Migration
 - [x] Migrate `app/(app)/campaigns/page.tsx`
 - [x] Migrate `app/(app)/campaigns/[id]/page.tsx`
-- [ ] Migrate `app/(app)/campaigns/new/page.tsx`
-- [ ] Fix realtime invalidation in `campaign.realtime.ts`
-- [ ] Replace inline modals with new Dialog UI components
+- [x] Migrate `app/(app)/campaigns/new/page.tsx`
+- [x] Fix realtime invalidation in `campaign.realtime.ts`
+- [x] Replace inline modals with new Dialog UI components
 
-> **Note:** Phase 2B list/detail UI decomposition completed. Campaign creation wizard decomposed into `CampaignCreateScreen.tsx` with wizard state hook `useCampaignWizardState()`.
-> **Note:** Phase 2C-D contact import polling migrated to `useContactImportPipelineV1()` in `contact.queries.ts` and hardened for concurrent uploads, unmount safety, and deterministic timeout.
+> **Note:** Phase 2B list/detail UI decomposition completed.
+> **Note:** Phase 2C (Campaign Wizard Migration) fully completed across 2C-A to 2C-E:
+>   - Phase 2C-A: Extracted wizard state management into `useCampaignWizardState()`.
+>   - Phase 2C-B: Decomposed `app/(app)/campaigns/new/page.tsx` into a thin route composition layer.
+>   - Phase 2C-C: Migrated creation screen data access to V1 React Query hooks.
+>   - Phase 2C-D: Migrated contact import polling to `useContactImportPipelineV1()` in `contact.queries.ts` with unmount & concurrent upload safety.
+>   - Phase 2C-E: Extracted `useCampaignDraftLifecycle()` and `useCampaignLaunch()`, replaced legacy `window.confirm` with V1 `ConfirmDialog`, and unified query keys under `v1QueryKeys.campaigns`.
 > **Note:** Minor Campaign list visual/content refresh occurred during UI decomposition.
 > **Note:** Alert-based error handling on Campaign delete remains as future UX debt (pending a global notification/toast primitive).
 

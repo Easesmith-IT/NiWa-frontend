@@ -2,6 +2,7 @@ export const v1QueryKeys = {
   activities: ["v1", "activities"] as const,
   automations: ["v1", "automations"] as const,
   automationRuns: ["v1", "automation-runs"] as const,
+  campaigns: ["v1", "campaigns"] as const,
   contacts: ["v1", "contacts"] as const,
   conversations: ["v1", "conversations"] as const,
   dashboard: ["v1", "dashboard"] as const,

@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { v1QueryKeys } from "../../lib/api/v1-query-keys";
 import {
   createCampaign,
   deleteCampaign,
@@ -12,7 +13,7 @@ import {
 import { CreateCampaignPayload } from "./campaign.types";
 
 export const campaignKeys = {
-  all: ["campaigns"] as const,
+  all: v1QueryKeys.campaigns,
   lists: () => [...campaignKeys.all, "list"] as const,
   details: () => [...campaignKeys.all, "detail"] as const,
   detail: (id: string) => [...campaignKeys.details(), id] as const,
