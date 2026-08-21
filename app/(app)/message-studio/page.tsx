@@ -15,6 +15,7 @@ import {
   MessagePreviewPanel,
 } from "../../../features/message-studio";
 import { getActiveTemplates } from "../../../lib/templates";
+import { getMediaDisplayName } from "../../../lib/media";
 
 export default function MessageStudioPage() {
   const searchParams = useSearchParams();
@@ -180,7 +181,7 @@ export default function MessageStudioPage() {
       {
         onSuccess: (data) => {
           setTemplateHeaderUploadError(null);
-          setTemplateHeaderUploadMessage("Uploaded header media successfully.");
+          setTemplateHeaderUploadMessage(`Uploaded ${getMediaDisplayName(data.media)} successfully.`);
           setTemplateHeaderUploadName("");
           setTemplateHeaderMediaId(data.media.metaMediaId);
           mediaQuery.refetch();
