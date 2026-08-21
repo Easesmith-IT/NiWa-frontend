@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
 import {
   AlertTriangle,
   BookOpen,
@@ -56,6 +56,9 @@ import {
   useToggleKnowledgeSourceStatusMutation,
   useUpdateAISettingsMutation,
   useUpdateKnowledgeSourceMutation,
+  useAIAgentTabs,
+  useAIAgentForms,
+  useAgentKnowledge,
   AIAgent,
   BusinessAISettings,
   HumanHandoffTriggers,
@@ -78,41 +81,7 @@ import { AgentKnowledgeSummary } from "./components/AgentKnowledgeSummary";
 import { AgentInstanceManager } from "./components/AgentInstanceManager";
 
 export default function AIAgentPage() {
-  const [activeTab, setActiveTab] = useState<"agents" | "settings" | "knowledge" | "playground" | "activity">("agents");
   const [testQuery, setTestQuery] = useState("");
-  const [saveFeedback, setSaveFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
-
-  // Template Overwrite Modal state
-  const [pendingTemplateId, setPendingTemplateId] = useState<string | null>(null);
-  const [isTemplateModalOpen, setIsTemplateModalOpen] = useState(false);
-
-  // Memory Field Modal state
-  const [isMemoryModalOpen, setIsMemoryModalOpen] = useState(false);
-  const [editingMemoryKey, setEditingMemoryKey] = useState<string | null>(null);
-  const [memoryFieldName, setMemoryFieldName] = useState("");
-  const [memoryFieldDesc, setMemoryFieldDesc] = useState("");
-  const [memoryFieldType, setMemoryFieldType] = useState<"string" | "number" | "boolean" | "string_array">("string");
-  const [memoryFieldError, setMemoryFieldError] = useState<string | null>(null);
-
-  // Collapsed sections state
-  const [showAdvancedInstructions, setShowAdvancedInstructions] = useState(false);
-  const [showAdvancedMemory, setShowAdvancedMemory] = useState(false);
-
-  // Knowledge Form state
-  const [isAddKnowledgeOpen, setIsAddKnowledgeOpen] = useState(false);
-  const [editingSource, setEditingSource] = useState<KnowledgeSource | null>(null);
-  const [sourceType, setSourceType] = useState<"text" | "faq">("text");
-  const [sourceTitle, setSourceTitle] = useState("");
-  const [sourceContent, setSourceContent] = useState("");
-  const [sourceQuestion, setSourceQuestion] = useState("");
-  const [sourceAnswer, setSourceAnswer] = useState("");
-
-  // Agent Knowledge Access & Editing State
-  const [activeEditingAgentId, setActiveEditingAgentId] = useState<string>("");
-  const [selectedKnowledgeAgentId, setSelectedKnowledgeAgentId] = useState<string>("");
-  const [accessFilter, setAccessFilter] = useState<AccessFilter>("all");
-  const [sourceAccessMode, setSourceAccessMode] = useState<"all_agents" | "selected_agents">("all_agents");
-  const [sourceAssignedAgentIds, setSourceAssignedAgentIds] = useState<string[]>([]);
 
   // Agent Management Mutations
   const createAgentMutation = useCreateAgentMutation();
@@ -128,7 +97,6 @@ export default function AIAgentPage() {
   const applyTemplateMutation = useApplyAITemplateMutation();
   const testingMutation = useAITestingPlaygroundMutation();
   const activityQuery = useAIActivityLogsQuery();
-  const knowledgeQuery = useKnowledgeSourcesQuery(selectedKnowledgeAgentId || undefined);
 
   const createKnowledgeMutation = useCreateKnowledgeSourceMutation();
   const updateKnowledgeMutation = useUpdateKnowledgeSourceMutation();
@@ -136,22 +104,98 @@ export default function AIAgentPage() {
   const deleteKnowledgeMutation = useDeleteKnowledgeSourceMutation();
 
   const agents = agentsQuery.data?.agents || [];
+  const serverSettings = settingsQuery.data?.settings;
+  const templates = templatesQuery.data?.templates || [];
 
-  // Active agent instance resolution for persona editing
-  const activeAgent = useMemo(() => {
-    if (activeEditingAgentId) {
-      const found = agents.find((a) => a._id === activeEditingAgentId);
-      if (found) return found;
-    }
-    return agents.find((a) => a.isDefault) || agents[0];
-  }, [agents, activeEditingAgentId]);
+  // Tab & Active Agent Navigation Orchestration
+  const {
+    activeTab,
+    setActiveTab,
+    activeEditingAgentId,
+    setActiveEditingAgentId,
+    activeAgent,
+  } = useAIAgentTabs(agents);
 
-  // Keep activeEditingAgentId set to default if uninitialized
-  useEffect(() => {
-    if (activeAgent && !activeEditingAgentId) {
-      setActiveEditingAgentId(activeAgent._id);
-    }
-  }, [activeAgent, activeEditingAgentId]);
+  // Forms & Configuration Orchestration
+  const {
+    saveFeedback,
+    setSaveFeedback,
+    pendingTemplateId,
+    setPendingTemplateId,
+    isTemplateModalOpen,
+    setIsTemplateModalOpen,
+    isMemoryModalOpen,
+    setIsMemoryModalOpen,
+    editingMemoryKey,
+    setEditingMemoryKey,
+    memoryFieldName,
+    setMemoryFieldName,
+    memoryFieldDesc,
+    setMemoryFieldDesc,
+    memoryFieldType,
+    setMemoryFieldType,
+    memoryFieldError,
+    setMemoryFieldError,
+    showAdvancedInstructions,
+    setShowAdvancedInstructions,
+    showAdvancedMemory,
+    setShowAdvancedMemory,
+    currentData,
+    isDirty,
+    handleUpdateField,
+    handleUpdateBehavior,
+    handleUpdateHandoffTrigger,
+    handleDiscardChanges,
+    handleSaveSettings,
+    handleSelectTemplate,
+    executeApplyTemplate,
+    handleOpenAddMemoryModal,
+    handleOpenEditMemoryModal,
+    handleSaveMemoryField,
+    handleDeleteMemoryField,
+    handleResetToTemplateDefaults,
+    generateSafeKey,
+  } = useAIAgentForms({
+    activeAgent,
+    serverSettings,
+    templates,
+    updateSettingsMutation,
+    updateAgentMutation,
+  });
+
+  // Knowledge Base Orchestration
+  const {
+    selectedKnowledgeAgentId,
+    setSelectedKnowledgeAgentId,
+    accessFilter,
+    setAccessFilter,
+    isAddKnowledgeOpen,
+    setIsAddKnowledgeOpen,
+    editingSource,
+    setEditingSource,
+    sourceType,
+    setSourceType,
+    sourceTitle,
+    setSourceTitle,
+    sourceContent,
+    setSourceContent,
+    sourceQuestion,
+    setSourceQuestion,
+    sourceAnswer,
+    setSourceAnswer,
+    sourceAccessMode,
+    setSourceAccessMode,
+    sourceAssignedAgentIds,
+    setSourceAssignedAgentIds,
+    handleOpenAddKnowledge,
+    handleOpenEditKnowledge,
+    handleSaveKnowledge,
+  } = useAgentKnowledge({
+    createKnowledgeMutation,
+    updateKnowledgeMutation,
+  });
+
+  const knowledgeQuery = useKnowledgeSourcesQuery(selectedKnowledgeAgentId || undefined);
 
   const handleCreateAgent = (payload: { name: string; templateId: string; isDefault?: boolean }) => {
     createAgentMutation.mutate(payload, {
@@ -184,293 +228,10 @@ export default function AIAgentPage() {
     });
   };
 
-  const serverSettings = settingsQuery.data?.settings;
-  const [formData, setFormData] = useState<Partial<BusinessAISettings>>({});
-
-  // Reset form overrides when switching active agent
-  useEffect(() => {
-    setFormData({});
-  }, [activeAgent?._id]);
-
-  const currentData: BusinessAISettings = useMemo(() => {
-    const base = activeAgent ? {
-      ...serverSettings,
-      ...activeAgent,
-      agentName: activeAgent.agentName || activeAgent.name,
-    } : (serverSettings || ({} as BusinessAISettings));
-
-    return {
-      ...(serverSettings || ({} as BusinessAISettings)),
-      ...base,
-      capabilities: Array.isArray(base.capabilities) ? base.capabilities : (serverSettings?.capabilities || []),
-      behavior: {
-        diagnoseBeforeRecommending: base.behavior?.diagnoseBeforeRecommending ?? true,
-        challengeAssumptions: base.behavior?.challengeAssumptions ?? true,
-        explainReasoning: base.behavior?.explainReasoning ?? true,
-        preferActionableAdvice: base.behavior?.preferActionableAdvice ?? true,
-        useNumbersWhenUseful: base.behavior?.useNumbersWhenUseful ?? true,
-        avoidGenericRecommendations: base.behavior?.avoidGenericRecommendations ?? true,
-        ...(formData.behavior || {}),
-      },
-      handoffTriggers: {
-      ...({
-        explicitHumanRequest: true,
-        unableToAnswer: true,
-        dissatisfied: true,
-        sensitiveRequest: false,
-      } as HumanHandoffTriggers),
-        ...(serverSettings?.handoffTriggers || {}),
-        ...(base.handoffTriggers || {}),
-        ...(formData.handoffTriggers || {}),
-      },
-      ...formData,
-    };
-  }, [activeAgent, serverSettings, formData]);
-
-  const isDirty = useMemo(() => {
-    return Object.keys(formData).length > 0;
-  }, [formData]);
-
-  const handleUpdateField = <K extends keyof BusinessAISettings>(key: K, value: BusinessAISettings[K]) => {
-    setFormData((prev) => ({ ...prev, [key]: value }));
-  };
-
-  const handleUpdateBehavior = (key: keyof BusinessAISettings["behavior"], value: boolean) => {
-    setFormData((prev) => ({
-      ...prev,
-      behavior: {
-        ...(currentData.behavior || {}),
-        [key]: value,
-      },
-    }));
-  };
-
-  const handleUpdateHandoffTrigger = (key: keyof BusinessAISettings["handoffTriggers"], value: boolean) => {
-    setFormData((prev) => ({
-      ...prev,
-      handoffTriggers: {
-        ...(currentData.handoffTriggers || {}),
-        [key]: value,
-      },
-    }));
-  };
-
-  const handleDiscardChanges = () => {
-    setFormData({});
-  };
-
-  const handleSaveSettings = () => {
-    if (!activeAgent) return;
-
-    if (formData.enabled !== undefined) {
-      updateSettingsMutation.mutate({ enabled: formData.enabled });
-    }
-
-    updateAgentMutation.mutate(
-      {
-        id: activeAgent._id,
-        name: currentData.agentName || activeAgent.name,
-        agentName: currentData.agentName || activeAgent.name,
-        agentRole: currentData.agentRole,
-        agentPurpose: currentData.agentPurpose,
-        scopeLevel: currentData.scopeLevel,
-        autonomyLevel: currentData.autonomyLevel,
-        knowledgePolicy: currentData.knowledgePolicy,
-        capabilities: currentData.capabilities,
-        behavior: currentData.behavior,
-        memorySchema: currentData.memorySchema,
-        primaryObjective: currentData.primaryObjective,
-        templateId: currentData.templateId,
-      },
-      {
-        onSuccess: () => {
-          setFormData({});
-          setSaveFeedback({ type: "success", message: `AI Agent '${activeAgent.name}' saved successfully.` });
-          setTimeout(() => setSaveFeedback(null), 3000);
-        },
-        onError: (err: Error) => {
-          setSaveFeedback({ type: "error", message: `Error saving agent: ${err?.message || "Failed to update"}` });
-        },
-      },
-    );
-  };
-
-  // Template Selection
-  const handleSelectTemplate = (templateId: string) => {
-    if (templateId === "custom") {
-      handleUpdateField("templateId", "custom");
-      return;
-    }
-
-    setPendingTemplateId(templateId);
-    if (isDirty || currentData.agentInstructions?.trim()) {
-      setIsTemplateModalOpen(true);
-    } else {
-      executeApplyTemplate(templateId);
-    }
-  };
-
-  const executeApplyTemplate = (templateId: string) => {
-    const tpl = templates.find((t) => t.id === templateId);
-    if (!tpl || !activeAgent) return;
-
-    const preset = tpl.preset || {};
-
-    updateAgentMutation.mutate(
-      {
-        id: activeAgent._id,
-        templateId: tpl.id,
-        agentRole: preset.agentRole || tpl.name,
-        agentPurpose: preset.agentPurpose || tpl.description,
-        scopeLevel: preset.scopeLevel,
-        autonomyLevel: preset.autonomyLevel,
-        knowledgePolicy: preset.knowledgePolicy,
-        capabilities: preset.capabilities,
-        primaryObjective: preset.primaryObjective,
-        memorySchema: preset.memorySchema,
-      },
-      {
-        onSuccess: () => {
-          setFormData({});
-          setIsTemplateModalOpen(false);
-          setPendingTemplateId(null);
-          setSaveFeedback({ type: "success", message: `Template '${tpl.name}' applied to ${activeAgent.name}.` });
-          setTimeout(() => setSaveFeedback(null), 3000);
-        },
-        onError: (err: Error) => {
-          setIsTemplateModalOpen(false);
-          setSaveFeedback({ type: "error", message: `Failed to apply template: ${err?.message}` });
-        },
-      },
-    );
-  };
-
-  // Memory Field Management
-  const generateSafeKey = (name: string): string => {
-    return name
-      .toLowerCase()
-      .trim()
-      .replace(/[^\w\s]/g, "")
-      .replace(/\s+/g, "_");
-  };
-
-  const handleOpenAddMemoryModal = () => {
-    setEditingMemoryKey(null);
-    setMemoryFieldName("");
-    setMemoryFieldDesc("");
-    setMemoryFieldType("string");
-    setMemoryFieldError(null);
-    setIsMemoryModalOpen(true);
-  };
-
-  const handleOpenEditMemoryModal = (item: MemoryFieldDefinition) => {
-    setEditingMemoryKey(item.key);
-    setMemoryFieldName(item.key.replace(/_/g, " "));
-    setMemoryFieldDesc(item.description || "");
-    setMemoryFieldType(item.type);
-    setMemoryFieldError(null);
-    setIsMemoryModalOpen(true);
-  };
-
-  const handleSaveMemoryField = (e: React.FormEvent) => {
-    e.preventDefault();
-    setMemoryFieldError(null);
-
-    if (!memoryFieldName.trim()) {
-      setMemoryFieldError("Field name is required");
-      return;
-    }
-
-    const key = editingMemoryKey || generateSafeKey(memoryFieldName);
-    const existingSchema = currentData.memorySchema || [];
-
-    if (!editingMemoryKey && existingSchema.some((f) => f.key.toLowerCase() === key.toLowerCase())) {
-      setMemoryFieldError(`Field key '${key}' already exists.`);
-      return;
-    }
-
-    const newField: MemoryFieldDefinition = {
-      key,
-      description: memoryFieldDesc.trim(),
-      type: memoryFieldType,
-    };
-
-    let updatedSchema: MemoryFieldDefinition[];
-    if (editingMemoryKey) {
-      updatedSchema = existingSchema.map((f) => (f.key === editingMemoryKey ? newField : f));
-    } else {
-      updatedSchema = [...existingSchema, newField];
-    }
-
-    handleUpdateField("memorySchema", updatedSchema);
-    setIsMemoryModalOpen(false);
-  };
-
-  const handleDeleteMemoryField = (keyToDelete: string) => {
-    const updatedSchema = (currentData.memorySchema || []).filter((f) => f.key !== keyToDelete);
-    handleUpdateField("memorySchema", updatedSchema);
-  };
-
-  const handleResetToTemplateDefaults = () => {
-    if (currentData.templateId) {
-      executeApplyTemplate(currentData.templateId);
-    }
-  };
-
-  // Knowledge Form handlers
-  const handleOpenAddKnowledge = (type: "text" | "faq" = "text") => {
-    setEditingSource(null);
-    setSourceType(type);
-    setSourceTitle("");
-    setSourceContent("");
-    setSourceQuestion("");
-    setSourceAnswer("");
-    setSourceAccessMode("all_agents");
-    setSourceAssignedAgentIds([]);
-    setIsAddKnowledgeOpen(true);
-  };
-
-  const handleOpenEditKnowledge = (source: KnowledgeSource) => {
-    setEditingSource(source);
-    setSourceType(source.type === "faq" ? "faq" : "text");
-    setSourceTitle(source.title || "");
-    setSourceContent(source.content || "");
-    setSourceQuestion(source.question || "");
-    setSourceAnswer(source.answer || "");
-    setSourceAccessMode(source.accessMode || "all_agents");
-    setSourceAssignedAgentIds(source.assignedAgentIds || []);
-    setIsAddKnowledgeOpen(true);
-  };
-
-  // Playground & Knowledge
   const handleRunTest = (e: React.FormEvent) => {
     e.preventDefault();
     if (!testQuery.trim()) return;
     testingMutation.mutate({ query: testQuery.trim(), agentId: selectedKnowledgeAgentId || undefined });
-  };
-
-  const handleSaveKnowledge = (e: React.FormEvent) => {
-    e.preventDefault();
-    const payload = {
-      title: sourceType === "text" ? sourceTitle : (sourceTitle || sourceQuestion),
-      content: sourceContent,
-      question: sourceQuestion,
-      answer: sourceAnswer,
-      accessMode: sourceAccessMode,
-      assignedAgentIds: sourceAccessMode === "selected_agents" ? sourceAssignedAgentIds : [],
-    };
-
-    if (editingSource) {
-      updateKnowledgeMutation.mutate(
-        { id: editingSource._id, ...payload },
-        { onSuccess: () => setIsAddKnowledgeOpen(false) },
-      );
-    } else {
-      createKnowledgeMutation.mutate(
-        { type: sourceType, ...payload },
-        { onSuccess: () => setIsAddKnowledgeOpen(false) },
-      );
-    }
   };
 
   if (settingsQuery.isLoading) {
@@ -481,8 +242,6 @@ export default function AIAgentPage() {
       </div>
     );
   }
-
-  const templates = templatesQuery.data?.templates || [];
 
   return (
     <div className="flex flex-col min-h-screen bg-background text-foreground pb-24">
