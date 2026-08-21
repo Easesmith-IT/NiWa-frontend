@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowDownToLine,
@@ -18,167 +17,38 @@ import {
   ContactDetailDrawer,
   ContactMergeModal,
   ContactsDataTable,
-  useContactDuplicatesV1Query,
-  useContactsV1Query,
-  useCreateContactV1Mutation,
-  useDeleteContactV1Mutation,
-  useMergeContactsV1Mutation,
-  usePatchContactV1Mutation,
+  useContactsOrchestration,
 } from "../../../features/contacts";
-import { exportContactsV1 } from "../../../features/contacts/contact.api";
-import { useLabelsV1Query } from "../../../features/labels";
-import type { ContactRecordV1 } from "../../../features/contacts/contact.types";
-
-const defaultNewContact = {
-  company: "",
-  displayName: "",
-  email: "",
-  phoneNumber: "",
-  profileName: "",
-};
 
 export default function ContactsPage() {
   const router = useRouter();
 
-  const [search, setSearch] = useState("");
-  const [selectedContactId, setSelectedContactId] = useState<string | null>(null);
-  const [mergeModalOpen, setMergeModalOpen] = useState(false);
-  const [createModalOpen, setCreateModalOpen] = useState(false);
-  const [newContactDraft, setNewContactDraft] = useState(defaultNewContact);
-
-  const [feedback, setFeedback] = useState<{
-    message: string;
-    tone: "error" | "success";
-  } | null>(null);
-
-  const contactsQuery = useContactsV1Query({ search });
-  const duplicateGroupsQuery = useContactDuplicatesV1Query({ field: "phoneNumberE164" });
-  const labelsQuery = useLabelsV1Query();
-
-  const createContactMutation = useCreateContactV1Mutation();
-  const patchContactMutation = usePatchContactV1Mutation();
-  const deleteContactMutation = useDeleteContactV1Mutation();
-  const mergeContactsMutation = useMergeContactsV1Mutation();
-
-  const contacts = contactsQuery.data?.data ?? [];
-  const labels = labelsQuery.data?.data ?? [];
-  const duplicateGroups = duplicateGroupsQuery.data?.data ?? [];
-
-  const selectedContact = useMemo(
-    () => contacts.find((contact) => contact._id === selectedContactId) ?? null,
-    [contacts, selectedContactId],
-  );
-
-  useEffect(() => {
-    if (!selectedContactId && contacts[0]?._id) {
-      setSelectedContactId(contacts[0]._id);
-    }
-  }, [contacts, selectedContactId]);
-
-  const handleOpenChat = (phoneNumber: string) => {
-    router.push(`/inbox?search=${encodeURIComponent(phoneNumber)}`);
-  };
-
-  const handleCreateContact = () => {
-    const payload = {
-      company: newContactDraft.company.trim() || undefined,
-      displayName: newContactDraft.displayName.trim(),
-      email: newContactDraft.email.trim() || undefined,
-      phoneNumber: newContactDraft.phoneNumber.trim(),
-      phoneNumberE164: newContactDraft.phoneNumber.trim(),
-      profileName: newContactDraft.profileName.trim() || undefined,
-      waId: newContactDraft.phoneNumber.trim(),
-    };
-
-    createContactMutation.mutate(payload, {
-      onSuccess: (result) => {
-        setFeedback({ message: "Contact created successfully.", tone: "success" });
-        setCreateModalOpen(false);
-        setNewContactDraft(defaultNewContact);
-        setSelectedContactId(result.data._id);
-      },
-      onError: (err: any) => {
-        const issues = err.response?.data?.issues?.fieldErrors;
-        const issueMsg = issues
-          ? Object.entries(issues)
-              .map(([k, v]) => `${k}: ${(v as any).join(", ")}`)
-              .join("; ")
-          : null;
-        const msg = issueMsg || err.response?.data?.message || (err instanceof Error ? err.message : "Failed to create contact.");
-        setFeedback({
-          message: msg,
-          tone: "error",
-        });
-      },
-    });
-  };
-
-  const handleSaveContact = (contactId: string, payload: Partial<ContactRecordV1>) => {
-    patchContactMutation.mutate(
-      { contactId, payload },
-      {
-        onSuccess: () => {
-          setFeedback({ message: "Contact updated successfully.", tone: "success" });
-        },
-        onError: (err) => {
-          setFeedback({
-            message: err instanceof Error ? err.message : "Failed to update contact.",
-            tone: "error",
-          });
-        },
-      },
-    );
-  };
-
-  const handleDeleteContact = (contactId: string) => {
-    deleteContactMutation.mutate(contactId, {
-      onSuccess: () => {
-        setFeedback({ message: "Contact deleted.", tone: "success" });
-        if (selectedContactId === contactId) {
-          setSelectedContactId(null);
-        }
-      },
-      onError: (err) => {
-        setFeedback({
-          message: err instanceof Error ? err.message : "Failed to delete contact.",
-          tone: "error",
-        });
-      },
-    });
-  };
-
-  const handleExport = async () => {
-    try {
-      const result = await exportContactsV1({ format: "csv", search: search || undefined });
-      const url = URL.createObjectURL(result as Blob);
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "niwa-contacts.csv";
-      link.click();
-      URL.revokeObjectURL(url);
-    } catch {
-      setFeedback({ message: "Failed to export contacts.", tone: "error" });
-    }
-  };
-
-  const handleMergeContacts = (sourceId: string, targetId: string) => {
-    mergeContactsMutation.mutate(
-      { sourceContactId: sourceId, targetContactId: targetId },
-      {
-        onSuccess: () => {
-          setFeedback({ message: "Contacts merged successfully.", tone: "success" });
-          setMergeModalOpen(false);
-          setSelectedContactId(targetId);
-        },
-        onError: (err) => {
-          setFeedback({
-            message: err instanceof Error ? err.message : "Failed to merge contacts.",
-            tone: "error",
-          });
-        },
-      },
-    );
-  };
+  const {
+    search,
+    setSearch,
+    selectedContactId,
+    setSelectedContactId,
+    mergeModalOpen,
+    setMergeModalOpen,
+    createModalOpen,
+    setCreateModalOpen,
+    newContactDraft,
+    setNewContactDraft,
+    feedback,
+    setFeedback,
+    createContactMutation,
+    mergeContactsMutation,
+    contacts,
+    labels,
+    duplicateGroups,
+    selectedContact,
+    handleOpenChat,
+    handleCreateContact,
+    handleSaveContact,
+    handleDeleteContact,
+    handleExport,
+    handleMergeContacts,
+  } = useContactsOrchestration();
 
   return (
     <div className="flex h-[calc(100vh-4rem)] flex-col space-y-4">
