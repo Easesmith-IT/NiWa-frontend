@@ -1,32 +1,31 @@
 "use client";
 
 import React, { useState } from "react";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { AxiosError } from "axios";
 import {
   CheckCircle2,
   AlertCircle,
   RefreshCw,
   Settings,
-  ShieldCheck,
   Smartphone,
-  Info,
-  ExternalLink,
-  Trash2,
-  Activity,
-  Layers,
-  FileText,
-  Zap,
-  ChevronRight,
   X,
+  ChevronRight,
+  Activity,
+  Zap,
+  FileText,
+  Layers,
+  Trash2,
 } from "lucide-react";
 import { Button } from "../../components/ui/button";
 import { Card } from "../../components/ui/card";
-import { apiClient } from "../../lib/api/client";
-import {
-  WhatsAppConnectionRecord,
-  WhatsAppConnectionsResponse,
-} from "../../lib/api/types";
+import { WhatsAppConnectionRecord } from "../../lib/api/types";
 import { MetaEmbeddedSignup } from "../../components/whatsapp/MetaEmbeddedSignup";
+import {
+  useDisconnectWhatsAppConnectionMutation,
+  useHealthCheckWhatsAppConnectionMutation,
+  useSyncWhatsAppConnectionMutation,
+  useWhatsAppConnections,
+} from "./whatsapp-connections.queries";
 
 export const WhatsAppSettingsModule: React.FC = () => {
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -35,61 +34,42 @@ export const WhatsAppSettingsModule: React.FC = () => {
   const [actionFeedback, setActionFeedback] = useState<{ type: "success" | "error"; message: string } | null>(null);
 
   // Fetch connections query
-  const connectionsQuery = useQuery({
-    queryKey: ["whatsapp-connections"],
-    queryFn: async () => {
-      const response = await apiClient.get<WhatsAppConnectionsResponse>("/whatsapp/connections");
-      return response.data;
-    },
-  });
+  const connectionsQuery = useWhatsAppConnections();
 
   const activeConnection = connectionsQuery.data?.connections?.[0] || null;
 
-  // Sync mutation
-  const syncMutation = useMutation({
-    mutationFn: async (connectionId: string) => {
-      const response = await apiClient.post(`/whatsapp/connections/${connectionId}/sync`);
-      return response.data;
-    },
-    onSuccess: () => {
-      setActionFeedback({ type: "success", message: "WhatsApp connection and templates synced successfully." });
-      connectionsQuery.refetch();
-    },
-    onError: (err: any) => {
-      const msg = err.response?.data?.message || "Failed to sync connection.";
-      setActionFeedback({ type: "error", message: msg });
-    },
-  });
+  // Mutations
+  const syncMutation = useSyncWhatsAppConnectionMutation();
+  const healthMutation = useHealthCheckWhatsAppConnectionMutation();
+  const disconnectMutation = useDisconnectWhatsAppConnectionMutation();
 
-  // Health check mutation
-  const healthMutation = useMutation({
-    mutationFn: async (connectionId: string) => {
-      const response = await apiClient.post(`/whatsapp/connections/${connectionId}/health`);
-      return response.data;
-    },
-    onSuccess: () => {
-      setActionFeedback({ type: "success", message: "Connection health check completed." });
-      connectionsQuery.refetch();
-    },
-  });
+  const handleSync = (connectionId: string) => {
+    syncMutation.mutate(connectionId, {
+      onSuccess: () => {
+        setActionFeedback({ type: "success", message: "WhatsApp connection and templates synced successfully." });
+        connectionsQuery.refetch();
+      },
+      onError: (err: unknown) => {
+        const msg = err instanceof AxiosError ? err.response?.data?.message || "Failed to sync connection." : "Failed to sync connection.";
+        setActionFeedback({ type: "error", message: msg });
+      },
+    });
+  };
 
-  // Disconnect mutation
-  const disconnectMutation = useMutation({
-    mutationFn: async (connectionId: string) => {
-      const response = await apiClient.delete(`/whatsapp/connections/${connectionId}`);
-      return response.data;
-    },
-    onSuccess: () => {
-      setActionFeedback({ type: "success", message: "WhatsApp connection disconnected. Historical messages preserved." });
-      setIsDisconnectModalOpen(false);
-      setIsDetailOpen(false);
-      connectionsQuery.refetch();
-    },
-    onError: (err: any) => {
-      const msg = err.response?.data?.message || "Failed to disconnect account.";
-      setActionFeedback({ type: "error", message: msg });
-    },
-  });
+  const handleDisconnect = (connectionId: string) => {
+    disconnectMutation.mutate(connectionId, {
+      onSuccess: () => {
+        setActionFeedback({ type: "success", message: "WhatsApp connection disconnected. Historical messages preserved." });
+        setIsDisconnectModalOpen(false);
+        setIsDetailOpen(false);
+        connectionsQuery.refetch();
+      },
+      onError: (err: unknown) => {
+        const msg = err instanceof AxiosError ? err.response?.data?.message || "Failed to disconnect account." : "Failed to disconnect account.";
+        setActionFeedback({ type: "error", message: msg });
+      },
+    });
+  };
 
   const formatDate = (dateStr?: string | null) => {
     if (!dateStr) return "Never";
@@ -125,7 +105,7 @@ export const WhatsAppSettingsModule: React.FC = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => syncMutation.mutate(activeConnection.id)}
+              onClick={() => handleSync(activeConnection.id)}
               disabled={syncMutation.isPending}
               className="text-xs gap-1.5"
             >
@@ -431,7 +411,7 @@ export const WhatsAppSettingsModule: React.FC = () => {
               <Button
                 variant="destructive"
                 size="sm"
-                onClick={() => disconnectMutation.mutate(selectedConnection.id)}
+                onClick={() => handleDisconnect(selectedConnection.id)}
                 disabled={disconnectMutation.isPending}
                 className="text-xs gap-1.5"
               >

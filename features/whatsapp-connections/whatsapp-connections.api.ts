@@ -5,3 +5,18 @@ export const getWhatsAppConnections = async () => {
   const { data } = await v1ApiClient.get<WhatsAppConnectionsResponse>("/whatsapp/connections");
   return data;
 };
+
+export const syncWhatsAppConnection = async (connectionId: string) => {
+  const { data } = await v1ApiClient.post(`/whatsapp/connections/${connectionId}/sync`);
+  return data;
+};
+
+export const checkWhatsAppConnectionHealth = async (connectionId: string) => {
+  const { data } = await v1ApiClient.post(`/whatsapp/connections/${connectionId}/health`);
+  return data;
+};
+
+export const disconnectWhatsAppConnection = async (connectionId: string) => {
+  const { data } = await v1ApiClient.delete(`/whatsapp/connections/${connectionId}`);
+  return data;
+};

@@ -1,7 +1,6 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -11,18 +10,15 @@ import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
 import { Textarea } from "../../../components/ui/textarea";
-import { apiClient } from "../../../lib/api/client";
 import { clearAccessToken, redirectToLogin } from "../../../lib/auth";
 import {
-  BasicMessageResponse,
-  ConnectionTestResponse,
-  PasswordChangePayload,
-  ProfileResponse,
-  ProfileUpdatePayload,
-  SettingsPayload,
-  SettingsResponse,
-} from "../../../lib/api/types";
-
+  useChangePasswordMutation,
+  useProfileQuery,
+  useSettingsQuery,
+  useTestConnectionMutation,
+  useUpdateProfileMutation,
+  useUpdateSettingsMutation,
+} from "../../../features/settings";
 import { WhatsAppSettingsModule } from "../../../features/whatsapp-connections/WhatsAppSettingsModule";
 
 const settingsSchema = z.object({
@@ -105,25 +101,8 @@ export default function SettingsPage() {
     },
   });
 
-  const settingsQuery = useQuery({
-    queryKey: ["settings", showStoredSecrets],
-    queryFn: async () => {
-      const response = await apiClient.get<SettingsResponse>("/settings", {
-        params: {
-          includeSecrets: showStoredSecrets ? "true" : undefined,
-        },
-      });
-      return response.data;
-    },
-  });
-
-  const profileQuery = useQuery({
-    queryKey: ["profile", "settings-page"],
-    queryFn: async () => {
-      const response = await apiClient.get<ProfileResponse>("/auth/profile");
-      return response.data;
-    },
-  });
+  const settingsQuery = useSettingsQuery(showStoredSecrets);
+  const profileQuery = useProfileQuery();
 
   useEffect(() => {
     if (settingsQuery.data) {
@@ -139,74 +118,10 @@ export default function SettingsPage() {
     }
   }, [profileForm, profileQuery.data]);
 
-  const saveMutation = useMutation({
-    mutationFn: async (values: SettingsPayload) => {
-      const response = await apiClient.put<SettingsResponse>("/settings", values);
-      return response.data;
-    },
-    onSuccess: (data) => {
-      setSubmitError(null);
-      setSubmitMessage("Settings saved.");
-      reset(data.settings);
-      settingsQuery.refetch();
-    },
-    onError: (error) => {
-      setSubmitError(getErrorMessage(error, "Failed to save settings."));
-      setSubmitMessage(null);
-    },
-  });
-
-  const connectionTestMutation = useMutation({
-    mutationFn: async () => {
-      const response = await apiClient.post<ConnectionTestResponse>("/settings/test-connection");
-      return response.data;
-    },
-    onSuccess: () => {
-      setConnectionError(null);
-    },
-    onError: (error) => {
-      setConnectionError(getErrorMessage(error, "Failed to test Meta connection."));
-    },
-  });
-
-  const profileMutation = useMutation({
-    mutationFn: async (values: ProfileUpdatePayload) => {
-      const response = await apiClient.put<ProfileResponse>("/auth/profile", values);
-      return response.data;
-    },
-    onSuccess: (data) => {
-      setProfileError(null);
-      setProfileMessage("Profile updated.");
-      profileForm.reset({
-        name: data.user.name,
-      });
-      profileQuery.refetch();
-    },
-    onError: (error) => {
-      setProfileError(getErrorMessage(error, "Failed to update profile."));
-      setProfileMessage(null);
-    },
-  });
-
-  const passwordMutation = useMutation({
-    mutationFn: async (values: PasswordChangePayload) => {
-      const response = await apiClient.post<BasicMessageResponse>("/auth/change-password", values);
-      return response.data;
-    },
-    onSuccess: (data) => {
-      setPasswordError(null);
-      setPasswordMessage(data.message);
-      passwordForm.reset();
-      clearAccessToken();
-      window.setTimeout(() => {
-        redirectToLogin();
-      }, 1200);
-    },
-    onError: (error) => {
-      setPasswordError(getErrorMessage(error, "Failed to update password."));
-      setPasswordMessage(null);
-    },
-  });
+  const saveMutation = useUpdateSettingsMutation();
+  const connectionTestMutation = useTestConnectionMutation();
+  const profileMutation = useUpdateProfileMutation();
+  const passwordMutation = useChangePasswordMutation();
 
   return (
     <div className="space-y-4">
@@ -244,7 +159,20 @@ export default function SettingsPage() {
             onSubmit={profileForm.handleSubmit((values) => {
               setProfileError(null);
               setProfileMessage(null);
-              profileMutation.mutate(values);
+              profileMutation.mutate(values, {
+                onSuccess: (data) => {
+                  setProfileError(null);
+                  setProfileMessage("Profile updated.");
+                  profileForm.reset({
+                    name: data.user.name,
+                  });
+                  profileQuery.refetch();
+                },
+                onError: (error) => {
+                  setProfileError(getErrorMessage(error, "Failed to update profile."));
+                  setProfileMessage(null);
+                },
+              });
             })}
           >
             <div>
@@ -271,7 +199,21 @@ export default function SettingsPage() {
             onSubmit={passwordForm.handleSubmit((values) => {
               setPasswordError(null);
               setPasswordMessage(null);
-              passwordMutation.mutate(values);
+              passwordMutation.mutate(values, {
+                onSuccess: (data) => {
+                  setPasswordError(null);
+                  setPasswordMessage(data.message);
+                  passwordForm.reset();
+                  clearAccessToken();
+                  window.setTimeout(() => {
+                    redirectToLogin();
+                  }, 1200);
+                },
+                onError: (error) => {
+                  setPasswordError(getErrorMessage(error, "Failed to update password."));
+                  setPasswordMessage(null);
+                },
+              });
             })}
           >
             <div>
@@ -374,7 +316,18 @@ export default function SettingsPage() {
           onSubmit={handleSubmit((values) => {
             setSubmitError(null);
             setSubmitMessage(null);
-            saveMutation.mutate(values);
+            saveMutation.mutate(values, {
+              onSuccess: (data) => {
+                setSubmitError(null);
+                setSubmitMessage("Settings saved.");
+                reset(data.settings);
+                settingsQuery.refetch();
+              },
+              onError: (error) => {
+                setSubmitError(getErrorMessage(error, "Failed to save settings."));
+                setSubmitMessage(null);
+              },
+            });
           })}
         >
           <div>
@@ -449,7 +402,14 @@ export default function SettingsPage() {
                 disabled={connectionTestMutation.isPending}
                 onClick={() => {
                   setConnectionError(null);
-                  connectionTestMutation.mutate();
+                  connectionTestMutation.mutate(undefined, {
+                    onSuccess: () => {
+                      setConnectionError(null);
+                    },
+                    onError: (error) => {
+                      setConnectionError(getErrorMessage(error, "Failed to test Meta connection."));
+                    },
+                  });
                 }}
                 type="button"
                 variant="secondary"
@@ -475,4 +435,3 @@ export default function SettingsPage() {
     </div>
   );
 }
-
