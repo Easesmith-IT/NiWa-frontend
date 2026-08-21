@@ -35,8 +35,8 @@
 ## Phase 5: Inbox & AI Agent Refactoring
 - [x] Inbox V1 Architecture Audit (`INBOX-V1-AUDIT.md`)
 - [x] Phase 2D-B: Inbox Type Safety & API Boundary (`3ee92d2`)
-- [x] Phase 2D-C: Inbox State Orchestration (Extracted `useInboxState` & `useInboxRealtimeHandlers`)
-- [ ] Phase 2D-D: Inbox UI Decomposition - Thread List & Layout
+- [x] Phase 2D-C: Inbox State Orchestration (`9f3c903`)
+- [x] Phase 2D-D: Inbox UI Decomposition - Thread List & Layout (`InboxLayout`, `InboxThreadList`, `ThreadListItem`, `ContactAvatar`)
 - [ ] Phase 2D-E: Inbox UI Decomposition - Chat Window & Composer
 - [ ] Phase 2D-F: Inbox UI Decomposition - Contact Sidebar
 - [ ] Phase 2D-G: Inbox Final Cleanup & Verification

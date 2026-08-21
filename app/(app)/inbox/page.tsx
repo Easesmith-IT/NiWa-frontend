@@ -41,11 +41,18 @@ import {
 } from "../../../features/contacts";
 import {
   ChatWindowSkeleton,
+  ContactAvatar,
   ImageLightboxModal,
+  InboxLayout,
+  InboxThreadList,
   MessageRecordV1,
-  ThreadListSkeleton,
   fetchMessageMediaBlobV1,
+  formatConversationTime,
+  formatDateInput,
+  formatDateTime,
+  formatMessageDay,
   mergeAndReconcileMessages,
+  toIsoFromDateInput,
   useAsyncMessageBatchQueue,
   useInboxRealtimeHandlers,
   useInboxState,
@@ -79,176 +86,11 @@ import {
   useUpdateConversationAIModeMutation,
 } from "../../../features/ai-agent";
 
-const filters = [
-  { key: "all", label: "All" },
-  { key: "unread", label: "Unread" },
-  { key: "awaiting_reply", label: "Awaiting" },
-  { key: "starred", label: "Starred" },
-] as const;
-
 const priorityOptions = [
   { value: "high", label: "High" },
   { value: "medium", label: "Medium" },
   { value: "low", label: "Low" },
 ] as const;
-
-const formatConversationTime = (value?: string) => {
-  if (!value) {
-    return "--";
-  }
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return "--";
-  }
-
-  const now = new Date();
-
-  if (date.toDateString() === now.toDateString()) {
-    return date.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
-  }
-
-  const yesterday = new Date();
-  yesterday.setDate(now.getDate() - 1);
-  if (date.toDateString() === yesterday.toDateString()) {
-    return "Yesterday";
-  }
-
-  if (date.getFullYear() === now.getFullYear()) {
-    return date.toLocaleDateString([], { day: "numeric", month: "short" });
-  }
-
-  return date.toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" });
-};
-
-const formatDateTime = (value?: string | null) => {
-  if (!value) {
-    return "Not available";
-  }
-
-  return new Date(value).toLocaleString();
-};
-
-const formatMessageDay = (value?: string) => {
-  if (!value) {
-    return "Unknown date";
-  }
-
-  const date = new Date(value);
-  const today = new Date();
-  const yesterday = new Date();
-  yesterday.setDate(today.getDate() - 1);
-
-  if (date.toDateString() === today.toDateString()) {
-    return "Today";
-  }
-
-  if (date.toDateString() === yesterday.toDateString()) {
-    return "Yesterday";
-  }
-
-  return date.toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" });
-};
-
-const formatDateInput = (value?: string | null) => {
-  if (!value) {
-    return "";
-  }
-
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) {
-    return "";
-  }
-
-  return date.toISOString().slice(0, 10);
-};
-
-const toIsoFromDateInput = (value: string) => {
-  if (!value) {
-    return undefined;
-  }
-
-  return new Date(`${value}T09:00:00.000Z`).toISOString();
-};
-
-const buildInitials = (value?: string | null) => {
-  const source = value?.trim();
-  if (!source) {
-    return "NW";
-  }
-
-  const digitsOnly = source.replace(/\D/g, "");
-  if (digitsOnly.length >= 7 && (source.startsWith("+") || /^\d+$/.test(source))) {
-    if (digitsOnly.startsWith("91") && digitsOnly.length === 12) {
-      return `9${digitsOnly[2]}`;
-    }
-    return digitsOnly.slice(0, 2);
-  }
-
-  return source
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
-};
-
-const avatarColorStyles = [
-  "bg-[#EDF8F3] text-[#176B4D]",
-  "bg-[#EFF6FF] text-[#2563EB]",
-  "bg-[#FEE2E2] text-[#C2413A]",
-  "bg-[#F3E8FF] text-[#7E22CE]",
-  "bg-[#FEF3C7] text-[#B7791F]",
-  "bg-[#F4F4F5] text-[#52525B]",
-];
-
-const getAvatarColorStyle = (name?: string | null) => {
-  if (!name) return avatarColorStyles[0];
-  let hash = 0;
-  for (let i = 0; i < name.length; i++) {
-    hash += name.charCodeAt(i);
-  }
-  return avatarColorStyles[hash % avatarColorStyles.length];
-};
-
-const ContactAvatar = ({
-  avatarUrl,
-  className,
-  name,
-}: {
-  avatarUrl?: string | null;
-  className?: string;
-  name?: string | null;
-}) => {
-  const [imageFailed, setImageFailed] = useState(false);
-
-  useEffect(() => {
-    setImageFailed(false);
-  }, [avatarUrl]);
-
-  if (avatarUrl && !imageFailed) {
-    return (
-      <img
-        alt={name ?? "Contact"}
-        className={cn("rounded-full object-cover shrink-0", className)}
-        onError={() => setImageFailed(true)}
-        referrerPolicy="no-referrer"
-        src={avatarUrl}
-      />
-    );
-  }
-
-  return (
-    <div
-      className={cn(
-        "flex items-center justify-center rounded-full font-semibold transition-colors shrink-0",
-        getAvatarColorStyle(name),
-        className,
-      )}
-    >
-      {buildInitials(name)}
-    </div>
-  );
-};
 
 const getContactVariableDefaults = (contact?: {
   company?: string | null;
@@ -1056,143 +898,23 @@ export default function InboxPage() {
   };
 
   return (
-    <div className="flex h-full min-h-0 flex-1 flex-col bg-background text-foreground">
-      <div
-        className={cn(
-          "grid h-full min-h-0 flex-1",
-          detail
-            ? contactInfoOpen
-              ? "xl:grid-cols-[340px_minmax(0,1fr)_360px]"
-              : "xl:grid-cols-[340px_minmax(0,1fr)]"
-            : "xl:grid-cols-[340px_minmax(0,1fr)]",
-        )}
+    <>
+      <InboxLayout
+        hasDetail={Boolean(detail)}
+        isContactInfoOpen={contactInfoOpen}
+        threadList={
+          <InboxThreadList
+            activeConversationId={activeConversationId}
+            filter={filter}
+            isLoading={threadsQuery.isPending || threadsQuery.isLoading}
+            onFilterChange={setFilter}
+            onSearchChange={setSearch}
+            onSelectConversation={setSelectedConversationId}
+            search={search}
+            threads={threads}
+          />
+        }
       >
-        <aside className="flex min-h-0 flex-col border-r border-[#E4E4E7] bg-white dark:border-[#24272A] dark:bg-[#101214]">
-          <div className="border-b border-[#E4E4E7] px-4 py-3.5 dark:border-[#24272A]">
-            <div className="flex items-center justify-between">
-              <h1 className="text-base font-semibold text-foreground">Inbox</h1>
-              <div className="flex items-center gap-1">
-                <button
-                  className="rounded-md p-1.5 text-muted-foreground transition hover:bg-[#F4F4F5] hover:text-foreground dark:hover:bg-[#191C1E]"
-                  type="button"
-                >
-                  <Plus className="h-4 w-4" />
-                </button>
-                <button
-                  className="rounded-md p-1.5 text-muted-foreground transition hover:bg-[#F4F4F5] hover:text-foreground dark:hover:bg-[#191C1E]"
-                  type="button"
-                >
-                  <MoreHorizontal className="h-4 w-4" />
-                </button>
-              </div>
-            </div>
-
-            <div className="relative mt-3">
-              <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                className="h-9 rounded-md border-[#D4D4D8] bg-[#FAFAFA] pl-9 text-xs text-foreground placeholder:text-muted-foreground focus:bg-white focus:ring-2 focus:ring-primary/15 dark:border-[#303438] dark:bg-[#17191B] dark:focus:bg-[#121416]"
-                onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search conversations..."
-                value={search}
-              />
-            </div>
-
-            <div className="mt-3 flex flex-wrap gap-1.5">
-              {filters.map((item) => (
-                <button
-                  className={cn(
-                    "rounded-md border px-2.5 py-1 text-xs font-medium transition-colors",
-                    filter === item.key
-                      ? "border-primary bg-primary text-primary-foreground shadow-xs"
-                      : "border-[#E4E4E7] bg-white text-muted-foreground hover:bg-[#F4F4F5] hover:text-foreground dark:border-[#303438] dark:bg-[#17191B] dark:hover:bg-[#202326]",
-                  )}
-                  key={item.key}
-                  onClick={() => setFilter(item.key)}
-                  type="button"
-                >
-                  {item.label}
-                </button>
-              ))}
-              <button
-                className="rounded-md border border-[#E4E4E7] bg-white px-2 py-1 text-muted-foreground transition-colors hover:bg-[#F4F4F5] hover:text-foreground dark:border-[#303438] dark:bg-[#17191B] dark:hover:bg-[#202326]"
-                type="button"
-              >
-                <ChevronDown className="h-3.5 w-3.5" />
-              </button>
-            </div>
-          </div>
-
-          <div className="niwa-scrollbar min-h-0 flex-1 overflow-y-auto">
-            {threadsQuery.isPending || threadsQuery.isLoading ? (
-              <ThreadListSkeleton />
-            ) : (
-              threads.map((thread) => {
-                const isActive = thread.conversation._id === activeConversationId;
-                const effectiveUnreadCount = isActive ? 0 : thread.conversation.unreadCount;
-                const rawName =
-                  thread.contact?.displayName ||
-                  thread.contact?.profileName ||
-                  thread.contact?.phoneNumber ||
-                  thread.conversation.waId;
-                const displayName = withDisplayPhoneNumber(rawName) ?? rawName;
-
-                return (
-                  <button
-                    className={cn(
-                      "flex w-full items-start gap-3 border-b border-[#F0F0F2] px-4 py-3 text-left transition-colors dark:border-[#202326]",
-                      isActive
-                        ? "bg-[#EDF8F3] border-l-2 border-l-[#176B4D] dark:bg-[#14251E] dark:border-l-[#3B9B77]"
-                        : "hover:bg-[#FAFAFA] dark:hover:bg-[#191C1E]",
-                    )}
-                    key={thread.conversation._id}
-                    onClick={() => setSelectedConversationId(thread.conversation._id)}
-                    type="button"
-                  >
-                    <ContactAvatar
-                      avatarUrl={thread.contact?.avatarUrl}
-                      className="h-10 w-10 shrink-0 text-xs"
-                      name={displayName}
-                    />
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <div className="min-w-0">
-                          <p
-                            className={cn(
-                              "truncate text-xs",
-                              effectiveUnreadCount > 0 ? "font-semibold text-foreground" : "font-medium text-foreground",
-                            )}
-                          >
-                            {displayName}
-                          </p>
-                          <p className="mt-0.5 truncate text-[12px] text-[#71717A]">
-                            {thread.conversation.lastMessageText || "No messages yet."}
-                          </p>
-                        </div>
-                        <div className="flex shrink-0 flex-col items-end gap-1">
-                          <span className="text-[11px] text-[#71717A]">
-                            {formatConversationTime(thread.conversation.lastMessageAt || thread.conversation.updatedAt)}
-                          </span>
-                          {effectiveUnreadCount > 0 ? (
-                            <span className="inline-flex min-w-4.5 items-center justify-center rounded-full bg-[#176B4D] px-1.5 py-0.5 text-[10px] font-semibold text-white">
-                              {effectiveUnreadCount}
-                            </span>
-                          ) : null}
-                        </div>
-                      </div>
-                    </div>
-                  </button>
-                );
-              })
-            )}
-
-            {!threadsQuery.isPending && !threadsQuery.isLoading && threads.length === 0 ? (
-              <div className="px-4 py-8 text-center text-xs text-muted-foreground">
-                No conversations match this view.
-              </div>
-            ) : null}
-          </div>
-        </aside>
-
         <section className="flex min-h-0 flex-col bg-[#F7F8FA] relative">
           {detailQuery.isPending || detailQuery.isLoading ? (
             <ChatWindowSkeleton />
@@ -2268,7 +1990,7 @@ export default function InboxPage() {
             </PanelSection>
           </aside>
         ) : null}
-      </div>
+      </InboxLayout>
 
       {lightboxImageId ? (
         <ImageLightboxModal
@@ -2280,6 +2002,6 @@ export default function InboxPage() {
           onClose={() => setLightboxImageId(null)}
         />
       ) : null}
-    </div>
+    </>
   );
 }
