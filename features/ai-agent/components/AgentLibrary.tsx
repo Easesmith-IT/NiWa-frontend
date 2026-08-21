@@ -1,10 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import { AgentTemplatePreset } from "../../../../features/ai-agent";
+import { AgentTemplatePreset } from "../ai-agent.api";
 import { AgentTemplateCard } from "./AgentTemplateCard";
 import { Sparkles, AlertTriangle } from "lucide-react";
-import { Button } from "../../../../components/ui/button";
+import { Button } from "../../../components/ui/button";
 
 interface AgentLibraryProps {
   templates: AgentTemplatePreset[];
@@ -130,3 +130,4 @@ export const AgentLibrary: React.FC<AgentLibraryProps> = ({
     </div>
   );
 };
+

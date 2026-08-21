@@ -5,7 +5,7 @@ import { Play, RefreshCw, Terminal } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Textarea } from "../../../components/ui/textarea";
 import { AgentPlaygroundTabProps } from "../ai-agent.types";
-import { AgentDecisionTrace } from "../../../app/(app)/ai-agent/components/AgentDecisionTrace";
+import { AgentDecisionTrace } from "./AgentDecisionTrace";
 
 export const AgentPlaygroundTab: React.FC<AgentPlaygroundTabProps> = ({
   testQuery,
@@ -60,3 +60,4 @@ export const AgentPlaygroundTab: React.FC<AgentPlaygroundTabProps> = ({
     </div>
   );
 };
+

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { DecisionTrace } from "../../../../features/ai-agent";
+import { DecisionTrace } from "../ai-agent.api";
 import { Terminal, ChevronDown, ChevronUp, CheckCircle2, Shield, Database, Brain, Target } from "lucide-react";
 
 interface AgentDecisionTraceProps {
@@ -120,3 +120,4 @@ export const AgentDecisionTrace: React.FC<AgentDecisionTraceProps> = ({
     </div>
   );
 };
+

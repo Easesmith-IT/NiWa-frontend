@@ -12,7 +12,7 @@ import {
   Stethoscope,
   TrendingUp,
 } from "lucide-react";
-import { AgentTemplatePreset } from "../../../../features/ai-agent";
+import { AgentTemplatePreset } from "../ai-agent.api";
 
 interface AgentTemplateCardProps {
   template: AgentTemplatePreset;
@@ -112,3 +112,4 @@ export const AgentTemplateCard: React.FC<AgentTemplateCardProps> = ({
     </div>
   );
 };
+

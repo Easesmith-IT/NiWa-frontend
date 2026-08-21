@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { ScopeLevel } from "../../../../features/ai-agent";
+import { ScopeLevel } from "../ai-agent.api";
 import { Shield, Target, Compass, Globe } from "lucide-react";
 
 interface AgentScopeSettingsProps {
@@ -95,3 +95,4 @@ export const AgentScopeSettings: React.FC<AgentScopeSettingsProps> = ({
     </div>
   );
 };
+

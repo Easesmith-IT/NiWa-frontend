@@ -9,7 +9,7 @@ import {
   AITestResponse
 } from "./ai-agent.api";
 
-import { AccessFilter } from "../../app/(app)/ai-agent/components/KnowledgeFilters";
+export type AccessFilter = "all" | "shared" | "agent_specific";
 
 // ----------------------------------------------------------------------
 // CALLBACK CONTRACTS

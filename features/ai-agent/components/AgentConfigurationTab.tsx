@@ -3,8 +3,8 @@
 import React from "react";
 import { AgentConfigurationTabProps } from "../ai-agent.types";
 
-import { AgentContractSummary } from "../../../app/(app)/ai-agent/components/AgentContractSummary";
-import { AgentLibrary } from "../../../app/(app)/ai-agent/components/AgentLibrary";
+import { AgentContractSummary } from "./AgentContractSummary";
+import { AgentLibrary } from "./AgentLibrary";
 
 import { AgentConfigurationHeader } from "./AgentConfigurationHeader";
 import { AgentIdentitySection } from "./AgentIdentitySection";
@@ -114,3 +114,4 @@ export const AgentConfigurationTab: React.FC<AgentConfigurationTabProps> = ({
     </div>
   );
 };
+

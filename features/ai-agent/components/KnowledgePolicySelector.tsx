@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { KnowledgePolicy } from "../../../../features/ai-agent";
+import { KnowledgePolicy } from "../ai-agent.api";
 import { Database, Lock, BookOpen, Sparkles } from "lucide-react";
 
 interface KnowledgePolicySelectorProps {
@@ -95,3 +95,4 @@ export const KnowledgePolicySelector: React.FC<KnowledgePolicySelectorProps> = (
     </div>
   );
 };
+

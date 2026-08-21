@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { AIAgent } from "../../../../features/ai-agent/ai-agent.api";
+import { AIAgent } from "../ai-agent.api";
 
-export type AccessFilter = "all" | "shared" | "agent_specific";
+import { AccessFilter } from "../ai-agent.types";
 
 interface KnowledgeFiltersProps {
   accessFilter: AccessFilter;
@@ -78,3 +78,4 @@ export const KnowledgeFilters: React.FC<KnowledgeFiltersProps> = ({
     </div>
   );
 };
+

@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { BusinessAISettings } from "../../../../features/ai-agent";
+import { BusinessAISettings } from "../ai-agent.api";
 import { ShieldCheck, Cpu, Database, Brain, Target, Wrench } from "lucide-react";
 
 interface AgentContractSummaryProps {
@@ -83,3 +83,4 @@ export const AgentContractSummary: React.FC<AgentContractSummaryProps> = ({
     </div>
   );
 };
+

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { AIAgent, AgentTemplatePreset } from "../../../../features/ai-agent";
+import { AIAgent, AgentTemplatePreset } from "../ai-agent.api";
 import {
   Plus,
   Bot,
@@ -14,8 +14,8 @@ import {
   UserCheck,
   ChevronRight,
 } from "lucide-react";
-import { Button } from "../../../../components/ui/button";
-import { Input } from "../../../../components/ui/input";
+import { Button } from "../../../components/ui/button";
+import { Input } from "../../../components/ui/input";
 
 interface AgentInstanceManagerProps {
   agents: AIAgent[];
@@ -242,3 +242,4 @@ export const AgentInstanceManager: React.FC<AgentInstanceManagerProps> = ({
     </div>
   );
 };
+

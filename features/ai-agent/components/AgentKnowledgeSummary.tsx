@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { AIAgent, KnowledgeSource } from "../../../../features/ai-agent/ai-agent.api";
+import { AIAgent, KnowledgeSource } from "../ai-agent.api";
 
 interface AgentKnowledgeSummaryProps {
   agents: AIAgent[];
@@ -84,3 +84,4 @@ export const AgentKnowledgeSummary: React.FC<AgentKnowledgeSummaryProps> = ({
     </div>
   );
 };
+

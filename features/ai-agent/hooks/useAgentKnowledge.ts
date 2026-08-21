@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { KnowledgeSource } from "../ai-agent.api";
-import { AccessFilter } from "../../../app/(app)/ai-agent/components/KnowledgeFilters";
+import { AccessFilter } from "../ai-agent.types";
 import { useCreateKnowledgeSourceMutation, useUpdateKnowledgeSourceMutation } from "../ai-agent.queries";
 
 interface UseAgentKnowledgeProps {

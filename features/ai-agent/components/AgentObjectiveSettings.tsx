@@ -2,9 +2,9 @@
 
 import React, { useState } from "react";
 import { Target, Plus, X } from "lucide-react";
-import { Textarea } from "../../../../components/ui/textarea";
-import { Input } from "../../../../components/ui/input";
-import { Button } from "../../../../components/ui/button";
+import { Textarea } from "../../../components/ui/textarea";
+import { Input } from "../../../components/ui/input";
+import { Button } from "../../../components/ui/button";
 
 interface AgentObjectiveSettingsProps {
   primaryObjective: string;
@@ -100,3 +100,4 @@ export const AgentObjectiveSettings: React.FC<AgentObjectiveSettingsProps> = ({
     </div>
   );
 };
+

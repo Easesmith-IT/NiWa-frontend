@@ -7,8 +7,8 @@ import { cn } from "../../../lib/utils";
 import { AgentKnowledgeTabProps } from "../ai-agent.types";
 import { KnowledgeSource } from "../ai-agent.api";
 
-import { AgentKnowledgeSummary } from "../../../app/(app)/ai-agent/components/AgentKnowledgeSummary";
-import { KnowledgeFilters } from "../../../app/(app)/ai-agent/components/KnowledgeFilters";
+import { AgentKnowledgeSummary } from "./AgentKnowledgeSummary";
+import { KnowledgeFilters } from "./KnowledgeFilters";
 
 export const AgentKnowledgeTab: React.FC<AgentKnowledgeTabProps> = ({
   sources,
@@ -136,3 +136,4 @@ export const AgentKnowledgeTab: React.FC<AgentKnowledgeTabProps> = ({
     </div>
   );
 };
+

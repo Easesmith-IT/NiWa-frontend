@@ -5,7 +5,7 @@ import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Textarea } from "../../../components/ui/textarea";
 import { AIAgent, KnowledgeSource } from "../ai-agent.api";
-import { KnowledgeAccessSelector } from "../../../app/(app)/ai-agent/components/KnowledgeAccessSelector";
+import { KnowledgeAccessSelector } from "./KnowledgeAccessSelector";
 
 export interface AgentKnowledgeModalProps {
   isOpen: boolean;
@@ -100,3 +100,4 @@ export const AgentKnowledgeModal: React.FC<AgentKnowledgeModalProps> = ({
     </div>
   );
 };
+

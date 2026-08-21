@@ -7,10 +7,10 @@ import { cn } from "../../../lib/utils";
 import { AgentScopeSectionProps } from "../ai-agent.types";
 import { BusinessAISettings } from "../ai-agent.api";
 
-import { AgentScopeSettings } from "../../../app/(app)/ai-agent/components/AgentScopeSettings";
-import { KnowledgePolicySelector } from "../../../app/(app)/ai-agent/components/KnowledgePolicySelector";
-import { AgentObjectiveSettings } from "../../../app/(app)/ai-agent/components/AgentObjectiveSettings";
-import { AgentCapabilitiesEditor } from "../../../app/(app)/ai-agent/components/AgentCapabilitiesEditor";
+import { AgentScopeSettings } from "./AgentScopeSettings";
+import { KnowledgePolicySelector } from "./KnowledgePolicySelector";
+import { AgentObjectiveSettings } from "./AgentObjectiveSettings";
+import { AgentCapabilitiesEditor } from "./AgentCapabilitiesEditor";
 
 export const AgentScopeSection: React.FC<AgentScopeSectionProps> = ({
   currentData,
@@ -188,3 +188,4 @@ export const AgentScopeSection: React.FC<AgentScopeSectionProps> = ({
     </div>
   );
 };
+

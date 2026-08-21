@@ -2,7 +2,7 @@
 
 import React from "react";
 import { AgentLibraryTabProps } from "../ai-agent.types";
-import { AgentInstanceManager } from "../../../app/(app)/ai-agent/components/AgentInstanceManager";
+import { AgentInstanceManager } from "./AgentInstanceManager";
 
 export const AgentLibraryTab: React.FC<AgentLibraryTabProps> = ({
   agents,
@@ -29,3 +29,4 @@ export const AgentLibraryTab: React.FC<AgentLibraryTabProps> = ({
     </div>
   );
 };
+

@@ -155,3 +155,4 @@ export const AgentBehaviorSection: React.FC<AgentBehaviorSectionProps> = ({
     </div>
   );
 };
+

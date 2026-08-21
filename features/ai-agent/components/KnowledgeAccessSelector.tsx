@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { AIAgent } from "../../../../features/ai-agent/ai-agent.api";
+import { AIAgent } from "../ai-agent.api";
 
 interface KnowledgeAccessSelectorProps {
   accessMode: "all_agents" | "selected_agents";
@@ -118,3 +118,4 @@ export const KnowledgeAccessSelector: React.FC<KnowledgeAccessSelectorProps> = (
     </div>
   );
 };
+

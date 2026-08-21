@@ -40,3 +40,4 @@ export const AgentActivityTab: React.FC<AgentActivityTabProps> = ({ logs }) => {
     </div>
   );
 };
+
