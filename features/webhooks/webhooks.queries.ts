@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { v1QueryKeys } from "../../lib/api/v1-query-keys";
 import { getWebhooksV1, GetWebhooksParams, reconcileWebhookV1, testWebhookV1 } from "./webhooks.api";
 
 export const webhookKeys = {
-  all: ["webhooks"] as const,
-  lists: () => [...webhookKeys.all, "list"] as const,
+  all: v1QueryKeys.webhooks,
+  lists: () => [...v1QueryKeys.webhooks, "list"] as const,
   list: (params?: GetWebhooksParams) => [...webhookKeys.lists(), params] as const,
 };
 

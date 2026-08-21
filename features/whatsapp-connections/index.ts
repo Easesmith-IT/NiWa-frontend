@@ -1,3 +1,4 @@
+export * from "./whatsapp-connections.types";
 export * from "./whatsapp-connections.api";
 export * from "./whatsapp-connections.queries";
 export * from "./hooks/useWhatsAppSettingsState";

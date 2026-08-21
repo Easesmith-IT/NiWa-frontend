@@ -1,9 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { v1QueryKeys } from "../../lib/api/v1-query-keys";
 import { getTemplates, getTemplatesV1, GetTemplatesParams, syncTemplatesV1 } from "./templates.api";
 
 export const templateKeys = {
-  all: ["templates"] as const,
-  lists: () => [...templateKeys.all, "list"] as const,
+  all: v1QueryKeys.templates,
+  lists: () => [...v1QueryKeys.templates, "list"] as const,
   list: (params?: GetTemplatesParams) => [...templateKeys.lists(), params] as const,
 };
 

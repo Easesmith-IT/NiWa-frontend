@@ -9,12 +9,19 @@ export interface QuotaData {
   dateString: string;
 }
 
+export interface QuotaScheduleItem {
+  dateString: string;
+  recipientsPlanned: number;
+  availableCapacity: number;
+  remaining: number;
+}
+
 export interface QuotaForecastResponse {
   data: {
     forecast: number;
     current?: QuotaData;
     estimatedCompletionDate?: string;
-    schedule?: any[];
+    schedule?: QuotaScheduleItem[];
   };
 }
 

@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { CheckCircle2, AlertCircle, Loader2, ArrowRight, RefreshCw, ShieldCheck } from "lucide-react";
 import { AxiosError } from "axios";
 import { Button } from "../ui/button";
-import { v1ApiClient } from "../../lib/api/v1-client";
+import { completeEmbeddedSignupV1 } from "../../features/whatsapp-connections";
 import { EmbeddedSignupResponse, WhatsAppConnectionRecord } from "../../lib/api/types";
 
 const META_CONFIG_ID = "981824644880745";
@@ -135,15 +135,12 @@ export const MetaEmbeddedSignup: React.FC<MetaEmbeddedSignupProps> = ({
       setStep("validating");
       setStatusMessage("Validating WhatsApp Business Account & Phone Number...");
 
-      const response = await v1ApiClient.post<EmbeddedSignupResponse>(
-        "/whatsapp/connections/embedded-signup/complete",
-        {
-          code: data.code,
-          wabaId: data.wabaId,
-          phoneNumberId: data.phoneNumberId,
-          businessId: data.businessId,
-        },
-      );
+      const responseData = await completeEmbeddedSignupV1({
+        code: data.code ?? "",
+        wabaId: data.wabaId ?? "",
+        phoneNumberId: data.phoneNumberId ?? "",
+        businessId: data.businessId,
+      });
 
       setStep("subscribing");
       setStatusMessage("Configuring Webhook Subscriptions...");
@@ -154,8 +151,8 @@ export const MetaEmbeddedSignup: React.FC<MetaEmbeddedSignupProps> = ({
       setStep("completed");
       setStatusMessage("WhatsApp Account connected successfully!");
 
-      if (onSuccess && response.data.connection) {
-        onSuccess(response.data.connection);
+      if (onSuccess && responseData.connection) {
+        onSuccess(responseData.connection);
       }
     } catch (err) {
       setStep("failed");

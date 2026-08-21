@@ -1,4 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
+import { v1QueryKeys } from "../../lib/api/v1-query-keys";
 import {
   addNote,
   clearUnread,
@@ -19,12 +20,12 @@ import type {
 } from "./conversations.types";
 
 export const conversationsKeys = {
-  all: ["conversations"] as const,
+  all: v1QueryKeys.conversations,
   list: (query?: string, filterMode?: FilterMode) =>
-    ["conversations", searchQueryOrEmpty(query), filterMode ?? "all"] as const,
-  detail: (id: string | null) => ["conversation-detail", id] as const,
-  templates: ["templates", "conversations-reply"] as const,
-  media: ["media", "conversations-reply"] as const,
+    [...v1QueryKeys.conversations, searchQueryOrEmpty(query), filterMode ?? "all"] as const,
+  detail: (id: string | null) => [...v1QueryKeys.conversations, "detail", id] as const,
+  templates: [...v1QueryKeys.templates, "conversations-reply"] as const,
+  media: [...v1QueryKeys.media, "conversations-reply"] as const,
 };
 
 function searchQueryOrEmpty(query?: string) {

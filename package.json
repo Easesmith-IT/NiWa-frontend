@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint --config eslint.config.cjs app features components lib",
     "typecheck": "tsc --noEmit --project tsconfig.typecheck.json",
     "test": "node --import tsx --test lib/**/*.test.ts features/**/*.test.ts"
   },

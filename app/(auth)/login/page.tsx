@@ -24,9 +24,8 @@ import {
 
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
-import { v1ApiClient } from "../../../lib/api/v1-client";
+import { loginV1 } from "../../../features/auth";
 import { setAccessToken } from "../../../lib/auth";
-import type { LoginResponse } from "../../../lib/api/types";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address."),
@@ -62,8 +61,9 @@ export default function LoginPage() {
   const onSubmit = async (values: LoginValues) => {
     try {
       setSubmitError(null);
-      const response = await v1ApiClient.post<LoginResponse>("/auth/login", values);
-      setAccessToken(response.data.accessToken);
+      const data = await loginV1(values);
+      const token = data.accessToken ?? data.token ?? "";
+      setAccessToken(token);
       router.push("/");
     } catch (error) {
       const message =

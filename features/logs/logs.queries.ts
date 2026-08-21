@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
+import { v1QueryKeys } from "../../lib/api/v1-query-keys";
 import { getApiLogsV1, GetApiLogsParams, getWebhookLogsV1, GetWebhookLogsParams } from "./logs.api";
 
 export const logKeys = {
-  all: ["logs"] as const,
-  api: (params?: GetApiLogsParams) => [...logKeys.all, "api", params] as const,
-  webhooks: (params?: GetWebhookLogsParams) => [...logKeys.all, "webhooks", params] as const,
+  all: v1QueryKeys.logs,
+  api: (params?: GetApiLogsParams) => [...v1QueryKeys.logs, "api", params] as const,
+  webhooks: (params?: GetWebhookLogsParams) => [...v1QueryKeys.webhookLogs, "webhooks", params] as const,
 };
 
 export const useApiLogsV1Query = (params?: GetApiLogsParams) => {

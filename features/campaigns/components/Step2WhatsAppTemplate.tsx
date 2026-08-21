@@ -6,8 +6,8 @@ import { ArrowLeft, ArrowRight, Smartphone, Loader2 } from "lucide-react";
 import { TemplateRecord, WhatsAppConnectionRecord } from "../../../lib/api/types";
 import { Button } from "../../../components/ui/button";
 import { WhatsAppMessagePreview, MetaTemplate } from "./WhatsAppMessagePreview";
-import { useWhatsAppConnections } from "../../whatsapp-connections/whatsapp-connections.queries";
-import { useTemplates } from "../../templates/templates.queries";
+import { useWhatsAppConnections } from "../../whatsapp-connections";
+import { useTemplates } from "../../templates";
 
 interface Step2Props {
   connectionId: string;
