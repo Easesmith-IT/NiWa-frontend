@@ -7,6 +7,7 @@ export * from "./inbox.merge";
 export * from "./inbox.types";
 export * from "./hooks/useInboxState";
 export * from "./hooks/useInboxRealtimeHandlers";
+export * from "./hooks/useInboxOrchestration";
 export * from "./components/ContactAvatar";
 export * from "./components/InboxLayout";
 export * from "./components/InboxThreadList";
@@ -29,8 +30,3 @@ export * from "./components/ChatWindowSkeleton";
 export * from "./components/ImageLightboxModal";
 export * from "./utils/formatters";
 export * from "./utils/quick-replies";
-
-
-
-
-
