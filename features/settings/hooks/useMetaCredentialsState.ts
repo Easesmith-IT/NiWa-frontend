@@ -61,6 +61,7 @@ export function useMetaCredentialsState() {
   const handleSaveSettings = settingsForm.handleSubmit((values) => {
     setSubmitError(null);
     setSubmitMessage(null);
+    connectionTestMutation.reset();
     saveMutation.mutate(values, {
       onSuccess: (data) => {
         setSubmitError(null);
