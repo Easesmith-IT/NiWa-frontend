@@ -20,7 +20,7 @@ export const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
   return (
     <aside
       className={cn(
-        "sticky top-0 hidden h-screen shrink-0 border-r border-[#E4E4E7] bg-[#F8FAFC] px-3 py-3 transition-[width] duration-200 ease-out dark:border-[#24272A] dark:bg-[#0B0F15] lg:flex lg:flex-col",
+        "sticky top-0 hidden h-screen shrink-0 border-r border-slate-800 bg-slate-900 px-3 py-3 transition-[width] duration-200 ease-out dark:border-[#24272A] dark:bg-[#0B0F15] lg:flex lg:flex-col",
         collapsed ? "w-[68px]" : "w-[230px]",
       )}
     >
@@ -71,8 +71,8 @@ export const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
                     className={cn(
                       "group relative flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500/20",
                       active
-                        ? "bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400"
-                        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-200",
+                        ? "bg-slate-800 text-blue-400 dark:bg-blue-500/10 dark:text-blue-400"
+                        : "text-slate-400 hover:bg-slate-800 hover:text-slate-200 dark:text-slate-400 dark:hover:bg-slate-800/50 dark:hover:text-slate-200",
                       collapsed && "justify-center px-0",
                     )}
                     href={href}
@@ -80,9 +80,9 @@ export const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
                     title={collapsed ? label : undefined}
                   >
                     {active ? (
-                      <span className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-[2px] rounded-r bg-blue-600 dark:bg-blue-500" />
+                      <span className="absolute left-0 top-1/2 -translate-y-1/2 h-4 w-[2px] rounded-r bg-blue-500 dark:bg-blue-500" />
                     ) : null}
-                    <Icon className={cn("h-4 w-4 shrink-0 transition-colors", active ? "text-blue-600 dark:text-blue-400" : "text-slate-400 group-hover:text-slate-600 dark:text-slate-500 dark:group-hover:text-slate-300")} />
+                    <Icon className={cn("h-4 w-4 shrink-0 transition-colors", active ? "text-blue-400 dark:text-blue-400" : "text-slate-500 group-hover:text-slate-300 dark:text-slate-500 dark:group-hover:text-slate-300")} />
                     {!collapsed ? <span className="truncate">{label}</span> : null}
                   </Link>
                 );

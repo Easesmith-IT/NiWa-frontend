@@ -64,7 +64,8 @@ export default function LoginPage() {
       const data = await login(values);
       const token = data.accessToken ?? data.token ?? "";
       setAccessToken(token);
-      router.push("/");
+      const nextParam = new URLSearchParams(window.location.search).get("next");
+      router.push(nextParam || "/");
     } catch (error) {
       const message =
         error instanceof AxiosError
