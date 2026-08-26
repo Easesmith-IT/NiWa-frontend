@@ -6,7 +6,7 @@ import { ArrowLeft, Clock3, TerminalSquare } from "lucide-react";
 
 import { Button } from "../../../../../components/ui/button";
 import { Card } from "../../../../../components/ui/card";
-import { useAutomationRunV1Query } from "../../../../../features/automations";
+import { useAutomationRunQuery } from "../../../../../features/automations";
 
 const formatDateTime = (value?: string | null) => {
   if (!value) {
@@ -19,7 +19,7 @@ const formatDateTime = (value?: string | null) => {
 export default function AutomationRunDetailPage() {
   const params = useParams<{ runId: string }>();
   const runId = typeof params?.runId === "string" ? params.runId : null;
-  const runQuery = useAutomationRunV1Query(runId);
+  const runQuery = useAutomationRunQuery(runId);
   const run = runQuery.data?.data ?? null;
 
   return (

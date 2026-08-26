@@ -27,7 +27,7 @@ export function ImageLightboxModal({
 
   const currentItem = images[currentIndex] ?? images[0];
 
-  // Fetch blob URL for each image via V1 API layer
+  // Fetch blob URL for each image via API layer
   useEffect(() => {
     let disposed = false;
     const fetchBlobForMessage = async (item: LightboxImageItem) => {

@@ -2,13 +2,13 @@ import React from "react";
 import { Plus } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
-import type { AutomationConditionRecordV1 } from "../automation.types";
+import type { AutomationConditionRecord } from "../automation.types";
 
 export interface AutomationConditionEditorProps {
-  conditions: AutomationConditionRecordV1[];
+  conditions: AutomationConditionRecord[];
   onAddCondition: () => void;
   onUpdateSource: (index: number, source: string) => void;
-  onUpdateOperator: (index: number, operator: AutomationConditionRecordV1["operator"]) => void;
+  onUpdateOperator: (index: number, operator: AutomationConditionRecord["operator"]) => void;
   onUpdateValue: (index: number, value: string) => void;
 }
 
@@ -47,7 +47,7 @@ export const AutomationConditionEditor: React.FC<AutomationConditionEditorProps>
             onChange={(event) =>
               onUpdateOperator(
                 index,
-                event.target.value as AutomationConditionRecordV1["operator"],
+                event.target.value as AutomationConditionRecord["operator"],
               )
             }
           >

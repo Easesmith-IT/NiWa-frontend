@@ -52,7 +52,7 @@ export function useCampaignDraftLifecycle(params: UseCampaignDraftLifecycleParam
   const hydratedDraftRef = useRef<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // Hydrate draft from URL if ?draft=xxx is present using V1 React Query
+  // Hydrate draft from URL if ?draft=xxx is present using React Query
   useEffect(() => {
     if (!params.paramDraftId) {
       hydratedDraftRef.current = null;

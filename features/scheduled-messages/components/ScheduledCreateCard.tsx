@@ -42,7 +42,7 @@ export const ScheduledCreateCard: React.FC<ScheduledCreateCardProps> = ({
       </div>
       <Input
         onChange={(event) => onContactIdChange(event.target.value)}
-        placeholder="Contact ID (E.164 / V1 ID)"
+        placeholder="Contact ID (E.164 / Phone)"
         value={contactId}
       />
       <Textarea

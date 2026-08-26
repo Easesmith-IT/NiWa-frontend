@@ -3,12 +3,12 @@ import { Plus } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Textarea } from "../../../components/ui/textarea";
-import type { AutomationStepRecordV1 } from "../automation.types";
+import type { AutomationStepRecord } from "../automation.types";
 
 export interface AutomationStepEditorProps {
-  steps: AutomationStepRecordV1[];
+  steps: AutomationStepRecord[];
   onAddStep: () => void;
-  onUpdateStepType: (index: number, type: AutomationStepRecordV1["type"]) => void;
+  onUpdateStepType: (index: number, type: AutomationStepRecord["type"]) => void;
   onUpdateStepConfig: (index: number, config: Record<string, unknown>) => void;
 }
 
@@ -40,7 +40,7 @@ export const AutomationStepEditor: React.FC<AutomationStepEditorProps> = ({
             onChange={(event) =>
               onUpdateStepType(
                 index,
-                event.target.value as AutomationStepRecordV1["type"],
+                event.target.value as AutomationStepRecord["type"],
               )
             }
           >

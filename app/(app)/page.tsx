@@ -29,7 +29,7 @@ export default function DashboardPage() {
     return (
       <Card className="p-6">
         <p className="text-sm font-medium text-[hsl(var(--danger))]">
-          Dashboard summary failed to load. Check the V1 API and retry.
+          Dashboard summary failed to load. Please try again.
         </p>
         <Button className="mt-4" onClick={() => void dashboardQuery.refetch()} type="button" variant="secondary">
           Retry dashboard

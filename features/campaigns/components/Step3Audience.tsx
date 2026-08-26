@@ -25,9 +25,9 @@ import {
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import {
-  useContactImportsV1Query,
+  useContactImportsQuery,
   useContactsQuery,
-  useContactImportPipelineV1,
+  useContactImportPipeline,
 } from "../../contacts/contact.queries";
 import { ContactImportRecord, ContactRecord } from "../../contacts/contact.types";
 
@@ -110,7 +110,7 @@ export const Step3Audience: React.FC<Step3Props> = ({
     isProcessing: isUploading,
     progressText: uploadProgress,
     pipelineError: uploadError,
-  } = useContactImportPipelineV1();
+  } = useContactImportPipeline();
 
   // Debounce search input
   useEffect(() => {
@@ -122,7 +122,7 @@ export const Step3Audience: React.FC<Step3Props> = ({
   }, [search]);
 
   // Query Contact Imports
-  const importsQuery = useContactImportsV1Query();
+  const importsQuery = useContactImportsQuery();
 
   const importsList = importsQuery.data?.data || [];
   const completedImports = importsList.filter((i: ContactImportRecord) => i.status === "completed" || i.status === "ready");

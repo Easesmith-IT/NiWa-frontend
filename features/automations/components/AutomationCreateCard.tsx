@@ -4,7 +4,7 @@ import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
 import { Textarea } from "../../../components/ui/textarea";
-import type { AutomationConditionRecordV1, AutomationStepRecordV1 } from "../automation.types";
+import type { AutomationConditionRecord, AutomationStepRecord } from "../automation.types";
 import { AutomationConditionEditor } from "./AutomationConditionEditor";
 import { AutomationStepEditor } from "./AutomationStepEditor";
 
@@ -17,14 +17,14 @@ export interface AutomationCreateCardProps {
   onTriggerTypeChange: (value: "incoming_message" | "manual") => void;
   messageTypeFilter: string;
   onMessageTypeFilterChange: (value: string) => void;
-  conditions: AutomationConditionRecordV1[];
+  conditions: AutomationConditionRecord[];
   onAddCondition: () => void;
   onUpdateConditionSource: (index: number, source: string) => void;
-  onUpdateConditionOperator: (index: number, operator: AutomationConditionRecordV1["operator"]) => void;
+  onUpdateConditionOperator: (index: number, operator: AutomationConditionRecord["operator"]) => void;
   onUpdateConditionValue: (index: number, value: string) => void;
-  steps: AutomationStepRecordV1[];
+  steps: AutomationStepRecord[];
   onAddStep: () => void;
-  onUpdateStepType: (index: number, type: AutomationStepRecordV1["type"]) => void;
+  onUpdateStepType: (index: number, type: AutomationStepRecord["type"]) => void;
   onUpdateStepConfig: (index: number, config: Record<string, unknown>) => void;
   isCreating: boolean;
   onCreateAutomation: () => void;

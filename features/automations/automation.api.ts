@@ -11,7 +11,7 @@ export const listAutomations = async (params?: {
   return response.data;
 };
 
-export const createAutomationV1 = async (payload: {
+export const createAutomation = async (payload: {
   conditions: Array<{ operator: "contains" | "equals" | "exists" | "not_equals"; source: string; value?: string }>;
   description?: string;
   name: string;
@@ -27,7 +27,7 @@ export const createAutomationV1 = async (payload: {
   return response.data;
 };
 
-export const patchAutomationV1 = async (
+export const patchAutomation = async (
   automationId: string,
   payload: Partial<{
     conditions: Array<{ operator: "contains" | "equals" | "exists" | "not_equals"; source: string; value?: string }>;
@@ -50,7 +50,7 @@ export const patchAutomationV1 = async (
   return response.data;
 };
 
-export const setAutomationLifecycleV1 = async (
+export const setAutomationLifecycle = async (
   automationId: string,
   action: "activate" | "archive" | "pause",
 ) => {
@@ -60,7 +60,7 @@ export const setAutomationLifecycleV1 = async (
   return response.data;
 };
 
-export const testAutomationV1 = async (
+export const testAutomation = async (
   automationId: string,
   payload: {
     contactId: string;
@@ -86,7 +86,7 @@ export const listAutomationRuns = async (params?: {
   return response.data;
 };
 
-export const getAutomationRunV1 = async (runId: string) => {
+export const getAutomationRun = async (runId: string) => {
   const response = await apiClient.get<{ data: AutomationRunRecord }>(`/automations/runs/${runId}`);
   return response.data;
 };

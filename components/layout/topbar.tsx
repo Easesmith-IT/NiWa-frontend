@@ -5,7 +5,7 @@ import { Menu, Search, Wifi } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { clearAccessToken } from "../../lib/auth";
-import { logoutV1 } from "../../features/auth";
+import { logout } from "../../features/auth";
 import { Button } from "../ui/button";
 import { routeMeta } from "./navigation";
 import { ThemeSwitcher } from "./theme-switcher";
@@ -22,7 +22,7 @@ export const Topbar = ({ onOpenCommandPalette, onToggleSidebar }: TopbarProps) =
 
   const handleLogout = async () => {
     try {
-      await logoutV1();
+      await logout();
     } finally {
       clearAccessToken();
       queryClient.clear();

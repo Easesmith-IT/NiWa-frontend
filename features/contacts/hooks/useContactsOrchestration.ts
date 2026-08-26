@@ -6,10 +6,10 @@ import { isAxiosError } from "axios";
 import { useLabelsQuery } from "../../labels";
 import { exportContacts } from "../contact.api";
 import {
-  useContactDuplicatesV1Query,
+  useContactDuplicatesQuery,
   useContactsQuery,
-  useCreateContactV1Mutation,
-  useDeleteContactV1Mutation,
+  useCreateContactMutation,
+  useDeleteContactMutation,
   useMergeContactsMutation,
   usePatchContactMutation,
 } from "../contact.queries";
@@ -47,12 +47,12 @@ export function useContactsOrchestration() {
   const [feedback, setFeedback] = useState<ContactsFeedback | null>(null);
 
   const contactsQuery = useContactsQuery({ search });
-  const duplicateGroupsQuery = useContactDuplicatesV1Query({ field: "phoneNumberE164" });
+  const duplicateGroupsQuery = useContactDuplicatesQuery({ field: "phoneNumberE164" });
   const labelsQuery = useLabelsQuery();
 
-  const createContactMutation = useCreateContactV1Mutation();
+  const createContactMutation = useCreateContactMutation();
   const patchContactMutation = usePatchContactMutation();
-  const deleteContactMutation = useDeleteContactV1Mutation();
+  const deleteContactMutation = useDeleteContactMutation();
   const mergeContactsMutation = useMergeContactsMutation();
 
   const contacts = contactsQuery.data?.data ?? [];

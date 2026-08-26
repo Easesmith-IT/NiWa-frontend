@@ -24,7 +24,7 @@ import {
 
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
-import { loginV1 } from "../../../features/auth";
+import { login } from "../../../features/auth";
 import { setAccessToken } from "../../../lib/auth";
 
 const loginSchema = z.object({
@@ -61,7 +61,7 @@ export default function LoginPage() {
   const onSubmit = async (values: LoginValues) => {
     try {
       setSubmitError(null);
-      const data = await loginV1(values);
+      const data = await login(values);
       const token = data.accessToken ?? data.token ?? "";
       setAccessToken(token);
       router.push("/");

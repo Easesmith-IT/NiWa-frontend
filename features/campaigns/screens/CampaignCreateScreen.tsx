@@ -16,7 +16,7 @@ import { Step4MessageVariables } from "../components/Step4MessageVariables";
 import { Step5Schedule } from "../components/Step5Schedule";
 import { Step6ReviewLaunch } from "../components/Step6ReviewLaunch";
 import { useWhatsAppConnections } from "../../whatsapp-connections/whatsapp-connections.queries";
-import { useContactImportsV1Query } from "../../contacts/contact.queries";
+import { useContactImportsQuery } from "../../contacts/contact.queries";
 import type { ContactImportRecord } from "../../contacts/contact.types";
 import type { WhatsAppConnectionRecord } from "../../../lib/api/types";
 
@@ -139,7 +139,7 @@ export function CampaignCreateScreen() {
       }
     : null;
 
-  const importsQuery = useContactImportsV1Query();
+  const importsQuery = useContactImportsQuery();
   const importsList = importsQuery.data?.data || [];
   const selectedImportObj = importsList.find((i: ContactImportRecord) => i.id === importId);
   const importDetails = selectedImportObj

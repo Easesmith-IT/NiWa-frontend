@@ -6,19 +6,19 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "../../lib/api/query-keys";
 import {
-  addContactLabelV1,
+  addContactLabel,
   createContact,
-  deleteContactV1,
-  getContactDuplicatesV1,
+  deleteContact,
+  getContactDuplicates,
   listContacts,
-  mergeContactsV1,
-  patchContactV1,
-  removeContactLabelV1,
-  uploadContactImportV1,
-  validateContactImportV1,
-  commitContactImportV1,
-  getContactImportV1,
-  listContactImportsV1,
+  mergeContacts,
+  patchContact,
+  removeContactLabel,
+  uploadContactImport,
+  validateContactImport,
+  commitContactImport,
+  getContactImport,
+  listContactImports,
 } from "./contact.api";
 import { mapContactRecord } from "./contact.mappers";
 
@@ -43,23 +43,23 @@ export const useContactsQuery = (params?: { search?: string; page?: number; limi
     },
   });
 
-export const useContactImportsV1Query = () =>
+export const useContactImportsQuery = () =>
   useQuery({
     queryKey: [...queryKeys.contacts, "imports"],
     queryFn: async () => {
-      return listContactImportsV1();
+      return listContactImports();
     },
   });
 
-export const useContactDuplicatesV1Query = (params?: {
+export const useContactDuplicatesQuery = (params?: {
   field?: "phoneNumber" | "phoneNumberE164" | "waId";
 }) =>
   useQuery({
     queryKey: [...queryKeys.contacts, "duplicates", params?.field ?? "phoneNumberE164"],
-    queryFn: () => getContactDuplicatesV1(params),
+    queryFn: () => getContactDuplicates(params),
   });
 
-export const useCreateContactV1Mutation = () => {
+export const useCreateContactMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -74,19 +74,19 @@ export const usePatchContactMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ contactId, payload }: { contactId: string; payload: Parameters<typeof patchContactV1>[1] }) =>
-      patchContactV1(contactId, payload),
+    mutationFn: ({ contactId, payload }: { contactId: string; payload: Parameters<typeof patchContact>[1] }) =>
+      patchContact(contactId, payload),
     onSuccess: async () => {
       await invalidateContactSurfaces(queryClient);
     },
   });
 };
 
-export const useDeleteContactV1Mutation = () => {
+export const useDeleteContactMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: deleteContactV1,
+    mutationFn: deleteContact,
     onSuccess: async () => {
       await invalidateContactSurfaces(queryClient);
     },
@@ -98,7 +98,7 @@ export const useAddContactLabelMutation = () => {
 
   return useMutation({
     mutationFn: ({ contactId, labelId }: { contactId: string; labelId: string }) =>
-      addContactLabelV1(contactId, labelId),
+      addContactLabel(contactId, labelId),
     onSuccess: async () => {
       await invalidateContactSurfaces(queryClient);
     },
@@ -110,7 +110,7 @@ export const useRemoveContactLabelMutation = () => {
 
   return useMutation({
     mutationFn: ({ contactId, labelId }: { contactId: string; labelId: string }) =>
-      removeContactLabelV1(contactId, labelId),
+      removeContactLabel(contactId, labelId),
     onSuccess: async () => {
       await invalidateContactSurfaces(queryClient);
     },
@@ -121,7 +121,7 @@ export const useMergeContactsMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: mergeContactsV1,
+    mutationFn: mergeContacts,
     onSuccess: async () => {
       await invalidateContactSurfaces(queryClient);
     },
@@ -129,32 +129,32 @@ export const useMergeContactsMutation = () => {
 };
 
 // Contact Import API / Query Hooks
-export const useUploadContactImportV1Mutation = () =>
+export const useUploadContactImportMutation = () =>
   useMutation({
-    mutationFn: (file: File) => uploadContactImportV1(file),
+    mutationFn: (file: File) => uploadContactImport(file),
   });
 
-export const useValidateContactImportV1Mutation = () =>
+export const useValidateContactImportMutation = () =>
   useMutation({
     mutationFn: ({ importId, columnMapping }: { importId: string; columnMapping: Record<string, string> }) =>
-      validateContactImportV1(importId, { columnMapping }),
+      validateContactImport(importId, { columnMapping }),
   });
 
-export const useCommitContactImportV1Mutation = () => {
+export const useCommitContactImportMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (importId: string) => commitContactImportV1(importId),
+    mutationFn: (importId: string) => commitContactImport(importId),
     onSuccess: async () => {
       queryClient.invalidateQueries({ queryKey: [...queryKeys.contacts, "imports"] });
     },
   });
 };
 
-export const useContactImportStatusV1Query = (importId: string | null, enabled: boolean) =>
+export const useContactImportStatusQuery = (importId: string | null, enabled: boolean) =>
   useQuery({
     queryKey: [...queryKeys.contacts, "imports", "status", importId],
-    queryFn: () => getContactImportV1(importId!),
+    queryFn: () => getContactImport(importId!),
     enabled: Boolean(importId && enabled),
     refetchInterval: (query) => {
       const status = query.state.data?.status;
@@ -170,18 +170,18 @@ export interface ProcessContactImportOptions {
   onError?: (error: string) => void;
 }
 
-export const useContactImportPipelineV1 = () => {
+export const useContactImportPipeline = () => {
   const queryClient = useQueryClient();
   const [activeImportId, setActiveImportId] = useState<string | null>(null);
   const [isPolling, setIsPolling] = useState(false);
   const [statusStep, setStatusStep] = useState<"" | "uploading" | "validating" | "commit" | "polling">("");
   const [pipelineError, setPipelineError] = useState<string>("");
 
-  const uploadMutation = useUploadContactImportV1Mutation();
-  const validateMutation = useValidateContactImportV1Mutation();
-  const commitMutation = useCommitContactImportV1Mutation();
+  const uploadMutation = useUploadContactImportMutation();
+  const validateMutation = useValidateContactImportMutation();
+  const commitMutation = useCommitContactImportMutation();
 
-  const statusQuery = useContactImportStatusV1Query(activeImportId, isPolling);
+  const statusQuery = useContactImportStatusQuery(activeImportId, isPolling);
 
   const activePipelineIdRef = useRef(0);
   const isMountedRef = useRef(true);

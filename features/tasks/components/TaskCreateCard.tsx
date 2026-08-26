@@ -37,7 +37,7 @@ export const TaskCreateCard: React.FC<TaskCreateCardProps> = ({
       </div>
       <Input
         onChange={(event) => onContactIdChange(event.target.value)}
-        placeholder="Contact ID (V1 / Phone)"
+        placeholder="Contact ID (Phone)"
         value={contactId}
       />
       <Input

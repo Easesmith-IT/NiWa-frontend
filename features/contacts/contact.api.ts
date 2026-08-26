@@ -23,7 +23,7 @@ export const createContact = async (payload: {
   return response.data;
 };
 
-export const patchContactV1 = async (
+export const patchContact = async (
   contactId: string,
   payload: Partial<{
     avatarUrl: string | null;
@@ -41,19 +41,19 @@ export const patchContactV1 = async (
   return response.data;
 };
 
-export const deleteContactV1 = async (contactId: string) => {
+export const deleteContact = async (contactId: string) => {
   const response = await apiClient.delete<{ data: ContactRecord }>(`/contacts/${contactId}`);
   return response.data;
 };
 
-export const addContactLabelV1 = async (contactId: string, labelId: string) => {
+export const addContactLabel = async (contactId: string, labelId: string) => {
   const response = await apiClient.post<{ data: ContactRecord }>(`/contacts/${contactId}/labels`, {
     labelId,
   });
   return response.data;
 };
 
-export const removeContactLabelV1 = async (contactId: string, labelId: string) => {
+export const removeContactLabel = async (contactId: string, labelId: string) => {
   const response = await apiClient.delete<{ data: ContactRecord }>(
     `/contacts/${contactId}/labels/${labelId}`,
   );
@@ -71,7 +71,7 @@ export const exportContacts = async (params?: { format?: "csv" | "json"; search?
   return response.data;
 };
 
-export const getContactDuplicatesV1 = async (params?: {
+export const getContactDuplicates = async (params?: {
   field?: "phoneNumber" | "phoneNumberE164" | "waId";
 }) => {
   const response = await apiClient.get<{
@@ -90,7 +90,7 @@ export const getContactDuplicatesV1 = async (params?: {
   return response.data;
 };
 
-export const mergeContactsV1 = async (payload: {
+export const mergeContacts = async (payload: {
   sourceContactId: string;
   targetContactId: string;
 }) => {
@@ -98,7 +98,7 @@ export const mergeContactsV1 = async (payload: {
   return response.data;
 };
 
-export const uploadContactImportV1 = async (file: File) => {
+export const uploadContactImport = async (file: File) => {
   const formData = new FormData();
   formData.append("file", file);
   const response = await apiClient.post<{ data: ContactImportRecord }>("/contact-imports/upload", formData, {
@@ -109,22 +109,22 @@ export const uploadContactImportV1 = async (file: File) => {
   return response.data.data;
 };
 
-export const validateContactImportV1 = async (importId: string, payload: { columnMapping: Record<string, string> }) => {
+export const validateContactImport = async (importId: string, payload: { columnMapping: Record<string, string> }) => {
   const response = await apiClient.post<{ data: ContactImportRecord }>(`/contact-imports/${importId}/validate`, payload);
   return response.data.data;
 };
 
-export const commitContactImportV1 = async (importId: string) => {
+export const commitContactImport = async (importId: string) => {
   const response = await apiClient.post<{ data: ContactImportRecord }>(`/contact-imports/${importId}/commit`);
   return response.data.data;
 };
 
-export const getContactImportV1 = async (importId: string) => {
+export const getContactImport = async (importId: string) => {
   const response = await apiClient.get<{ data: ContactImportRecord }>(`/contact-imports/${importId}`);
   return response.data.data;
 };
 
-export const listContactImportsV1 = async () => {
+export const listContactImports = async () => {
   const response = await apiClient.get<{ data: ContactImportRecord[] }>("/contact-imports");
   return response.data;
 };

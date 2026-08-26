@@ -11,10 +11,10 @@ import { ContactImportPreview } from "./ContactImportPreview";
 import { ContactImportSummary } from "./ContactImportSummary";
 
 import {
-  uploadContactImportV1,
-  validateContactImportV1,
-  commitContactImportV1,
-  getContactImportV1,
+  uploadContactImport,
+  validateContactImport,
+  commitContactImport,
+  getContactImport,
 } from "../contact.api";
 import type { ContactImportRecord } from "../contact.types";
 
@@ -49,7 +49,7 @@ export function ContactImportWizard() {
     setIsProcessing(true);
     setError(null);
     try {
-      const record = await getContactImportV1(id);
+      const record = await getContactImport(id);
       setImportRecord(record);
       setFileHeaders(record.headers || []);
       if (record.columnMapping) setColumnMapping(record.columnMapping);
@@ -91,7 +91,7 @@ export function ContactImportWizard() {
     if (importRecord && (step === "VALIDATING" || step === "IMPORTING")) {
       interval = setInterval(async () => {
         try {
-          const record = await getContactImportV1(importRecord.id);
+          const record = await getContactImport(importRecord.id);
           setImportRecord(record);
           setFileHeaders(record.headers || []);
           
@@ -119,7 +119,7 @@ export function ContactImportWizard() {
     setError(null);
 
     try {
-      const record = await uploadContactImportV1(file);
+      const record = await uploadContactImport(file);
       setImportRecord(record);
       
       // Update URL with importId for recovery
@@ -154,7 +154,7 @@ export function ContactImportWizard() {
     setError(null);
     
     try {
-      const record = await validateContactImportV1(importRecord.id, { columnMapping });
+      const record = await validateContactImport(importRecord.id, { columnMapping });
       setImportRecord(record);
       setStep("VALIDATING");
     } catch (err) {
@@ -170,7 +170,7 @@ export function ContactImportWizard() {
     setError(null);
     
     try {
-      const record = await commitContactImportV1(importRecord.id);
+      const record = await commitContactImport(importRecord.id);
       setImportRecord(record);
       setStep("IMPORTING");
     } catch (err) {
@@ -184,7 +184,7 @@ export function ContactImportWizard() {
     setStep("VALIDATING");
     setError(null);
     try {
-      const record = await validateContactImportV1(importRecord!.id, { columnMapping });
+      const record = await validateContactImport(importRecord!.id, { columnMapping });
       setImportRecord(record);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to retry validation.");
@@ -196,7 +196,7 @@ export function ContactImportWizard() {
     setStep("IMPORTING");
     setError(null);
     try {
-      const record = await commitContactImportV1(importRecord!.id);
+      const record = await commitContactImport(importRecord!.id);
       setImportRecord(record);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to retry import.");
