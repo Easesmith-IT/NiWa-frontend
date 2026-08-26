@@ -7,8 +7,10 @@ import { useQueryClient } from "@tanstack/react-query";
 import { v1QueryKeys } from "../../lib/api/v1-query-keys";
 import { getBaseApiUrl } from "../../lib/api/base-url";
 
+import { getAccessToken } from "../../lib/auth";
+
 const isSocketIoRealtimeEnabled = () => {
-  return process.env.NEXT_PUBLIC_REALTIME_TRANSPORT === "socket_io";
+  return process.env.NEXT_PUBLIC_REALTIME_TRANSPORT !== "none";
 };
 
 const resolveRealtimeUrl = () => {
@@ -51,6 +53,12 @@ export const useInboxRealtime = (
       return;
     }
 
+    const token = getAccessToken();
+    const activeWorkspaceId =
+      (typeof window !== "undefined" && localStorage.getItem("activeWorkspaceId")) ||
+      process.env.NEXT_PUBLIC_WORKSPACE_ID ||
+      "ws-default";
+
     const realtimeUrl = resolveRealtimeUrl();
     const transports = process.env.NEXT_PUBLIC_SOCKET_TRANSPORTS
       ? process.env.NEXT_PUBLIC_SOCKET_TRANSPORTS.split(",")
@@ -60,8 +68,16 @@ export const useInboxRealtime = (
       path: "/socket.io",
       transports,
       withCredentials: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 3000,
+      auth: {
+        token,
+        workspaceId: activeWorkspaceId,
+      },
+      extraHeaders: {
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        "x-workspace-id": activeWorkspaceId,
+      },
+      reconnectionAttempts: 10,
+      reconnectionDelay: 2000,
     });
 
     const invalidateInbox = () => {
