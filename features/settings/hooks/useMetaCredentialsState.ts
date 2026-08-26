@@ -53,10 +53,12 @@ export function useMetaCredentialsState() {
   const connectionTestMutation = useTestConnectionMutation();
 
   useEffect(() => {
-    if (settingsQuery.data) {
+    // Only reset the form state if the user hasn't modified it.
+    // This prevents background refetches (e.g. on window focus) from wiping out user input.
+    if (settingsQuery.data && !settingsForm.formState.isDirty) {
       settingsForm.reset(settingsQuery.data.settings);
     }
-  }, [settingsForm, settingsQuery.data]);
+  }, [settingsForm, settingsQuery.data, settingsForm.formState.isDirty]);
 
   const handleSaveSettings = settingsForm.handleSubmit((values) => {
     setSubmitError(null);
