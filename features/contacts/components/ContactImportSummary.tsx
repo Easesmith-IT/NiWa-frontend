@@ -2,10 +2,10 @@
 
 import { CheckCircle2, ListFilter, RotateCcw } from "lucide-react";
 import { Button } from "../../../components/ui/button";
-import type { ContactImportRecordV1 } from "../contact.types";
+import type { ContactImportRecord } from "../contact.types";
 
 interface ContactImportSummaryProps {
-  importRecord: ContactImportRecordV1;
+  importRecord: ContactImportRecord;
   onViewContacts: () => void;
   onImportAnother: () => void;
 }

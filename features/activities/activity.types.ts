@@ -1,1 +1,1 @@
-export type { ActivityRecordV1 } from "../../lib/api/v1-types";
+export type { ActivityRecord } from "../../lib/api/api-types";

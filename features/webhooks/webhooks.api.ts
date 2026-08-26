@@ -1,18 +1,18 @@
-import { v1ApiClient } from "../../lib/api/v1-client";
+import { apiClient } from "../../lib/api/api-client";
 import type { GetWebhooksParams, WebhookReconcileResponse, WebhooksResponse } from "./webhooks.types";
 
 export * from "./webhooks.types";
 
-export const getWebhooksV1 = async (params?: GetWebhooksParams) => {
-  const { data } = await v1ApiClient.get<WebhooksResponse>("/webhooks", { params });
+export const getWebhooks = async (params?: GetWebhooksParams) => {
+  const { data } = await apiClient.get<WebhooksResponse>("/webhooks", { params });
   return data;
 };
 
-export const testWebhookV1 = async () => {
-  await v1ApiClient.post("/webhooks/test");
+export const testWebhook = async () => {
+  await apiClient.post("/webhooks/test");
 };
 
-export const reconcileWebhookV1 = async () => {
-  const { data } = await v1ApiClient.post<WebhookReconcileResponse>("/webhooks/reconcile");
+export const reconcileWebhook = async () => {
+  const { data } = await apiClient.post<WebhookReconcileResponse>("/webhooks/reconcile");
   return data;
 };

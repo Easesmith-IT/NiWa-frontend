@@ -1,41 +1,41 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { v1QueryKeys } from "../../lib/api/v1-query-keys";
+import { queryKeys } from "../../lib/api/query-keys";
 import {
-  createScheduledMessageV1,
-  listScheduledMessagesV1,
-  patchScheduledMessageV1,
-  setScheduledMessageLifecycleV1,
+  createScheduledMessage,
+  listScheduledMessages,
+  patchScheduledMessage,
+  setScheduledMessageLifecycle,
 } from "./scheduled-message.api";
 
-export const useScheduledMessagesV1Query = (params?: {
+export const useScheduledMessagesQuery = (params?: {
   contactId?: string;
   status?: string;
 }) =>
   useQuery({
-    queryKey: [...v1QueryKeys.scheduledMessages, params?.contactId ?? "all", params?.status ?? "all"],
-    queryFn: () => listScheduledMessagesV1(params),
+    queryKey: [...queryKeys.scheduledMessages, params?.contactId ?? "all", params?.status ?? "all"],
+    queryFn: () => listScheduledMessages(params),
   });
 
 const invalidateScheduledSurfaces = async (queryClient: ReturnType<typeof useQueryClient>) => {
   await Promise.all([
-    queryClient.invalidateQueries({ queryKey: v1QueryKeys.scheduledMessages }),
-    queryClient.invalidateQueries({ queryKey: v1QueryKeys.inboxThread }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.scheduledMessages }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.inboxThread }),
   ]);
 };
 
-export const useCreateScheduledMessageV1Mutation = () => {
+export const useCreateScheduledMessageMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: createScheduledMessageV1,
+    mutationFn: createScheduledMessage,
     onSuccess: async () => {
       await invalidateScheduledSurfaces(queryClient);
     },
   });
 };
 
-export const usePatchScheduledMessageV1Mutation = () => {
+export const usePatchScheduledMessageMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -43,16 +43,16 @@ export const usePatchScheduledMessageV1Mutation = () => {
       payload,
       scheduledMessageId,
     }: {
-      payload: Parameters<typeof patchScheduledMessageV1>[1];
+      payload: Parameters<typeof patchScheduledMessage>[1];
       scheduledMessageId: string;
-    }) => patchScheduledMessageV1(scheduledMessageId, payload),
+    }) => patchScheduledMessage(scheduledMessageId, payload),
     onSuccess: async () => {
       await invalidateScheduledSurfaces(queryClient);
     },
   });
 };
 
-export const useScheduledMessageLifecycleV1Mutation = () => {
+export const useScheduledMessageLifecycleMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -62,7 +62,7 @@ export const useScheduledMessageLifecycleV1Mutation = () => {
     }: {
       action: "cancel" | "pause" | "resume" | "retry";
       scheduledMessageId: string;
-    }) => setScheduledMessageLifecycleV1(scheduledMessageId, action),
+    }) => setScheduledMessageLifecycle(scheduledMessageId, action),
     onSuccess: async () => {
       await invalidateScheduledSurfaces(queryClient);
     },

@@ -4,13 +4,13 @@ import { useState, useEffect, useRef } from "react";
 import { isAxiosError } from "axios";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { v1QueryKeys } from "../../lib/api/v1-query-keys";
+import { queryKeys } from "../../lib/api/query-keys";
 import {
   addContactLabelV1,
-  createContactV1,
+  createContact,
   deleteContactV1,
   getContactDuplicatesV1,
-  listContactsV1,
+  listContacts,
   mergeContactsV1,
   patchContactV1,
   removeContactLabelV1,
@@ -20,32 +20,32 @@ import {
   getContactImportV1,
   listContactImportsV1,
 } from "./contact.api";
-import { mapContactRecordV1 } from "./contact.mappers";
+import { mapContactRecord } from "./contact.mappers";
 
 const invalidateContactSurfaces = async (queryClient: ReturnType<typeof useQueryClient>) => {
   await Promise.all([
-    queryClient.invalidateQueries({ queryKey: v1QueryKeys.contacts }),
-    queryClient.invalidateQueries({ queryKey: v1QueryKeys.inbox }),
-    queryClient.invalidateQueries({ queryKey: v1QueryKeys.inboxThread }),
-    queryClient.invalidateQueries({ queryKey: v1QueryKeys.tasks }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.contacts }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.inbox }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.inboxThread }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.tasks }),
   ]);
 };
 
-export const useContactsV1Query = (params?: { search?: string; page?: number; limit?: number }) =>
+export const useContactsQuery = (params?: { search?: string; page?: number; limit?: number }) =>
   useQuery({
-    queryKey: [...v1QueryKeys.contacts, params?.search ?? "", params?.page, params?.limit],
+    queryKey: [...queryKeys.contacts, params?.search ?? "", params?.page, params?.limit],
     queryFn: async () => {
-      const result = await listContactsV1(params);
+      const result = await listContacts(params);
       return {
         ...result,
-        data: result.data.map(mapContactRecordV1),
+        data: result.data.map(mapContactRecord),
       };
     },
   });
 
 export const useContactImportsV1Query = () =>
   useQuery({
-    queryKey: [...v1QueryKeys.contacts, "imports"],
+    queryKey: [...queryKeys.contacts, "imports"],
     queryFn: async () => {
       return listContactImportsV1();
     },
@@ -55,7 +55,7 @@ export const useContactDuplicatesV1Query = (params?: {
   field?: "phoneNumber" | "phoneNumberE164" | "waId";
 }) =>
   useQuery({
-    queryKey: [...v1QueryKeys.contacts, "duplicates", params?.field ?? "phoneNumberE164"],
+    queryKey: [...queryKeys.contacts, "duplicates", params?.field ?? "phoneNumberE164"],
     queryFn: () => getContactDuplicatesV1(params),
   });
 
@@ -63,14 +63,14 @@ export const useCreateContactV1Mutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: createContactV1,
+    mutationFn: createContact,
     onSuccess: async () => {
       await invalidateContactSurfaces(queryClient);
     },
   });
 };
 
-export const usePatchContactV1Mutation = () => {
+export const usePatchContactMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -93,7 +93,7 @@ export const useDeleteContactV1Mutation = () => {
   });
 };
 
-export const useAddContactLabelV1Mutation = () => {
+export const useAddContactLabelMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -105,7 +105,7 @@ export const useAddContactLabelV1Mutation = () => {
   });
 };
 
-export const useRemoveContactLabelV1Mutation = () => {
+export const useRemoveContactLabelMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -117,7 +117,7 @@ export const useRemoveContactLabelV1Mutation = () => {
   });
 };
 
-export const useMergeContactsV1Mutation = () => {
+export const useMergeContactsMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -146,14 +146,14 @@ export const useCommitContactImportV1Mutation = () => {
   return useMutation({
     mutationFn: (importId: string) => commitContactImportV1(importId),
     onSuccess: async () => {
-      queryClient.invalidateQueries({ queryKey: [...v1QueryKeys.contacts, "imports"] });
+      queryClient.invalidateQueries({ queryKey: [...queryKeys.contacts, "imports"] });
     },
   });
 };
 
 export const useContactImportStatusV1Query = (importId: string | null, enabled: boolean) =>
   useQuery({
-    queryKey: [...v1QueryKeys.contacts, "imports", "status", importId],
+    queryKey: [...queryKeys.contacts, "imports", "status", importId],
     queryFn: () => getContactImportV1(importId!),
     enabled: Boolean(importId && enabled),
     refetchInterval: (query) => {
@@ -277,7 +277,7 @@ export const useContactImportPipelineV1 = () => {
       const completedId = activeImportId;
       setActiveImportId(null);
       invalidateContactSurfaces(queryClient);
-      queryClient.invalidateQueries({ queryKey: [...v1QueryKeys.contacts, "imports"] });
+      queryClient.invalidateQueries({ queryKey: [...queryKeys.contacts, "imports"] });
       if (isMountedRef.current && currentPipelineId === activePipelineIdRef.current) {
         callbacksRef.current.onSuccess?.(completedId);
       }

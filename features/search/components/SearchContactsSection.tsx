@@ -2,11 +2,11 @@ import React from "react";
 import Link from "next/link";
 import { ContactRound } from "lucide-react";
 import { Card } from "../../../components/ui/card";
-import type { SearchContactResultV1 } from "../search.types";
+import type { SearchContactResult } from "../search.types";
 
 export interface SearchContactsSectionProps {
   isLoading: boolean;
-  contacts: SearchContactResultV1[];
+  contacts: SearchContactResult[];
 }
 
 export const SearchContactsSection: React.FC<SearchContactsSectionProps> = ({

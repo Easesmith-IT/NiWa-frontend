@@ -1,12 +1,12 @@
 import React from "react";
 import { MessageSquareText } from "lucide-react";
 import { Card } from "../../../components/ui/card";
-import type { SearchMessageResultV1 } from "../search.types";
+import type { SearchMessageResult } from "../search.types";
 import { formatSearchTimestamp } from "../hooks/useSearchOrchestration";
 
 export interface SearchMessagesSectionProps {
   isLoading: boolean;
-  messages: SearchMessageResultV1[];
+  messages: SearchMessageResult[];
 }
 
 export const SearchMessagesSection: React.FC<SearchMessagesSectionProps> = ({

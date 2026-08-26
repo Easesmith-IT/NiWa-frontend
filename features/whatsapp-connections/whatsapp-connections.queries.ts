@@ -1,5 +1,5 @@
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { v1QueryKeys } from "../../lib/api/v1-query-keys";
+import { queryKeys } from "../../lib/api/query-keys";
 import {
   checkWhatsAppConnectionHealth,
   disconnectWhatsAppConnection,
@@ -8,8 +8,8 @@ import {
 } from "./whatsapp-connections.api";
 
 export const whatsappConnectionKeys = {
-  all: v1QueryKeys.whatsappConnections,
-  lists: () => [...v1QueryKeys.whatsappConnections, "list"] as const,
+  all: queryKeys.whatsappConnections,
+  lists: () => [...queryKeys.whatsappConnections, "list"] as const,
 };
 
 export const useWhatsAppConnections = () => {

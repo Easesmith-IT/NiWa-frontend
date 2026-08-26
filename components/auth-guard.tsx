@@ -6,14 +6,14 @@ import { ReactNode, useEffect } from "react";
 
 import { getProfileV1 } from "../features/auth";
 import { getAccessToken } from "../lib/auth";
-import { v1QueryKeys } from "../lib/api/v1-query-keys";
+import { queryKeys } from "../lib/api/query-keys";
 
 export const AuthGuard = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
   const pathname = usePathname();
   const hasToken = Boolean(getAccessToken());
   const profileQuery = useQuery({
-    queryKey: v1QueryKeys.profile,
+    queryKey: queryKeys.profile,
     queryFn: getProfileV1,
     enabled: hasToken,
     retry: false,

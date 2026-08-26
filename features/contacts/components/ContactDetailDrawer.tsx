@@ -7,27 +7,27 @@ import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Textarea } from "../../../components/ui/textarea";
 import {
-  useAddContactLabelV1Mutation,
-  useRemoveContactLabelV1Mutation,
+  useAddContactLabelMutation,
+  useRemoveContactLabelMutation,
 } from "../contact.queries";
-import type { ContactRecordV1 } from "../contact.types";
+import type { ContactRecord } from "../contact.types";
 import { withDisplayPhoneNumber } from "../../shared/mappers";
 import {
-  useContactNotesV1Query,
-  useCreateContactNoteV1Mutation,
-  useDeleteNoteV1Mutation,
-  usePatchNoteV1Mutation,
-  useSetNotePinnedV1Mutation,
+  useContactNotesQuery,
+  useCreateContactNoteMutation,
+  useDeleteNoteMutation,
+  usePatchNoteMutation,
+  useSetNotePinnedMutation,
 } from "../../notes";
-import type { LabelRecordV1 } from "../../labels";
+import type { LabelRecord } from "../../labels";
 
 interface ContactDetailDrawerProps {
-  availableLabels: LabelRecordV1[];
-  contact: ContactRecordV1;
+  availableLabels: LabelRecord[];
+  contact: ContactRecord;
   onClose: () => void;
   onDeleteContact: (contactId: string) => void;
   onOpenChat?: (phoneNumber: string) => void;
-  onSaveContact: (contactId: string, payload: Partial<ContactRecordV1>) => void;
+  onSaveContact: (contactId: string, payload: Partial<ContactRecord>) => void;
 }
 
 export function ContactDetailDrawer({
@@ -52,15 +52,15 @@ export function ContactDetailDrawer({
   const [editingNoteContent, setEditingNoteContent] = useState("");
   const [selectedLabelId, setSelectedLabelId] = useState("");
 
-  const notesQuery = useContactNotesV1Query(contact._id);
+  const notesQuery = useContactNotesQuery(contact._id);
   const notes = notesQuery.data?.data ?? [];
 
-  const addLabelMutation = useAddContactLabelV1Mutation();
-  const removeLabelMutation = useRemoveContactLabelV1Mutation();
-  const createNoteMutation = useCreateContactNoteV1Mutation();
-  const patchNoteMutation = usePatchNoteV1Mutation();
-  const deleteNoteMutation = useDeleteNoteV1Mutation();
-  const setNotePinnedMutation = useSetNotePinnedV1Mutation();
+  const addLabelMutation = useAddContactLabelMutation();
+  const removeLabelMutation = useRemoveContactLabelMutation();
+  const createNoteMutation = useCreateContactNoteMutation();
+  const patchNoteMutation = usePatchNoteMutation();
+  const deleteNoteMutation = useDeleteNoteMutation();
+  const setNotePinnedMutation = useSetNotePinnedMutation();
 
   useEffect(() => {
     setDisplayName(contact.displayName);

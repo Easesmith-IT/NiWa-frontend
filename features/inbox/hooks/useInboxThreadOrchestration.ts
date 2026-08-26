@@ -3,7 +3,7 @@ import { useSearchParams } from "next/navigation";
 import { AxiosError } from "axios";
 
 import type { InboxFilterType, OptimisticInboxMessage } from "./useInboxState";
-import type { MessageRecordV1 } from "../inbox.types";
+import type { MessageRecord } from "../inbox.types";
 import {
   formatConversationTime,
   formatMessageDay,
@@ -13,10 +13,10 @@ import { mergeAndReconcileMessages } from "../inbox.merge";
 import { useAsyncMessageBatchQueue } from "../inbox.batch-queue";
 import { useInboxRealtimeHandlers } from "./useInboxRealtimeHandlers";
 import {
-  useInboxThreadDetailV1Query,
+  useInboxThreadDetailQuery,
   useInboxThreadStateMutation,
-  useInboxThreadsV1Query,
-  useSyncInboxThreadHistoryV1Mutation,
+  useInboxThreadsQuery,
+  useSyncInboxThreadHistoryMutation,
 } from "../inbox.queries";
 
 const getErrorMessage = (error: unknown, fallback: string) =>
@@ -49,9 +49,9 @@ export function useInboxThreadOrchestration(options?: UseInboxThreadOrchestratio
   const paginationCallWindowRef = useRef<number[]>([]);
 
   // Queries & Mutations
-  const threadsQuery = useInboxThreadsV1Query({ filter, search });
+  const threadsQuery = useInboxThreadsQuery({ filter, search });
   const threadMutation = useInboxThreadStateMutation();
-  const syncHistoryMutation = useSyncInboxThreadHistoryV1Mutation();
+  const syncHistoryMutation = useSyncInboxThreadHistoryMutation();
 
   const rawThreads = threadsQuery.data?.data ?? [];
   const threads = useMemo(() => {
@@ -114,7 +114,7 @@ export function useInboxThreadOrchestration(options?: UseInboxThreadOrchestratio
     mutateThreadState: threadMutation.mutate,
   });
 
-  const detailQuery = useInboxThreadDetailV1Query(activeConversationId, { messageLimit: 50 });
+  const detailQuery = useInboxThreadDetailQuery(activeConversationId, { messageLimit: 50 });
   const detail = detailQuery.data?.data ?? null;
   const initialPagination = detailQuery.data?.pagination;
 
@@ -267,12 +267,12 @@ export function useInboxThreadOrchestration(options?: UseInboxThreadOrchestratio
   const lightboxImages = useMemo(() => {
     return displayedMessages
       .filter(
-        (m: MessageRecordV1) =>
+        (m: MessageRecord) =>
           m.messageType === "image" ||
           m.media?.mimeType?.startsWith("image/") ||
           Boolean(m.media?.metaMediaId),
       )
-      .map((m: MessageRecordV1) => {
+      .map((m: MessageRecord) => {
         const isOutgoing = m.direction === "outgoing";
         const senderName = isOutgoing
           ? "You"
@@ -296,7 +296,7 @@ export function useInboxThreadOrchestration(options?: UseInboxThreadOrchestratio
       return groups;
     }
 
-    displayedMessages.forEach((message: MessageRecordV1) => {
+    displayedMessages.forEach((message: MessageRecord) => {
       const day = formatMessageDay(getMessageTimestamp(message));
       const existing = groups[groups.length - 1];
 

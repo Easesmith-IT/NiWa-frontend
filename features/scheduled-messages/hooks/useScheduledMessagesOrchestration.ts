@@ -2,12 +2,12 @@
 
 import { useMemo, useState } from "react";
 import {
-  useCreateScheduledMessageV1Mutation,
-  usePatchScheduledMessageV1Mutation,
-  useScheduledMessageLifecycleV1Mutation,
-  useScheduledMessagesV1Query,
+  useCreateScheduledMessageMutation,
+  usePatchScheduledMessageMutation,
+  useScheduledMessageLifecycleMutation,
+  useScheduledMessagesQuery,
 } from "../scheduled-message.queries";
-import type { ScheduledMessageRecordV1 } from "../scheduled-message.types";
+import type { ScheduledMessageRecord } from "../scheduled-message.types";
 
 export const getDefaultScheduleDate = () => {
   const date = new Date();
@@ -37,12 +37,12 @@ export function useScheduledMessagesOrchestration() {
   const [editingDate, setEditingDate] = useState("");
   const [editingRecurrenceRule, setEditingRecurrenceRule] = useState<"daily" | "monthly" | "weekly">("daily");
 
-  const scheduledMessagesQuery = useScheduledMessagesV1Query(
+  const scheduledMessagesQuery = useScheduledMessagesQuery(
     statusFilter === "all" ? undefined : { status: statusFilter },
   );
-  const createScheduledMessageMutation = useCreateScheduledMessageV1Mutation();
-  const patchScheduledMessageMutation = usePatchScheduledMessageV1Mutation();
-  const lifecycleMutation = useScheduledMessageLifecycleV1Mutation();
+  const createScheduledMessageMutation = useCreateScheduledMessageMutation();
+  const patchScheduledMessageMutation = usePatchScheduledMessageMutation();
+  const lifecycleMutation = useScheduledMessageLifecycleMutation();
 
   const scheduledMessages = scheduledMessagesQuery.data?.data ?? [];
 
@@ -79,7 +79,7 @@ export function useScheduledMessagesOrchestration() {
     );
   };
 
-  const handleStartEdit = (item: ScheduledMessageRecordV1) => {
+  const handleStartEdit = (item: ScheduledMessageRecord) => {
     setEditingScheduleId(item._id);
     setEditingBody(typeof item.payload.body === "string" ? item.payload.body : "");
     setEditingDate(item.scheduledFor.slice(0, 10));
@@ -92,7 +92,7 @@ export function useScheduledMessagesOrchestration() {
     setEditingDate("");
   };
 
-  const handleSaveEdit = (item: ScheduledMessageRecordV1) => {
+  const handleSaveEdit = (item: ScheduledMessageRecord) => {
     if (!editingBody.trim() || !editingDate || patchScheduledMessageMutation.isPending) return;
 
     patchScheduledMessageMutation.mutate(

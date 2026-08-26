@@ -1,37 +1,37 @@
-export interface V1CursorPagination {
+export interface CursorPagination {
   cursor: string | null;
   hasMore: boolean;
   limit: number;
 }
 
-export interface V1ListResponse<TItem> {
+export interface ListResponse<TItem> {
   data: TItem[];
-  pagination: V1CursorPagination;
+  pagination: CursorPagination;
 }
 
-export interface V1RecordBase {
+export interface RecordBase {
   _id: string;
   createdAt?: string;
   updatedAt?: string;
 }
 
-export interface LabelRecordV1 extends V1RecordBase {
+export interface LabelRecord extends RecordBase {
   color: string;
   description?: string | null;
   name: string;
   slug: string;
 }
 
-export interface ContactCustomFieldRecordV1 {
+export interface ContactCustomFieldRecord {
   key: string;
   type: "boolean" | "date" | "number" | "text";
   value: string;
 }
 
-export interface ContactRecordV1 extends V1RecordBase {
+export interface ContactRecord extends RecordBase {
   avatarUrl?: string | null;
   company?: string | null;
-  customFields?: ContactCustomFieldRecordV1[];
+  customFields?: ContactCustomFieldRecord[];
   displayName: string;
   email?: string | null;
   isArchived?: boolean;
@@ -42,7 +42,7 @@ export interface ContactRecordV1 extends V1RecordBase {
   waId: string;
 }
 
-export interface ConversationRecordV1 extends V1RecordBase {
+export interface ConversationRecord extends RecordBase {
   contactId: string;
   lastMessageAt?: string | null;
   lastReadAt?: string | null;
@@ -62,7 +62,7 @@ export interface ConversationRecordV1 extends V1RecordBase {
   };
 }
 
-export interface MessageRecordV1 extends V1RecordBase {
+export interface MessageRecord extends RecordBase {
   clientCorrelationId?: string;
   contactData?: Array<Record<string, unknown>>;
   conversationId?: string;
@@ -117,7 +117,7 @@ export interface MessageRecordV1 extends V1RecordBase {
   textBody?: string;
 }
 
-export interface NoteRecordV1 extends V1RecordBase {
+export interface NoteRecord extends RecordBase {
   authorName: string;
   contactId?: string;
   content: string;
@@ -125,7 +125,7 @@ export interface NoteRecordV1 extends V1RecordBase {
   pinned: boolean;
 }
 
-export interface ActivityRecordV1 extends V1RecordBase {
+export interface ActivityRecord extends RecordBase {
   actorName: string;
   description: string;
   entityId: string;
@@ -133,7 +133,7 @@ export interface ActivityRecordV1 extends V1RecordBase {
   type: string;
 }
 
-export interface ContactImportRecordV1 {
+export interface ContactImportRecord {
   id: string;
   fileName: string;
   status: "uploaded" | "validating" | "ready" | "importing" | "completed" | "failed";

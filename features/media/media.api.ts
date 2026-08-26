@@ -1,4 +1,4 @@
-import { v1ApiClient } from "../../lib/api/v1-client";
+import { apiClient } from "../../lib/api/api-client";
 import type {
   MediaDetailResponse,
   MediaListFilters,
@@ -10,7 +10,7 @@ import type {
 
 export const listMedia = async (filters: MediaListFilters = {}): Promise<MediaListResponse> => {
   const { query, type, folder, tag } = filters;
-  const response = await v1ApiClient.get<MediaListResponse>("/media", {
+  const response = await apiClient.get<MediaListResponse>("/media", {
     params: {
       ...(query ? { query } : {}),
       ...(type ? { type } : {}),
@@ -22,7 +22,7 @@ export const listMedia = async (filters: MediaListFilters = {}): Promise<MediaLi
 };
 
 export const getMediaDetail = async (id: string): Promise<MediaDetailResponse> => {
-  const response = await v1ApiClient.get<MediaDetailResponse>(`/media/${id}`);
+  const response = await apiClient.get<MediaDetailResponse>(`/media/${id}`);
   return response.data;
 };
 
@@ -32,7 +32,7 @@ export const uploadMedia = async (payload: MediaUploadPayload): Promise<MediaUpl
   if (payload.customName.trim()) {
     formData.append("customName", payload.customName.trim());
   }
-  const response = await v1ApiClient.post<MediaUploadResponse>("/media/upload", formData, {
+  const response = await apiClient.post<MediaUploadResponse>("/media/upload", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -41,13 +41,13 @@ export const uploadMedia = async (payload: MediaUploadPayload): Promise<MediaUpl
 };
 
 export const deleteMedia = async (id: string): Promise<void> => {
-  await v1ApiClient.delete(`/media/${id}`);
+  await apiClient.delete(`/media/${id}`);
 };
 
 export const updateMediaMetadata = async (
   payload: MediaUpdateMetadataPayload,
 ): Promise<MediaDetailResponse> => {
-  const response = await v1ApiClient.patch<MediaDetailResponse>(`/media/${payload.id}`, {
+  const response = await apiClient.patch<MediaDetailResponse>(`/media/${payload.id}`, {
     customName: payload.customName.trim() || null,
     folder: payload.folder.trim() || null,
     tags: payload.tags,

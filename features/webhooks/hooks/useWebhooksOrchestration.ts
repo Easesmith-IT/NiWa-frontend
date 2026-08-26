@@ -3,9 +3,9 @@
 import { useMemo, useState } from "react";
 import type { WebhookEventRecord } from "../../../lib/api/types";
 import {
-  useReconcileWebhookV1Mutation,
-  useTestWebhookV1Mutation,
-  useWebhooksV1Query,
+  useReconcileWebhookMutation,
+  useTestWebhookMutation,
+  useWebhooksQuery,
 } from "../webhooks.queries";
 
 export const downloadWebhookJson = (fileName: string, value: unknown) => {
@@ -24,14 +24,14 @@ export function useWebhooksOrchestration() {
   const [processingState, setProcessingState] = useState("");
   const [selectedEvent, setSelectedEvent] = useState<WebhookEventRecord | null>(null);
 
-  const webhooksQuery = useWebhooksV1Query({
+  const webhooksQuery = useWebhooksQuery({
     eventCategory: eventCategory || undefined,
     eventType: eventType || undefined,
     processingState: processingState || undefined,
   });
 
-  const testWebhookMutation = useTestWebhookV1Mutation();
-  const reconcileWebhookMutation = useReconcileWebhookV1Mutation();
+  const testWebhookMutation = useTestWebhookMutation();
+  const reconcileWebhookMutation = useReconcileWebhookMutation();
 
   const latestEvents = useMemo(() => webhooksQuery.data?.events ?? [], [webhooksQuery.data]);
   const missingFields = webhooksQuery.data?.metaWebhookDiagnosticsMissingFields ?? [];

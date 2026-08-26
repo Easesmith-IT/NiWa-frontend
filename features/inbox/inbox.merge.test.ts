@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import { mergeAndReconcileMessages } from "./inbox.merge";
-import type { MessageRecordV1 } from "./inbox.types";
+import type { MessageRecord } from "./inbox.types";
 
-const makeMsg = (id: string, text: string, createdAt: string, metaMessageId?: string, extra?: Record<string, any>): MessageRecordV1 =>
+const makeMsg = (id: string, text: string, createdAt: string, metaMessageId?: string, extra?: Record<string, any>): MessageRecord =>
   ({
     _id: id,
     direction: "outgoing",
@@ -15,7 +15,7 @@ const makeMsg = (id: string, text: string, createdAt: string, metaMessageId?: st
     metaMessageId: metaMessageId ?? null,
     status: "delivered",
     ...extra,
-  }) as MessageRecordV1;
+  }) as MessageRecord;
 
 describe("mergeAndReconcileMessages canonical utility", () => {
   it("reconciles optimistic messages when server confirmed message arrives with matching _id or metaMessageId", () => {

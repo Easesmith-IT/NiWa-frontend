@@ -1,7 +1,7 @@
 "use client";
 
 import { useDeferredValue, useState } from "react";
-import { useGlobalSearchV1Query, useInboxSearchV1Query } from "../search.queries";
+import { useGlobalSearchQuery, useInboxSearchQuery } from "../search.queries";
 
 export const formatSearchTimestamp = (value?: string) =>
   value ? new Date(value).toLocaleString() : "No timestamp";
@@ -11,8 +11,8 @@ export function useSearchOrchestration() {
   const deferredQuery = useDeferredValue(query.trim());
   const canSearch = deferredQuery.length >= 2;
 
-  const globalSearchQuery = useGlobalSearchV1Query({ limit: 8, query: canSearch ? deferredQuery : "" });
-  const inboxSearchQuery = useInboxSearchV1Query({ limit: 6, query: canSearch ? deferredQuery : "" });
+  const globalSearchQuery = useGlobalSearchQuery({ limit: 8, query: canSearch ? deferredQuery : "" });
+  const inboxSearchQuery = useInboxSearchQuery({ limit: 6, query: canSearch ? deferredQuery : "" });
 
   const totals = globalSearchQuery.data?.data.totals;
   const isLoading = globalSearchQuery.isFetching || inboxSearchQuery.isFetching;

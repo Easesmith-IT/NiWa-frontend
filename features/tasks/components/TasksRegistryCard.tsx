@@ -1,13 +1,13 @@
 import React from "react";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
-import type { TaskRecordV1 } from "../task.types";
+import type { TaskRecord } from "../task.types";
 import { TaskItemCard } from "./TaskItemCard";
 
 export interface TasksRegistryCardProps {
   statusFilter: "all" | "cancelled" | "completed" | "todo";
   onStatusFilterChange: (status: "all" | "cancelled" | "completed" | "todo") => void;
-  tasks: TaskRecordV1[];
+  tasks: TaskRecord[];
   onCompleteTask: (taskId: string) => void;
   onCancelTask: (taskId: string) => void;
 }

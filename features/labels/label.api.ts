@@ -1,25 +1,25 @@
-import type { V1ListResponse } from "../../lib/api/v1-types";
-import { v1ApiClient } from "../../lib/api/v1-client";
-import type { LabelRecordV1 } from "./label.types";
+import type { ListResponse } from "../../lib/api/api-types";
+import { apiClient } from "../../lib/api/api-client";
+import type { LabelRecord } from "./label.types";
 
-export const listLabelsV1 = async (params?: { search?: string }) => {
-  const response = await v1ApiClient.get<V1ListResponse<LabelRecordV1>>("/labels", {
+export const listLabels = async (params?: { search?: string }) => {
+  const response = await apiClient.get<ListResponse<LabelRecord>>("/labels", {
     params,
   });
   return response.data;
 };
 
-export const createLabelV1 = async (payload: {
+export const createLabel = async (payload: {
   color: string;
   description?: string;
   name: string;
   slug: string;
 }) => {
-  const response = await v1ApiClient.post<{ data: LabelRecordV1 }>("/labels", payload);
+  const response = await apiClient.post<{ data: LabelRecord }>("/labels", payload);
   return response.data;
 };
 
-export const patchLabelV1 = async (
+export const patchLabel = async (
   labelId: string,
   payload: Partial<{
     color: string;
@@ -28,11 +28,11 @@ export const patchLabelV1 = async (
     slug: string;
   }>,
 ) => {
-  const response = await v1ApiClient.patch<{ data: LabelRecordV1 }>(`/labels/${labelId}`, payload);
+  const response = await apiClient.patch<{ data: LabelRecord }>(`/labels/${labelId}`, payload);
   return response.data;
 };
 
-export const deleteLabelV1 = async (labelId: string) => {
-  const response = await v1ApiClient.delete<{ data: LabelRecordV1 }>(`/labels/${labelId}`);
+export const deleteLabel = async (labelId: string) => {
+  const response = await apiClient.delete<{ data: LabelRecord }>(`/labels/${labelId}`);
   return response.data;
 };

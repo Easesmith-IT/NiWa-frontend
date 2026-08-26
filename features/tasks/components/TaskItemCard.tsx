@@ -1,10 +1,10 @@
 import React from "react";
 import { Ban, CheckCircle2 } from "lucide-react";
 import { Button } from "../../../components/ui/button";
-import type { TaskRecordV1 } from "../task.types";
+import type { TaskRecord } from "../task.types";
 
 export interface TaskItemCardProps {
-  task: TaskRecordV1;
+  task: TaskRecord;
   onCompleteTask: (taskId: string) => void;
   onCancelTask: (taskId: string) => void;
 }

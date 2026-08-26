@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { CheckCircle2, AlertCircle, Loader2, ArrowRight, RefreshCw, ShieldCheck } from "lucide-react";
 import { AxiosError } from "axios";
 import { Button } from "../ui/button";
-import { completeEmbeddedSignupV1 } from "../../features/whatsapp-connections";
+import { completeEmbeddedSignup } from "../../features/whatsapp-connections";
 import { EmbeddedSignupResponse, WhatsAppConnectionRecord } from "../../lib/api/types";
 
 const META_CONFIG_ID = "981824644880745";
@@ -135,7 +135,7 @@ export const MetaEmbeddedSignup: React.FC<MetaEmbeddedSignupProps> = ({
       setStep("validating");
       setStatusMessage("Validating WhatsApp Business Account & Phone Number...");
 
-      const responseData = await completeEmbeddedSignupV1({
+      const responseData = await completeEmbeddedSignup({
         code: data.code ?? "",
         wabaId: data.wabaId ?? "",
         phoneNumberId: data.phoneNumberId ?? "",

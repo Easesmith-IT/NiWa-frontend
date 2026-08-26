@@ -1,4 +1,4 @@
-export interface ScheduledMessageRecordV1 {
+export interface ScheduledMessageRecord {
   _id: string;
   attemptCount: number;
   contactId: string;

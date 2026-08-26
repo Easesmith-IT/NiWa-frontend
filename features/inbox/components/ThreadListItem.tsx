@@ -1,11 +1,11 @@
 import { cn } from "../../../lib/utils";
 import { withDisplayPhoneNumber } from "../../shared/mappers";
-import type { InboxThreadRecordV1 } from "../inbox.types";
+import type { InboxThreadRecord } from "../inbox.types";
 import { formatConversationTime } from "../utils/formatters";
 import { ContactAvatar } from "./ContactAvatar";
 
 export interface ThreadListItemProps {
-  thread: InboxThreadRecordV1;
+  thread: InboxThreadRecord;
   isActive: boolean;
   onSelect: (id: string) => void;
 }

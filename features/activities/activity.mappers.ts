@@ -1,6 +1,6 @@
-import type { ActivityRecordV1 } from "../../lib/api/v1-types";
+import type { ActivityRecord } from "../../lib/api/api-types";
 
-export const mapActivityRecordV1 = (record: ActivityRecordV1): ActivityRecordV1 => ({
+export const mapActivityRecord = (record: ActivityRecord): ActivityRecord => ({
   ...record,
   description: record.description.trim(),
 });

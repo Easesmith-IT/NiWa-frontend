@@ -1,12 +1,12 @@
 import React from "react";
 import { NotebookPen } from "lucide-react";
 import { Card } from "../../../components/ui/card";
-import type { SearchNoteResultV1 } from "../search.types";
+import type { SearchNoteResult } from "../search.types";
 import { formatSearchTimestamp } from "../hooks/useSearchOrchestration";
 
 export interface SearchNotesSectionProps {
   isLoading: boolean;
-  notes: SearchNoteResultV1[];
+  notes: SearchNoteResult[];
 }
 
 export const SearchNotesSection: React.FC<SearchNotesSectionProps> = ({

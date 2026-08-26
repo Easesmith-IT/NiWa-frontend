@@ -3,14 +3,14 @@ import { Archive, Bot, PauseCircle, PlayCircle } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
-import type { AutomationRecordV1 } from "../automation.types";
+import type { AutomationRecord } from "../automation.types";
 
 export interface AutomationRegistryCardProps {
   statusFilter: "active" | "all" | "archived" | "paused";
   onStatusFilterChange: (status: "active" | "all" | "archived" | "paused") => void;
   testContactId: string;
   onTestContactIdChange: (value: string) => void;
-  automations: AutomationRecordV1[];
+  automations: AutomationRecord[];
   isTesting: boolean;
   onActivateAutomation: (automationId: string) => void;
   onPauseAutomation: (automationId: string) => void;

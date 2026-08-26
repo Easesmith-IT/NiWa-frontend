@@ -18,10 +18,10 @@ import {
 
 import { Card } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { useDashboardSummaryV1Query } from "../../features/search";
+import { useDashboardSummaryQuery } from "../../features/search";
 
 export default function DashboardPage() {
-  const dashboardQuery = useDashboardSummaryV1Query();
+  const dashboardQuery = useDashboardSummaryQuery();
   const data = dashboardQuery.data?.data;
   const isLoading = dashboardQuery.isPending;
 

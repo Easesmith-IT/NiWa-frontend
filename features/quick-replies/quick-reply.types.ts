@@ -1,4 +1,4 @@
-export interface QuickReplyRecordV1 {
+export interface QuickReplyRecord {
   _id: string;
   attachmentMediaId?: string | null;
   body: string;

@@ -1,1 +1,1 @@
-export type { LabelRecordV1 } from "../../lib/api/v1-types";
+export type { LabelRecord } from "../../lib/api/api-types";

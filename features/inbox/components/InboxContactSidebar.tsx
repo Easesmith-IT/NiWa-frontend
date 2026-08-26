@@ -1,5 +1,5 @@
 import { X } from "lucide-react";
-import type { InboxThreadDetailV1 } from "../inbox.types";
+import type { InboxThreadDetail } from "../inbox.types";
 import { ActivityItem, ContactActivitySection } from "./ContactActivitySection";
 import { ContactLabelsSection, LabelItem } from "./ContactLabelsSection";
 import { ContactNotesSection, NoteItem } from "./ContactNotesSection";
@@ -8,7 +8,7 @@ import { ContactTasksSection, TaskItem } from "./ContactTasksSection";
 import { ScheduledMessagesSection, ScheduledSendItem } from "./ScheduledMessagesSection";
 
 export interface InboxContactSidebarProps {
-  detail: InboxThreadDetailV1;
+  detail: InboxThreadDetail;
   onClose: () => void;
 
   // Contact profile edit props

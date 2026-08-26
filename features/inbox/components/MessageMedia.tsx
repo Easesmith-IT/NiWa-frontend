@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { fetchMessageMediaBlobV1 } from "../inbox.api";
+import { fetchMessageMediaBlob } from "../inbox.api";
 
 export interface MessageMediaProps {
   messageId: string;
@@ -16,7 +16,7 @@ export function MessageMedia({ messageId, mimeType, onImageClick }: MessageMedia
 
     const load = async () => {
       try {
-        const blob = await fetchMessageMediaBlobV1(messageId);
+        const blob = await fetchMessageMediaBlob(messageId);
         objectUrl = URL.createObjectURL(blob);
 
         if (!disposed) {

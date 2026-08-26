@@ -1,35 +1,35 @@
 import type {
-  ActivityRecordV1,
-  ContactRecordV1,
-  ConversationRecordV1,
-  MessageRecordV1,
-  NoteRecordV1,
-} from "../../lib/api/v1-types";
+  ActivityRecord,
+  ContactRecord,
+  ConversationRecord,
+  MessageRecord,
+  NoteRecord,
+} from "../../lib/api/api-types";
 
-export type { MessageRecordV1 };
+export type { MessageRecord };
 
-export interface InboxThreadRecordV1 {
+export interface InboxThreadRecord {
   contact: Pick<
-    ContactRecordV1,
+    ContactRecord,
     "_id" | "company" | "displayName" | "phoneNumber" | "profileName"
   > & {
     avatarUrl?: string | null;
   } | null;
-  conversation: ConversationRecordV1 & {
+  conversation: ConversationRecord & {
     pinnedAt?: string | null;
     starred?: boolean;
   };
 }
 
-export interface InboxThreadDetailV1 {
-  activities: ActivityRecordV1[];
-  contact: ContactRecordV1;
-  conversation: ConversationRecordV1 & {
+export interface InboxThreadDetail {
+  activities: ActivityRecord[];
+  contact: ContactRecord;
+  conversation: ConversationRecord & {
     awaitingReplyFrom?: "business" | "customer" | "none";
     customerServiceWindowClosesAt?: string | null;
     pinnedAt?: string | null;
     starred?: boolean;
   };
-  messages: MessageRecordV1[];
-  notes: NoteRecordV1[];
+  messages: MessageRecord[];
+  notes: NoteRecord[];
 }

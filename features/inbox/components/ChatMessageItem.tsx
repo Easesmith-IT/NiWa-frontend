@@ -1,6 +1,6 @@
 import { Check, CheckCheck, Clock3, X } from "lucide-react";
 import { cn } from "../../../lib/utils";
-import type { MessageRecordV1 } from "../inbox.types";
+import type { MessageRecord } from "../inbox.types";
 import { formatConversationTime, formatDateTime } from "../utils/formatters";
 import { MessageMedia } from "./MessageMedia";
 
@@ -48,7 +48,7 @@ const renderOutgoingStatusIcon = (status?: string) => {
   }
 };
 
-const buildMessageStatusDetails = (message: MessageRecordV1) => {
+const buildMessageStatusDetails = (message: MessageRecord) => {
   const currentStatus = (message.status ?? "sent").toUpperCase();
   const parts = [
     `Current Status: ${currentStatus}`,
@@ -66,7 +66,7 @@ const buildMessageStatusDetails = (message: MessageRecordV1) => {
 };
 
 export interface ChatMessageItemProps {
-  message: MessageRecordV1;
+  message: MessageRecord;
   onImageClick: (messageId: string) => void;
 }
 

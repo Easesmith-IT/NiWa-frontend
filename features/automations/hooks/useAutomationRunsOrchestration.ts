@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useAutomationRunsV1Query } from "../automation.queries";
+import { useAutomationRunsQuery } from "../automation.queries";
 
 export const formatAutomationRunDateTime = (value?: string | null) => {
   if (!value) {
@@ -16,7 +16,7 @@ export function useAutomationRunsOrchestration() {
     "all" | "cancelled" | "completed" | "failed" | "queued" | "running" | "waiting"
   >("all");
 
-  const runsQuery = useAutomationRunsV1Query(
+  const runsQuery = useAutomationRunsQuery(
     statusFilter === "all" ? undefined : { status: statusFilter },
   );
 

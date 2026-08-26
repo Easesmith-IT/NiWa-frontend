@@ -2,12 +2,12 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 
-import { getInboxThreadDetailV1 } from "./inbox.api";
-import { mapInboxThreadDetailV1 } from "./inbox.mappers";
-import type { MessageRecordV1 } from "./inbox.types";
+import { getInboxThreadDetail } from "./inbox.api";
+import { mapInboxThreadDetail } from "./inbox.mappers";
+import type { MessageRecord } from "./inbox.types";
 
 export interface AsyncMessageBatchQueueState {
-  olderMessages: MessageRecordV1[];
+  olderMessages: MessageRecord[];
   isLoadingNextBatch: boolean;
   hasMoreOlderMessages: boolean;
   nextCursor: string | null;
@@ -24,7 +24,7 @@ export const useAsyncMessageBatchQueue = (
     hasMore?: boolean;
   },
 ): AsyncMessageBatchQueueState => {
-  const [olderMessages, setOlderMessages] = useState<MessageRecordV1[]>([]);
+  const [olderMessages, setOlderMessages] = useState<MessageRecord[]>([]);
   const [isLoadingNextBatch, setIsLoadingNextBatch] = useState(false);
   const [hasMoreOlderMessages, setHasMoreOlderMessages] = useState(
     initialPagination?.hasMore ?? true,
@@ -97,7 +97,7 @@ export const useAsyncMessageBatchQueue = (
     abortControllerRef.current = controller;
 
     try {
-      const rawResult = await getInboxThreadDetailV1(
+      const rawResult = await getInboxThreadDetail(
         conversationId,
         {
           cursor: nextCursor,
@@ -113,7 +113,7 @@ export const useAsyncMessageBatchQueue = (
         return;
       }
 
-      const mapped = mapInboxThreadDetailV1(rawResult.data);
+      const mapped = mapInboxThreadDetail(rawResult.data);
       const newOlderMessages = mapped.messages || [];
       const newNextCursor = rawResult.pagination?.nextCursor ?? null;
       const newHasMore = rawResult.pagination?.hasMore ?? false;

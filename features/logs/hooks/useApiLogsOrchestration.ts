@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { exportApiLogsV1 } from "../logs.api";
-import { useApiLogsV1Query } from "../logs.queries";
+import { exportApiLogs } from "../logs.api";
+import { useApiLogsQuery } from "../logs.queries";
 
 export function useApiLogsOrchestration() {
   const [page, setPage] = useState(1);
@@ -21,10 +21,10 @@ export function useApiLogsOrchestration() {
     to: to || undefined,
   };
 
-  const logsQuery = useApiLogsV1Query(params);
+  const logsQuery = useApiLogsQuery(params);
 
   const handleExport = async () => {
-    const data = await exportApiLogsV1(params);
+    const data = await exportApiLogs(params);
     const blob = new Blob([JSON.stringify(data, null, 2)], {
       type: "application/json",
     });

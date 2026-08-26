@@ -1,17 +1,17 @@
-import type { MessageRecordV1 } from "./inbox.types";
+import type { MessageRecord } from "./inbox.types";
 
-export function getMessageTimestampMs(message: MessageRecordV1): number {
+export function getMessageTimestampMs(message: MessageRecord): number {
   const ts = message.metaTimestamp || message.createdAt;
   if (!ts) return 0;
   return new Date(ts).getTime();
 }
 
 export function mergeAndReconcileMessages(params: {
-  initialMessages?: MessageRecordV1[];
-  historicalPages?: MessageRecordV1[][];
-  realtimeMessages?: MessageRecordV1[];
-  optimisticMessages?: MessageRecordV1[];
-}): MessageRecordV1[] {
+  initialMessages?: MessageRecord[];
+  historicalPages?: MessageRecord[][];
+  realtimeMessages?: MessageRecord[];
+  optimisticMessages?: MessageRecord[];
+}): MessageRecord[] {
   const initial = params.initialMessages ?? [];
   const historical = (params.historicalPages ?? []).flat();
   const realtime = params.realtimeMessages ?? [];
@@ -22,8 +22,8 @@ export function mergeAndReconcileMessages(params: {
 
   // Map server messages by _id, metaMessageId, and clientCorrelationId / tempId
   const serverById = new Set<string>();
-  const serverByMetaId = new Map<string, MessageRecordV1>();
-  const serverByCorrelationId = new Map<string, MessageRecordV1>();
+  const serverByMetaId = new Map<string, MessageRecord>();
+  const serverByCorrelationId = new Map<string, MessageRecord>();
 
   serverMessages.forEach((msg) => {
     if (msg._id) {
@@ -57,7 +57,7 @@ export function mergeAndReconcileMessages(params: {
   });
 
   // Deduplicate server messages by canonical identity (_id, then metaMessageId)
-  const canonicalServerMap = new Map<string, MessageRecordV1>();
+  const canonicalServerMap = new Map<string, MessageRecord>();
   serverMessages.forEach((msg) => {
     const key = msg._id || msg.metaMessageId || String(Math.random());
     const existing = canonicalServerMap.get(key);

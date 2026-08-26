@@ -2,7 +2,7 @@ import { useState } from "react";
 import {
   useAutomationLifecycleV1Mutation,
   useAutomationTestV1Mutation,
-  useAutomationsV1Query,
+  useAutomationsQuery,
   useCreateAutomationV1Mutation,
 } from "../automation.queries";
 import type {
@@ -31,7 +31,7 @@ export function useAutomationOrchestration() {
   const [steps, setSteps] = useState<AutomationStepRecordV1[]>([newStep()]);
   const [testContactId, setTestContactId] = useState("");
 
-  const automationsQuery = useAutomationsV1Query(statusFilter === "all" ? undefined : { status: statusFilter });
+  const automationsQuery = useAutomationsQuery(statusFilter === "all" ? undefined : { status: statusFilter });
   const createAutomationMutation = useCreateAutomationV1Mutation();
   const lifecycleMutation = useAutomationLifecycleV1Mutation();
   const testAutomationMutation = useAutomationTestV1Mutation();

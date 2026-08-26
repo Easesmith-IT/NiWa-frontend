@@ -1,24 +1,24 @@
 import { useState } from "react";
 import { AxiosError } from "axios";
 
-import type { InboxThreadDetailV1 } from "../inbox.types";
+import type { InboxThreadDetail } from "../inbox.types";
 import {
-  useAddContactLabelV1Mutation,
-  usePatchContactV1Mutation,
-  useRemoveContactLabelV1Mutation,
+  useAddContactLabelMutation,
+  usePatchContactMutation,
+  useRemoveContactLabelMutation,
 } from "../../contacts";
-import { useLabelsV1Query } from "../../labels";
+import { useLabelsQuery } from "../../labels";
 import {
-  useCreateContactNoteV1Mutation,
-  useDeleteNoteV1Mutation,
-  usePatchNoteV1Mutation,
-  useSetNotePinnedV1Mutation,
+  useCreateContactNoteMutation,
+  useDeleteNoteMutation,
+  usePatchNoteMutation,
+  useSetNotePinnedMutation,
 } from "../../notes";
 import {
-  useCancelTaskV1Mutation,
-  useCompleteTaskV1Mutation,
-  useCreateTaskV1Mutation,
-  useTasksV1Query,
+  useCancelTaskMutation,
+  useCompleteTaskMutation,
+  useCreateTaskMutation,
+  useTasksQuery,
 } from "../../tasks";
 import {
   useAgentsQuery,
@@ -34,7 +34,7 @@ const getErrorMessage = (error: unknown, fallback: string) =>
       : fallback;
 
 export interface UseInboxContactSidebarOrchestrationOptions {
-  detail: InboxThreadDetailV1 | null;
+  detail: InboxThreadDetail | null;
   activeConversationId: string | null;
   setComposerFeedback: (feedback: { message: string; tone: "error" | "success" } | null) => void;
 }
@@ -70,21 +70,21 @@ export function useInboxContactSidebarOrchestration({
   const [editingNoteContent, setEditingNoteContent] = useState("");
 
   // Queries
-  const labelsQuery = useLabelsV1Query();
-  const tasksQuery = useTasksV1Query(detail?.contact?._id ? { contactId: detail.contact._id } : undefined);
+  const labelsQuery = useLabelsQuery();
+  const tasksQuery = useTasksQuery(detail?.contact?._id ? { contactId: detail.contact._id } : undefined);
   const agentsQuery = useAgentsQuery();
 
   // Mutations
-  const patchContactMutation = usePatchContactV1Mutation();
-  const addLabelMutation = useAddContactLabelV1Mutation();
-  const removeLabelMutation = useRemoveContactLabelV1Mutation();
-  const createTaskMutation = useCreateTaskV1Mutation();
-  const completeTaskMutation = useCompleteTaskV1Mutation();
-  const cancelTaskMutation = useCancelTaskV1Mutation();
-  const createNoteMutation = useCreateContactNoteV1Mutation();
-  const patchNoteMutation = usePatchNoteV1Mutation();
-  const deleteNoteMutation = useDeleteNoteV1Mutation();
-  const setNotePinnedMutation = useSetNotePinnedV1Mutation();
+  const patchContactMutation = usePatchContactMutation();
+  const addLabelMutation = useAddContactLabelMutation();
+  const removeLabelMutation = useRemoveContactLabelMutation();
+  const createTaskMutation = useCreateTaskMutation();
+  const completeTaskMutation = useCompleteTaskMutation();
+  const cancelTaskMutation = useCancelTaskMutation();
+  const createNoteMutation = useCreateContactNoteMutation();
+  const patchNoteMutation = usePatchNoteMutation();
+  const deleteNoteMutation = useDeleteNoteMutation();
+  const setNotePinnedMutation = useSetNotePinnedMutation();
   const updateAIModeMutation = useUpdateConversationAIModeMutation();
   const transferAgentMutation = useTransferConversationAgentMutation();
 

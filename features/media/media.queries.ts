@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { v1QueryKeys } from "../../lib/api/v1-query-keys";
+import { queryKeys } from "../../lib/api/query-keys";
 import {
   deleteMedia,
   getMediaDetail,
@@ -17,7 +17,7 @@ import type {
 } from "./media.types";
 
 export const mediaKeys = {
-  all: v1QueryKeys.media,
+  all: queryKeys.media,
   lists: () => [...mediaKeys.all, "list"] as const,
   list: (filters: MediaListFilters) => [...mediaKeys.lists(), filters] as const,
   details: () => [...mediaKeys.all, "detail"] as const,

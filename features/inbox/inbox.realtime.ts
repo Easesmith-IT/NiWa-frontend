@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 import { io } from "socket.io-client";
 import { useQueryClient } from "@tanstack/react-query";
 
-import { v1QueryKeys } from "../../lib/api/v1-query-keys";
+import { queryKeys } from "../../lib/api/query-keys";
 import { getBaseApiUrl } from "../../lib/api/base-url";
 
 import { getAccessToken } from "../../lib/auth";
@@ -82,7 +82,7 @@ export const useInboxRealtime = (
 
     const invalidateInbox = () => {
       void queryClient.invalidateQueries({
-        queryKey: v1QueryKeys.inbox,
+        queryKey: queryKeys.inbox,
       });
     };
 
@@ -93,7 +93,7 @@ export const useInboxRealtime = (
       }
 
       void queryClient.invalidateQueries({
-        queryKey: [...v1QueryKeys.inboxThread, currentActiveId],
+        queryKey: [...queryKeys.inboxThread, currentActiveId],
       });
     };
 
@@ -136,7 +136,7 @@ export const useInboxRealtime = (
 
         if (conversationId && messageId && status) {
           queryClient.setQueriesData<{ data?: { messages?: Array<{ _id: string; status: string }> } }>(
-            { queryKey: [...v1QueryKeys.inboxThread, conversationId] },
+            { queryKey: [...queryKeys.inboxThread, conversationId] },
             (oldData) => {
               if (!oldData || !oldData.data || !Array.isArray(oldData.data.messages)) return oldData;
               return {

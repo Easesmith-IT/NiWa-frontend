@@ -2,13 +2,13 @@ import type { UseFormReturn } from "react-hook-form";
 import type {
   ConversationMessageRecord,
   ConversationNoteRecord,
-  ConversationRecord,
+  ConversationRecord as LegacyConversationRecord,
   TemplateRecord,
 } from "../../lib/api/types";
-import type { ConversationRecordV1 } from "../../lib/api/v1-types";
+import type { ConversationRecord } from "../../lib/api/api-types";
 import type { ReplyValues } from "./hooks/useConversationReplyState";
 
-export type { ConversationRecordV1 };
+export type { ConversationRecord };
 
 export type ReplyType = "text" | "template" | "image" | "video" | "audio" | "document" | "sticker";
 
@@ -57,13 +57,13 @@ export interface ConversationsHeaderProps {
 }
 
 export interface ConversationsThreadItemProps {
-  conversation: ConversationRecord;
+  conversation: LegacyConversationRecord;
   isActive: boolean;
   onSelect: (id: string) => void;
 }
 
 export interface ConversationsThreadListProps {
-  conversations: ConversationRecord[];
+  conversations: LegacyConversationRecord[];
   selectedConversationId: string | null;
   onSelectConversation: (id: string) => void;
   searchQuery: string;
@@ -96,7 +96,7 @@ export interface ConversationsReplyComposerProps {
 }
 
 export interface ConversationsChatWindowProps {
-  workspaceConversation: ConversationRecord | null;
+  workspaceConversation: LegacyConversationRecord | null;
   selectedConversationId: string | null;
   isClearingUnread: boolean;
   onClearUnread: () => void;
@@ -105,7 +105,7 @@ export interface ConversationsChatWindowProps {
 }
 
 export interface ConversationsContactProfileProps {
-  conversation: ConversationRecord | null;
+  conversation: LegacyConversationRecord | null;
 }
 
 export interface ConversationsLabelsCardProps {

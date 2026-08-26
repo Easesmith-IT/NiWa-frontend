@@ -16,7 +16,7 @@ import {
   commitContactImportV1,
   getContactImportV1,
 } from "../contact.api";
-import type { ContactImportRecordV1 } from "../contact.types";
+import type { ContactImportRecord } from "../contact.types";
 
 type WizardStep = "UPLOAD" | "MAPPING" | "VALIDATING" | "PREVIEW" | "IMPORTING" | "COMPLETED" | "FAILED";
 
@@ -26,7 +26,7 @@ export function ContactImportWizard() {
   const urlImportId = searchParams.get("importId");
 
   const [step, setStep] = useState<WizardStep>("UPLOAD");
-  const [importRecord, setImportRecord] = useState<ContactImportRecordV1 | null>(null);
+  const [importRecord, setImportRecord] = useState<ContactImportRecord | null>(null);
   
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);

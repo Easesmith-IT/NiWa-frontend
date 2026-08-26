@@ -1,8 +1,8 @@
-import type { ConversationRecordV1 } from "../../lib/api/v1-types";
+import type { ConversationRecord } from "../../lib/api/api-types";
 
-export const mapConversationRecordV1 = (
-  record: ConversationRecordV1,
-): ConversationRecordV1 => ({
+export const mapConversationRecord = (
+  record: ConversationRecord,
+): ConversationRecord => ({
   ...record,
   lastMessageText: record.lastMessageText || "No messages yet",
 });

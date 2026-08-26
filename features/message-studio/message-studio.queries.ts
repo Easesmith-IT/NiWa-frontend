@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { v1QueryKeys } from "../../lib/api/v1-query-keys";
+import { queryKeys } from "../../lib/api/query-keys";
 import {
   getMessageStudioMedia,
   getMessageStudioTemplates,
@@ -9,7 +9,7 @@ import {
 import type { SendMessageRequest, TemplateHeaderUploadRequest } from "./message-studio.types";
 
 export const messageStudioKeys = {
-  all: v1QueryKeys.messageStudio,
+  all: queryKeys.messageStudio,
   templates: () => [...messageStudioKeys.all, "templates"] as const,
   media: () => [...messageStudioKeys.all, "media"] as const,
 };

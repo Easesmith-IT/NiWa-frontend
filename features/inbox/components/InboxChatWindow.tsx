@@ -2,7 +2,7 @@ import { ReactNode } from "react";
 import { MessageSquareDot, MoreHorizontal, RefreshCw, Search } from "lucide-react";
 import { cn } from "../../../lib/utils";
 import { withDisplayPhoneNumber } from "../../shared/mappers";
-import type { InboxThreadDetailV1 } from "../inbox.types";
+import type { InboxThreadDetail } from "../inbox.types";
 import { ChatWindowSkeleton } from "./ChatWindowSkeleton";
 import { ContactAvatar } from "./ContactAvatar";
 
@@ -14,7 +14,7 @@ const messageActionLabels = [
 ];
 
 export interface InboxChatWindowProps {
-  detail: InboxThreadDetailV1 | null;
+  detail: InboxThreadDetail | null;
   isLoadingDetail: boolean;
   onOpenContactInfo: () => void;
   onUpdateAIMode: (aiMode: "AI_ACTIVE" | "AI_PAUSED" | "HUMAN_ONLY") => void;

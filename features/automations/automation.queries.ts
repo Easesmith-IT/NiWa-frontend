@@ -1,11 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { v1QueryKeys } from "../../lib/api/v1-query-keys";
+import { queryKeys } from "../../lib/api/query-keys";
 import {
   createAutomationV1,
   getAutomationRunV1,
-  listAutomationRunsV1,
-  listAutomationsV1,
+  listAutomationRuns,
+  listAutomations,
   patchAutomationV1,
   setAutomationLifecycleV1,
   testAutomationV1,
@@ -13,17 +13,17 @@ import {
 
 const invalidateAutomationSurfaces = async (queryClient: ReturnType<typeof useQueryClient>) => {
   await Promise.all([
-    queryClient.invalidateQueries({ queryKey: v1QueryKeys.automations }),
-    queryClient.invalidateQueries({ queryKey: v1QueryKeys.automationRuns }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.automations }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.automationRuns }),
   ]);
 };
 
-export const useAutomationsV1Query = (params?: {
+export const useAutomationsQuery = (params?: {
   status?: "active" | "archived" | "paused";
 }) =>
   useQuery({
-    queryKey: [...v1QueryKeys.automations, params?.status ?? "all"],
-    queryFn: () => listAutomationsV1(params),
+    queryKey: [...queryKeys.automations, params?.status ?? "all"],
+    queryFn: () => listAutomations(params),
   });
 
 export const useCreateAutomationV1Mutation = () => {
@@ -88,18 +88,18 @@ export const useAutomationTestV1Mutation = () => {
   });
 };
 
-export const useAutomationRunsV1Query = (params?: {
+export const useAutomationRunsQuery = (params?: {
   automationId?: string;
   status?: "cancelled" | "completed" | "failed" | "queued" | "running" | "waiting";
 }) =>
   useQuery({
-    queryKey: [...v1QueryKeys.automationRuns, params?.automationId ?? "all", params?.status ?? "all"],
-    queryFn: () => listAutomationRunsV1(params),
+    queryKey: [...queryKeys.automationRuns, params?.automationId ?? "all", params?.status ?? "all"],
+    queryFn: () => listAutomationRuns(params),
   });
 
 export const useAutomationRunV1Query = (runId: string | null) =>
   useQuery({
     enabled: Boolean(runId),
-    queryKey: [...v1QueryKeys.automationRuns, "detail", runId],
+    queryKey: [...queryKeys.automationRuns, "detail", runId],
     queryFn: () => getAutomationRunV1(runId ?? ""),
   });

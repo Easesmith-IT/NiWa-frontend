@@ -1,24 +1,24 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { v1QueryKeys } from "../../lib/api/v1-query-keys";
-import { getDashboardSummaryV1, getGlobalSearchV1, getInboxSearchV1 } from "./search.api";
+import { queryKeys } from "../../lib/api/query-keys";
+import { getDashboardSummary, getGlobalSearch, getInboxSearch } from "./search.api";
 
-export const useGlobalSearchV1Query = (params: { limit?: number; query: string }) =>
+export const useGlobalSearchQuery = (params: { limit?: number; query: string }) =>
   useQuery({
     enabled: params.query.trim().length > 0,
-    queryKey: [...v1QueryKeys.search, params.query, params.limit ?? null],
-    queryFn: () => getGlobalSearchV1(params),
+    queryKey: [...queryKeys.search, params.query, params.limit ?? null],
+    queryFn: () => getGlobalSearch(params),
   });
 
-export const useInboxSearchV1Query = (params: { limit?: number; query: string }) =>
+export const useInboxSearchQuery = (params: { limit?: number; query: string }) =>
   useQuery({
     enabled: params.query.trim().length > 0,
-    queryKey: [...v1QueryKeys.inboxSearch, params.query, params.limit ?? null],
-    queryFn: () => getInboxSearchV1(params),
+    queryKey: [...queryKeys.inboxSearch, params.query, params.limit ?? null],
+    queryFn: () => getInboxSearch(params),
   });
 
-export const useDashboardSummaryV1Query = () =>
+export const useDashboardSummaryQuery = () =>
   useQuery({
-    queryKey: v1QueryKeys.dashboard,
-    queryFn: getDashboardSummaryV1,
+    queryKey: queryKeys.dashboard,
+    queryFn: getDashboardSummary,
   });

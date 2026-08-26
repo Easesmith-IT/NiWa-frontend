@@ -3,10 +3,10 @@ import { PauseCircle, PencilLine, PlayCircle, RotateCcw, Send, XCircle } from "l
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Textarea } from "../../../components/ui/textarea";
-import type { ScheduledMessageRecordV1 } from "../scheduled-message.types";
+import type { ScheduledMessageRecord } from "../scheduled-message.types";
 
 export interface ScheduledItemCardProps {
-  item: ScheduledMessageRecordV1;
+  item: ScheduledMessageRecord;
   editingScheduleId: string | null;
   editingBody: string;
   onEditingBodyChange: (value: string) => void;
@@ -15,9 +15,9 @@ export interface ScheduledItemCardProps {
   editingRecurrenceRule: "daily" | "monthly" | "weekly";
   onEditingRecurrenceRuleChange: (value: "daily" | "monthly" | "weekly") => void;
   isSavingEdit: boolean;
-  onStartEdit: (item: ScheduledMessageRecordV1) => void;
+  onStartEdit: (item: ScheduledMessageRecord) => void;
   onCancelEdit: () => void;
-  onSaveEdit: (item: ScheduledMessageRecordV1) => void;
+  onSaveEdit: (item: ScheduledMessageRecord) => void;
   onPauseLifecycle: (id: string) => void;
   onResumeLifecycle: (id: string) => void;
   onRetryLifecycle: (id: string) => void;

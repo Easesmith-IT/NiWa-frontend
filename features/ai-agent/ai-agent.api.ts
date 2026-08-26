@@ -1,4 +1,4 @@
-import { v1ApiClient } from "../../lib/api/v1-client";
+import { apiClient } from "../../lib/api/api-client";
 
 export interface MemoryFieldDefinition {
   key: string;
@@ -243,17 +243,17 @@ export interface AIActivityLog {
 }
 
 export const fetchAISettings = async (): Promise<{ settings: BusinessAISettings }> => {
-  const response = await v1ApiClient.get<{ settings: BusinessAISettings }>("/ai-agent/settings");
+  const response = await apiClient.get<{ settings: BusinessAISettings }>("/ai-agent/settings");
   return response.data;
 };
 
 export const fetchAgents = async (): Promise<{ agents: AIAgent[] }> => {
-  const response = await v1ApiClient.get<{ agents: AIAgent[] }>("/ai-agent/agents");
+  const response = await apiClient.get<{ agents: AIAgent[] }>("/ai-agent/agents");
   return response.data;
 };
 
 export const createAgent = async (payload: Partial<AIAgent>): Promise<{ agent: AIAgent }> => {
-  const response = await v1ApiClient.post<{ agent: AIAgent }>("/ai-agent/agents", payload);
+  const response = await apiClient.post<{ agent: AIAgent }>("/ai-agent/agents", payload);
   return response.data;
 };
 
@@ -261,16 +261,16 @@ export const updateAgent = async ({
   id,
   ...payload
 }: Partial<AIAgent> & { id: string }): Promise<{ agent: AIAgent }> => {
-  const response = await v1ApiClient.put<{ agent: AIAgent }>(`/ai-agent/agents/${id}`, payload);
+  const response = await apiClient.put<{ agent: AIAgent }>(`/ai-agent/agents/${id}`, payload);
   return response.data;
 };
 
 export const deleteAgent = async (id: string): Promise<void> => {
-  await v1ApiClient.delete(`/ai-agent/agents/${id}`);
+  await apiClient.delete(`/ai-agent/agents/${id}`);
 };
 
 export const setDefaultAgent = async (id: string): Promise<{ agent: AIAgent }> => {
-  const response = await v1ApiClient.post<{ agent: AIAgent }>(`/ai-agent/agents/${id}/default`);
+  const response = await apiClient.post<{ agent: AIAgent }>(`/ai-agent/agents/${id}/default`);
   return response.data;
 };
 
@@ -281,16 +281,16 @@ export const transferConversationAgent = async ({
   conversationId: string;
   agentId: string;
 }): Promise<void> => {
-  await v1ApiClient.patch(`/conversations/${conversationId}/agent`, { agentId });
+  await apiClient.patch(`/conversations/${conversationId}/agent`, { agentId });
 };
 
 export const fetchAITemplates = async (): Promise<{ templates: AgentTemplatePreset[] }> => {
-  const response = await v1ApiClient.get<{ templates: AgentTemplatePreset[] }>("/ai-agent/templates");
+  const response = await apiClient.get<{ templates: AgentTemplatePreset[] }>("/ai-agent/templates");
   return response.data;
 };
 
 export const applyAITemplate = async (templateId: string): Promise<{ settings: BusinessAISettings }> => {
-  const response = await v1ApiClient.post<{ settings: BusinessAISettings }>(
+  const response = await apiClient.post<{ settings: BusinessAISettings }>(
     `/ai-agent/templates/${templateId}/apply`,
     {},
   );
@@ -300,7 +300,7 @@ export const applyAITemplate = async (templateId: string): Promise<{ settings: B
 export const updateAISettings = async (
   payload: Partial<BusinessAISettings>,
 ): Promise<{ settings: BusinessAISettings }> => {
-  const response = await v1ApiClient.put<{ settings: BusinessAISettings }>("/ai-agent/settings", payload);
+  const response = await apiClient.put<{ settings: BusinessAISettings }>("/ai-agent/settings", payload);
   return response.data;
 };
 
@@ -311,7 +311,7 @@ export const runAITestingPlayground = async ({
   query: string;
   agentId?: string;
 }): Promise<AITestResponse> => {
-  const response = await v1ApiClient.post<AITestResponse>("/ai-agent/test", { query, agentId });
+  const response = await apiClient.post<AITestResponse>("/ai-agent/test", { query, agentId });
   return response.data;
 };
 
@@ -319,7 +319,7 @@ export const fetchAIActivityLogs = async (): Promise<{
   activities: AIActivityLog[];
   metrics: { total: number; completedCount: number; failedCount: number };
 }> => {
-  const response = await v1ApiClient.get<{
+  const response = await apiClient.get<{
     activities: AIActivityLog[];
     metrics: { total: number; completedCount: number; failedCount: number };
   }>("/ai-agent/activity");
@@ -328,12 +328,12 @@ export const fetchAIActivityLogs = async (): Promise<{
 
 export const fetchKnowledgeSources = async (agentId?: string): Promise<{ sources: KnowledgeSource[] }> => {
   const params = agentId ? { agentId } : undefined;
-  const response = await v1ApiClient.get<{ sources: KnowledgeSource[] }>("/ai-agent/knowledge", { params });
+  const response = await apiClient.get<{ sources: KnowledgeSource[] }>("/ai-agent/knowledge", { params });
   return response.data;
 };
 
 export const fetchKnowledgePacks = async (): Promise<{ packs: KnowledgePack[] }> => {
-  const response = await v1ApiClient.get<{ packs: KnowledgePack[] }>("/ai-agent/knowledge-packs");
+  const response = await apiClient.get<{ packs: KnowledgePack[] }>("/ai-agent/knowledge-packs");
   return response.data;
 };
 
@@ -346,7 +346,7 @@ export const createKnowledgeSource = async (payload: {
   accessMode?: "all_agents" | "selected_agents";
   assignedAgentIds?: string[];
 }): Promise<{ source: KnowledgeSource }> => {
-  const response = await v1ApiClient.post<{ source: KnowledgeSource }>("/ai-agent/knowledge", payload);
+  const response = await apiClient.post<{ source: KnowledgeSource }>("/ai-agent/knowledge", payload);
   return response.data;
 };
 
@@ -362,7 +362,7 @@ export const updateKnowledgeSource = async ({
   accessMode?: "all_agents" | "selected_agents";
   assignedAgentIds?: string[];
 }): Promise<{ source: KnowledgeSource }> => {
-  const response = await v1ApiClient.patch<{ source: KnowledgeSource }>(
+  const response = await apiClient.patch<{ source: KnowledgeSource }>(
     `/ai-agent/knowledge/${id}`,
     payload,
   );
@@ -376,7 +376,7 @@ export const toggleKnowledgeSourceStatus = async ({
   id: string;
   status: "ready" | "disabled";
 }): Promise<{ source: KnowledgeSource }> => {
-  const response = await v1ApiClient.patch<{ source: KnowledgeSource }>(
+  const response = await apiClient.patch<{ source: KnowledgeSource }>(
     `/ai-agent/knowledge/${id}/status`,
     { status },
   );
@@ -384,7 +384,7 @@ export const toggleKnowledgeSourceStatus = async ({
 };
 
 export const deleteKnowledgeSource = async (id: string): Promise<void> => {
-  await v1ApiClient.delete(`/ai-agent/knowledge/${id}`);
+  await apiClient.delete(`/ai-agent/knowledge/${id}`);
 };
 
 export const updateConversationAIMode = async ({
@@ -394,5 +394,5 @@ export const updateConversationAIMode = async ({
   conversationId: string;
   aiMode: "AI_ACTIVE" | "AI_PAUSED" | "HUMAN_ONLY";
 }): Promise<void> => {
-  await v1ApiClient.patch(`/conversations/${conversationId}/ai-mode`, { aiMode });
+  await apiClient.patch(`/conversations/${conversationId}/ai-mode`, { aiMode });
 };

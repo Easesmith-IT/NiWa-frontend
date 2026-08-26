@@ -1,34 +1,34 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { v1QueryKeys } from "../../lib/api/v1-query-keys";
-import { getWebhooksV1, GetWebhooksParams, reconcileWebhookV1, testWebhookV1 } from "./webhooks.api";
+import { queryKeys } from "../../lib/api/query-keys";
+import { getWebhooks, GetWebhooksParams, reconcileWebhook, testWebhook } from "./webhooks.api";
 
 export const webhookKeys = {
-  all: v1QueryKeys.webhooks,
-  lists: () => [...v1QueryKeys.webhooks, "list"] as const,
+  all: queryKeys.webhooks,
+  lists: () => [...queryKeys.webhooks, "list"] as const,
   list: (params?: GetWebhooksParams) => [...webhookKeys.lists(), params] as const,
 };
 
-export const useWebhooksV1Query = (params?: GetWebhooksParams) => {
+export const useWebhooksQuery = (params?: GetWebhooksParams) => {
   return useQuery({
     queryKey: webhookKeys.list(params),
-    queryFn: () => getWebhooksV1(params),
+    queryFn: () => getWebhooks(params),
   });
 };
 
-export const useTestWebhookV1Mutation = () => {
+export const useTestWebhookMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: testWebhookV1,
+    mutationFn: testWebhook,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: webhookKeys.all });
     },
   });
 };
 
-export const useReconcileWebhookV1Mutation = () => {
+export const useReconcileWebhookMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: reconcileWebhookV1,
+    mutationFn: reconcileWebhook,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: webhookKeys.all });
     },

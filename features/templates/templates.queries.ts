@@ -1,17 +1,17 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { v1QueryKeys } from "../../lib/api/v1-query-keys";
-import { getTemplates, getTemplatesV1, GetTemplatesParams, syncTemplatesV1 } from "./templates.api";
+import { queryKeys } from "../../lib/api/query-keys";
+import { getTemplates, getTemplatesPaginated, GetTemplatesParams, syncTemplates } from "./templates.api";
 
 export const templateKeys = {
-  all: v1QueryKeys.templates,
-  lists: () => [...v1QueryKeys.templates, "list"] as const,
+  all: queryKeys.templates,
+  lists: () => [...queryKeys.templates, "list"] as const,
   list: (params?: GetTemplatesParams) => [...templateKeys.lists(), params] as const,
 };
 
-export const useTemplatesV1Query = (params?: GetTemplatesParams) => {
+export const useTemplatesPaginatedQuery = (params?: GetTemplatesParams) => {
   return useQuery({
     queryKey: templateKeys.list(params),
-    queryFn: () => getTemplatesV1(params),
+    queryFn: () => getTemplatesPaginated(params),
   });
 };
 
@@ -22,10 +22,10 @@ export const useTemplates = () => {
   });
 };
 
-export const useSyncTemplatesV1Mutation = () => {
+export const useSyncTemplatesMutation = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: syncTemplatesV1,
+    mutationFn: syncTemplates,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: templateKeys.all });
     },

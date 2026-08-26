@@ -2,11 +2,11 @@
 
 import { useMemo, useState } from "react";
 import {
-  useCreateQuickReplyV1Mutation,
-  usePatchQuickReplyV1Mutation,
-  useQuickRepliesV1Query,
+  useCreateQuickReplyMutation,
+  usePatchQuickReplyMutation,
+  useQuickRepliesQuery,
 } from "../quick-reply.queries";
-import type { QuickReplyRecordV1 } from "../quick-reply.types";
+import type { QuickReplyRecord } from "../quick-reply.types";
 
 export const defaultQuickReplyDraft = {
   body: "",
@@ -26,14 +26,14 @@ export function useQuickRepliesOrchestration() {
   const [draft, setDraft] = useState(defaultQuickReplyDraft);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const quickRepliesQuery = useQuickRepliesV1Query();
-  const createQuickReplyMutation = useCreateQuickReplyV1Mutation();
-  const patchQuickReplyMutation = usePatchQuickReplyV1Mutation();
+  const quickRepliesQuery = useQuickRepliesQuery();
+  const createQuickReplyMutation = useCreateQuickReplyMutation();
+  const patchQuickReplyMutation = usePatchQuickReplyMutation();
 
   const quickReplies = quickRepliesQuery.data?.data ?? [];
 
   const groupedQuickReplies = useMemo(() => {
-    return quickReplies.reduce<Record<string, QuickReplyRecordV1[]>>((groups, quickReply) => {
+    return quickReplies.reduce<Record<string, QuickReplyRecord[]>>((groups, quickReply) => {
       const key = quickReply.category?.trim() || "Uncategorized";
       groups[key] = [...(groups[key] ?? []), quickReply];
       return groups;
@@ -77,7 +77,7 @@ export function useQuickRepliesOrchestration() {
     setDraft(defaultQuickReplyDraft);
   };
 
-  const handleStartEdit = (quickReply: QuickReplyRecordV1) => {
+  const handleStartEdit = (quickReply: QuickReplyRecord) => {
     setEditingId(quickReply._id);
     setDraft({
       body: quickReply.body,
@@ -88,7 +88,7 @@ export function useQuickRepliesOrchestration() {
     });
   };
 
-  const handleToggleActive = (quickReply: QuickReplyRecordV1) => {
+  const handleToggleActive = (quickReply: QuickReplyRecord) => {
     patchQuickReplyMutation.mutate({
       payload: { isActive: !quickReply.isActive },
       quickReplyId: quickReply._id,

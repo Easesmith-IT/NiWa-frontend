@@ -9,7 +9,7 @@ export interface AutomationStepRecordV1 {
   type: "create_note" | "create_task" | "send_message" | "wait";
 }
 
-export interface AutomationRecordV1 {
+export interface AutomationRecord {
   _id: string;
   conditions: AutomationConditionRecordV1[];
   createdAt?: string;
@@ -33,7 +33,7 @@ export interface AutomationRunLogRecordV1 {
   metadata?: Record<string, unknown>;
 }
 
-export interface AutomationRunRecordV1 {
+export interface AutomationRunRecord {
   _id: string;
   automationId: string;
   automationName: string;

@@ -2,10 +2,10 @@
 
 import { useMemo, useState } from "react";
 import {
-  useCancelTaskV1Mutation,
-  useCompleteTaskV1Mutation,
-  useCreateTaskV1Mutation,
-  useTasksV1Query,
+  useCancelTaskMutation,
+  useCompleteTaskMutation,
+  useCreateTaskMutation,
+  useTasksQuery,
 } from "../task.queries";
 
 export const formatDateInputToIso = (value: string) => {
@@ -23,10 +23,10 @@ export function useTasksOrchestration() {
   const [priority, setPriority] = useState<"high" | "low" | "medium">("medium");
   const [statusFilter, setStatusFilter] = useState<"all" | "cancelled" | "completed" | "todo">("all");
 
-  const tasksQuery = useTasksV1Query(statusFilter === "all" ? undefined : { status: statusFilter });
-  const createTaskMutation = useCreateTaskV1Mutation();
-  const completeTaskMutation = useCompleteTaskV1Mutation();
-  const cancelTaskMutation = useCancelTaskV1Mutation();
+  const tasksQuery = useTasksQuery(statusFilter === "all" ? undefined : { status: statusFilter });
+  const createTaskMutation = useCreateTaskMutation();
+  const completeTaskMutation = useCompleteTaskMutation();
+  const cancelTaskMutation = useCancelTaskMutation();
 
   const tasks = tasksQuery.data?.data ?? [];
   const overdueTasks = useMemo(

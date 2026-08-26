@@ -1,7 +1,7 @@
 import { ChevronDown, MoreHorizontal, Plus, Search } from "lucide-react";
 import { Input } from "../../../components/ui/input";
 import { cn } from "../../../lib/utils";
-import type { InboxThreadRecordV1 } from "../inbox.types";
+import type { InboxThreadRecord } from "../inbox.types";
 import type { InboxFilterType } from "../hooks/useInboxState";
 import { ThreadListSkeleton } from "./ThreadListSkeleton";
 import { ThreadListItem } from "./ThreadListItem";
@@ -14,7 +14,7 @@ const filterOptions = [
 ] as const;
 
 export interface InboxThreadListProps {
-  threads: InboxThreadRecordV1[];
+  threads: InboxThreadRecord[];
   isLoading: boolean;
   activeConversationId: string | null;
   filter: InboxFilterType;

@@ -1,21 +1,21 @@
-import type { V1ListResponse } from "../../lib/api/v1-types";
-import { v1ApiClient } from "../../lib/api/v1-client";
-import type { MessageRecordV1 } from "./message.types";
+import type { ListResponse } from "../../lib/api/api-types";
+import { apiClient } from "../../lib/api/api-client";
+import type { MessageRecord } from "./message.types";
 
-export const listMessagesV1 = async () => {
-  const response = await v1ApiClient.get<V1ListResponse<MessageRecordV1>>("/messages");
+export const listMessages = async () => {
+  const response = await apiClient.get<ListResponse<MessageRecord>>("/messages");
   return response.data;
 };
 
-export const sendTextMessageV1 = async (payload: {
+export const sendTextMessage = async (payload: {
   body: string;
   contactId?: string;
   conversationId?: string;
   previewUrl?: boolean;
 }) => {
-  const response = await v1ApiClient.post("/messages/text", payload);
+  const response = await apiClient.post("/messages/text", payload);
   return response.data;
 };
 
-export const getMessageMediaUrlV1 = (messageId: string) =>
-  `${v1ApiClient.defaults.baseURL}/messages/${messageId}/media`;
+export const getMessageMediaUrl = (messageId: string) =>
+  `${apiClient.defaults.baseURL}/messages/${messageId}/media`;

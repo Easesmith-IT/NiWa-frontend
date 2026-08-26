@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { AxiosError } from "axios";
 import type { OptimisticInboxMessage } from "./useInboxState";
-import type { InboxThreadDetailV1 } from "../inbox.types";
+import type { InboxThreadDetail } from "../inbox.types";
 import {
   areVariableValuesEqual,
   extractTemplateVariables,
@@ -9,11 +9,11 @@ import {
   resolveQuickReplyBody,
 } from "../utils/quick-replies";
 import { toIsoFromDateInput } from "../utils/formatters";
-import { useSendTextMessageV1Mutation } from "../../messages";
-import { usePatchQuickReplyV1Mutation, useQuickRepliesV1Query } from "../../quick-replies";
+import { useSendTextMessageMutation } from "../../messages";
+import { usePatchQuickReplyMutation, useQuickRepliesQuery } from "../../quick-replies";
 import {
-  useCreateScheduledMessageV1Mutation,
-  useScheduledMessagesV1Query,
+  useCreateScheduledMessageMutation,
+  useScheduledMessagesQuery,
 } from "../../scheduled-messages";
 
 const getErrorMessage = (error: unknown, fallback: string) =>
@@ -28,7 +28,7 @@ export interface UseInboxComposerOrchestrationOptions {
   setOptimisticMessages: React.Dispatch<React.SetStateAction<OptimisticInboxMessage[]>>;
   composerFeedback: { message: string; tone: "error" | "success" } | null;
   setComposerFeedback: React.Dispatch<React.SetStateAction<{ message: string; tone: "error" | "success" } | null>>;
-  detail: InboxThreadDetailV1 | null;
+  detail: InboxThreadDetail | null;
   activeConversationId: string | null;
 }
 
@@ -68,15 +68,15 @@ export function useInboxComposerOrchestration({
   }, [composerFeedback, setComposerFeedback]);
 
   // Queries
-  const quickRepliesQuery = useQuickRepliesV1Query();
-  const scheduledMessagesQuery = useScheduledMessagesV1Query(
+  const quickRepliesQuery = useQuickRepliesQuery();
+  const scheduledMessagesQuery = useScheduledMessagesQuery(
     detail?.contact?._id ? { contactId: detail.contact._id } : undefined,
   );
 
   // Mutations
-  const sendTextMutation = useSendTextMessageV1Mutation();
-  const patchQuickReplyMutation = usePatchQuickReplyV1Mutation();
-  const createScheduledMessageMutation = useCreateScheduledMessageV1Mutation();
+  const sendTextMutation = useSendTextMessageMutation();
+  const patchQuickReplyMutation = usePatchQuickReplyMutation();
+  const createScheduledMessageMutation = useCreateScheduledMessageMutation();
 
   const quickReplies = (quickRepliesQuery.data?.data ?? []).filter((item) => item.isActive);
   const scheduledItems = scheduledMessagesQuery.data?.data ?? [];

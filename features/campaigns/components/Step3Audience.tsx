@@ -26,10 +26,10 @@ import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import {
   useContactImportsV1Query,
-  useContactsV1Query,
+  useContactsQuery,
   useContactImportPipelineV1,
 } from "../../contacts/contact.queries";
-import { ContactImportRecordV1, ContactRecordV1 } from "../../contacts/contact.types";
+import { ContactImportRecord, ContactRecord } from "../../contacts/contact.types";
 
 export interface ContactImportItem {
   id: string;
@@ -125,13 +125,13 @@ export const Step3Audience: React.FC<Step3Props> = ({
   const importsQuery = useContactImportsV1Query();
 
   const importsList = importsQuery.data?.data || [];
-  const completedImports = importsList.filter((i: ContactImportRecordV1) => i.status === "completed" || i.status === "ready");
-  const selectedImport = completedImports.find((i: ContactImportRecordV1) => i.id === importId);
+  const completedImports = importsList.filter((i: ContactImportRecord) => i.status === "completed" || i.status === "ready");
+  const selectedImport = completedImports.find((i: ContactImportRecord) => i.id === importId);
 
   // Query Contacts for Manual Selection Mode
-  const contactsQuery = useContactsV1Query({ search: debouncedSearch, page, limit });
+  const contactsQuery = useContactsQuery({ search: debouncedSearch, page, limit });
 
-  const contactsList = (contactsQuery.data?.data || []) as ContactRecordV1[];
+  const contactsList = (contactsQuery.data?.data || []) as ContactRecord[];
   const pagination = (contactsQuery.data?.pagination || {
     page: 1,
     limit,

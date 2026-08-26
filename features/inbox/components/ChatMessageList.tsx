@@ -1,7 +1,7 @@
 import { RefObject } from "react";
 import { ArrowDown, RefreshCw } from "lucide-react";
 import { cn } from "../../../lib/utils";
-import type { MessageRecordV1 } from "../inbox.types";
+import type { MessageRecord } from "../inbox.types";
 import { ChatMessageItem } from "./ChatMessageItem";
 
 export interface ChatMessageListProps {
@@ -13,7 +13,7 @@ export interface ChatMessageListProps {
   retryLoadOlder: () => Promise<void>;
   hasMoreOlderMessages: boolean;
   isLoadingDetail: boolean;
-  messageGroups: Array<{ day: string; messages: MessageRecordV1[] }>;
+  messageGroups: Array<{ day: string; messages: MessageRecord[] }>;
   showJumpToBottom: boolean;
   newMessageCount: number;
   onJumpToBottom: () => void;

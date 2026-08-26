@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { isAxiosError } from "axios";
 import { useCampaign, useCreateCampaign, useDeleteCampaign, useUpdateCampaignDraft } from "../campaign.queries";
-import { useContactsV1Query } from "../../contacts/contact.queries";
-import type { ContactRecordV1 } from "../../contacts/contact.types";
+import { useContactsQuery } from "../../contacts/contact.queries";
+import type { ContactRecord } from "../../contacts/contact.types";
 import type { ContactItem } from "../components/Step3Audience";
 import type { CreateCampaignPayload } from "../campaign.types";
 
@@ -48,7 +48,7 @@ export function useCampaignDraftLifecycle(params: UseCampaignDraftLifecycleParam
   const deleteMutation = useDeleteCampaign();
 
   const campaignQuery = useCampaign(params.paramDraftId);
-  const contactsQuery = useContactsV1Query();
+  const contactsQuery = useContactsQuery();
   const hydratedDraftRef = useRef<string | null>(null);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -89,7 +89,7 @@ export function useCampaignDraftLifecycle(params: UseCampaignDraftLifecycleParam
         const contacts = contactsQuery.data?.data || [];
         const map: Record<string, ContactItem> = {};
         c.audience.contactIds.forEach((id) => {
-          const found = contacts.find((item: ContactRecordV1) => item._id === id);
+          const found = contacts.find((item: ContactRecord) => item._id === id);
           if (found) {
             map[id] = {
               _id: found._id,

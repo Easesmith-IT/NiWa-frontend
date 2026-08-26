@@ -1,7 +1,7 @@
-import type { LabelRecordV1 } from "../../lib/api/v1-types";
+import type { LabelRecord } from "../../lib/api/api-types";
 import { withNullableText } from "../shared/mappers";
 
-export const mapLabelRecordV1 = (record: LabelRecordV1): LabelRecordV1 => ({
+export const mapLabelRecord = (record: LabelRecord): LabelRecord => ({
   ...record,
   description: withNullableText(record.description),
 });

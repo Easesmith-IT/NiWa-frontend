@@ -2,10 +2,10 @@
 
 import { AlertCircle, UserCheck, Users, XCircle, FileWarning } from "lucide-react";
 import { Button } from "../../../components/ui/button";
-import type { ContactImportRecordV1 } from "../contact.types";
+import type { ContactImportRecord } from "../contact.types";
 
 interface ContactImportPreviewProps {
-  importRecord: ContactImportRecordV1;
+  importRecord: ContactImportRecord;
   onConfirm: () => void;
   onCancel: () => void;
   isCommitting: boolean;

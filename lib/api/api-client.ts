@@ -3,14 +3,14 @@ import axios from "axios";
 import { clearAccessToken, getAccessToken, redirectToLogin, setAccessToken } from "../auth";
 import { getBaseApiUrl } from "./base-url";
 
-const getV1BaseUrl = () => `${getBaseApiUrl()}/v1`;
+const getApiBaseUrl = () => `${getBaseApiUrl()}/v1`;
 
-export const v1ApiClient = axios.create({
-  baseURL: getV1BaseUrl(),
+export const apiClient = axios.create({
+  baseURL: getApiBaseUrl(),
   withCredentials: true,
 });
 
-v1ApiClient.interceptors.request.use((config) => {
+apiClient.interceptors.request.use((config) => {
   const token = getAccessToken();
 
   if (token) {
@@ -28,7 +28,7 @@ v1ApiClient.interceptors.request.use((config) => {
   return config;
 });
 
-v1ApiClient.interceptors.response.use(
+apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config as typeof error.config & { _retry?: boolean };
@@ -38,14 +38,14 @@ v1ApiClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshResponse = await v1ApiClient.post("/auth/refresh");
+        const refreshResponse = await apiClient.post("/auth/refresh");
         const nextAccessToken = refreshResponse.data?.accessToken;
 
         if (typeof nextAccessToken === "string" && nextAccessToken.length > 0) {
           setAccessToken(nextAccessToken);
           originalRequest.headers = originalRequest.headers ?? {};
           originalRequest.headers.Authorization = `Bearer ${nextAccessToken}`;
-          return v1ApiClient(originalRequest);
+          return apiClient(originalRequest);
         }
       } catch {
         clearAccessToken();

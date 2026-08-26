@@ -2,13 +2,13 @@ import React from "react";
 import Link from "next/link";
 import { Inbox } from "lucide-react";
 import { Card } from "../../../components/ui/card";
-import type { InboxSearchResponseV1 } from "../search.types";
+import type { InboxSearchResponse } from "../search.types";
 import { formatSearchTimestamp } from "../hooks/useSearchOrchestration";
 
 export interface SearchThreadsSectionProps {
   isLoading: boolean;
   query: string;
-  threads: InboxSearchResponseV1["data"];
+  threads: InboxSearchResponse["data"];
 }
 
 export const SearchThreadsSection: React.FC<SearchThreadsSectionProps> = ({

@@ -2,11 +2,11 @@ import assert from "node:assert";
 import { describe, it } from "node:test";
 
 import { mergeAndReconcileMessages } from "./inbox.merge";
-import type { MessageRecordV1 } from "./inbox.types";
+import type { MessageRecord } from "./inbox.types";
 
-const generateSyntheticMessages = (count: number): MessageRecordV1[] => {
+const generateSyntheticMessages = (count: number): MessageRecord[] => {
   const baseTime = new Date("2026-08-01T00:00:00.000Z").getTime();
-  const messages: MessageRecordV1[] = [];
+  const messages: MessageRecord[] = [];
 
   for (let i = 0; i < count; i++) {
     const timestampIso = new Date(baseTime + i * 1000).toISOString();
@@ -20,7 +20,7 @@ const generateSyntheticMessages = (count: number): MessageRecordV1[] => {
       metaTimestamp: timestampIso,
       metaMessageId: `wamid.bench.${i + 1}`,
       status: "delivered",
-    } as MessageRecordV1);
+    } as MessageRecord);
   }
 
   return messages;
@@ -41,7 +41,7 @@ describe("5k / 10k Inbox Stream Stress Benchmark", () => {
         createdAt: new Date().toISOString(),
         metaTimestamp: new Date().toISOString(),
         status: "queued",
-      } as MessageRecordV1,
+      } as MessageRecord,
     ];
 
     const startTime = performance.now();

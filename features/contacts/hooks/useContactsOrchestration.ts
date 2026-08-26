@@ -3,17 +3,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { isAxiosError } from "axios";
-import { useLabelsV1Query } from "../../labels";
-import { exportContactsV1 } from "../contact.api";
+import { useLabelsQuery } from "../../labels";
+import { exportContacts } from "../contact.api";
 import {
   useContactDuplicatesV1Query,
-  useContactsV1Query,
+  useContactsQuery,
   useCreateContactV1Mutation,
   useDeleteContactV1Mutation,
-  useMergeContactsV1Mutation,
-  usePatchContactV1Mutation,
+  useMergeContactsMutation,
+  usePatchContactMutation,
 } from "../contact.queries";
-import type { ContactRecordV1 } from "../contact.types";
+import type { ContactRecord } from "../contact.types";
 
 export interface NewContactDraft {
   company: string;
@@ -46,14 +46,14 @@ export function useContactsOrchestration() {
   const [newContactDraft, setNewContactDraft] = useState<NewContactDraft>(defaultNewContact);
   const [feedback, setFeedback] = useState<ContactsFeedback | null>(null);
 
-  const contactsQuery = useContactsV1Query({ search });
+  const contactsQuery = useContactsQuery({ search });
   const duplicateGroupsQuery = useContactDuplicatesV1Query({ field: "phoneNumberE164" });
-  const labelsQuery = useLabelsV1Query();
+  const labelsQuery = useLabelsQuery();
 
   const createContactMutation = useCreateContactV1Mutation();
-  const patchContactMutation = usePatchContactV1Mutation();
+  const patchContactMutation = usePatchContactMutation();
   const deleteContactMutation = useDeleteContactV1Mutation();
-  const mergeContactsMutation = useMergeContactsV1Mutation();
+  const mergeContactsMutation = useMergeContactsMutation();
 
   const contacts = contactsQuery.data?.data ?? [];
   const labels = labelsQuery.data?.data ?? [];
@@ -119,7 +119,7 @@ export function useContactsOrchestration() {
     });
   };
 
-  const handleSaveContact = (contactId: string, payload: Partial<ContactRecordV1>) => {
+  const handleSaveContact = (contactId: string, payload: Partial<ContactRecord>) => {
     patchContactMutation.mutate(
       { contactId, payload },
       {
@@ -155,7 +155,7 @@ export function useContactsOrchestration() {
 
   const handleExport = async () => {
     try {
-      const result = await exportContactsV1({ format: "csv", search: search || undefined });
+      const result = await exportContacts({ format: "csv", search: search || undefined });
       const url = URL.createObjectURL(result as Blob);
       const link = document.createElement("a");
       link.href = url;

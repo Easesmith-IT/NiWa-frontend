@@ -1,7 +1,7 @@
 import React from "react";
 import { Card } from "../../../components/ui/card";
 import type { useQuickRepliesOrchestration } from "../hooks/useQuickRepliesOrchestration";
-import type { QuickReplyRecordV1 } from "../quick-reply.types";
+import type { QuickReplyRecord } from "../quick-reply.types";
 
 import { QuickRepliesHeader } from "./QuickRepliesHeader";
 import { QuickReplyComposerCard } from "./QuickReplyComposerCard";
@@ -43,7 +43,7 @@ export const QuickRepliesShell: React.FC<QuickRepliesShellProps> = ({ orchestrat
         />
 
         <div className="space-y-3.5">
-          {Object.entries(groupedQuickReplies).map(([group, items]: [string, QuickReplyRecordV1[]]) => (
+          {Object.entries(groupedQuickReplies).map(([group, items]: [string, QuickReplyRecord[]]) => (
             <Card className="space-y-3 p-4" key={group}>
               <div className="border-b border-[#F0F0F2] pb-2 dark:border-[#202326]">
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">

@@ -1,12 +1,12 @@
 import React from "react";
 import { ToggleLeft, ToggleRight } from "lucide-react";
 import { Button } from "../../../components/ui/button";
-import type { QuickReplyRecordV1 } from "../quick-reply.types";
+import type { QuickReplyRecord } from "../quick-reply.types";
 
 export interface QuickReplyItemCardProps {
-  quickReply: QuickReplyRecordV1;
-  onStartEdit: (quickReply: QuickReplyRecordV1) => void;
-  onToggleActive: (quickReply: QuickReplyRecordV1) => void;
+  quickReply: QuickReplyRecord;
+  onStartEdit: (quickReply: QuickReplyRecord) => void;
+  onToggleActive: (quickReply: QuickReplyRecord) => void;
 }
 
 export const QuickReplyItemCard: React.FC<QuickReplyItemCardProps> = ({

@@ -1,4 +1,4 @@
-import { v1ApiClient } from "../../lib/api/v1-client";
+import { apiClient } from "../../lib/api/api-client";
 import type {
   ConversationDetailResponse,
   ConversationLabelsResponse,
@@ -20,7 +20,7 @@ export const getConversations = async (params?: {
   unreadOnly?: boolean;
   limit?: number;
 }) => {
-  const response = await v1ApiClient.get<ConversationsResponse>("/conversations", {
+  const response = await apiClient.get<ConversationsResponse>("/conversations", {
     params: {
       query: params?.query || undefined,
       unreadOnly: params?.unreadOnly ? "true" : undefined,
@@ -31,24 +31,24 @@ export const getConversations = async (params?: {
 };
 
 export const getConversationDetail = async (conversationId: string) => {
-  const response = await v1ApiClient.get<ConversationDetailResponse>(
+  const response = await apiClient.get<ConversationDetailResponse>(
     `/conversations/${conversationId}`,
   );
   return response.data;
 };
 
 export const getReplyTemplates = async () => {
-  const response = await v1ApiClient.get<TemplatesResponse>("/templates");
+  const response = await apiClient.get<TemplatesResponse>("/templates");
   return response.data;
 };
 
 export const getReplyMedia = async () => {
-  const response = await v1ApiClient.get<MediaListResponse>("/media");
+  const response = await apiClient.get<MediaListResponse>("/media");
   return response.data;
 };
 
 export const sendReply = async (payload: SendReplyRequest) => {
-  const response = await v1ApiClient.post<OutboundMessageResponse>(
+  const response = await apiClient.post<OutboundMessageResponse>(
     "/conversations/reply",
     payload,
   );
@@ -56,21 +56,21 @@ export const sendReply = async (payload: SendReplyRequest) => {
 };
 
 export const clearUnread = async (conversationId: string) => {
-  const response = await v1ApiClient.post<ConversationReadResponse>(
+  const response = await apiClient.post<ConversationReadResponse>(
     `/conversations/${conversationId}/read`,
   );
   return response.data;
 };
 
 export const markMessageRead = async (messageId: string) => {
-  const response = await v1ApiClient.post<OutboundMessageResponse>("/messages/read", {
+  const response = await apiClient.post<OutboundMessageResponse>("/messages/read", {
     messageId,
   });
   return response.data;
 };
 
 export const updateLabels = async (conversationId: string, labels: string[]) => {
-  const response = await v1ApiClient.put<ConversationLabelsResponse>(
+  const response = await apiClient.put<ConversationLabelsResponse>(
     `/conversations/${conversationId}/labels`,
     { labels },
   );
@@ -78,7 +78,7 @@ export const updateLabels = async (conversationId: string, labels: string[]) => 
 };
 
 export const addNote = async (conversationId: string, payload: AddNoteRequest) => {
-  const response = await v1ApiClient.post<ConversationNoteMutationResponse>(
+  const response = await apiClient.post<ConversationNoteMutationResponse>(
     `/conversations/${conversationId}/notes`,
     payload,
   );
@@ -90,7 +90,7 @@ export const updateNote = async (
   payload: UpdateNoteRequest,
 ) => {
   const { noteId, ...data } = payload;
-  const response = await v1ApiClient.patch<ConversationNoteMutationResponse>(
+  const response = await apiClient.patch<ConversationNoteMutationResponse>(
     `/conversations/${conversationId}/notes/${noteId}`,
     data,
   );

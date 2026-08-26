@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useSyncTemplatesV1Mutation, useTemplatesV1Query } from "../templates.queries";
+import { useSyncTemplatesMutation, useTemplatesPaginatedQuery } from "../templates.queries";
 
 export function useTemplatesOrchestration() {
   const [query, setQuery] = useState("");
@@ -9,14 +9,14 @@ export function useTemplatesOrchestration() {
   const [category, setCategory] = useState("");
   const [language, setLanguage] = useState("");
 
-  const templatesQuery = useTemplatesV1Query({
+  const templatesQuery = useTemplatesPaginatedQuery({
     category: category || undefined,
     language: language || undefined,
     query: query || undefined,
     status: status || undefined,
   });
 
-  const syncMutation = useSyncTemplatesV1Mutation();
+  const syncMutation = useSyncTemplatesMutation();
 
   const templates = useMemo(() => templatesQuery.data?.templates ?? [], [templatesQuery.data]);
 

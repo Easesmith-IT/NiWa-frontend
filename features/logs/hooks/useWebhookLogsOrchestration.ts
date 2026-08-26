@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { exportWebhookLogsV1 } from "../logs.api";
-import { useWebhookLogsV1Query } from "../logs.queries";
+import { exportWebhookLogs } from "../logs.api";
+import { useWebhookLogsQuery } from "../logs.queries";
 
 export function useWebhookLogsOrchestration() {
   const [page, setPage] = useState(1);
@@ -21,10 +21,10 @@ export function useWebhookLogsOrchestration() {
     to: to || undefined,
   };
 
-  const logsQuery = useWebhookLogsV1Query(params);
+  const logsQuery = useWebhookLogsQuery(params);
 
   const handleExport = async () => {
-    const data = await exportWebhookLogsV1(params);
+    const data = await exportWebhookLogs(params);
     const blob = new Blob([JSON.stringify(data, null, 2)], {
       type: "application/json",
     });

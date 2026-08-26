@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Download, X } from "lucide-react";
-import { fetchMessageMediaBlobV1 } from "../inbox.api";
+import { fetchMessageMediaBlob } from "../inbox.api";
 
 export interface LightboxImageItem {
   caption?: string | null;
@@ -34,7 +34,7 @@ export function ImageLightboxModal({
       if (!item?.messageId || loadedUrls[item.messageId]) return;
 
       try {
-        const blob = await fetchMessageMediaBlobV1(item.messageId);
+        const blob = await fetchMessageMediaBlob(item.messageId);
         const objectUrl = URL.createObjectURL(blob);
 
         if (!disposed) {

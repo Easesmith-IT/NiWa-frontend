@@ -1,25 +1,25 @@
-import { v1ApiClient } from "../../lib/api/v1-client";
+import { apiClient } from "../../lib/api/api-client";
 import type {
-  DashboardSummaryResponseV1,
-  GlobalSearchResponseV1,
-  InboxSearchResponseV1,
+  DashboardSummaryResponse,
+  GlobalSearchResponse,
+  InboxSearchResponse,
 } from "./search.types";
 
-export const getGlobalSearchV1 = async (params: { limit?: number; query: string }) => {
-  const response = await v1ApiClient.get<GlobalSearchResponseV1>("/search", {
+export const getGlobalSearch = async (params: { limit?: number; query: string }) => {
+  const response = await apiClient.get<GlobalSearchResponse>("/search", {
     params,
   });
   return response.data;
 };
 
-export const getInboxSearchV1 = async (params: { limit?: number; query: string }) => {
-  const response = await v1ApiClient.get<InboxSearchResponseV1>("/search/inbox", {
+export const getInboxSearch = async (params: { limit?: number; query: string }) => {
+  const response = await apiClient.get<InboxSearchResponse>("/search/inbox", {
     params,
   });
   return response.data;
 };
 
-export const getDashboardSummaryV1 = async () => {
-  const response = await v1ApiClient.get<DashboardSummaryResponseV1>("/dashboard");
+export const getDashboardSummary = async () => {
+  const response = await apiClient.get<DashboardSummaryResponse>("/dashboard");
   return response.data;
 };

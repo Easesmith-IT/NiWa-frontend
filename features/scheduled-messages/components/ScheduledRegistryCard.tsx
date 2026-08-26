@@ -1,13 +1,13 @@
 import React from "react";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
-import type { ScheduledMessageRecordV1 } from "../scheduled-message.types";
+import type { ScheduledMessageRecord } from "../scheduled-message.types";
 import { ScheduledItemCard } from "./ScheduledItemCard";
 
 export interface ScheduledRegistryCardProps {
   statusFilter: "all" | "cancelled" | "failed" | "paused" | "queued" | "sent" | "upcoming";
   onStatusFilterChange: (status: "all" | "cancelled" | "failed" | "paused" | "queued" | "sent" | "upcoming") => void;
-  scheduledMessages: ScheduledMessageRecordV1[];
+  scheduledMessages: ScheduledMessageRecord[];
   editingScheduleId: string | null;
   editingBody: string;
   onEditingBodyChange: (value: string) => void;
@@ -16,9 +16,9 @@ export interface ScheduledRegistryCardProps {
   editingRecurrenceRule: "daily" | "monthly" | "weekly";
   onEditingRecurrenceRuleChange: (value: "daily" | "monthly" | "weekly") => void;
   isSavingEdit: boolean;
-  onStartEdit: (item: ScheduledMessageRecordV1) => void;
+  onStartEdit: (item: ScheduledMessageRecord) => void;
   onCancelEdit: () => void;
-  onSaveEdit: (item: ScheduledMessageRecordV1) => void;
+  onSaveEdit: (item: ScheduledMessageRecord) => void;
   onPauseLifecycle: (id: string) => void;
   onResumeLifecycle: (id: string) => void;
   onRetryLifecycle: (id: string) => void;

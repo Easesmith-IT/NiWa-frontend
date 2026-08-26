@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { v1QueryKeys } from "../../lib/api/v1-query-keys";
+import { queryKeys } from "../../lib/api/query-keys";
 import {
   applyAITemplate,
   createAgent,
@@ -84,9 +84,9 @@ export const useTransferConversationAgentMutation = () => {
   return useMutation({
     mutationFn: transferConversationAgent,
     onSuccess: (_data, variables) => {
-      void queryClient.invalidateQueries({ queryKey: v1QueryKeys.inbox });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.inbox });
       void queryClient.invalidateQueries({
-        queryKey: [...v1QueryKeys.inboxThread, variables.conversationId],
+        queryKey: [...queryKeys.inboxThread, variables.conversationId],
       });
     },
   });
@@ -193,9 +193,9 @@ export const useUpdateConversationAIModeMutation = () => {
   return useMutation({
     mutationFn: updateConversationAIMode,
     onSuccess: (_data, variables) => {
-      void queryClient.invalidateQueries({ queryKey: v1QueryKeys.inbox });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.inbox });
       void queryClient.invalidateQueries({
-        queryKey: [...v1QueryKeys.inboxThread, variables.conversationId],
+        queryKey: [...queryKeys.inboxThread, variables.conversationId],
       });
     },
   });
