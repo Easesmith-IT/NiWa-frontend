@@ -31,11 +31,9 @@ export const AdminGuard = ({ children }: { children: ReactNode }) => {
     }
 
     if (profileQuery.isSuccess) {
-      // In a real system, you might check for "SUPER_ADMIN".
-      // Here we assume "admin" is the required role or we just ensure the user is an admin.
-      const role = profileQuery.data?.user?.role;
+      const role = profileQuery.data?.user?.role || profileQuery.data?.operator?.role;
       if (role !== "admin" && role !== "SUPER_ADMIN") {
-        router.replace("/"); // Redirect to customer app if not admin
+        console.warn("AdminGuard: Unauthorized role", role, profileQuery.data);
       }
     }
   }, [hasToken, pathname, profileQuery.isError, profileQuery.isSuccess, profileQuery.data, router]);
@@ -52,9 +50,18 @@ export const AdminGuard = ({ children }: { children: ReactNode }) => {
     return null;
   }
 
-  const role = profileQuery.data?.user?.role;
+  const role = profileQuery.data?.user?.role || profileQuery.data?.operator?.role;
   if (role !== "admin" && role !== "SUPER_ADMIN") {
-    return null; // Will redirect in useEffect
+    return (
+      <div className="flex min-h-screen flex-col items-center justify-center bg-background text-sm text-muted-foreground p-6 text-center">
+        <h2 className="text-lg font-semibold text-foreground mb-2">Unauthorized</h2>
+        <p>You do not have the required Super Admin privileges to view this page.</p>
+        <p className="mt-1 opacity-70">Current role: {role || "none"}</p>
+        <button onClick={() => router.replace("/")} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+          Return to App
+        </button>
+      </div>
+    );
   }
 
   return <>{children}</>;
