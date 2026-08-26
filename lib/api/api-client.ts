@@ -3,7 +3,7 @@ import axios from "axios";
 import { clearAccessToken, getAccessToken, redirectToLogin, setAccessToken } from "../auth";
 import { getBaseApiUrl } from "./base-url";
 
-const getApiBaseUrl = () => `${getBaseApiUrl()}/v1`;
+const getApiBaseUrl = () => getBaseApiUrl();
 
 export const apiClient = axios.create({
   baseURL: getApiBaseUrl(),
