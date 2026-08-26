@@ -1,5 +1,4 @@
-import assert from "node:assert";
-import { describe, it } from "node:test";
+import { describe, expect, it } from "vitest";
 
 import { mergeAndReconcileMessages } from "./inbox.merge";
 import type { MessageRecordV1 } from "./inbox.types";
@@ -33,9 +32,9 @@ describe("mergeAndReconcileMessages canonical utility", () => {
       optimisticMessages: [optimisticMsg],
     });
 
-    assert.strictEqual(result.length, 1);
-    assert.strictEqual(result[0]._id, "srv-201");
-    assert.strictEqual(result[0].status, "delivered");
+    expect(result).toHaveLength(1);
+    expect(result[0]._id).toBe("srv-201");
+    expect(result[0].status).toBe("delivered");
   });
 
   it("reconciles optimistic message by clientCorrelationId", () => {
@@ -54,8 +53,8 @@ describe("mergeAndReconcileMessages canonical utility", () => {
       optimisticMessages: [optimisticMsg],
     });
 
-    assert.strictEqual(result.length, 1);
-    assert.strictEqual(result[0]._id, "srv-202");
+    expect(result).toHaveLength(1);
+    expect(result[0]._id).toBe("srv-202");
   });
 
   it("does NOT incorrectly deduplicate identical message bodies with distinct IDs", () => {
@@ -66,9 +65,9 @@ describe("mergeAndReconcileMessages canonical utility", () => {
       initialMessages: [msg1, msg2],
     });
 
-    assert.strictEqual(result.length, 2);
-    assert.strictEqual(result[0]._id, "srv-301");
-    assert.strictEqual(result[1]._id, "srv-302");
+    expect(result).toHaveLength(2);
+    expect(result[0]._id).toBe("srv-301");
+    expect(result[1]._id).toBe("srv-302");
   });
 
   it("sorts historical pages, initial messages, and realtime messages chronologically", () => {
@@ -82,9 +81,9 @@ describe("mergeAndReconcileMessages canonical utility", () => {
       realtimeMessages: [realtimeMsg],
     });
 
-    assert.strictEqual(result.length, 3);
-    assert.strictEqual(result[0]._id, "srv-001");
-    assert.strictEqual(result[1]._id, "srv-002");
-    assert.strictEqual(result[2]._id, "srv-003");
+    expect(result).toHaveLength(3);
+    expect(result[0]._id).toBe("srv-001");
+    expect(result[1]._id).toBe("srv-002");
+    expect(result[2]._id).toBe("srv-003");
   });
 });
