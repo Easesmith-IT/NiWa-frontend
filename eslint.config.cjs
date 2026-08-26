@@ -29,7 +29,7 @@ module.exports = [
           patterns: [
             {
               group: ["**/lib/api/client", "**/lib/api/client.ts"],
-              message: "Legacy apiClient has been removed. Use v1ApiClient from lib/api/v1-client or getBaseApiUrl from lib/api/base-url.",
+              message: "Legacy apiClient has been removed. Use apiClient from lib/api/api-client or getBaseApiUrl from lib/api/base-url.",
             },
             {
               group: ["**/app/(app)/**", "**/app/(auth)/**"],
@@ -48,7 +48,7 @@ module.exports = [
         {
           patterns: [
             {
-              group: ["**/lib/api/v1-client", "**/lib/api/v1-client.ts"],
+              group: ["**/lib/api/api-client", "**/lib/api/api-client.ts"],
               message: "Presentational UI components must not perform HTTP requests directly. Use domain feature API modules.",
             },
           ],
