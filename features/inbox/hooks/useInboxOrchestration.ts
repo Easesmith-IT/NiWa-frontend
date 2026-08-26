@@ -1,23 +1,31 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useInboxThreadOrchestration } from "./useInboxThreadOrchestration";
 import { useInboxContactSidebarOrchestration } from "./useInboxContactSidebarOrchestration";
 import { useInboxComposerOrchestration } from "./useInboxComposerOrchestration";
+import type { OptimisticInboxMessage } from "./useInboxState";
 
 export function useInboxOrchestration() {
-  const composer = useInboxComposerOrchestration({
-    detail: null, // Initial pass for composer state
-    activeConversationId: null,
-  });
+  const [optimisticMessages, setOptimisticMessages] = useState<OptimisticInboxMessage[]>([]);
+  const [composerFeedback, setComposerFeedback] = useState<{ message: string; tone: "error" | "success" } | null>(null);
 
   const thread = useInboxThreadOrchestration({
-    optimisticMessages: composer.optimisticMessages,
-    setComposerFeedback: composer.setComposerFeedback,
+    optimisticMessages,
+    setComposerFeedback,
+  });
+
+  const composer = useInboxComposerOrchestration({
+    detail: thread.detail,
+    activeConversationId: thread.activeConversationId,
+    optimisticMessages,
+    setOptimisticMessages,
+    composerFeedback,
+    setComposerFeedback,
   });
 
   const sidebar = useInboxContactSidebarOrchestration({
     detail: thread.detail,
     activeConversationId: thread.activeConversationId,
-    setComposerFeedback: composer.setComposerFeedback,
+    setComposerFeedback,
   });
 
   // Re-sync composer options with active thread detail
