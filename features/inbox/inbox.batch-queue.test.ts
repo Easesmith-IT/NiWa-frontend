@@ -1,13 +1,12 @@
-import assert from "node:assert";
-import { describe, it } from "node:test";
+import { describe, expect, it } from "vitest";
 
 describe("inbox.batch-queue cancellation and server cursor contracts", () => {
   it("verifies AbortController signal correctly signals cancellation", () => {
     const controller = new AbortController();
-    assert.strictEqual(controller.signal.aborted, false);
+    expect(controller.signal.aborted).toBe(false);
 
     controller.abort();
-    assert.strictEqual(controller.signal.aborted, true);
+    expect(controller.signal.aborted).toBe(true);
   });
 
   it("verifies initial pagination structure receives server authoritative values", () => {
@@ -16,7 +15,7 @@ describe("inbox.batch-queue cancellation and server cursor contracts", () => {
       hasMore: true,
     };
 
-    assert.strictEqual(initialPagination.hasMore, true);
-    assert.strictEqual(typeof initialPagination.nextCursor, "string");
+    expect(initialPagination.hasMore).toBe(true);
+    expect(typeof initialPagination.nextCursor).toBe("string");
   });
 });
