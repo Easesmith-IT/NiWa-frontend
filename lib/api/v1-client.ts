@@ -17,6 +17,14 @@ v1ApiClient.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
+  if (!config.headers["x-workspace-id"]) {
+    const activeWorkspaceId =
+      (typeof window !== "undefined" && localStorage.getItem("activeWorkspaceId")) ||
+      process.env.NEXT_PUBLIC_WORKSPACE_ID ||
+      "ws-default";
+    config.headers["x-workspace-id"] = activeWorkspaceId;
+  }
+
   return config;
 });
 
