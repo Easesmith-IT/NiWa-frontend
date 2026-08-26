@@ -57,6 +57,16 @@ export function useInboxComposerOrchestration({
   const [scheduledRule, setScheduledRule] = useState<"daily" | "monthly" | "weekly">("daily");
   const [scheduleDialogOpen, setScheduleDialogOpen] = useState(false);
 
+  // Auto-dismiss success notification after 3 seconds
+  useEffect(() => {
+    if (composerFeedback?.tone === "success") {
+      const timer = setTimeout(() => {
+        setComposerFeedback(null);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [composerFeedback, setComposerFeedback]);
+
   // Queries
   const quickRepliesQuery = useQuickRepliesV1Query();
   const scheduledMessagesQuery = useScheduledMessagesV1Query(
