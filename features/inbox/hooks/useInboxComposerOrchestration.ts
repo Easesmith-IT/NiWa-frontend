@@ -24,6 +24,10 @@ const getErrorMessage = (error: unknown, fallback: string) =>
       : fallback;
 
 export interface UseInboxComposerOrchestrationOptions {
+  optimisticMessages: OptimisticInboxMessage[];
+  setOptimisticMessages: React.Dispatch<React.SetStateAction<OptimisticInboxMessage[]>>;
+  composerFeedback: { message: string; tone: "error" | "success" } | null;
+  setComposerFeedback: React.Dispatch<React.SetStateAction<{ message: string; tone: "error" | "success" } | null>>;
   detail: InboxThreadDetailV1 | null;
   activeConversationId: string | null;
 }
@@ -31,15 +35,16 @@ export interface UseInboxComposerOrchestrationOptions {
 export function useInboxComposerOrchestration({
   detail,
   activeConversationId,
+  optimisticMessages,
+  setOptimisticMessages,
+  composerFeedback,
+  setComposerFeedback,
 }: UseInboxComposerOrchestrationOptions) {
   // Composer State
   const [composerBody, setComposerBody] = useState("");
   const [composerMenuOpen, setComposerMenuOpen] = useState(false);
-  const [composerFeedback, setComposerFeedback] = useState<{
-    message: string;
-    tone: "error" | "success";
-  } | null>(null);
-  const [optimisticMessages, setOptimisticMessages] = useState<OptimisticInboxMessage[]>([]);
+  
+  
 
   // Quick Reply State
   const [selectedQuickReplyId, setSelectedQuickReplyId] = useState("");
@@ -154,7 +159,7 @@ export function useInboxComposerOrchestration({
   };
 
   const sendMessage = () => {
-    if (!detail?.contact._id || !composerBody.trim()) {
+    if (!composerBody.trim()) {
       return;
     }
 
@@ -180,7 +185,7 @@ export function useInboxComposerOrchestration({
     sendTextMutation.mutate(
       {
         body: outboundBody,
-        contactId: detail.contact._id,
+        contactId: detail?.contact._id ?? undefined,
         conversationId: activeConversationId ?? undefined,
       },
       {
@@ -235,7 +240,7 @@ export function useInboxComposerOrchestration({
     if (!detail?.contact._id || !composerBody.trim() || !scheduledDate) return;
     createScheduledMessageMutation.mutate(
       {
-        contactId: detail.contact._id,
+        contactId: detail?.contact._id ?? undefined,
         conversationId: activeConversationId ?? undefined,
         payload: { body: composerBody.trim() },
         payloadType: "text",
@@ -320,3 +325,8 @@ export function useInboxComposerOrchestration({
     resetComposerState,
   };
 }
+
+
+
+
+
