@@ -1,0 +1,3333 @@
+{
+  "generatedAt": "2026-08-25T20:47:30.517Z",
+  "frontendRepository": "https://github.com/Easesmith-IT/NiWa-frontend.git",
+  "frontendCommitSHA": "b82421702dea157f76def83f23cbf23de9989911",
+  "backendBranchCompared": "origin/main",
+  "backendCommitSHA": "de4488bdb0b855fb56877ed3758ab7a4ae361100",
+  "summary": {
+    "totalUniqueEndpoints": 144,
+    "totalCallSites": 111,
+    "v1Endpoints": 144,
+    "legacyEndpoints": 0,
+    "missingBackendEndpoints": 0,
+    "pathMismatches": 0,
+    "methodMismatches": 0,
+    "unknownEndpoints": 0,
+    "dynamicUnresolvedEndpoints": 0,
+    "webSocketSSEEndpoints": 1
+  },
+  "endpoints": [
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/contacts/:contactId/activities",
+      "originalPathExpressions": [
+        "`/contacts/${contactId}/activities`"
+      ],
+      "sourceFiles": [
+        "features/activities/activity.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/activities/activity.api.ts",
+          "line": 7,
+          "caller": "listActivitiesV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/contacts/:contactId/activities",
+      "notes": "Contact activity timeline audit history"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/ai-agent/settings",
+      "originalPathExpressions": [
+        "`/ai-agent/settings`"
+      ],
+      "sourceFiles": [
+        "features/ai-agent/ai-agent.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/ai-agent/ai-agent.api.ts",
+          "line": 246,
+          "caller": "fetchAISettings"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/ai-agent/settings",
+      "notes": "Workspace AI agent configuration"
+    },
+    {
+      "method": "PUT",
+      "normalizedPath": "/api/v1/ai-agent/settings",
+      "originalPathExpressions": [
+        "`/ai-agent/settings`"
+      ],
+      "sourceFiles": [
+        "features/ai-agent/ai-agent.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/ai-agent/ai-agent.api.ts",
+          "line": 303,
+          "caller": "updateAISettings"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "PUT /api/v1/ai-agent/settings",
+      "notes": "Update workspace AI settings"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/ai-agent/agents",
+      "originalPathExpressions": [
+        "`/ai-agent/agents`"
+      ],
+      "sourceFiles": [
+        "features/ai-agent/ai-agent.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/ai-agent/ai-agent.api.ts",
+          "line": 251,
+          "caller": "fetchAgents"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/ai-agent/agents",
+      "notes": "List multi-agent configurations"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/ai-agent/agents",
+      "originalPathExpressions": [
+        "`/ai-agent/agents`"
+      ],
+      "sourceFiles": [
+        "features/ai-agent/ai-agent.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/ai-agent/ai-agent.api.ts",
+          "line": 256,
+          "caller": "createAgent"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/ai-agent/agents",
+      "notes": "Create new agent instance"
+    },
+    {
+      "method": "PUT",
+      "normalizedPath": "/api/v1/ai-agent/agents/:id",
+      "originalPathExpressions": [
+        "`/ai-agent/agents/${id}`"
+      ],
+      "sourceFiles": [
+        "features/ai-agent/ai-agent.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/ai-agent/ai-agent.api.ts",
+          "line": 264,
+          "caller": "updateAgent"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "PUT /api/v1/ai-agent/agents/:id",
+      "notes": "Update agent configuration"
+    },
+    {
+      "method": "DELETE",
+      "normalizedPath": "/api/v1/ai-agent/agents/:id",
+      "originalPathExpressions": [
+        "`/ai-agent/agents/${id}`"
+      ],
+      "sourceFiles": [
+        "features/ai-agent/ai-agent.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/ai-agent/ai-agent.api.ts",
+          "line": 269,
+          "caller": "deleteAgent"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "DELETE /api/v1/ai-agent/agents/:id",
+      "notes": "Delete agent instance"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/ai-agent/agents/:id/default",
+      "originalPathExpressions": [
+        "`/ai-agent/agents/${id}/default`"
+      ],
+      "sourceFiles": [
+        "features/ai-agent/ai-agent.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/ai-agent/ai-agent.api.ts",
+          "line": 273,
+          "caller": "setDefaultAgent"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/ai-agent/agents/:id/default",
+      "notes": "Set default workspace agent"
+    },
+    {
+      "method": "PATCH",
+      "normalizedPath": "/api/v1/conversations/:conversationId/agent",
+      "originalPathExpressions": [
+        "`/conversations/${conversationId}/agent`"
+      ],
+      "sourceFiles": [
+        "features/ai-agent/ai-agent.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/ai-agent/ai-agent.api.ts",
+          "line": 284,
+          "caller": "transferConversationAgent"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "PATCH /api/v1/conversations/:conversationId/agent",
+      "notes": "Transfer conversation to specific agent"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/ai-agent/templates",
+      "originalPathExpressions": [
+        "`/ai-agent/templates`"
+      ],
+      "sourceFiles": [
+        "features/ai-agent/ai-agent.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/ai-agent/ai-agent.api.ts",
+          "line": 288,
+          "caller": "fetchAITemplates"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/ai-agent/templates",
+      "notes": "Get AI agent templates"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/ai-agent/templates/:templateId/apply",
+      "originalPathExpressions": [
+        "`/ai-agent/templates/${templateId}/apply`"
+      ],
+      "sourceFiles": [
+        "features/ai-agent/ai-agent.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/ai-agent/ai-agent.api.ts",
+          "line": 293,
+          "caller": "applyAITemplate"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/ai-agent/templates/:templateId/apply",
+      "notes": "Apply template preset"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/ai-agent/test",
+      "originalPathExpressions": [
+        "`/ai-agent/test`"
+      ],
+      "sourceFiles": [
+        "features/ai-agent/ai-agent.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/ai-agent/ai-agent.api.ts",
+          "line": 314,
+          "caller": "runAITestingPlayground"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/ai-agent/test",
+      "notes": "Playground prompt test"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/ai-agent/activity",
+      "originalPathExpressions": [
+        "`/ai-agent/activity`"
+      ],
+      "sourceFiles": [
+        "features/ai-agent/ai-agent.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/ai-agent/ai-agent.api.ts",
+          "line": 322,
+          "caller": "fetchAIActivityLogs"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/ai-agent/activity",
+      "notes": "AI processing activity logs"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/ai-agent/knowledge",
+      "originalPathExpressions": [
+        "`/ai-agent/knowledge`"
+      ],
+      "sourceFiles": [
+        "features/ai-agent/ai-agent.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/ai-agent/ai-agent.api.ts",
+          "line": 331,
+          "caller": "fetchKnowledgeSources"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/ai-agent/knowledge",
+      "notes": "List RAG knowledge sources"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/ai-agent/knowledge",
+      "originalPathExpressions": [
+        "`/ai-agent/knowledge`"
+      ],
+      "sourceFiles": [
+        "features/ai-agent/ai-agent.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/ai-agent/ai-agent.api.ts",
+          "line": 349,
+          "caller": "createKnowledgeSource"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/ai-agent/knowledge",
+      "notes": "Create RAG source"
+    },
+    {
+      "method": "PATCH",
+      "normalizedPath": "/api/v1/ai-agent/knowledge/:id",
+      "originalPathExpressions": [
+        "`/ai-agent/knowledge/${id}`"
+      ],
+      "sourceFiles": [
+        "features/ai-agent/ai-agent.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/ai-agent/ai-agent.api.ts",
+          "line": 365,
+          "caller": "updateKnowledgeSource"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "PATCH /api/v1/ai-agent/knowledge/:id",
+      "notes": "Update knowledge source"
+    },
+    {
+      "method": "PATCH",
+      "normalizedPath": "/api/v1/ai-agent/knowledge/:id/status",
+      "originalPathExpressions": [
+        "`/ai-agent/knowledge/${id}/status`"
+      ],
+      "sourceFiles": [
+        "features/ai-agent/ai-agent.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/ai-agent/ai-agent.api.ts",
+          "line": 380,
+          "caller": "toggleKnowledgeSourceStatus"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "PATCH /api/v1/ai-agent/knowledge/:id/status",
+      "notes": "Toggle source active status"
+    },
+    {
+      "method": "DELETE",
+      "normalizedPath": "/api/v1/ai-agent/knowledge/:id",
+      "originalPathExpressions": [
+        "`/ai-agent/knowledge/${id}`"
+      ],
+      "sourceFiles": [
+        "features/ai-agent/ai-agent.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/ai-agent/ai-agent.api.ts",
+          "line": 387,
+          "caller": "deleteKnowledgeSource"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "DELETE /api/v1/ai-agent/knowledge/:id",
+      "notes": "Delete RAG source"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/ai-agent/knowledge-packs",
+      "originalPathExpressions": [
+        "`/ai-agent/knowledge-packs`"
+      ],
+      "sourceFiles": [
+        "features/ai-agent/ai-agent.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/ai-agent/ai-agent.api.ts",
+          "line": 336,
+          "caller": "fetchKnowledgePacks"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/ai-agent/knowledge-packs",
+      "notes": "Get prebuilt knowledge packs"
+    },
+    {
+      "method": "PATCH",
+      "normalizedPath": "/api/v1/conversations/:conversationId/ai-mode",
+      "originalPathExpressions": [
+        "`/conversations/${conversationId}/ai-mode`"
+      ],
+      "sourceFiles": [
+        "features/ai-agent/ai-agent.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/ai-agent/ai-agent.api.ts",
+          "line": 397,
+          "caller": "updateConversationAIMode"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "PATCH /api/v1/conversations/:id/ai-mode",
+      "notes": "Set conversation AI mode"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/auth/login",
+      "originalPathExpressions": [
+        "`/auth/login`"
+      ],
+      "sourceFiles": [
+        "features/auth/auth.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/auth/auth.api.ts",
+          "line": 5,
+          "caller": "loginV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/auth/login",
+      "notes": "Operator login"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/auth/logout",
+      "originalPathExpressions": [
+        "`/auth/logout`"
+      ],
+      "sourceFiles": [
+        "features/auth/auth.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/auth/auth.api.ts",
+          "line": 15,
+          "caller": "logoutV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/auth/logout",
+      "notes": "Operator logout"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/auth/refresh",
+      "originalPathExpressions": [
+        "`/auth/refresh`"
+      ],
+      "sourceFiles": [
+        "lib/api/v1-client.ts"
+      ],
+      "callSites": [
+        {
+          "file": "lib/api/v1-client.ts",
+          "line": 33,
+          "caller": "v1ApiClient interceptor"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/auth/refresh",
+      "notes": "JWT Access token refresh"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/auth/profile",
+      "originalPathExpressions": [
+        "`/auth/profile`"
+      ],
+      "sourceFiles": [
+        "features/auth/auth.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/auth/auth.api.ts",
+          "line": 10,
+          "caller": "getProfileV1, getProfile"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/auth/profile",
+      "notes": "Get profile"
+    },
+    {
+      "method": "PUT",
+      "normalizedPath": "/api/v1/auth/profile",
+      "originalPathExpressions": [
+        "`/auth/profile`"
+      ],
+      "sourceFiles": [
+        "features/settings/settings.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/settings/settings.api.ts",
+          "line": 39,
+          "caller": "updateProfile"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "PUT /api/v1/auth/profile",
+      "notes": "Update profile"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/auth/change-password",
+      "originalPathExpressions": [
+        "`/auth/change-password`"
+      ],
+      "sourceFiles": [
+        "features/settings/settings.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/settings/settings.api.ts",
+          "line": 44,
+          "caller": "changePassword"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/auth/change-password",
+      "notes": "Change password"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/automations",
+      "originalPathExpressions": [
+        "`/automations`"
+      ],
+      "sourceFiles": [
+        "features/automations/automation.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/automations/automation.api.ts",
+          "line": 8,
+          "caller": "listAutomationsV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/automations",
+      "notes": "List automations"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/automations",
+      "originalPathExpressions": [
+        "`/automations`"
+      ],
+      "sourceFiles": [
+        "features/automations/automation.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/automations/automation.api.ts",
+          "line": 26,
+          "caller": "createAutomationV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/automations",
+      "notes": "Create automation"
+    },
+    {
+      "method": "PATCH",
+      "normalizedPath": "/api/v1/automations/:automationId",
+      "originalPathExpressions": [
+        "`/automations/${automationId}`"
+      ],
+      "sourceFiles": [
+        "features/automations/automation.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/automations/automation.api.ts",
+          "line": 46,
+          "caller": "patchAutomationV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "PATCH /api/v1/automations/:id",
+      "notes": "Update automation"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/automations/:automationId/activate",
+      "originalPathExpressions": [
+        "`/automations/${automationId}/activate`"
+      ],
+      "sourceFiles": [
+        "features/automations/automation.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/automations/automation.api.ts",
+          "line": 57,
+          "caller": "setAutomationLifecycleV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/automations/:id/activate",
+      "notes": "Activate automation"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/automations/:automationId/archive",
+      "originalPathExpressions": [
+        "`/automations/${automationId}/archive`"
+      ],
+      "sourceFiles": [
+        "features/automations/automation.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/automations/automation.api.ts",
+          "line": 57,
+          "caller": "setAutomationLifecycleV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/automations/:id/archive",
+      "notes": "Archive automation"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/automations/:automationId/pause",
+      "originalPathExpressions": [
+        "`/automations/${automationId}/pause`"
+      ],
+      "sourceFiles": [
+        "features/automations/automation.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/automations/automation.api.ts",
+          "line": 57,
+          "caller": "setAutomationLifecycleV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/automations/:id/pause",
+      "notes": "Pause automation"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/automations/:automationId/test",
+      "originalPathExpressions": [
+        "`/automations/${automationId}/test`"
+      ],
+      "sourceFiles": [
+        "features/automations/automation.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/automations/automation.api.ts",
+          "line": 71,
+          "caller": "testAutomationV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/automations/:id/test",
+      "notes": "Test automation dry run"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/automations/runs",
+      "originalPathExpressions": [
+        "`/automations/runs`"
+      ],
+      "sourceFiles": [
+        "features/automations/automation.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/automations/automation.api.ts",
+          "line": 82,
+          "caller": "listAutomationRunsV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/automations/runs",
+      "notes": "List automation runs"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/automations/runs/:runId",
+      "originalPathExpressions": [
+        "`/automations/runs/${runId}`"
+      ],
+      "sourceFiles": [
+        "features/automations/automation.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/automations/automation.api.ts",
+          "line": 90,
+          "caller": "getAutomationRunV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/automations/runs/:runId",
+      "notes": "Get automation run details"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/campaigns",
+      "originalPathExpressions": [
+        "`/campaigns`"
+      ],
+      "sourceFiles": [
+        "features/campaigns/campaign.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/campaigns/campaign.api.ts",
+          "line": 11,
+          "caller": "createCampaign, createCampaignDraft"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/campaigns",
+      "notes": "Create campaign"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/campaigns",
+      "originalPathExpressions": [
+        "`/campaigns`"
+      ],
+      "sourceFiles": [
+        "features/campaigns/campaign.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/campaigns/campaign.api.ts",
+          "line": 16,
+          "caller": "getCampaigns"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/campaigns",
+      "notes": "List campaigns"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/campaigns/:id",
+      "originalPathExpressions": [
+        "`/campaigns/${id}`"
+      ],
+      "sourceFiles": [
+        "features/campaigns/campaign.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/campaigns/campaign.api.ts",
+          "line": 21,
+          "caller": "getCampaignById"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/campaigns/:id",
+      "notes": "Get campaign detail"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/campaigns/:id/status",
+      "originalPathExpressions": [
+        "`/campaigns/${id}/status`"
+      ],
+      "sourceFiles": [
+        "features/campaigns/campaign.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/campaigns/campaign.api.ts",
+          "line": 26,
+          "caller": "updateCampaignStatus"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/campaigns/:id/status",
+      "notes": "Pause/resume/cancel campaign"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/campaigns/:id/validate",
+      "originalPathExpressions": [
+        "`/campaigns/${id}/validate`"
+      ],
+      "sourceFiles": [
+        "features/campaigns/campaign.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/campaigns/campaign.api.ts",
+          "line": 31,
+          "caller": "validateCampaign"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/campaigns/:id/validate",
+      "notes": "Validate campaign"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/campaigns/:id/recipients",
+      "originalPathExpressions": [
+        "`/campaigns/${id}/recipients`"
+      ],
+      "sourceFiles": [
+        "features/campaigns/campaign.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/campaigns/campaign.api.ts",
+          "line": 39,
+          "caller": "getCampaignRecipients"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/campaigns/:id/recipients",
+      "notes": "List campaign recipients"
+    },
+    {
+      "method": "DELETE",
+      "normalizedPath": "/api/v1/campaigns/:id",
+      "originalPathExpressions": [
+        "`/campaigns/${id}`"
+      ],
+      "sourceFiles": [
+        "features/campaigns/campaign.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/campaigns/campaign.api.ts",
+          "line": 44,
+          "caller": "deleteCampaign"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "DELETE /api/v1/campaigns/:id",
+      "notes": "Delete draft campaign"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/campaigns/:id/export",
+      "originalPathExpressions": [
+        "`/campaigns/${id}/export`"
+      ],
+      "sourceFiles": [
+        "features/campaigns/campaign.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/campaigns/campaign.api.ts",
+          "line": 49,
+          "caller": "exportCampaignCSV"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/campaigns/:id/export",
+      "notes": "Export campaign CSV"
+    },
+    {
+      "method": "PATCH",
+      "normalizedPath": "/api/v1/campaigns/:id/draft",
+      "originalPathExpressions": [
+        "`/campaigns/${id}/draft`"
+      ],
+      "sourceFiles": [
+        "features/campaigns/campaign.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/campaigns/campaign.api.ts",
+          "line": 61,
+          "caller": "updateCampaignDraft"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "PATCH /api/v1/campaigns/:id/draft",
+      "notes": "Update draft campaign"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/contacts",
+      "originalPathExpressions": [
+        "`/contacts`"
+      ],
+      "sourceFiles": [
+        "features/contacts/contact.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/contacts/contact.api.ts",
+          "line": 6,
+          "caller": "listContactsV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/contacts",
+      "notes": "List contacts"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/contacts",
+      "originalPathExpressions": [
+        "`/contacts`"
+      ],
+      "sourceFiles": [
+        "features/contacts/contact.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/contacts/contact.api.ts",
+          "line": 22,
+          "caller": "createContactV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/contacts",
+      "notes": "Create contact"
+    },
+    {
+      "method": "PATCH",
+      "normalizedPath": "/api/v1/contacts/:contactId",
+      "originalPathExpressions": [
+        "`/contacts/${contactId}`"
+      ],
+      "sourceFiles": [
+        "features/contacts/contact.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/contacts/contact.api.ts",
+          "line": 40,
+          "caller": "patchContactV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "PATCH /api/v1/contacts/:id",
+      "notes": "Update contact"
+    },
+    {
+      "method": "DELETE",
+      "normalizedPath": "/api/v1/contacts/:contactId",
+      "originalPathExpressions": [
+        "`/contacts/${contactId}`"
+      ],
+      "sourceFiles": [
+        "features/contacts/contact.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/contacts/contact.api.ts",
+          "line": 45,
+          "caller": "deleteContactV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "DELETE /api/v1/contacts/:id",
+      "notes": "Delete contact"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/contacts/:contactId/labels",
+      "originalPathExpressions": [
+        "`/contacts/${contactId}/labels`"
+      ],
+      "sourceFiles": [
+        "features/contacts/contact.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/contacts/contact.api.ts",
+          "line": 50,
+          "caller": "addContactLabelV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/contacts/:id/labels",
+      "notes": "Add contact label"
+    },
+    {
+      "method": "DELETE",
+      "normalizedPath": "/api/v1/contacts/:contactId/labels/:labelId",
+      "originalPathExpressions": [
+        "`/contacts/${contactId}/labels/${labelId}`"
+      ],
+      "sourceFiles": [
+        "features/contacts/contact.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/contacts/contact.api.ts",
+          "line": 57,
+          "caller": "removeContactLabelV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "DELETE /api/v1/contacts/:id/labels/:labelId",
+      "notes": "Remove contact label"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/contacts/export",
+      "originalPathExpressions": [
+        "`/contacts/export`"
+      ],
+      "sourceFiles": [
+        "features/contacts/contact.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/contacts/contact.api.ts",
+          "line": 66,
+          "caller": "exportContactsV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/contacts/export",
+      "notes": "Export contacts"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/contacts/duplicates",
+      "originalPathExpressions": [
+        "`/contacts/duplicates`"
+      ],
+      "sourceFiles": [
+        "features/contacts/contact.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/contacts/contact.api.ts",
+          "line": 77,
+          "caller": "getContactDuplicatesV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/contacts/duplicates",
+      "notes": "Find duplicates"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/contacts/merge",
+      "originalPathExpressions": [
+        "`/contacts/merge`"
+      ],
+      "sourceFiles": [
+        "features/contacts/contact.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/contacts/contact.api.ts",
+          "line": 97,
+          "caller": "mergeContactsV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/contacts/merge",
+      "notes": "Merge contacts"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/contact-imports/upload",
+      "originalPathExpressions": [
+        "`/contact-imports/upload`"
+      ],
+      "sourceFiles": [
+        "features/contacts/contact.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/contacts/contact.api.ts",
+          "line": 104,
+          "caller": "uploadContactImportV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/contact-imports/upload",
+      "notes": "Upload contact CSV"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/contact-imports/:importId/validate",
+      "originalPathExpressions": [
+        "`/contact-imports/${importId}/validate`"
+      ],
+      "sourceFiles": [
+        "features/contacts/contact.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/contacts/contact.api.ts",
+          "line": 113,
+          "caller": "validateContactImportV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/contact-imports/:id/validate",
+      "notes": "Validate column mapping"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/contact-imports/:importId/commit",
+      "originalPathExpressions": [
+        "`/contact-imports/${importId}/commit`"
+      ],
+      "sourceFiles": [
+        "features/contacts/contact.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/contacts/contact.api.ts",
+          "line": 118,
+          "caller": "commitContactImportV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/contact-imports/:id/commit",
+      "notes": "Commit import job"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/contact-imports/:importId",
+      "originalPathExpressions": [
+        "`/contact-imports/${importId}`"
+      ],
+      "sourceFiles": [
+        "features/contacts/contact.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/contacts/contact.api.ts",
+          "line": 123,
+          "caller": "getContactImportV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/contact-imports/:id",
+      "notes": "Get import detail"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/contact-imports",
+      "originalPathExpressions": [
+        "`/contact-imports`"
+      ],
+      "sourceFiles": [
+        "features/contacts/contact.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/contacts/contact.api.ts",
+          "line": 128,
+          "caller": "listContactImportsV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/contact-imports",
+      "notes": "List contact import jobs"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/conversations",
+      "originalPathExpressions": [
+        "`/conversations`"
+      ],
+      "sourceFiles": [
+        "features/conversations/conversation.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/conversations/conversation.api.ts",
+          "line": 6,
+          "caller": "listConversationsV1, getConversations"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/conversations",
+      "notes": "List conversations"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/conversations/:conversationId",
+      "originalPathExpressions": [
+        "`/conversations/${conversationId}`"
+      ],
+      "sourceFiles": [
+        "features/conversations/conversations.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/conversations/conversations.api.ts",
+          "line": 34,
+          "caller": "getConversationDetail"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/conversations/:id",
+      "notes": "Get conversation detail"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/conversations/reply",
+      "originalPathExpressions": [
+        "`/conversations/reply`"
+      ],
+      "sourceFiles": [
+        "features/conversations/conversations.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/conversations/conversations.api.ts",
+          "line": 51,
+          "caller": "sendReply"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/conversations/reply",
+      "notes": "Send agent reply"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/conversations/:conversationId/read",
+      "originalPathExpressions": [
+        "`/conversations/${conversationId}/read`"
+      ],
+      "sourceFiles": [
+        "features/conversations/conversations.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/conversations/conversations.api.ts",
+          "line": 59,
+          "caller": "clearUnread"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/conversations/:id/read",
+      "notes": "Clear conversation unread"
+    },
+    {
+      "method": "PUT",
+      "normalizedPath": "/api/v1/conversations/:conversationId/labels",
+      "originalPathExpressions": [
+        "`/conversations/${conversationId}/labels`"
+      ],
+      "sourceFiles": [
+        "features/conversations/conversations.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/conversations/conversations.api.ts",
+          "line": 73,
+          "caller": "updateLabels"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "PUT /api/v1/conversations/:id/labels",
+      "notes": "Update conversation labels"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/conversations/:conversationId/notes",
+      "originalPathExpressions": [
+        "`/conversations/${conversationId}/notes`"
+      ],
+      "sourceFiles": [
+        "features/conversations/conversations.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/conversations/conversations.api.ts",
+          "line": 81,
+          "caller": "addNote"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/conversations/:id/notes",
+      "notes": "Add note to conversation"
+    },
+    {
+      "method": "PATCH",
+      "normalizedPath": "/api/v1/conversations/:conversationId/notes/:noteId",
+      "originalPathExpressions": [
+        "`/conversations/${conversationId}/notes/${noteId}`"
+      ],
+      "sourceFiles": [
+        "features/conversations/conversations.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/conversations/conversations.api.ts",
+          "line": 93,
+          "caller": "updateNote"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "PATCH /api/v1/conversations/:id/notes/:noteId",
+      "notes": "Update conversation note"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/inbox",
+      "originalPathExpressions": [
+        "`/inbox`"
+      ],
+      "sourceFiles": [
+        "features/inbox/inbox.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/inbox/inbox.api.ts",
+          "line": 9,
+          "caller": "listInboxThreadsV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/inbox",
+      "notes": "List inbox threads"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/inbox/:conversationId",
+      "originalPathExpressions": [
+        "`/inbox/${conversationId}`"
+      ],
+      "sourceFiles": [
+        "features/inbox/inbox.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/inbox/inbox.api.ts",
+          "line": 24,
+          "caller": "getInboxThreadDetailV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/inbox/:conversationId",
+      "notes": "Get inbox thread detail"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/inbox/:conversationId/archive",
+      "originalPathExpressions": [
+        "`/inbox/${conversationId}/archive`"
+      ],
+      "sourceFiles": [
+        "features/inbox/inbox.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/inbox/inbox.api.ts",
+          "line": 46,
+          "caller": "updateInboxThreadStateV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/inbox/:conversationId/archive",
+      "notes": "Archive inbox thread"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/inbox/:conversationId/pin",
+      "originalPathExpressions": [
+        "`/inbox/${conversationId}/pin`"
+      ],
+      "sourceFiles": [
+        "features/inbox/inbox.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/inbox/inbox.api.ts",
+          "line": 46,
+          "caller": "updateInboxThreadStateV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/inbox/:conversationId/pin",
+      "notes": "Pin inbox thread"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/inbox/:conversationId/read",
+      "originalPathExpressions": [
+        "`/inbox/${conversationId}/read`"
+      ],
+      "sourceFiles": [
+        "features/inbox/inbox.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/inbox/inbox.api.ts",
+          "line": 46,
+          "caller": "updateInboxThreadStateV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/inbox/:conversationId/read",
+      "notes": "Read inbox thread"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/inbox/:conversationId/star",
+      "originalPathExpressions": [
+        "`/inbox/${conversationId}/star`"
+      ],
+      "sourceFiles": [
+        "features/inbox/inbox.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/inbox/inbox.api.ts",
+          "line": 46,
+          "caller": "updateInboxThreadStateV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/inbox/:conversationId/star",
+      "notes": "Star inbox thread"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/inbox/:conversationId/unarchive",
+      "originalPathExpressions": [
+        "`/inbox/${conversationId}/unarchive`"
+      ],
+      "sourceFiles": [
+        "features/inbox/inbox.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/inbox/inbox.api.ts",
+          "line": 46,
+          "caller": "updateInboxThreadStateV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/inbox/:conversationId/unarchive",
+      "notes": "Unarchive inbox thread"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/inbox/:conversationId/unpin",
+      "originalPathExpressions": [
+        "`/inbox/${conversationId}/unpin`"
+      ],
+      "sourceFiles": [
+        "features/inbox/inbox.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/inbox/inbox.api.ts",
+          "line": 46,
+          "caller": "updateInboxThreadStateV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/inbox/:conversationId/unpin",
+      "notes": "Unpin inbox thread"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/inbox/:conversationId/unstar",
+      "originalPathExpressions": [
+        "`/inbox/${conversationId}/unstar`"
+      ],
+      "sourceFiles": [
+        "features/inbox/inbox.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/inbox/inbox.api.ts",
+          "line": 46,
+          "caller": "updateInboxThreadStateV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/inbox/:conversationId/unstar",
+      "notes": "Unstar inbox thread"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/inbox/:conversationId/sync-history",
+      "originalPathExpressions": [
+        "`/inbox/${conversationId}/sync-history`"
+      ],
+      "sourceFiles": [
+        "features/inbox/inbox.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/inbox/inbox.api.ts",
+          "line": 51,
+          "caller": "syncInboxThreadHistoryV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/inbox/:conversationId/sync-history",
+      "notes": "Sync thread history with Meta API"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/labels",
+      "originalPathExpressions": [
+        "`/labels`"
+      ],
+      "sourceFiles": [
+        "features/labels/label.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/labels/label.api.ts",
+          "line": 6,
+          "caller": "listLabelsV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/labels",
+      "notes": "List labels"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/labels",
+      "originalPathExpressions": [
+        "`/labels`"
+      ],
+      "sourceFiles": [
+        "features/labels/label.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/labels/label.api.ts",
+          "line": 18,
+          "caller": "createLabelV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/labels",
+      "notes": "Create label"
+    },
+    {
+      "method": "PATCH",
+      "normalizedPath": "/api/v1/labels/:labelId",
+      "originalPathExpressions": [
+        "`/labels/${labelId}`"
+      ],
+      "sourceFiles": [
+        "features/labels/label.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/labels/label.api.ts",
+          "line": 31,
+          "caller": "patchLabelV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "PATCH /api/v1/labels/:id",
+      "notes": "Update label"
+    },
+    {
+      "method": "DELETE",
+      "normalizedPath": "/api/v1/labels/:labelId",
+      "originalPathExpressions": [
+        "`/labels/${labelId}`"
+      ],
+      "sourceFiles": [
+        "features/labels/label.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/labels/label.api.ts",
+          "line": 36,
+          "caller": "deleteLabelV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "DELETE /api/v1/labels/:id",
+      "notes": "Delete label"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/logs/api",
+      "originalPathExpressions": [
+        "`/logs/api`"
+      ],
+      "sourceFiles": [
+        "features/logs/logs.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/logs/logs.api.ts",
+          "line": 27,
+          "caller": "getApiLogsV1, exportApiLogsV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/logs/api",
+      "notes": "Get API logs"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/logs/webhooks",
+      "originalPathExpressions": [
+        "`/logs/webhooks`"
+      ],
+      "sourceFiles": [
+        "features/logs/logs.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/logs/logs.api.ts",
+          "line": 39,
+          "caller": "getWebhookLogsV1, exportWebhookLogsV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/logs/webhooks",
+      "notes": "Get webhook logs"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/media",
+      "originalPathExpressions": [
+        "`/media`"
+      ],
+      "sourceFiles": [
+        "features/media/media.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/media/media.api.ts",
+          "line": 13,
+          "caller": "listMedia, getReplyMedia, getMessageStudioMedia"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/media",
+      "notes": "List media assets"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/media/:id",
+      "originalPathExpressions": [
+        "`/media/${id}`"
+      ],
+      "sourceFiles": [
+        "features/media/media.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/media/media.api.ts",
+          "line": 25,
+          "caller": "getMediaDetail"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/media/:id",
+      "notes": "Get media detail"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/media/upload",
+      "originalPathExpressions": [
+        "`/media/upload`"
+      ],
+      "sourceFiles": [
+        "features/media/media.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/media/media.api.ts",
+          "line": 35,
+          "caller": "uploadMedia, uploadTemplateHeaderMedia"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/media/upload",
+      "notes": "Upload media asset"
+    },
+    {
+      "method": "DELETE",
+      "normalizedPath": "/api/v1/media/:id",
+      "originalPathExpressions": [
+        "`/media/${id}`"
+      ],
+      "sourceFiles": [
+        "features/media/media.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/media/media.api.ts",
+          "line": 44,
+          "caller": "deleteMedia"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "DELETE /api/v1/media/:id",
+      "notes": "Delete media asset"
+    },
+    {
+      "method": "PATCH",
+      "normalizedPath": "/api/v1/media/:id",
+      "originalPathExpressions": [
+        "`/media/${payload.id}`"
+      ],
+      "sourceFiles": [
+        "features/media/media.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/media/media.api.ts",
+          "line": 50,
+          "caller": "updateMediaMetadata"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "PATCH /api/v1/media/:id",
+      "notes": "Update media metadata"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/messages",
+      "originalPathExpressions": [
+        "`/messages`"
+      ],
+      "sourceFiles": [
+        "features/messages/message.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/messages/message.api.ts",
+          "line": 6,
+          "caller": "listMessagesV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/messages",
+      "notes": "List messages"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/messages/text",
+      "originalPathExpressions": [
+        "`/messages/text`"
+      ],
+      "sourceFiles": [
+        "features/messages/message.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/messages/message.api.ts",
+          "line": 16,
+          "caller": "sendTextMessageV1, useMessageStudioOrchestration"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/messages/text",
+      "notes": "Send text message"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/messages/:messageId/media",
+      "originalPathExpressions": [
+        "`/messages/${messageId}/media`"
+      ],
+      "sourceFiles": [
+        "features/inbox/inbox.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/inbox/inbox.api.ts",
+          "line": 63,
+          "caller": "fetchMessageMediaBlobV1, getMessageMediaUrlV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/messages/:id/media",
+      "notes": "Fetch message media attachment blob"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/messages/read",
+      "originalPathExpressions": [
+        "`/messages/read`"
+      ],
+      "sourceFiles": [
+        "features/conversations/conversations.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/conversations/conversations.api.ts",
+          "line": 66,
+          "caller": "markMessageRead"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/messages/read",
+      "notes": "Mark message read"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/messages/template",
+      "originalPathExpressions": [
+        "`/messages/template`"
+      ],
+      "sourceFiles": [
+        "features/message-studio/hooks/useMessageStudioOrchestration.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/message-studio/hooks/useMessageStudioOrchestration.ts",
+          "line": 118,
+          "caller": "sendMessage"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/messages/template",
+      "notes": "Send template message"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/messages/image",
+      "originalPathExpressions": [
+        "`/messages/image`"
+      ],
+      "sourceFiles": [
+        "features/message-studio/hooks/useMessageStudioOrchestration.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/message-studio/hooks/useMessageStudioOrchestration.ts",
+          "line": 138,
+          "caller": "sendMessage"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/messages/image",
+      "notes": "Send image message"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/messages/video",
+      "originalPathExpressions": [
+        "`/messages/video`"
+      ],
+      "sourceFiles": [
+        "features/message-studio/hooks/useMessageStudioOrchestration.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/message-studio/hooks/useMessageStudioOrchestration.ts",
+          "line": 138,
+          "caller": "sendMessage"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/messages/video",
+      "notes": "Send video message"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/messages/audio",
+      "originalPathExpressions": [
+        "`/messages/audio`"
+      ],
+      "sourceFiles": [
+        "features/message-studio/hooks/useMessageStudioOrchestration.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/message-studio/hooks/useMessageStudioOrchestration.ts",
+          "line": 138,
+          "caller": "sendMessage"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/messages/audio",
+      "notes": "Send audio message"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/messages/document",
+      "originalPathExpressions": [
+        "`/messages/document`"
+      ],
+      "sourceFiles": [
+        "features/message-studio/hooks/useMessageStudioOrchestration.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/message-studio/hooks/useMessageStudioOrchestration.ts",
+          "line": 138,
+          "caller": "sendMessage"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/messages/document",
+      "notes": "Send document message"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/messages/sticker",
+      "originalPathExpressions": [
+        "`/messages/sticker`"
+      ],
+      "sourceFiles": [
+        "features/message-studio/hooks/useMessageStudioOrchestration.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/message-studio/hooks/useMessageStudioOrchestration.ts",
+          "line": 138,
+          "caller": "sendMessage"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/messages/sticker",
+      "notes": "Send sticker message"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/messages/location",
+      "originalPathExpressions": [
+        "`/messages/location`"
+      ],
+      "sourceFiles": [
+        "features/message-studio/hooks/useMessageStudioOrchestration.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/message-studio/hooks/useMessageStudioOrchestration.ts",
+          "line": 147,
+          "caller": "sendMessage"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/messages/location",
+      "notes": "Send location message"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/messages/contact",
+      "originalPathExpressions": [
+        "`/messages/contact`"
+      ],
+      "sourceFiles": [
+        "features/message-studio/hooks/useMessageStudioOrchestration.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/message-studio/hooks/useMessageStudioOrchestration.ts",
+          "line": 156,
+          "caller": "sendMessage"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/messages/contact",
+      "notes": "Send contact card message"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/messages/button",
+      "originalPathExpressions": [
+        "`/messages/button`"
+      ],
+      "sourceFiles": [
+        "features/message-studio/hooks/useMessageStudioOrchestration.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/message-studio/hooks/useMessageStudioOrchestration.ts",
+          "line": 176,
+          "caller": "sendMessage"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/messages/button",
+      "notes": "Send reply button message"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/messages/list",
+      "originalPathExpressions": [
+        "`/messages/list`"
+      ],
+      "sourceFiles": [
+        "features/message-studio/hooks/useMessageStudioOrchestration.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/message-studio/hooks/useMessageStudioOrchestration.ts",
+          "line": 191,
+          "caller": "sendMessage"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/messages/list",
+      "notes": "Send list picker message"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/messages/reaction",
+      "originalPathExpressions": [
+        "`/messages/reaction`"
+      ],
+      "sourceFiles": [
+        "features/message-studio/hooks/useMessageStudioOrchestration.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/message-studio/hooks/useMessageStudioOrchestration.ts",
+          "line": 206,
+          "caller": "sendMessage"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/messages/reaction",
+      "notes": "Send emoji reaction message"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/messages/cta-url",
+      "originalPathExpressions": [
+        "`/messages/cta-url`"
+      ],
+      "sourceFiles": [
+        "features/message-studio/hooks/useMessageStudioOrchestration.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/message-studio/hooks/useMessageStudioOrchestration.ts",
+          "line": 213,
+          "caller": "sendMessage"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/messages/cta-url",
+      "notes": "Send CTA URL message"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/messages/location-request",
+      "originalPathExpressions": [
+        "`/messages/location-request`"
+      ],
+      "sourceFiles": [
+        "features/message-studio/hooks/useMessageStudioOrchestration.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/message-studio/hooks/useMessageStudioOrchestration.ts",
+          "line": 223,
+          "caller": "sendMessage"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/messages/location-request",
+      "notes": "Send location request message"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/messages/typing-indicator",
+      "originalPathExpressions": [
+        "`/messages/typing-indicator`"
+      ],
+      "sourceFiles": [
+        "features/message-studio/hooks/useMessageStudioOrchestration.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/message-studio/hooks/useMessageStudioOrchestration.ts",
+          "line": 229,
+          "caller": "sendMessage"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/messages/typing-indicator",
+      "notes": "Send typing indicator signal"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/contacts/:contactId/notes",
+      "originalPathExpressions": [
+        "`/contacts/${contactId}/notes`"
+      ],
+      "sourceFiles": [
+        "features/notes/note.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/notes/note.api.ts",
+          "line": 6,
+          "caller": "listNotesV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/contacts/:contactId/notes",
+      "notes": "List contact notes"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/contacts/:contactId/notes",
+      "originalPathExpressions": [
+        "`/contacts/${contactId}/notes`"
+      ],
+      "sourceFiles": [
+        "features/notes/note.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/notes/note.api.ts",
+          "line": 18,
+          "caller": "createNoteV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/contacts/:contactId/notes",
+      "notes": "Create contact note"
+    },
+    {
+      "method": "PATCH",
+      "normalizedPath": "/api/v1/notes/:noteId",
+      "originalPathExpressions": [
+        "`/notes/${noteId}`"
+      ],
+      "sourceFiles": [
+        "features/notes/note.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/notes/note.api.ts",
+          "line": 27,
+          "caller": "patchNoteV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "PATCH /api/v1/notes/:id",
+      "notes": "Edit note"
+    },
+    {
+      "method": "DELETE",
+      "normalizedPath": "/api/v1/notes/:noteId",
+      "originalPathExpressions": [
+        "`/notes/${noteId}`"
+      ],
+      "sourceFiles": [
+        "features/notes/note.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/notes/note.api.ts",
+          "line": 32,
+          "caller": "deleteNoteV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "DELETE /api/v1/notes/:id",
+      "notes": "Delete note"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/notes/:noteId/pin",
+      "originalPathExpressions": [
+        "`/notes/${noteId}/pin`"
+      ],
+      "sourceFiles": [
+        "features/notes/note.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/notes/note.api.ts",
+          "line": 37,
+          "caller": "pinNoteV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/notes/:id/pin",
+      "notes": "Pin note"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/notes/:noteId/unpin",
+      "originalPathExpressions": [
+        "`/notes/${noteId}/unpin`"
+      ],
+      "sourceFiles": [
+        "features/notes/note.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/notes/note.api.ts",
+          "line": 42,
+          "caller": "unpinNoteV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/notes/:id/unpin",
+      "notes": "Unpin note"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/quick-replies",
+      "originalPathExpressions": [
+        "`/quick-replies`"
+      ],
+      "sourceFiles": [
+        "features/quick-replies/quick-reply.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/quick-replies/quick-reply.api.ts",
+          "line": 6,
+          "caller": "listQuickRepliesV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/quick-replies",
+      "notes": "List quick replies"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/quick-replies",
+      "originalPathExpressions": [
+        "`/quick-replies`"
+      ],
+      "sourceFiles": [
+        "features/quick-replies/quick-reply.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/quick-replies/quick-reply.api.ts",
+          "line": 17,
+          "caller": "createQuickReplyV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/quick-replies",
+      "notes": "Create quick reply"
+    },
+    {
+      "method": "PATCH",
+      "normalizedPath": "/api/v1/quick-replies/:quickReplyId",
+      "originalPathExpressions": [
+        "`/quick-replies/${quickReplyId}`"
+      ],
+      "sourceFiles": [
+        "features/quick-replies/quick-reply.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/quick-replies/quick-reply.api.ts",
+          "line": 32,
+          "caller": "patchQuickReplyV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "PATCH /api/v1/quick-replies/:id",
+      "notes": "Update quick reply"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/quotas",
+      "originalPathExpressions": [
+        "`/quotas`"
+      ],
+      "sourceFiles": [
+        "features/quotas/quota.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/quotas/quota.api.ts",
+          "line": 11,
+          "caller": "getQuota"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/quotas",
+      "notes": "Get messaging quota"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/quotas/forecast",
+      "originalPathExpressions": [
+        "`/quotas/forecast`"
+      ],
+      "sourceFiles": [
+        "features/quotas/quota.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/quotas/quota.api.ts",
+          "line": 18,
+          "caller": "getQuotaForecast"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/quotas/forecast",
+      "notes": "Get quota forecast"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/scheduled-messages",
+      "originalPathExpressions": [
+        "`/scheduled-messages`"
+      ],
+      "sourceFiles": [
+        "features/scheduled-messages/scheduled-message.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/scheduled-messages/scheduled-message.api.ts",
+          "line": 9,
+          "caller": "listScheduledMessagesV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/scheduled-messages",
+      "notes": "List scheduled messages"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/scheduled-messages",
+      "originalPathExpressions": [
+        "`/scheduled-messages`"
+      ],
+      "sourceFiles": [
+        "features/scheduled-messages/scheduled-message.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/scheduled-messages/scheduled-message.api.ts",
+          "line": 26,
+          "caller": "createScheduledMessageV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/scheduled-messages",
+      "notes": "Schedule message"
+    },
+    {
+      "method": "PATCH",
+      "normalizedPath": "/api/v1/scheduled-messages/:scheduledMessageId",
+      "originalPathExpressions": [
+        "`/scheduled-messages/${scheduledMessageId}`"
+      ],
+      "sourceFiles": [
+        "features/scheduled-messages/scheduled-message.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/scheduled-messages/scheduled-message.api.ts",
+          "line": 42,
+          "caller": "patchScheduledMessageV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "PATCH /api/v1/scheduled-messages/:id",
+      "notes": "Update scheduled message"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/scheduled-messages/:scheduledMessageId/cancel",
+      "originalPathExpressions": [
+        "`/scheduled-messages/${scheduledMessageId}/cancel`"
+      ],
+      "sourceFiles": [
+        "features/scheduled-messages/scheduled-message.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/scheduled-messages/scheduled-message.api.ts",
+          "line": 53,
+          "caller": "setScheduledMessageLifecycleV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/scheduled-messages/:id/cancel",
+      "notes": "Cancel scheduled message"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/scheduled-messages/:scheduledMessageId/pause",
+      "originalPathExpressions": [
+        "`/scheduled-messages/${scheduledMessageId}/pause`"
+      ],
+      "sourceFiles": [
+        "features/scheduled-messages/scheduled-message.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/scheduled-messages/scheduled-message.api.ts",
+          "line": 53,
+          "caller": "setScheduledMessageLifecycleV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/scheduled-messages/:id/pause",
+      "notes": "Pause scheduled message"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/scheduled-messages/:scheduledMessageId/resume",
+      "originalPathExpressions": [
+        "`/scheduled-messages/${scheduledMessageId}/resume`"
+      ],
+      "sourceFiles": [
+        "features/scheduled-messages/scheduled-message.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/scheduled-messages/scheduled-message.api.ts",
+          "line": 53,
+          "caller": "setScheduledMessageLifecycleV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/scheduled-messages/:id/resume",
+      "notes": "Resume scheduled message"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/scheduled-messages/:scheduledMessageId/retry",
+      "originalPathExpressions": [
+        "`/scheduled-messages/${scheduledMessageId}/retry`"
+      ],
+      "sourceFiles": [
+        "features/scheduled-messages/scheduled-message.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/scheduled-messages/scheduled-message.api.ts",
+          "line": 53,
+          "caller": "setScheduledMessageLifecycleV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/scheduled-messages/:id/retry",
+      "notes": "Retry scheduled message"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/search",
+      "originalPathExpressions": [
+        "`/search`"
+      ],
+      "sourceFiles": [
+        "features/search/search.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/search/search.api.ts",
+          "line": 9,
+          "caller": "getGlobalSearchV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/search",
+      "notes": "Global search"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/search/inbox",
+      "originalPathExpressions": [
+        "`/search/inbox`"
+      ],
+      "sourceFiles": [
+        "features/search/search.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/search/search.api.ts",
+          "line": 16,
+          "caller": "getInboxSearchV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/search/inbox",
+      "notes": "Inbox search"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/dashboard",
+      "originalPathExpressions": [
+        "`/dashboard`"
+      ],
+      "sourceFiles": [
+        "features/search/search.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/search/search.api.ts",
+          "line": 23,
+          "caller": "getDashboardSummaryV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/dashboard",
+      "notes": "Dashboard summary"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/settings",
+      "originalPathExpressions": [
+        "`/settings`"
+      ],
+      "sourceFiles": [
+        "features/settings/settings.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/settings/settings.api.ts",
+          "line": 15,
+          "caller": "getSettings"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/settings",
+      "notes": "Get settings"
+    },
+    {
+      "method": "PUT",
+      "normalizedPath": "/api/v1/settings",
+      "originalPathExpressions": [
+        "`/settings`"
+      ],
+      "sourceFiles": [
+        "features/settings/settings.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/settings/settings.api.ts",
+          "line": 29,
+          "caller": "updateSettings"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "PUT /api/v1/settings",
+      "notes": "Update settings"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/settings/test-connection",
+      "originalPathExpressions": [
+        "`/settings/test-connection`"
+      ],
+      "sourceFiles": [
+        "features/settings/settings.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/settings/settings.api.ts",
+          "line": 34,
+          "caller": "testConnection"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/settings/test-connection",
+      "notes": "Test Meta connection"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/tasks",
+      "originalPathExpressions": [
+        "`/tasks`"
+      ],
+      "sourceFiles": [
+        "features/tasks/task.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/tasks/task.api.ts",
+          "line": 6,
+          "caller": "listTasksV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/tasks",
+      "notes": "List tasks"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/tasks",
+      "originalPathExpressions": [
+        "`/tasks`"
+      ],
+      "sourceFiles": [
+        "features/tasks/task.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/tasks/task.api.ts",
+          "line": 22,
+          "caller": "createTaskV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/tasks",
+      "notes": "Create task"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/tasks/:taskId/complete",
+      "originalPathExpressions": [
+        "`/tasks/${taskId}/complete`"
+      ],
+      "sourceFiles": [
+        "features/tasks/task.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/tasks/task.api.ts",
+          "line": 27,
+          "caller": "completeTaskV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/tasks/:id/complete",
+      "notes": "Complete task"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/tasks/:taskId/cancel",
+      "originalPathExpressions": [
+        "`/tasks/${taskId}/cancel`"
+      ],
+      "sourceFiles": [
+        "features/tasks/task.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/tasks/task.api.ts",
+          "line": 32,
+          "caller": "cancelTaskV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/tasks/:id/cancel",
+      "notes": "Cancel task"
+    },
+    {
+      "method": "PATCH",
+      "normalizedPath": "/api/v1/tasks/:taskId",
+      "originalPathExpressions": [
+        "`/tasks/${taskId}`"
+      ],
+      "sourceFiles": [
+        "features/tasks/task.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/tasks/task.api.ts",
+          "line": 46,
+          "caller": "patchTaskV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "PATCH /api/v1/tasks/:id",
+      "notes": "Update task"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/templates",
+      "originalPathExpressions": [
+        "`/templates`"
+      ],
+      "sourceFiles": [
+        "features/templates/templates.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/templates/templates.api.ts",
+          "line": 8,
+          "caller": "getTemplatesV1, getTemplates, getReplyTemplates, getMessageStudioTemplates"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/templates",
+      "notes": "List templates"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/templates/sync",
+      "originalPathExpressions": [
+        "`/templates/sync`"
+      ],
+      "sourceFiles": [
+        "features/templates/templates.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/templates/templates.api.ts",
+          "line": 18,
+          "caller": "syncTemplatesV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/templates/sync",
+      "notes": "Sync templates with Meta"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/webhooks",
+      "originalPathExpressions": [
+        "`/webhooks`"
+      ],
+      "sourceFiles": [
+        "features/webhooks/webhooks.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/webhooks/webhooks.api.ts",
+          "line": 7,
+          "caller": "getWebhooksV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/webhooks",
+      "notes": "Get webhook overview"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/webhooks/test",
+      "originalPathExpressions": [
+        "`/webhooks/test`"
+      ],
+      "sourceFiles": [
+        "features/webhooks/webhooks.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/webhooks/webhooks.api.ts",
+          "line": 12,
+          "caller": "testWebhookV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/webhooks/test",
+      "notes": "Test webhook trigger"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/webhooks/reconcile",
+      "originalPathExpressions": [
+        "`/webhooks/reconcile`"
+      ],
+      "sourceFiles": [
+        "features/webhooks/webhooks.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/webhooks/webhooks.api.ts",
+          "line": 16,
+          "caller": "reconcileWebhookV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/webhooks/reconcile",
+      "notes": "Reconcile webhook subscription"
+    },
+    {
+      "method": "GET",
+      "normalizedPath": "/api/v1/whatsapp/connections",
+      "originalPathExpressions": [
+        "`/whatsapp/connections`"
+      ],
+      "sourceFiles": [
+        "features/whatsapp-connections/whatsapp-connections.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/whatsapp-connections/whatsapp-connections.api.ts",
+          "line": 5,
+          "caller": "getWhatsAppConnections"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "GET /api/v1/whatsapp/connections",
+      "notes": "List WhatsApp connections"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/whatsapp/connections/:connectionId/sync",
+      "originalPathExpressions": [
+        "`/whatsapp/connections/${connectionId}/sync`"
+      ],
+      "sourceFiles": [
+        "features/whatsapp-connections/whatsapp-connections.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/whatsapp-connections/whatsapp-connections.api.ts",
+          "line": 10,
+          "caller": "syncWhatsAppConnection"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/whatsapp/connections/:id/sync",
+      "notes": "Sync WABA connection"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/whatsapp/connections/:connectionId/health",
+      "originalPathExpressions": [
+        "`/whatsapp/connections/${connectionId}/health`"
+      ],
+      "sourceFiles": [
+        "features/whatsapp-connections/whatsapp-connections.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/whatsapp-connections/whatsapp-connections.api.ts",
+          "line": 15,
+          "caller": "checkWhatsAppConnectionHealth"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/whatsapp/connections/:id/health",
+      "notes": "Check connection health"
+    },
+    {
+      "method": "DELETE",
+      "normalizedPath": "/api/v1/whatsapp/connections/:connectionId",
+      "originalPathExpressions": [
+        "`/whatsapp/connections/${connectionId}`"
+      ],
+      "sourceFiles": [
+        "features/whatsapp-connections/whatsapp-connections.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/whatsapp-connections/whatsapp-connections.api.ts",
+          "line": 20,
+          "caller": "disconnectWhatsAppConnection"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "DELETE /api/v1/whatsapp/connections/:id",
+      "notes": "Disconnect WABA connection"
+    },
+    {
+      "method": "POST",
+      "normalizedPath": "/api/v1/whatsapp/connections/embedded-signup/complete",
+      "originalPathExpressions": [
+        "`/whatsapp/connections/embedded-signup/complete`"
+      ],
+      "sourceFiles": [
+        "features/whatsapp-connections/whatsapp-connections.api.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/whatsapp-connections/whatsapp-connections.api.ts",
+          "line": 30,
+          "caller": "completeEmbeddedSignupV1"
+        }
+      ],
+      "client": "v1ApiClient",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "POST /api/v1/whatsapp/connections/embedded-signup/complete",
+      "notes": "Complete Meta embedded signup"
+    },
+    {
+      "method": "WS",
+      "normalizedPath": "/socket.io",
+      "originalPathExpressions": [
+        "`io(realtimeUrl, { path: '/socket.io' })`"
+      ],
+      "sourceFiles": [
+        "features/inbox/inbox.realtime.ts"
+      ],
+      "callSites": [
+        {
+          "file": "features/inbox/inbox.realtime.ts",
+          "line": 59,
+          "caller": "subscribeInboxRealtime, subscribeCampaignRealtime"
+        }
+      ],
+      "client": "socket.io-client",
+      "version": "V1",
+      "usageStatus": "ACTIVE",
+      "backendStatus": "PRESENT_IN_BACKEND",
+      "backendRoute": "WS /socket.io",
+      "notes": "Realtime WebSocket transport for inbox and campaign updates"
+    }
+  ]
+}

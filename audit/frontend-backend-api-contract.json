@@ -1,0 +1,1874 @@
+{
+  "generatedAt": "2026-08-25T20:47:30.517Z",
+  "frontendRepository": "https://github.com/Easesmith-IT/NiWa-frontend.git",
+  "frontendCommitSHA": "b82421702dea157f76def83f23cbf23de9989911",
+  "backendRepository": "https://github.com/Easesmith-IT/NiWa-backend.git",
+  "backendCommitSHA": "de4488bdb0b855fb56877ed3758ab7a4ae361100",
+  "matrix": [
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/contacts/:contactId/activities",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/contacts/:contactId/activities",
+      "controller": "getContactActivitiesV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ActivityRecordV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/ai-agent/settings",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/ai-agent/settings",
+      "controller": "getAISettings",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "BusinessAISettingsModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "PUT",
+      "frontendPath": "/api/v1/ai-agent/settings",
+      "backendMethod": "PUT",
+      "backendPath": "/api/v1/ai-agent/settings",
+      "controller": "updateAISettings",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "BusinessAISettingsModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/ai-agent/agents",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/ai-agent/agents",
+      "controller": "listAgents",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "AIAgentModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/ai-agent/agents",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/ai-agent/agents",
+      "controller": "createAgent",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "AIAgentModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "PUT",
+      "frontendPath": "/api/v1/ai-agent/agents/:id",
+      "backendMethod": "PUT",
+      "backendPath": "/api/v1/ai-agent/agents/:id",
+      "controller": "updateAgent",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "AIAgentModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "DELETE",
+      "frontendPath": "/api/v1/ai-agent/agents/:id",
+      "backendMethod": "DELETE",
+      "backendPath": "/api/v1/ai-agent/agents/:id",
+      "controller": "deleteAgent",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "AIAgentModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/ai-agent/agents/:id/default",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/ai-agent/agents/:id/default",
+      "controller": "setDefaultAgentController",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "AIAgentModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "PATCH",
+      "frontendPath": "/api/v1/conversations/:conversationId/agent",
+      "backendMethod": "PATCH",
+      "backendPath": "/api/v1/conversations/:conversationId/agent",
+      "controller": "transferConversationAgent",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ConversationModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/ai-agent/templates",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/ai-agent/templates",
+      "controller": "getAITemplates",
+      "middleware": [
+        "requireAuth"
+      ],
+      "model": "Static Config",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/ai-agent/templates/:templateId/apply",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/ai-agent/templates/:templateId/apply",
+      "controller": "applyAITemplate",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "BusinessAISettingsModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/ai-agent/test",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/ai-agent/test",
+      "controller": "testAIPromptPlayground",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "AI Orchestrator",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/ai-agent/activity",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/ai-agent/activity",
+      "controller": "getAIActivityLogs",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "AIActivityLogModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/ai-agent/knowledge",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/ai-agent/knowledge",
+      "controller": "listKnowledgeSources",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "KnowledgeSourceModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/ai-agent/knowledge",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/ai-agent/knowledge",
+      "controller": "createKnowledgeSource",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "KnowledgeSourceModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "PATCH",
+      "frontendPath": "/api/v1/ai-agent/knowledge/:id",
+      "backendMethod": "PATCH",
+      "backendPath": "/api/v1/ai-agent/knowledge/:id",
+      "controller": "updateKnowledgeSource",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "KnowledgeSourceModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "PATCH",
+      "frontendPath": "/api/v1/ai-agent/knowledge/:id/status",
+      "backendMethod": "PATCH",
+      "backendPath": "/api/v1/ai-agent/knowledge/:id/status",
+      "controller": "toggleKnowledgeSourceStatus",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "KnowledgeSourceModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "DELETE",
+      "frontendPath": "/api/v1/ai-agent/knowledge/:id",
+      "backendMethod": "DELETE",
+      "backendPath": "/api/v1/ai-agent/knowledge/:id",
+      "controller": "deleteKnowledgeSource",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "KnowledgeSourceModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/ai-agent/knowledge-packs",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/ai-agent/knowledge-packs",
+      "controller": "getKnowledgePacks",
+      "middleware": [
+        "requireAuth"
+      ],
+      "model": "Static Config",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "PATCH",
+      "frontendPath": "/api/v1/conversations/:conversationId/ai-mode",
+      "backendMethod": "PATCH",
+      "backendPath": "/api/v1/conversations/:conversationId/ai-mode",
+      "controller": "updateConversationAIMode",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ConversationModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/auth/login",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/auth/login",
+      "controller": "login",
+      "middleware": [
+        "loginRateLimit"
+      ],
+      "model": "OperatorModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/auth/logout",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/auth/logout",
+      "controller": "logout",
+      "middleware": [],
+      "model": "OperatorModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/auth/refresh",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/auth/refresh",
+      "controller": "refresh",
+      "middleware": [
+        "refreshRateLimit"
+      ],
+      "model": "OperatorModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/auth/profile",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/auth/profile",
+      "controller": "profile",
+      "middleware": [
+        "requireAuth"
+      ],
+      "model": "OperatorModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "PUT",
+      "frontendPath": "/api/v1/auth/profile",
+      "backendMethod": "PUT",
+      "backendPath": "/api/v1/auth/profile",
+      "controller": "updateCurrentProfile",
+      "middleware": [
+        "requireAuth"
+      ],
+      "model": "OperatorModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/auth/change-password",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/auth/change-password",
+      "controller": "changeCurrentPassword",
+      "middleware": [
+        "requireAuth",
+        "passwordRateLimit"
+      ],
+      "model": "OperatorModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/automations",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/automations",
+      "controller": "getAutomationsV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "AutomationModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/automations",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/automations",
+      "controller": "postAutomationV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "AutomationModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "PATCH",
+      "frontendPath": "/api/v1/automations/:automationId",
+      "backendMethod": "PATCH",
+      "backendPath": "/api/v1/automations/:automationId",
+      "controller": "patchAutomationV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "AutomationModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/automations/:automationId/activate",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/automations/:automationId/activate",
+      "controller": "postAutomationActivateV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "AutomationModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/automations/:automationId/archive",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/automations/:automationId/archive",
+      "controller": "postAutomationArchiveV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "AutomationModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/automations/:automationId/pause",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/automations/:automationId/pause",
+      "controller": "postAutomationPauseV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "AutomationModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/automations/:automationId/test",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/automations/:automationId/test",
+      "controller": "postAutomationTestV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "AutomationRunModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/automations/runs",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/automations/runs",
+      "controller": "getAutomationRunsV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "AutomationRunModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/automations/runs/:runId",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/automations/runs/:runId",
+      "controller": "getAutomationRunV1ById",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "AutomationRunModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/campaigns",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/campaigns",
+      "controller": "createCampaign",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspaceMembership"
+      ],
+      "model": "CampaignModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/campaigns",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/campaigns",
+      "controller": "getCampaigns",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspaceMembership"
+      ],
+      "model": "CampaignModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/campaigns/:id",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/campaigns/:id",
+      "controller": "getCampaignById",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspaceMembership"
+      ],
+      "model": "CampaignModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/campaigns/:id/status",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/campaigns/:id/status",
+      "controller": "updateCampaignStatus",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspaceMembership"
+      ],
+      "model": "CampaignModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/campaigns/:id/validate",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/campaigns/:id/validate",
+      "controller": "validateCampaign",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspaceMembership"
+      ],
+      "model": "CampaignModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/campaigns/:id/recipients",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/campaigns/:id/recipients",
+      "controller": "getCampaignRecipients",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspaceMembership"
+      ],
+      "model": "CampaignRecipientModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "DELETE",
+      "frontendPath": "/api/v1/campaigns/:id",
+      "backendMethod": "DELETE",
+      "backendPath": "/api/v1/campaigns/:id",
+      "controller": "deleteCampaign",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspaceMembership"
+      ],
+      "model": "CampaignModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/campaigns/:id/export",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/campaigns/:id/export",
+      "controller": "exportCampaignRecipients",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspaceMembership"
+      ],
+      "model": "CampaignRecipientModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "PATCH",
+      "frontendPath": "/api/v1/campaigns/:id/draft",
+      "backendMethod": "PATCH",
+      "backendPath": "/api/v1/campaigns/:id/draft",
+      "controller": "updateDraftCampaign",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspaceMembership"
+      ],
+      "model": "CampaignModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/contacts",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/contacts",
+      "controller": "getContactsV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ContactModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/contacts",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/contacts",
+      "controller": "postContactV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ContactModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "PATCH",
+      "frontendPath": "/api/v1/contacts/:contactId",
+      "backendMethod": "PATCH",
+      "backendPath": "/api/v1/contacts/:contactId",
+      "controller": "patchContactV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ContactModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "DELETE",
+      "frontendPath": "/api/v1/contacts/:contactId",
+      "backendMethod": "DELETE",
+      "backendPath": "/api/v1/contacts/:contactId",
+      "controller": "deleteContactRouteV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ContactModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/contacts/:contactId/labels",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/contacts/:contactId/labels",
+      "controller": "postContactLabelV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ContactModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "DELETE",
+      "frontendPath": "/api/v1/contacts/:contactId/labels/:labelId",
+      "backendMethod": "DELETE",
+      "backendPath": "/api/v1/contacts/:contactId/labels/:labelId",
+      "controller": "deleteContactLabelRouteV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ContactModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/contacts/export",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/contacts/export",
+      "controller": "getContactsExportV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ContactModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/contacts/duplicates",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/contacts/duplicates",
+      "controller": "getContactDuplicatesV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ContactModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/contacts/merge",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/contacts/merge",
+      "controller": "postContactMergeV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ContactModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/contact-imports/upload",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/contact-imports/upload",
+      "controller": "uploadFile",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace",
+        "multer"
+      ],
+      "model": "ContactImportModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/contact-imports/:importId/validate",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/contact-imports/:importId/validate",
+      "controller": "validateImport",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ContactImportModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/contact-imports/:importId/commit",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/contact-imports/:importId/commit",
+      "controller": "commitImport",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ContactImportModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/contact-imports/:importId",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/contact-imports/:importId",
+      "controller": "getImport",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ContactImportModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/contact-imports",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/contact-imports",
+      "controller": "getImportsList",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ContactImportModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/conversations",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/conversations",
+      "controller": "getConversationsV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ConversationModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/conversations/:conversationId",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/conversations/:conversationId",
+      "controller": "getConversationV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ConversationModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/conversations/reply",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/conversations/reply",
+      "controller": "postConversationReply",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "MessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/conversations/:conversationId/read",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/conversations/:conversationId/read",
+      "controller": "postConversationReadV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ConversationModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "PUT",
+      "frontendPath": "/api/v1/conversations/:conversationId/labels",
+      "backendMethod": "PUT",
+      "backendPath": "/api/v1/conversations/:conversationId/labels",
+      "controller": "putConversationLabels",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ConversationModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/conversations/:conversationId/notes",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/conversations/:conversationId/notes",
+      "controller": "postConversationNote",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "NoteModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "PATCH",
+      "frontendPath": "/api/v1/conversations/:conversationId/notes/:noteId",
+      "backendMethod": "PATCH",
+      "backendPath": "/api/v1/conversations/:conversationId/notes/:noteId",
+      "controller": "patchConversationNote",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "NoteModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/inbox",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/inbox",
+      "controller": "getInboxThreadsV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ConversationModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/inbox/:conversationId",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/inbox/:conversationId",
+      "controller": "getInboxThreadV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ConversationModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/inbox/:conversationId/archive",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/inbox/:conversationId/archive",
+      "controller": "postInboxThreadArchiveV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ConversationModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/inbox/:conversationId/pin",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/inbox/:conversationId/pin",
+      "controller": "postInboxThreadPinV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ConversationModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/inbox/:conversationId/read",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/inbox/:conversationId/read",
+      "controller": "postInboxThreadReadV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ConversationModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/inbox/:conversationId/star",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/inbox/:conversationId/star",
+      "controller": "postInboxThreadStarV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ConversationModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/inbox/:conversationId/unarchive",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/inbox/:conversationId/unarchive",
+      "controller": "postInboxThreadUnarchiveV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ConversationModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/inbox/:conversationId/unpin",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/inbox/:conversationId/unpin",
+      "controller": "postInboxThreadUnpinV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ConversationModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/inbox/:conversationId/unstar",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/inbox/:conversationId/unstar",
+      "controller": "postInboxThreadUnstarV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ConversationModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/inbox/:conversationId/sync-history",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/inbox/:conversationId/sync-history",
+      "controller": "postInboxThreadSyncHistoryV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "MessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/labels",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/labels",
+      "controller": "getLabelsV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "LabelModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/labels",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/labels",
+      "controller": "postLabelV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "LabelModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "PATCH",
+      "frontendPath": "/api/v1/labels/:labelId",
+      "backendMethod": "PATCH",
+      "backendPath": "/api/v1/labels/:labelId",
+      "controller": "patchLabelV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "LabelModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "DELETE",
+      "frontendPath": "/api/v1/labels/:labelId",
+      "backendMethod": "DELETE",
+      "backendPath": "/api/v1/labels/:labelId",
+      "controller": "deleteLabelRouteV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "LabelModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/logs/api",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/logs/api",
+      "controller": "getApiLogs",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ApiLogModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/logs/webhooks",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/logs/webhooks",
+      "controller": "getWebhookLogs",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "WebhookLogModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/media",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/media",
+      "controller": "getMedia",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "MediaModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/media/:id",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/media/:id",
+      "controller": "getMediaDetail",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "MediaModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/media/upload",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/media/upload",
+      "controller": "postMediaUpload",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace",
+        "multer"
+      ],
+      "model": "MediaModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "DELETE",
+      "frontendPath": "/api/v1/media/:id",
+      "backendMethod": "DELETE",
+      "backendPath": "/api/v1/media/:id",
+      "controller": "removeMedia",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "MediaModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "PATCH",
+      "frontendPath": "/api/v1/media/:id",
+      "backendMethod": "PATCH",
+      "backendPath": "/api/v1/media/:id",
+      "controller": "patchMediaMetadata",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "MediaModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/messages",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/messages",
+      "controller": "getMessagesV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "MessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/messages/text",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/messages/text",
+      "controller": "postTextMessageV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "MessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/messages/:messageId/media",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/messages/:messageId/media",
+      "controller": "getMessageMediaV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "MessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/messages/read",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/messages/read",
+      "controller": "postReadMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "MessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/messages/template",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/messages/template",
+      "controller": "postTemplateMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "MessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/messages/image",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/messages/image",
+      "controller": "postMediaMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "MessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/messages/video",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/messages/video",
+      "controller": "postMediaMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "MessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/messages/audio",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/messages/audio",
+      "controller": "postMediaMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "MessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/messages/document",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/messages/document",
+      "controller": "postMediaMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "MessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/messages/sticker",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/messages/sticker",
+      "controller": "postMediaMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "MessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/messages/location",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/messages/location",
+      "controller": "postLocationMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "MessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/messages/contact",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/messages/contact",
+      "controller": "postContactMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "MessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/messages/button",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/messages/button",
+      "controller": "postButtonMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "MessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/messages/list",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/messages/list",
+      "controller": "postListMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "MessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/messages/reaction",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/messages/reaction",
+      "controller": "postReactionMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "MessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/messages/cta-url",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/messages/cta-url",
+      "controller": "postCtaUrlMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "MessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/messages/location-request",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/messages/location-request",
+      "controller": "postLocationRequestMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "MessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/messages/typing-indicator",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/messages/typing-indicator",
+      "controller": "postTypingIndicator",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "MessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/contacts/:contactId/notes",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/contacts/:contactId/notes",
+      "controller": "getContactNotesV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "NoteModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/contacts/:contactId/notes",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/contacts/:contactId/notes",
+      "controller": "postContactNoteV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "NoteModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "PATCH",
+      "frontendPath": "/api/v1/notes/:noteId",
+      "backendMethod": "PATCH",
+      "backendPath": "/api/v1/notes/:noteId",
+      "controller": "patchNoteV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "NoteModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "DELETE",
+      "frontendPath": "/api/v1/notes/:noteId",
+      "backendMethod": "DELETE",
+      "backendPath": "/api/v1/notes/:noteId",
+      "controller": "deleteNoteRouteV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "NoteModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/notes/:noteId/pin",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/notes/:noteId/pin",
+      "controller": "postNotePinV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "NoteModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/notes/:noteId/unpin",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/notes/:noteId/unpin",
+      "controller": "postNoteUnpinV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "NoteModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/quick-replies",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/quick-replies",
+      "controller": "getQuickRepliesV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "QuickReplyModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/quick-replies",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/quick-replies",
+      "controller": "postQuickReplyV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "QuickReplyModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "PATCH",
+      "frontendPath": "/api/v1/quick-replies/:quickReplyId",
+      "backendMethod": "PATCH",
+      "backendPath": "/api/v1/quick-replies/:quickReplyId",
+      "controller": "patchQuickReplyV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "QuickReplyModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/quotas",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/quotas",
+      "controller": "asyncHandler",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "DailyQuotaModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/quotas/forecast",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/quotas/forecast",
+      "controller": "asyncHandler",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "DailyQuotaModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/scheduled-messages",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/scheduled-messages",
+      "controller": "getScheduledMessagesV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ScheduledMessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/scheduled-messages",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/scheduled-messages",
+      "controller": "postScheduledMessageV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ScheduledMessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "PATCH",
+      "frontendPath": "/api/v1/scheduled-messages/:scheduledMessageId",
+      "backendMethod": "PATCH",
+      "backendPath": "/api/v1/scheduled-messages/:scheduledMessageId",
+      "controller": "patchScheduledMessageV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ScheduledMessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/scheduled-messages/:scheduledMessageId/cancel",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/scheduled-messages/:scheduledMessageId/cancel",
+      "controller": "postScheduledMessageCancelV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ScheduledMessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/scheduled-messages/:scheduledMessageId/pause",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/scheduled-messages/:scheduledMessageId/pause",
+      "controller": "postScheduledMessagePauseV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ScheduledMessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/scheduled-messages/:scheduledMessageId/resume",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/scheduled-messages/:scheduledMessageId/resume",
+      "controller": "postScheduledMessageResumeV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ScheduledMessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/scheduled-messages/:scheduledMessageId/retry",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/scheduled-messages/:scheduledMessageId/retry",
+      "controller": "postScheduledMessageRetryV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ScheduledMessageModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/search",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/search",
+      "controller": "getGlobalSearchV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "Multi-Model Search",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/search/inbox",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/search/inbox",
+      "controller": "getInboxSearchV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "ConversationModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/dashboard",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/dashboard",
+      "controller": "getDashboardV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "Multi-Model Aggregation",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/settings",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/settings",
+      "controller": "getSettings",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "SettingsModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "PUT",
+      "frontendPath": "/api/v1/settings",
+      "backendMethod": "PUT",
+      "backendPath": "/api/v1/settings",
+      "controller": "updateSettings",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "SettingsModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/settings/test-connection",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/settings/test-connection",
+      "controller": "testConnection",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "Meta Client",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/tasks",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/tasks",
+      "controller": "getTasksV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "TaskModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/tasks",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/tasks",
+      "controller": "postTaskV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "TaskModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/tasks/:taskId/complete",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/tasks/:taskId/complete",
+      "controller": "postTaskCompleteV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "TaskModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/tasks/:taskId/cancel",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/tasks/:taskId/cancel",
+      "controller": "postTaskCancelV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "TaskModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "PATCH",
+      "frontendPath": "/api/v1/tasks/:taskId",
+      "backendMethod": "PATCH",
+      "backendPath": "/api/v1/tasks/:taskId",
+      "controller": "patchTaskV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "TaskModelV1",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/templates",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/templates",
+      "controller": "getTemplates",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "TemplateModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/templates/sync",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/templates/sync",
+      "controller": "syncTemplates",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "TemplateModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/webhooks",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/webhooks",
+      "controller": "getWebhookOverview",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "WebhookLogModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/webhooks/test",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/webhooks/test",
+      "controller": "testWebhook",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace",
+        "webhookTestRateLimit"
+      ],
+      "model": "WebhookLogModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/webhooks/reconcile",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/webhooks/reconcile",
+      "controller": "reconcileWebhookSubscription",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "WebhookSubscription",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "GET",
+      "frontendPath": "/api/v1/whatsapp/connections",
+      "backendMethod": "GET",
+      "backendPath": "/api/v1/whatsapp/connections",
+      "controller": "getConnectionsHandler",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "WhatsAppConnectionModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/whatsapp/connections/:connectionId/sync",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/whatsapp/connections/:connectionId/sync",
+      "controller": "syncConnectionHandler",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "WhatsAppConnectionModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/whatsapp/connections/:connectionId/health",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/whatsapp/connections/:connectionId/health",
+      "controller": "checkHealthHandler",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "WhatsAppConnectionModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "DELETE",
+      "frontendPath": "/api/v1/whatsapp/connections/:connectionId",
+      "backendMethod": "DELETE",
+      "backendPath": "/api/v1/whatsapp/connections/:connectionId",
+      "controller": "disconnectConnectionHandler",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "WhatsAppConnectionModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "POST",
+      "frontendPath": "/api/v1/whatsapp/connections/embedded-signup/complete",
+      "backendMethod": "POST",
+      "backendPath": "/api/v1/whatsapp/connections/embedded-signup/complete",
+      "controller": "completeEmbeddedSignupHandler",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "model": "WhatsAppConnectionModel",
+      "status": "MATCH"
+    },
+    {
+      "frontendMethod": "WS",
+      "frontendPath": "/socket.io",
+      "backendMethod": "WS",
+      "backendPath": "/socket.io",
+      "controller": "setupSocketServer",
+      "middleware": [
+        "Socket.IO Handshake Auth"
+      ],
+      "model": "Realtime Publisher",
+      "status": "MATCH"
+    }
+  ]
+}
