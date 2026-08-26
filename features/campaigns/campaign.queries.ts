@@ -24,6 +24,9 @@ export const useCampaigns = () => {
   return useQuery({
     queryKey: campaignKeys.lists(),
     queryFn: getCampaigns,
+    refetchInterval: 10000,
+    refetchOnReconnect: true,
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -32,6 +35,9 @@ export const useCampaign = (id: string) => {
     queryKey: campaignKeys.detail(id),
     queryFn: () => getCampaignById(id),
     enabled: !!id,
+    refetchInterval: 5000,
+    refetchOnReconnect: true,
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -43,6 +49,9 @@ export const useCampaignRecipients = (
     queryKey: campaignKeys.recipients(id, params),
     queryFn: () => getCampaignRecipients(id, params),
     enabled: !!id,
+    refetchInterval: 5000,
+    refetchOnReconnect: true,
+    refetchOnWindowFocus: true,
   });
 };
 

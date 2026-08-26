@@ -4,6 +4,8 @@ import { io, Socket } from "socket.io-client";
 import { campaignKeys } from "./campaign.queries";
 import { getBaseApiUrl } from "../../lib/api/base-url";
 
+import { getAccessToken } from "../../lib/auth";
+
 const resolveRealtimeUrl = () => {
   const isBrowser = typeof window !== "undefined";
   const isLocalhost =
@@ -35,24 +37,26 @@ export const useCampaignRealtime = () => {
         ? process.env.NEXT_PUBLIC_SOCKET_TRANSPORTS.split(",")
         : ["websocket", "polling"];
 
-      // To pass JWT to backend properly, we grab it from localStorage since NiWa uses useAuth() which stores it.
-      // Assuming it's in localStorage or cookie. Since auth is handled via withCredentials (cookie) or we can just try:
-      const authDataString = typeof window !== "undefined" ? localStorage.getItem("niwa_auth") : null;
-      let token = "";
-      if (authDataString) {
-        try {
-          const authData = JSON.parse(authDataString);
-          token = authData?.state?.token || "";
-        } catch(e) {}
-      }
+      const token = getAccessToken();
+      const activeWorkspaceId =
+        (typeof window !== "undefined" && localStorage.getItem("activeWorkspaceId")) ||
+        process.env.NEXT_PUBLIC_WORKSPACE_ID ||
+        "ws-default";
 
       sharedSocket = io(realtimeUrl, {
         path: "/socket.io",
         transports,
         withCredentials: true,
-        reconnectionAttempts: 5,
-        reconnectionDelay: 3000,
-        auth: token ? { token } : undefined
+        reconnectionAttempts: 10,
+        reconnectionDelay: 2000,
+        auth: {
+          token,
+          workspaceId: activeWorkspaceId,
+        },
+        extraHeaders: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          "x-workspace-id": activeWorkspaceId,
+        },
       });
     }
 
