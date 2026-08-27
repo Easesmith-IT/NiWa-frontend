@@ -44,17 +44,22 @@ export const setActiveWorkspaceId = (id: string | null): void => {
     return;
   }
 
-  if (id && isValidWorkspaceId(id)) {
-    window.localStorage.setItem(ACTIVE_WORKSPACE_ID_KEY, id.trim());
+  const previousId = getActiveWorkspaceId();
+  const nextId = id && isValidWorkspaceId(id) ? id.trim() : null;
+
+  if (nextId) {
+    window.localStorage.setItem(ACTIVE_WORKSPACE_ID_KEY, nextId);
   } else {
     window.localStorage.removeItem(ACTIVE_WORKSPACE_ID_KEY);
   }
 
-  window.dispatchEvent(
-    new CustomEvent("niwa:workspace-changed", {
-      detail: { workspaceId: getActiveWorkspaceId() },
-    }),
-  );
+  if (previousId !== nextId) {
+    window.dispatchEvent(
+      new CustomEvent("niwa:workspace-changed", {
+        detail: { workspaceId: nextId },
+      }),
+    );
+  }
 };
 
 export const clearActiveWorkspaceId = (): void => {

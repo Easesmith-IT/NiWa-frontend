@@ -54,24 +54,27 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
         user?: WorkspaceUserContext | null;
       }>;
       const nextId = customEvent.detail?.workspaceId ?? getActiveWorkspaceId();
-      setActiveWorkspaceIdState(nextId);
 
-      if (customEvent.detail?.membership !== undefined) {
-        setActiveMembershipState(customEvent.detail.membership);
-      }
-      if (customEvent.detail?.user !== undefined) {
-        setUserState(customEvent.detail.user);
-      }
+      if (nextId !== activeWorkspaceId) {
+        setActiveWorkspaceIdState(nextId);
 
-      // Clear React Query cache so Workspace A data never leaks into Workspace B
-      queryClient.clear();
+        if (customEvent.detail?.membership !== undefined) {
+          setActiveMembershipState(customEvent.detail.membership);
+        }
+        if (customEvent.detail?.user !== undefined) {
+          setUserState(customEvent.detail.user);
+        }
+
+        // Clear React Query cache so Workspace A data never leaks into Workspace B
+        queryClient.clear();
+      }
     };
 
     window.addEventListener("niwa:workspace-changed", handleWorkspaceChanged);
     return () => {
       window.removeEventListener("niwa:workspace-changed", handleWorkspaceChanged);
     };
-  }, [queryClient]);
+  }, [activeWorkspaceId, queryClient]);
 
   const handleSetWorkspaceContext = (context: {
     activeWorkspaceId?: string | null;

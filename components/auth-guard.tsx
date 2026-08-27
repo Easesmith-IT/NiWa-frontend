@@ -7,7 +7,7 @@ import { ReactNode, useEffect } from "react";
 import { getProfile } from "../features/auth";
 import { getAccessToken } from "../lib/auth";
 import { queryKeys } from "../lib/api/query-keys";
-import { isValidWorkspaceId, setActiveWorkspaceId } from "../lib/workspace/workspace-state";
+import { getActiveWorkspaceId, isValidWorkspaceId, setActiveWorkspaceId } from "../lib/workspace/workspace-state";
 import { useWorkspace } from "../lib/workspace/workspace-context";
 
 export const AuthGuard = ({ children }: { children: ReactNode }) => {
@@ -42,7 +42,9 @@ export const AuthGuard = ({ children }: { children: ReactNode }) => {
         // The backend-assigned workspace is authoritative. This application currently
         // supports one customer workspace, so a stale local workspace must not survive
         // an account/session change.
-        setActiveWorkspaceId(serverWorkspaceId);
+        if (getActiveWorkspaceId() !== serverWorkspaceId) {
+          setActiveWorkspaceId(serverWorkspaceId);
+        }
       }
 
       setWorkspaceContext({
