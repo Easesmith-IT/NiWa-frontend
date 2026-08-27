@@ -32,8 +32,8 @@ export const AdminGuard = ({ children }: { children: ReactNode }) => {
 
     if (profileQuery.isSuccess) {
       const role = profileQuery.data?.user?.platformRole || profileQuery.data?.operator?.platformRole;
-      if (role !== "SUPER_ADMIN") {
-        console.warn("AdminGuard: Unauthorized role", role, profileQuery.data);
+      if (role !== "SUPER_ADMIN" && role !== "SUB_ADMIN") {
+        console.warn("AdminGuard: Unauthorized platformRole", role, profileQuery.data);
       }
     }
   }, [hasToken, pathname, profileQuery.isError, profileQuery.isSuccess, profileQuery.data, router]);
@@ -51,12 +51,14 @@ export const AdminGuard = ({ children }: { children: ReactNode }) => {
   }
 
   const role = profileQuery.data?.user?.platformRole || profileQuery.data?.operator?.platformRole;
-  if (role !== "SUPER_ADMIN") {
+  const isPlatformAdmin = role === "SUPER_ADMIN" || role === "SUB_ADMIN";
+
+  if (!isPlatformAdmin) {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background text-sm text-muted-foreground p-6 text-center">
         <h2 className="text-lg font-semibold text-foreground mb-2">Unauthorized</h2>
-        <p>You do not have the required Super Admin privileges to view this page.</p>
-        <p className="mt-1 opacity-70">Current role: {role || "none"}</p>
+        <p>You do not have platform administrator privileges to view this page.</p>
+        <p className="mt-1 opacity-70">Current platform role: {role || "none"}</p>
         <button onClick={() => router.replace("/")} className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
           Return to App
         </button>

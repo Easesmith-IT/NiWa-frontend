@@ -6,8 +6,8 @@ import { useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "../../lib/api/query-keys";
 import { getBaseApiUrl } from "../../lib/api/base-url";
-
 import { getAccessToken } from "../../lib/auth";
+import { getActiveWorkspaceId } from "../../lib/workspace/workspace-state";
 
 const isSocketIoRealtimeEnabled = () => {
   return process.env.NEXT_PUBLIC_REALTIME_TRANSPORT !== "none";
@@ -53,11 +53,12 @@ export const useInboxRealtime = (
       return;
     }
 
+    const activeWorkspaceId = getActiveWorkspaceId();
+    if (!activeWorkspaceId) {
+      return;
+    }
+
     const token = getAccessToken();
-    const activeWorkspaceId =
-      (typeof window !== "undefined" && localStorage.getItem("activeWorkspaceId")) ||
-      process.env.NEXT_PUBLIC_WORKSPACE_ID ||
-      "ws-default";
 
     const realtimeUrl = resolveRealtimeUrl();
     const transports = process.env.NEXT_PUBLIC_SOCKET_TRANSPORTS

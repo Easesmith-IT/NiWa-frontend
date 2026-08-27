@@ -5,6 +5,8 @@ import { Menu, Search, Wifi } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { clearAccessToken } from "../../lib/auth";
+import { clearActiveWorkspaceId } from "../../lib/workspace/workspace-state";
+import { disconnectCampaignSocket } from "../../features/campaigns/campaign.realtime";
 import { logout } from "../../features/auth";
 import { Button } from "../ui/button";
 import { routeMeta } from "./navigation";
@@ -25,6 +27,8 @@ export const Topbar = ({ onOpenCommandPalette, onToggleSidebar }: TopbarProps) =
       await logout();
     } finally {
       clearAccessToken();
+      clearActiveWorkspaceId();
+      disconnectCampaignSocket();
       queryClient.clear();
       router.replace("/login");
     }

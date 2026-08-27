@@ -3,8 +3,8 @@ import { useQueryClient } from "@tanstack/react-query";
 import { io, Socket } from "socket.io-client";
 import { campaignKeys } from "./campaign.queries";
 import { getBaseApiUrl } from "../../lib/api/base-url";
-
 import { getAccessToken } from "../../lib/auth";
+import { getActiveWorkspaceId } from "../../lib/workspace/workspace-state";
 
 const resolveRealtimeUrl = () => {
   const isBrowser = typeof window !== "undefined";
@@ -26,11 +26,31 @@ const resolveRealtimeUrl = () => {
 };
 
 let sharedSocket: Socket | null = null;
+let currentSocketWorkspaceId: string | null = null;
+
+export const disconnectCampaignSocket = () => {
+  if (sharedSocket) {
+    sharedSocket.disconnect();
+    sharedSocket = null;
+    currentSocketWorkspaceId = null;
+  }
+};
 
 export const useCampaignRealtime = () => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    const activeWorkspaceId = getActiveWorkspaceId();
+
+    if (!activeWorkspaceId) {
+      disconnectCampaignSocket();
+      return;
+    }
+
+    if (sharedSocket && currentSocketWorkspaceId !== activeWorkspaceId) {
+      disconnectCampaignSocket();
+    }
+
     if (!sharedSocket) {
       const realtimeUrl = resolveRealtimeUrl();
       const transports = process.env.NEXT_PUBLIC_SOCKET_TRANSPORTS
@@ -38,10 +58,6 @@ export const useCampaignRealtime = () => {
         : ["websocket", "polling"];
 
       const token = getAccessToken();
-      const activeWorkspaceId =
-        (typeof window !== "undefined" && localStorage.getItem("activeWorkspaceId")) ||
-        process.env.NEXT_PUBLIC_WORKSPACE_ID ||
-        "ws-default";
 
       sharedSocket = io(realtimeUrl, {
         path: "/socket.io",
@@ -58,6 +74,7 @@ export const useCampaignRealtime = () => {
           "x-workspace-id": activeWorkspaceId,
         },
       });
+      currentSocketWorkspaceId = activeWorkspaceId;
     }
 
     const socket = sharedSocket;
@@ -67,27 +84,24 @@ export const useCampaignRealtime = () => {
 
     const handleCampaignUpdated = (envelope: { payload: { campaignId: string; type: string } }) => {
       const { campaignId, type } = envelope.payload;
-      
-      // We use a bounded throttle. First event schedules the refresh, 
-      // subsequent events within the 1500ms window are simply ignored until the refresh fires.
+
       const key = `${campaignId}-${type}`;
-      
+
       if (pendingRefreshes[key]) {
         return;
       }
-      
+
       pendingRefreshes[key] = true;
       activeTimeouts[key] = setTimeout(() => {
         pendingRefreshes[key] = false;
         delete activeTimeouts[key];
-        
+
         queryClient.invalidateQueries({ queryKey: campaignKeys.detail(campaignId) });
-        
+
         if (type === "status_changed") {
           queryClient.invalidateQueries({ queryKey: campaignKeys.lists() });
         } else if (type === "stats_changed") {
           queryClient.invalidateQueries({ queryKey: campaignKeys.recipients(campaignId) });
-          // FIX: Invalidate list query so KPI dashboard reflects fresh stats
           queryClient.invalidateQueries({ queryKey: campaignKeys.lists() });
         }
       }, 1500);

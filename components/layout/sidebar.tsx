@@ -6,6 +6,7 @@ import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 import { cn } from "../../lib/utils";
+import { useWorkspace } from "../../lib/workspace/workspace-context";
 import { Button } from "../ui/button";
 import { navigationGroups, secondaryActions } from "./navigation";
 
@@ -16,6 +17,7 @@ interface SidebarProps {
 
 export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
   const pathname = usePathname();
+  const { activeWorkspaceId } = useWorkspace();
 
   return (
     <aside
@@ -117,13 +119,14 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
         {!collapsed ? (
           <div className="mt-3 rounded-md border border-[#E4E4E7] bg-[#FAFAFA] px-2.5 py-2 dark:border-[#24272A] dark:bg-[#17191B]">
             <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
-              Workspace
+              Workspace Context
             </p>
-            <p className="mt-0.5 truncate text-xs font-medium text-foreground">Production Operator</p>
+            <p className="mt-0.5 truncate text-xs font-medium text-foreground">
+              {activeWorkspaceId ? activeWorkspaceId : "No Active Workspace"}
+            </p>
           </div>
         ) : null}
       </div>
     </aside>
   );
 };
-

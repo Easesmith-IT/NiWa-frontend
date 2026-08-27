@@ -1,6 +1,7 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 import { clearAccessToken, getAccessToken, redirectToLogin, setAccessToken } from "../auth";
+import { getActiveWorkspaceId } from "../workspace/workspace-state";
 import { getBaseApiUrl } from "./base-url";
 
 const getApiBaseUrl = () => getBaseApiUrl();
@@ -10,6 +11,12 @@ export const apiClient = axios.create({
   withCredentials: true,
 });
 
+const isPlatformEndpoint = (url?: string): boolean => {
+  if (!url) return false;
+  const cleanUrl = url.startsWith("/") ? url : `/${url}`;
+  return cleanUrl.startsWith("/auth/") || cleanUrl === "/auth";
+};
+
 apiClient.interceptors.request.use((config) => {
   const token = getAccessToken();
 
@@ -17,12 +24,30 @@ apiClient.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
-  if (!config.headers["x-workspace-id"]) {
-    const activeWorkspaceId =
-      (typeof window !== "undefined" && localStorage.getItem("activeWorkspaceId")) ||
-      process.env.NEXT_PUBLIC_WORKSPACE_ID ||
-      "ws-default";
-    config.headers["x-workspace-id"] = activeWorkspaceId;
+  const url = config.url;
+
+  if (isPlatformEndpoint(url)) {
+    delete config.headers["x-workspace-id"];
+    return config;
+  }
+
+  // Workspace-scoped requests require a valid active workspace ID
+  let workspaceId = config.headers["x-workspace-id"] as string | undefined;
+  if (!workspaceId) {
+    const activeId = getActiveWorkspaceId();
+    if (activeId) {
+      workspaceId = activeId;
+      config.headers["x-workspace-id"] = activeId;
+    }
+  }
+
+  if (!workspaceId) {
+    const error = new AxiosError(
+      "No active workspace selected. A valid active workspace ID is required for workspace-scoped requests.",
+      "ERR_MISSING_WORKSPACE_ID",
+      config,
+    );
+    return Promise.reject(error);
   }
 
   return config;
@@ -32,7 +57,8 @@ apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config as typeof error.config & { _retry?: boolean };
-    const isAuthRoute = typeof originalRequest?.url === "string" && originalRequest.url.startsWith("/auth/");
+    const isAuthRoute =
+      typeof originalRequest?.url === "string" && isPlatformEndpoint(originalRequest.url);
 
     if (error.response?.status === 401 && originalRequest && !originalRequest._retry && !isAuthRoute) {
       originalRequest._retry = true;
