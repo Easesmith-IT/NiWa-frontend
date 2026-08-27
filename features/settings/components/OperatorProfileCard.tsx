@@ -27,7 +27,7 @@ export const OperatorProfileCard: React.FC<OperatorProfileCardProps> = ({ profil
         <p className="text-muted-foreground">
           Role:{" "}
           <span className="font-semibold text-foreground capitalize">
-            {profile.profileQuery.data?.user.role ?? "..."}
+            {profile.profileQuery.data?.user.platformRole ?? "..."}
           </span>
         </p>
       </div>

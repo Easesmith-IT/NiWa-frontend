@@ -170,7 +170,7 @@ export interface LoginResponse {
     id: string;
     email: string;
     name: string;
-    role: string;
+    platformRole: string;
   };
   accessToken: string;
   refreshToken: string;
@@ -181,7 +181,7 @@ export interface ProfileResponse {
     id: string;
     email: string;
     name: string;
-    role: string;
+    platformRole: string;
   };
 }
 

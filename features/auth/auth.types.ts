@@ -10,13 +10,13 @@ export interface LoginResponse {
     id: string;
     email: string;
     name: string;
-    role?: string;
+    platformRole?: string;
   };
   user?: {
     id: string;
     email: string;
     name: string;
-    role?: string;
+    platformRole?: string;
   };
 }
 
@@ -25,12 +25,12 @@ export interface ProfileResponse {
     id: string;
     email: string;
     name: string;
-    role?: string;
+    platformRole?: string;
   };
   user: {
     id: string;
     email: string;
     name: string;
-    role: string;
+    platformRole: string;
   };
 }

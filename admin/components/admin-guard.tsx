@@ -31,8 +31,8 @@ export const AdminGuard = ({ children }: { children: ReactNode }) => {
     }
 
     if (profileQuery.isSuccess) {
-      const role = profileQuery.data?.user?.role || profileQuery.data?.operator?.role;
-      if (role !== "admin" && role !== "SUPER_ADMIN") {
+      const role = profileQuery.data?.user?.platformRole || profileQuery.data?.operator?.platformRole;
+      if (role !== "SUPER_ADMIN") {
         console.warn("AdminGuard: Unauthorized role", role, profileQuery.data);
       }
     }
@@ -50,8 +50,8 @@ export const AdminGuard = ({ children }: { children: ReactNode }) => {
     return null;
   }
 
-  const role = profileQuery.data?.user?.role || profileQuery.data?.operator?.role;
-  if (role !== "admin" && role !== "SUPER_ADMIN") {
+  const role = profileQuery.data?.user?.platformRole || profileQuery.data?.operator?.platformRole;
+  if (role !== "SUPER_ADMIN") {
     return (
       <div className="flex min-h-screen flex-col items-center justify-center bg-background text-sm text-muted-foreground p-6 text-center">
         <h2 className="text-lg font-semibold text-foreground mb-2">Unauthorized</h2>
