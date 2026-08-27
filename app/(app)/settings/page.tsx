@@ -8,6 +8,7 @@ import {
   useSettingsOrchestration,
 } from "../../../features/settings";
 import { WhatsAppSettingsModule } from "../../../features/whatsapp-connections/WhatsAppSettingsModule";
+import { WorkspaceMembersCard } from "../../../features/workspace-members";
 
 export default function SettingsPage() {
   const { profile, security, meta } = useSettingsOrchestration();
@@ -16,6 +17,9 @@ export default function SettingsPage() {
     <div className="space-y-4">
       {/* Header Banner */}
       <SettingsHeader />
+
+      {/* Workspace Team Member Management Card */}
+      <WorkspaceMembersCard />
 
       {/* WhatsApp Embedded Signup & Connections Module */}
       <WhatsAppSettingsModule />
