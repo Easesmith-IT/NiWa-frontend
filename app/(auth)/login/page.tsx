@@ -26,6 +26,7 @@ import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { login } from "../../../features/auth";
 import { setAccessToken } from "../../../lib/auth";
+import { isValidWorkspaceId, setActiveWorkspaceId } from "../../../lib/workspace/workspace-state";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address."),
@@ -64,6 +65,12 @@ export default function LoginPage() {
       const data = await login(values);
       const token = data.accessToken ?? data.token ?? "";
       setAccessToken(token);
+
+      const serverWorkspaceId = data.activeWorkspaceId || data.activeMembership?.workspaceId;
+      if (serverWorkspaceId && isValidWorkspaceId(serverWorkspaceId)) {
+        setActiveWorkspaceId(serverWorkspaceId);
+      }
+
       const nextParam = new URLSearchParams(window.location.search).get("next");
       router.push(nextParam || "/");
     } catch (error) {

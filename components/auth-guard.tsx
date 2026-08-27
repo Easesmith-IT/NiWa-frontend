@@ -7,6 +7,7 @@ import { ReactNode, useEffect } from "react";
 import { getProfile } from "../features/auth";
 import { getAccessToken } from "../lib/auth";
 import { queryKeys } from "../lib/api/query-keys";
+import { getActiveWorkspaceId, isValidWorkspaceId, setActiveWorkspaceId } from "../lib/workspace/workspace-state";
 
 export const AuthGuard = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
@@ -27,8 +28,20 @@ export const AuthGuard = ({ children }: { children: ReactNode }) => {
 
     if (profileQuery.isError) {
       router.replace("/login");
+      return;
     }
-  }, [hasToken, pathname, profileQuery.isError, router]);
+
+    if (profileQuery.isSuccess && profileQuery.data) {
+      const serverWorkspaceId =
+        profileQuery.data.activeWorkspaceId || profileQuery.data.activeMembership?.workspaceId;
+      if (serverWorkspaceId && isValidWorkspaceId(serverWorkspaceId)) {
+        const currentActive = getActiveWorkspaceId();
+        if (!currentActive) {
+          setActiveWorkspaceId(serverWorkspaceId);
+        }
+      }
+    }
+  }, [hasToken, pathname, profileQuery.isError, profileQuery.isSuccess, profileQuery.data, router]);
 
   if (!hasToken || profileQuery.isLoading) {
     return (

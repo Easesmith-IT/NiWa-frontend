@@ -6,6 +6,12 @@ export interface LoginPayload {
 export interface LoginResponse {
   accessToken?: string;
   token?: string;
+  activeWorkspaceId?: string | null;
+  activeMembership?: {
+    workspaceId: string;
+    role: string;
+    status: string;
+  } | null;
   operator?: {
     id: string;
     email: string;
@@ -21,6 +27,12 @@ export interface LoginResponse {
 }
 
 export interface ProfileResponse {
+  activeWorkspaceId?: string | null;
+  activeMembership?: {
+    workspaceId: string;
+    role: string;
+    status: string;
+  } | null;
   operator?: {
     id: string;
     email: string;
