@@ -8,9 +8,33 @@ import {
   setActiveWorkspaceId,
 } from "./workspace-state";
 
+export interface ActiveMembershipState {
+  workspaceId: string;
+  role: string;
+  status: string;
+}
+
+export interface WorkspaceUserContext {
+  id: string;
+  email: string;
+  name: string;
+  platformRole: string;
+}
+
 interface WorkspaceContextType {
   activeWorkspaceId: string | null;
-  setActiveWorkspace: (id: string | null) => void;
+  activeMembership: ActiveMembershipState | null;
+  user: WorkspaceUserContext | null;
+  setActiveWorkspace: (
+    id: string | null,
+    membership?: ActiveMembershipState | null,
+    user?: WorkspaceUserContext | null,
+  ) => void;
+  setWorkspaceContext: (context: {
+    activeWorkspaceId?: string | null;
+    activeMembership?: ActiveMembershipState | null;
+    user?: WorkspaceUserContext | null;
+  }) => void;
   clearWorkspace: () => void;
 }
 
@@ -18,13 +42,27 @@ const WorkspaceContext = createContext<WorkspaceContextType | undefined>(undefin
 
 export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [activeWorkspaceId, setActiveWorkspaceIdState] = useState<string | null>(() => getActiveWorkspaceId());
+  const [activeMembership, setActiveMembershipState] = useState<ActiveMembershipState | null>(null);
+  const [user, setUserState] = useState<WorkspaceUserContext | null>(null);
   const queryClient = useQueryClient();
 
   useEffect(() => {
     const handleWorkspaceChanged = (event: Event) => {
-      const customEvent = event as CustomEvent<{ workspaceId: string | null }>;
+      const customEvent = event as CustomEvent<{
+        workspaceId: string | null;
+        membership?: ActiveMembershipState | null;
+        user?: WorkspaceUserContext | null;
+      }>;
       const nextId = customEvent.detail?.workspaceId ?? getActiveWorkspaceId();
       setActiveWorkspaceIdState(nextId);
+
+      if (customEvent.detail?.membership !== undefined) {
+        setActiveMembershipState(customEvent.detail.membership);
+      }
+      if (customEvent.detail?.user !== undefined) {
+        setUserState(customEvent.detail.user);
+      }
+
       // Clear React Query cache so Workspace A data never leaks into Workspace B
       queryClient.clear();
     };
@@ -35,15 +73,40 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
     };
   }, [queryClient]);
 
-  const handleSetActiveWorkspace = (id: string | null) => {
+  const handleSetWorkspaceContext = (context: {
+    activeWorkspaceId?: string | null;
+    activeMembership?: ActiveMembershipState | null;
+    user?: WorkspaceUserContext | null;
+  }) => {
+    if (context.activeWorkspaceId !== undefined) {
+      setActiveWorkspaceId(context.activeWorkspaceId);
+      setActiveWorkspaceIdState(getActiveWorkspaceId());
+    }
+    if (context.activeMembership !== undefined) {
+      setActiveMembershipState(context.activeMembership);
+    }
+    if (context.user !== undefined) {
+      setUserState(context.user);
+    }
+  };
+
+  const handleSetActiveWorkspace = (
+    id: string | null,
+    membership: ActiveMembershipState | null = null,
+    userData: WorkspaceUserContext | null = null,
+  ) => {
     setActiveWorkspaceId(id);
     setActiveWorkspaceIdState(getActiveWorkspaceId());
+    setActiveMembershipState(membership);
+    setUserState(userData);
     queryClient.clear();
   };
 
   const handleClearWorkspace = () => {
     clearActiveWorkspaceId();
     setActiveWorkspaceIdState(null);
+    setActiveMembershipState(null);
+    setUserState(null);
     queryClient.clear();
   };
 
@@ -51,7 +114,10 @@ export const WorkspaceProvider: React.FC<{ children: ReactNode }> = ({ children 
     <WorkspaceContext.Provider
       value={{
         activeWorkspaceId,
+        activeMembership,
+        user,
         setActiveWorkspace: handleSetActiveWorkspace,
+        setWorkspaceContext: handleSetWorkspaceContext,
         clearWorkspace: handleClearWorkspace,
       }}
     >

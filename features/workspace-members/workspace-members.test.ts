@@ -1,4 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+
 import {
   addWorkspaceMember,
   getWorkspaceMembers,
@@ -190,5 +193,17 @@ describe("Workspace Members Unit & Integration Suite", () => {
     const isForbidden = (status?: number) => status === 403;
     expect(isForbidden(403)).toBe(true);
     expect(isForbidden(500)).toBe(false);
+  });
+
+  it("16. WorkspaceMembersCard does NOT import getProfile or fetch profile independently", () => {
+    const componentFilePath = join(
+      process.cwd(),
+      "features/workspace-members/components/WorkspaceMembersCard.tsx",
+    );
+    const fileContent = readFileSync(componentFilePath, "utf-8");
+
+    expect(fileContent).not.toContain('import { getProfile }');
+    expect(fileContent).not.toContain('queryFn: getProfile');
+    expect(fileContent).toContain('useWorkspace()');
   });
 });

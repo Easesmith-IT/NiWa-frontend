@@ -1,6 +1,5 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { AxiosError } from "axios";
 import { Plus, Shield, UserX, Edit2, AlertTriangle, UserCheck } from "lucide-react";
 import React, { useState } from "react";
@@ -8,9 +7,7 @@ import React, { useState } from "react";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
-import { getProfile } from "../../auth";
-import { queryKeys } from "../../../lib/api/query-keys";
-import { getActiveWorkspaceId } from "../../../lib/workspace/workspace-state";
+import { useWorkspace } from "../../../lib/workspace/workspace-context";
 import {
   useAddWorkspaceMember,
   useRemoveWorkspaceMember,
@@ -24,12 +21,7 @@ import type {
 } from "../workspace-members.types";
 
 export const WorkspaceMembersCard: React.FC = () => {
-  const activeWorkspaceId = getActiveWorkspaceId();
-  const profileQuery = useQuery({
-    queryKey: queryKeys.profile,
-    queryFn: getProfile,
-    retry: false,
-  });
+  const { activeWorkspaceId, activeMembership, user: contextUser } = useWorkspace();
 
   const { data, isLoading, isError, error } = useWorkspaceMembers();
   const addMutation = useAddWorkspaceMember();
@@ -50,25 +42,25 @@ export const WorkspaceMembersCard: React.FC = () => {
   const [removingMember, setRemovingMember] = useState<WorkspaceMemberItem | null>(null);
   const [removeError, setRemoveError] = useState<string | null>(null);
 
-  // Derived current user & current workspace role
-  const currentUserId = profileQuery.data?.user.id;
+  // Derived current user & current workspace role from centralized state
+  const currentUserId = contextUser?.id;
   const members = data?.members ?? [];
   const activeOwnerCount = members.filter(
     (m) => m.role === "owner" && m.status === "active",
   ).length;
 
-  const currentMembership = members.find((m) => m.userId === currentUserId);
+  const currentMembershipInList = members.find((m) => m.userId === currentUserId);
   const currentUserRole: WorkspaceRole =
-    currentMembership?.role ||
-    (profileQuery.data?.activeMembership?.workspaceId === activeWorkspaceId
-      ? (profileQuery.data.activeMembership.role as WorkspaceRole)
-      : "viewer");
+    (currentMembershipInList?.role as WorkspaceRole) ||
+    (activeMembership?.workspaceId === activeWorkspaceId
+      ? (activeMembership.role as WorkspaceRole)
+      : (activeMembership?.role as WorkspaceRole) || "viewer");
 
   const canAddMembers = currentUserRole === "owner" || currentUserRole === "admin";
 
   const handleOpenAddModal = () => {
     setAddEmail("");
-    setAddRole(currentUserRole === "owner" ? "member" : "member");
+    setAddRole("member");
     setAddError(null);
     setIsAddModalOpen(true);
   };
@@ -267,7 +259,7 @@ export const WorkspaceMembersCard: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-[#F0F0F2] dark:divide-[#202326]">
               {members.map((member) => {
-                const isCurrentUser = member.userId === currentUserId;
+                const isCurrentUser = Boolean(currentUserId && member.userId === currentUserId);
                 const canEdit = canEditTargetMember(member);
                 const canRemove = canRemoveTargetMember(member);
 

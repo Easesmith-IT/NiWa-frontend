@@ -8,11 +8,14 @@ import { getProfile } from "../features/auth";
 import { getAccessToken } from "../lib/auth";
 import { queryKeys } from "../lib/api/query-keys";
 import { getActiveWorkspaceId, isValidWorkspaceId, setActiveWorkspaceId } from "../lib/workspace/workspace-state";
+import { useWorkspace } from "../lib/workspace/workspace-context";
 
 export const AuthGuard = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
   const pathname = usePathname();
   const hasToken = Boolean(getAccessToken());
+  const { setWorkspaceContext } = useWorkspace();
+
   const profileQuery = useQuery({
     queryKey: queryKeys.profile,
     queryFn: getProfile,
@@ -40,8 +43,14 @@ export const AuthGuard = ({ children }: { children: ReactNode }) => {
           setActiveWorkspaceId(serverWorkspaceId);
         }
       }
+
+      setWorkspaceContext({
+        activeWorkspaceId: getActiveWorkspaceId(),
+        activeMembership: profileQuery.data.activeMembership ?? null,
+        user: profileQuery.data.user ?? null,
+      });
     }
-  }, [hasToken, pathname, profileQuery.isError, profileQuery.isSuccess, profileQuery.data, router]);
+  }, [hasToken, pathname, profileQuery.isError, profileQuery.isSuccess, profileQuery.data, router, setWorkspaceContext]);
 
   if (!hasToken || profileQuery.isLoading) {
     return (
