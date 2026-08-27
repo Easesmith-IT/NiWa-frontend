@@ -72,7 +72,12 @@ export default function LoginPage() {
       }
 
       const nextParam = new URLSearchParams(window.location.search).get("next");
-      router.push(nextParam || "/");
+      const role = data.user?.platformRole;
+      if ((role === "SUPER_ADMIN" || role === "SUB_ADMIN") && !serverWorkspaceId) {
+        router.push(nextParam || "/admin");
+      } else {
+        router.push(nextParam || "/");
+      }
     } catch (error) {
       const message =
         error instanceof AxiosError

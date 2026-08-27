@@ -35,8 +35,14 @@ export const AuthGuard = ({ children }: { children: ReactNode }) => {
     }
 
     if (profileQuery.isSuccess && profileQuery.data) {
+      const role = profileQuery.data.user?.platformRole;
       const serverWorkspaceId =
         profileQuery.data.activeWorkspaceId || profileQuery.data.activeMembership?.workspaceId;
+
+      if ((role === "SUPER_ADMIN" || role === "SUB_ADMIN") && !serverWorkspaceId) {
+        router.replace("/admin");
+        return;
+      }
 
       if (serverWorkspaceId && isValidWorkspaceId(serverWorkspaceId)) {
         // The backend-assigned workspace is authoritative. This application currently
