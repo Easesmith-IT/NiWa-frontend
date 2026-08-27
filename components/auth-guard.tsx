@@ -7,7 +7,7 @@ import { ReactNode, useEffect } from "react";
 import { getProfile } from "../features/auth";
 import { getAccessToken } from "../lib/auth";
 import { queryKeys } from "../lib/api/query-keys";
-import { getActiveWorkspaceId, isValidWorkspaceId, setActiveWorkspaceId } from "../lib/workspace/workspace-state";
+import { isValidWorkspaceId, setActiveWorkspaceId } from "../lib/workspace/workspace-state";
 import { useWorkspace } from "../lib/workspace/workspace-context";
 
 export const AuthGuard = ({ children }: { children: ReactNode }) => {
@@ -37,15 +37,17 @@ export const AuthGuard = ({ children }: { children: ReactNode }) => {
     if (profileQuery.isSuccess && profileQuery.data) {
       const serverWorkspaceId =
         profileQuery.data.activeWorkspaceId || profileQuery.data.activeMembership?.workspaceId;
+
       if (serverWorkspaceId && isValidWorkspaceId(serverWorkspaceId)) {
-        const currentActive = getActiveWorkspaceId();
-        if (!currentActive) {
-          setActiveWorkspaceId(serverWorkspaceId);
-        }
+        // The backend-assigned workspace is authoritative. This application currently
+        // supports one customer workspace, so a stale local workspace must not survive
+        // an account/session change.
+        setActiveWorkspaceId(serverWorkspaceId);
       }
 
       setWorkspaceContext({
-        activeWorkspaceId: getActiveWorkspaceId(),
+        activeWorkspaceId:
+          serverWorkspaceId && isValidWorkspaceId(serverWorkspaceId) ? serverWorkspaceId : null,
         activeMembership: profileQuery.data.activeMembership ?? null,
         user: profileQuery.data.user ?? null,
       });
