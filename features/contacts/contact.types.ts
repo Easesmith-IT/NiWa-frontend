@@ -1,1 +1,1 @@
-export type { ContactRecordV1 } from "../../lib/api/v1-types";
+export type { ContactRecord, ContactImportRecord } from "../../lib/api/api-types";

@@ -7,9 +7,11 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint --config eslint.config.cjs app features components lib",
     "typecheck": "tsc --noEmit --project tsconfig.typecheck.json",
-    "test": "node --import tsx --test lib/**/*.test.ts"
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:bench": "node --import tsx --test features/inbox/inbox.benchmark.test.ts"
   },
   "repository": {
     "type": "git",
@@ -50,6 +52,7 @@
     "postcss": "^8.5.25",
     "tailwindcss": "^3.4.17",
     "tsx": "^4.23.1",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
   }
 }

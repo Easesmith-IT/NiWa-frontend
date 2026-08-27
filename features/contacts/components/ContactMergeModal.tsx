@@ -4,13 +4,13 @@ import { useState } from "react";
 import { GitMerge, X } from "lucide-react";
 
 import { Button } from "../../../components/ui/button";
-import type { ContactRecordV1 } from "../contact.types";
+import type { ContactRecord } from "../contact.types";
 import { withDisplayPhoneNumber } from "../../shared/mappers";
 
 interface ContactMergeModalProps {
-  contacts: ContactRecordV1[];
+  contacts: ContactRecord[];
   duplicateGroups: Array<{
-    contacts: ContactRecordV1[];
+    contacts: ContactRecord[];
     count: number;
     value: string;
   }>;

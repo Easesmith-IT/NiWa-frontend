@@ -1,47 +1,47 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { v1QueryKeys } from "../../lib/api/v1-query-keys";
+import { queryKeys } from "../../lib/api/query-keys";
 import {
-  getInboxThreadDetailV1,
-  listInboxThreadsV1,
-  syncInboxThreadHistoryV1,
-  updateInboxThreadStateV1,
+  getInboxThreadDetail,
+  listInboxThreads,
+  syncInboxThreadHistory,
+  updateInboxThreadState,
 } from "./inbox.api";
-import { mapInboxThreadDetailV1, mapInboxThreadRecordV1 } from "./inbox.mappers";
+import { mapInboxThreadDetail, mapInboxThreadRecord } from "./inbox.mappers";
 
-export const useInboxThreadsV1Query = (params: {
+export const useInboxThreadsQuery = (params: {
   filter: "all" | "archived" | "awaiting_reply" | "starred" | "unread";
   search: string;
 }) =>
   useQuery({
-    refetchInterval: 10000,
+    refetchInterval: 5000,
     refetchOnReconnect: true,
     refetchOnWindowFocus: true,
-    queryKey: [...v1QueryKeys.inbox, params.filter, params.search],
+    queryKey: [...queryKeys.inbox, params.filter, params.search],
     queryFn: async () => {
-      const result = await listInboxThreadsV1(params);
+      const result = await listInboxThreads(params);
       return {
         ...result,
-        data: result.data.map(mapInboxThreadRecordV1),
+        data: result.data.map(mapInboxThreadRecord),
       };
     },
   });
 
-export const useInboxThreadDetailV1Query = (
+export const useInboxThreadDetailQuery = (
   conversationId: string | null,
   params?: { cursor?: string | null; messageLimit?: number },
 ) =>
   useQuery({
     enabled: Boolean(conversationId),
-    refetchInterval: conversationId ? 5000 : false,
+    refetchInterval: 5000,
     refetchOnReconnect: true,
     refetchOnWindowFocus: true,
-    queryKey: [...v1QueryKeys.inboxThread, conversationId, params?.cursor ?? null, params?.messageLimit ?? null],
+    queryKey: [...queryKeys.inboxThread, conversationId, params?.cursor ?? null, params?.messageLimit ?? null],
     queryFn: async () => {
-      const result = await getInboxThreadDetailV1(conversationId as string, params);
+      const result = await getInboxThreadDetail(conversationId as string, params);
       return {
         ...result,
-        data: mapInboxThreadDetailV1(result.data),
+        data: mapInboxThreadDetail(result.data),
       };
     },
   });
@@ -56,28 +56,46 @@ export const useInboxThreadStateMutation = () => {
     }: {
       action: "archive" | "pin" | "read" | "star" | "unarchive" | "unpin" | "unstar";
       conversationId: string;
-    }) => updateInboxThreadStateV1(conversationId, action),
+    }) => updateInboxThreadState(conversationId, action),
+    onMutate: async (variables) => {
+      if (variables.action === "read") {
+        queryClient.setQueriesData<{ data?: Array<{ conversation?: { _id: string; unreadCount: number } }> }>(
+          { queryKey: queryKeys.inbox },
+          (oldData) => {
+            if (!oldData || !Array.isArray(oldData.data)) return oldData;
+            return {
+              ...oldData,
+              data: oldData.data.map((item) =>
+                item?.conversation?._id === variables.conversationId
+                  ? { ...item, conversation: { ...item.conversation, unreadCount: 0 } }
+                  : item,
+              ),
+            };
+          },
+        );
+      }
+    },
     onSuccess: async (_result, variables) => {
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: v1QueryKeys.inbox }),
-        queryClient.invalidateQueries({
-          queryKey: [...v1QueryKeys.inboxThread, variables.conversationId],
-        }),
-      ]);
+      await queryClient.invalidateQueries({ queryKey: queryKeys.inbox });
+      if (variables.action !== "read") {
+        await queryClient.invalidateQueries({
+          queryKey: [...queryKeys.inboxThread, variables.conversationId],
+        });
+      }
     },
   });
 };
 
-export const useSyncInboxThreadHistoryV1Mutation = () => {
+export const useSyncInboxThreadHistoryMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (conversationId: string) => syncInboxThreadHistoryV1(conversationId),
+    mutationFn: async (conversationId: string) => syncInboxThreadHistory(conversationId),
     onSuccess: async (_result, conversationId) => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: v1QueryKeys.inbox }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.inbox }),
         queryClient.invalidateQueries({
-          queryKey: [...v1QueryKeys.inboxThread, conversationId],
+          queryKey: [...queryKeys.inboxThread, conversationId],
         }),
       ]);
     },

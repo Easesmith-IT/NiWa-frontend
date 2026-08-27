@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ArrowRight, Command, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 
-import { useGlobalSearchV1Query } from "../../features/search";
+import { useGlobalSearchQuery } from "../../features/search";
 import { cn } from "../../lib/utils";
 import { Input } from "../ui/input";
 import { navigationGroups } from "./navigation";
@@ -26,7 +26,7 @@ const primaryActions = [
 export const CommandPalette = ({ onClose, open }: CommandPaletteProps) => {
   const router = useRouter();
   const [query, setQuery] = useState("");
-  const searchQuery = useGlobalSearchV1Query({ limit: 5, query });
+  const searchQuery = useGlobalSearchQuery({ limit: 5, query });
 
   useEffect(() => {
     if (!open) {

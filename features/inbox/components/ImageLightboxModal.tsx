@@ -2,8 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Download, X } from "lucide-react";
-import { getAccessToken } from "../../../lib/auth";
-import { getMessageMediaUrlV1 } from "../../messages/message.api";
+import { fetchMessageMediaBlob } from "../inbox.api";
 
 export interface LightboxImageItem {
   caption?: string | null;
@@ -28,22 +27,14 @@ export function ImageLightboxModal({
 
   const currentItem = images[currentIndex] ?? images[0];
 
-  // Fetch blob URL for each image
+  // Fetch blob URL for each image via API layer
   useEffect(() => {
     let disposed = false;
     const fetchBlobForMessage = async (item: LightboxImageItem) => {
       if (!item?.messageId || loadedUrls[item.messageId]) return;
 
       try {
-        const token = getAccessToken();
-        const response = await fetch(getMessageMediaUrlV1(item.messageId), {
-          headers: token ? { Authorization: `Bearer ${token}` } : {},
-          credentials: "include",
-        });
-
-        if (!response.ok) return;
-
-        const blob = await response.blob();
+        const blob = await fetchMessageMediaBlob(item.messageId);
         const objectUrl = URL.createObjectURL(blob);
 
         if (!disposed) {
@@ -62,6 +53,15 @@ export function ImageLightboxModal({
       disposed = true;
     };
   }, [images, loadedUrls]);
+
+  // Clean up object URLs on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(loadedUrls).forEach((url) => {
+        URL.revokeObjectURL(url);
+      });
+    };
+  }, [loadedUrls]);
 
   // Keyboard navigation & ESC close
   useEffect(() => {

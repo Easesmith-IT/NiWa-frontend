@@ -4,20 +4,21 @@ import { useQuery } from "@tanstack/react-query";
 import { usePathname, useRouter } from "next/navigation";
 import { ReactNode, useEffect } from "react";
 
-import { apiClient } from "../lib/api/client";
+import { getProfile } from "../features/auth";
 import { getAccessToken } from "../lib/auth";
-import { ProfileResponse } from "../lib/api/types";
+import { queryKeys } from "../lib/api/query-keys";
+import { getActiveWorkspaceId, isValidWorkspaceId, setActiveWorkspaceId } from "../lib/workspace/workspace-state";
+import { useWorkspace } from "../lib/workspace/workspace-context";
 
 export const AuthGuard = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
   const pathname = usePathname();
   const hasToken = Boolean(getAccessToken());
+  const { setWorkspaceContext } = useWorkspace();
+
   const profileQuery = useQuery({
-    queryKey: ["profile"],
-    queryFn: async () => {
-      const response = await apiClient.get<ProfileResponse>("/auth/profile");
-      return response.data;
-    },
+    queryKey: queryKeys.profile,
+    queryFn: getProfile,
     enabled: hasToken,
     retry: false,
   });
@@ -30,8 +31,36 @@ export const AuthGuard = ({ children }: { children: ReactNode }) => {
 
     if (profileQuery.isError) {
       router.replace("/login");
+      return;
     }
-  }, [hasToken, pathname, profileQuery.isError, router]);
+
+    if (profileQuery.isSuccess && profileQuery.data) {
+      const role = profileQuery.data.user?.platformRole;
+      const serverWorkspaceId =
+        profileQuery.data.activeWorkspaceId || profileQuery.data.activeMembership?.workspaceId;
+
+      if ((role === "SUPER_ADMIN" || role === "SUB_ADMIN") && !serverWorkspaceId) {
+        router.replace("/admin");
+        return;
+      }
+
+      if (serverWorkspaceId && isValidWorkspaceId(serverWorkspaceId)) {
+        // The backend-assigned workspace is authoritative. This application currently
+        // supports one customer workspace, so a stale local workspace must not survive
+        // an account/session change.
+        if (getActiveWorkspaceId() !== serverWorkspaceId) {
+          setActiveWorkspaceId(serverWorkspaceId);
+        }
+      }
+
+      setWorkspaceContext({
+        activeWorkspaceId:
+          serverWorkspaceId && isValidWorkspaceId(serverWorkspaceId) ? serverWorkspaceId : null,
+        activeMembership: profileQuery.data.activeMembership ?? null,
+        user: profileQuery.data.user ?? null,
+      });
+    }
+  }, [hasToken, pathname, profileQuery.isError, profileQuery.isSuccess, profileQuery.data, router, setWorkspaceContext]);
 
   if (!hasToken || profileQuery.isLoading) {
     return (

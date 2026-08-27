@@ -1,4 +1,4 @@
-export interface TaskRecordV1 {
+export interface TaskRecord {
   _id: string;
   completedAt?: string | null;
   contactId: string;

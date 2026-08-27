@@ -1,48 +1,48 @@
 import type {
-  ActivityRecordV1,
-  ContactRecordV1,
-  ConversationRecordV1,
-  MessageRecordV1,
-  NoteRecordV1,
-} from "../../lib/api/v1-types";
+  ActivityRecord,
+  ContactRecord,
+  ConversationRecord,
+  MessageRecord,
+  NoteRecord,
+} from "../../lib/api/api-types";
 
-export interface SearchContactResultV1 {
+export interface SearchContactResult {
   contact: Pick<
-    ContactRecordV1,
+    ContactRecord,
     "_id" | "company" | "displayName" | "phoneNumber" | "profileName" | "waId"
   >;
 }
 
-export interface SearchConversationResultV1 {
-  contact: SearchContactResultV1["contact"] | null;
-  conversation: ConversationRecordV1 & {
+export interface SearchConversationResult {
+  contact: SearchContactResult["contact"] | null;
+  conversation: ConversationRecord & {
     awaitingReplyFrom?: "business" | "customer" | "none";
     pinnedAt?: string | null;
     starred?: boolean;
   };
 }
 
-export interface SearchMessageResultV1 {
-  contact: SearchContactResultV1["contact"] | null;
-  conversation: SearchConversationResultV1["conversation"] | null;
-  message: MessageRecordV1 & {
+export interface SearchMessageResult {
+  contact: SearchContactResult["contact"] | null;
+  conversation: SearchConversationResult["conversation"] | null;
+  message: MessageRecord & {
     from?: string;
     to?: string;
   };
 }
 
-export interface SearchNoteResultV1 {
-  contact: SearchContactResultV1["contact"] | null;
-  conversation: SearchConversationResultV1["conversation"] | null;
-  note: NoteRecordV1;
+export interface SearchNoteResult {
+  contact: SearchContactResult["contact"] | null;
+  conversation: SearchConversationResult["conversation"] | null;
+  note: NoteRecord;
 }
 
-export interface GlobalSearchResponseV1 {
+export interface GlobalSearchResponse {
   data: {
-    contacts: SearchContactResultV1[];
-    conversations: SearchConversationResultV1[];
-    messages: SearchMessageResultV1[];
-    notes: SearchNoteResultV1[];
+    contacts: SearchContactResult[];
+    conversations: SearchConversationResult[];
+    messages: SearchMessageResult[];
+    notes: SearchNoteResult[];
     totals: {
       contacts: number;
       conversations: number;
@@ -52,7 +52,7 @@ export interface GlobalSearchResponseV1 {
   };
 }
 
-export interface InboxSearchResponseV1 {
+export interface InboxSearchResponse {
   data: Array<{
     contact: {
       _id: string;
@@ -62,7 +62,7 @@ export interface InboxSearchResponseV1 {
       phoneNumber: string;
       profileName?: string | null;
     } | null;
-    conversation: SearchConversationResultV1["conversation"];
+    conversation: SearchConversationResult["conversation"];
   }>;
   metadata: {
     query: string;
@@ -70,7 +70,7 @@ export interface InboxSearchResponseV1 {
   };
 }
 
-export interface DashboardSummaryResponseV1 {
+export interface DashboardSummaryResponse {
   data: {
     automations: {
       active: number;
@@ -78,8 +78,8 @@ export interface DashboardSummaryResponseV1 {
       waitingRuns: number;
     };
     hotThreads: Array<{
-      contact: SearchContactResultV1["contact"] | null;
-      conversation: SearchConversationResultV1["conversation"];
+      contact: SearchContactResult["contact"] | null;
+      conversation: SearchConversationResult["conversation"];
     }>;
     inbox: {
       archivedConversations: number;
@@ -89,8 +89,8 @@ export interface DashboardSummaryResponseV1 {
       starredConversations: number;
     };
     recentActivity: Array<{
-      activity: ActivityRecordV1;
-      contact: SearchContactResultV1["contact"] | null;
+      activity: ActivityRecord;
+      contact: SearchContactResult["contact"] | null;
     }>;
     schedules: {
       failed: number;

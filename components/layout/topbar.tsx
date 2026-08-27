@@ -5,7 +5,9 @@ import { Menu, Search, Wifi } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
 import { clearAccessToken } from "../../lib/auth";
-import { apiClient } from "../../lib/api/client";
+import { clearActiveWorkspaceId } from "../../lib/workspace/workspace-state";
+import { disconnectCampaignSocket } from "../../features/campaigns/campaign.realtime";
+import { logout } from "../../features/auth";
 import { Button } from "../ui/button";
 import { routeMeta } from "./navigation";
 import { ThemeSwitcher } from "./theme-switcher";
@@ -22,9 +24,11 @@ export const Topbar = ({ onOpenCommandPalette, onToggleSidebar }: TopbarProps) =
 
   const handleLogout = async () => {
     try {
-      await apiClient.post("/auth/logout");
+      await logout();
     } finally {
       clearAccessToken();
+      clearActiveWorkspaceId();
+      disconnectCampaignSocket();
       queryClient.clear();
       router.replace("/login");
     }
@@ -71,4 +75,3 @@ export const Topbar = ({ onOpenCommandPalette, onToggleSidebar }: TopbarProps) =
     </header>
   );
 };
-

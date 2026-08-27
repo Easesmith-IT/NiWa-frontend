@@ -1,7 +1,7 @@
-import type { InboxThreadDetailV1, InboxThreadRecordV1 } from "./inbox.types";
+import type { InboxThreadDetail, InboxThreadRecord } from "./inbox.types";
 import { withDisplayPhoneNumber, withNullableText } from "../shared/mappers";
 
-export const mapInboxThreadRecordV1 = (record: InboxThreadRecordV1): InboxThreadRecordV1 => ({
+export const mapInboxThreadRecord = (record: InboxThreadRecord): InboxThreadRecord => ({
   ...record,
   contact: record.contact
     ? {
@@ -15,9 +15,18 @@ export const mapInboxThreadRecordV1 = (record: InboxThreadRecordV1): InboxThread
     : null,
 });
 
-export const mapInboxThreadDetailV1 = (record: InboxThreadDetailV1): InboxThreadDetailV1 => ({
+export const mapInboxThreadDetail = (record: InboxThreadDetail): InboxThreadDetail => ({
   ...record,
   activities: Array.isArray(record.activities) ? record.activities : [],
+  conversation: record.conversation
+    ? {
+        ...record.conversation,
+        aiMode:
+          record.conversation.aiMode ||
+          record.conversation.metadata?.aiMode ||
+          "AI_ACTIVE",
+      }
+    : record.conversation,
   contact: {
     ...record.contact,
     company: withNullableText(record.contact.company),

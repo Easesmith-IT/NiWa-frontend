@@ -1,1 +1,1 @@
-export type { NoteRecordV1 } from "../../lib/api/v1-types";
+export type { NoteRecord } from "../../lib/api/api-types";

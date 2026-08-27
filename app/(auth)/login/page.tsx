@@ -24,9 +24,9 @@ import {
 
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
-import { apiClient } from "../../../lib/api/client";
+import { login } from "../../../features/auth";
 import { setAccessToken } from "../../../lib/auth";
-import type { LoginResponse } from "../../../lib/api/types";
+import { isValidWorkspaceId, setActiveWorkspaceId } from "../../../lib/workspace/workspace-state";
 
 const loginSchema = z.object({
   email: z.string().email("Please enter a valid email address."),
@@ -62,9 +62,22 @@ export default function LoginPage() {
   const onSubmit = async (values: LoginValues) => {
     try {
       setSubmitError(null);
-      const response = await apiClient.post<LoginResponse>("/auth/login", values);
-      setAccessToken(response.data.accessToken);
-      router.push("/");
+      const data = await login(values);
+      const token = data.accessToken ?? data.token ?? "";
+      setAccessToken(token);
+
+      const serverWorkspaceId = data.activeWorkspaceId || data.activeMembership?.workspaceId;
+      if (serverWorkspaceId && isValidWorkspaceId(serverWorkspaceId)) {
+        setActiveWorkspaceId(serverWorkspaceId);
+      }
+
+      const nextParam = new URLSearchParams(window.location.search).get("next");
+      const role = data.user?.platformRole;
+      if ((role === "SUPER_ADMIN" || role === "SUB_ADMIN") && !serverWorkspaceId) {
+        router.push(nextParam || "/admin");
+      } else {
+        router.push(nextParam || "/");
+      }
     } catch (error) {
       const message =
         error instanceof AxiosError
@@ -284,4 +297,3 @@ export default function LoginPage() {
     </main>
   );
 }
-

@@ -1,43 +1,43 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { v1QueryKeys } from "../../lib/api/v1-query-keys";
+import { queryKeys } from "../../lib/api/query-keys";
 import {
-  createAutomationV1,
-  getAutomationRunV1,
-  listAutomationRunsV1,
-  listAutomationsV1,
-  patchAutomationV1,
-  setAutomationLifecycleV1,
-  testAutomationV1,
+  createAutomation,
+  getAutomationRun,
+  listAutomationRuns,
+  listAutomations,
+  patchAutomation,
+  setAutomationLifecycle,
+  testAutomation,
 } from "./automation.api";
 
 const invalidateAutomationSurfaces = async (queryClient: ReturnType<typeof useQueryClient>) => {
   await Promise.all([
-    queryClient.invalidateQueries({ queryKey: v1QueryKeys.automations }),
-    queryClient.invalidateQueries({ queryKey: v1QueryKeys.automationRuns }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.automations }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.automationRuns }),
   ]);
 };
 
-export const useAutomationsV1Query = (params?: {
+export const useAutomationsQuery = (params?: {
   status?: "active" | "archived" | "paused";
 }) =>
   useQuery({
-    queryKey: [...v1QueryKeys.automations, params?.status ?? "all"],
-    queryFn: () => listAutomationsV1(params),
+    queryKey: [...queryKeys.automations, params?.status ?? "all"],
+    queryFn: () => listAutomations(params),
   });
 
-export const useCreateAutomationV1Mutation = () => {
+export const useCreateAutomationMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: createAutomationV1,
+    mutationFn: createAutomation,
     onSuccess: async () => {
       await invalidateAutomationSurfaces(queryClient);
     },
   });
 };
 
-export const usePatchAutomationV1Mutation = () => {
+export const usePatchAutomationMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -46,15 +46,15 @@ export const usePatchAutomationV1Mutation = () => {
       payload,
     }: {
       automationId: string;
-      payload: Parameters<typeof patchAutomationV1>[1];
-    }) => patchAutomationV1(automationId, payload),
+      payload: Parameters<typeof patchAutomation>[1];
+    }) => patchAutomation(automationId, payload),
     onSuccess: async () => {
       await invalidateAutomationSurfaces(queryClient);
     },
   });
 };
 
-export const useAutomationLifecycleV1Mutation = () => {
+export const useAutomationLifecycleMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -64,14 +64,14 @@ export const useAutomationLifecycleV1Mutation = () => {
     }: {
       action: "activate" | "archive" | "pause";
       automationId: string;
-    }) => setAutomationLifecycleV1(automationId, action),
+    }) => setAutomationLifecycle(automationId, action),
     onSuccess: async () => {
       await invalidateAutomationSurfaces(queryClient);
     },
   });
 };
 
-export const useAutomationTestV1Mutation = () => {
+export const useAutomationTestMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
@@ -80,26 +80,26 @@ export const useAutomationTestV1Mutation = () => {
       payload,
     }: {
       automationId: string;
-      payload: Parameters<typeof testAutomationV1>[1];
-    }) => testAutomationV1(automationId, payload),
+      payload: Parameters<typeof testAutomation>[1];
+    }) => testAutomation(automationId, payload),
     onSuccess: async () => {
       await invalidateAutomationSurfaces(queryClient);
     },
   });
 };
 
-export const useAutomationRunsV1Query = (params?: {
+export const useAutomationRunsQuery = (params?: {
   automationId?: string;
   status?: "cancelled" | "completed" | "failed" | "queued" | "running" | "waiting";
 }) =>
   useQuery({
-    queryKey: [...v1QueryKeys.automationRuns, params?.automationId ?? "all", params?.status ?? "all"],
-    queryFn: () => listAutomationRunsV1(params),
+    queryKey: [...queryKeys.automationRuns, params?.automationId ?? "all", params?.status ?? "all"],
+    queryFn: () => listAutomationRuns(params),
   });
 
-export const useAutomationRunV1Query = (runId: string | null) =>
+export const useAutomationRunQuery = (runId: string | null) =>
   useQuery({
     enabled: Boolean(runId),
-    queryKey: [...v1QueryKeys.automationRuns, "detail", runId],
-    queryFn: () => getAutomationRunV1(runId ?? ""),
+    queryKey: [...queryKeys.automationRuns, "detail", runId],
+    queryFn: () => getAutomationRun(runId ?? ""),
   });

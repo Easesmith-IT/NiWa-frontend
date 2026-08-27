@@ -1,7 +1,7 @@
-import type { ContactRecordV1 } from "../../lib/api/v1-types";
+import type { ContactRecord } from "../../lib/api/api-types";
 import { withDisplayPhoneNumber, withNullableText } from "../shared/mappers";
 
-export const mapContactRecordV1 = (record: ContactRecordV1): ContactRecordV1 => ({
+export const mapContactRecord = (record: ContactRecord): ContactRecord => ({
   ...record,
   company: withNullableText(record.company),
   displayName: record.displayName || record.profileName || record.phoneNumber,

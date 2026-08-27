@@ -1,22 +1,22 @@
-export interface AutomationConditionRecordV1 {
+export interface AutomationConditionRecord {
   operator: "contains" | "equals" | "exists" | "not_equals";
   source: string;
   value?: string | null;
 }
 
-export interface AutomationStepRecordV1 {
+export interface AutomationStepRecord {
   config: Record<string, unknown>;
   type: "create_note" | "create_task" | "send_message" | "wait";
 }
 
-export interface AutomationRecordV1 {
+export interface AutomationRecord {
   _id: string;
-  conditions: AutomationConditionRecordV1[];
+  conditions: AutomationConditionRecord[];
   createdAt?: string;
   description?: string | null;
   name: string;
   status: "active" | "archived" | "paused";
-  steps: AutomationStepRecordV1[];
+  steps: AutomationStepRecord[];
   trigger: {
     config?: {
       messageTypes?: string[];
@@ -26,14 +26,14 @@ export interface AutomationRecordV1 {
   updatedAt?: string;
 }
 
-export interface AutomationRunLogRecordV1 {
+export interface AutomationRunLogRecord {
   at: string;
   level: "error" | "info" | "success";
   message: string;
   metadata?: Record<string, unknown>;
 }
 
-export interface AutomationRunRecordV1 {
+export interface AutomationRunRecord {
   _id: string;
   automationId: string;
   automationName: string;
@@ -44,7 +44,7 @@ export interface AutomationRunRecordV1 {
   createdAt?: string;
   currentStepIndex: number;
   lastError?: string | null;
-  logs: AutomationRunLogRecordV1[];
+  logs: AutomationRunLogRecord[];
   messageId?: string | null;
   scheduledResumeAt?: string | null;
   startedAt?: string | null;

@@ -4,7 +4,7 @@ import { useMemo } from "react";
 import { MessageSquare, MoreHorizontal, Pencil, Trash2 } from "lucide-react";
 
 import { withDisplayPhoneNumber } from "../../shared/mappers";
-import type { ContactRecordV1 } from "../contact.types";
+import type { ContactRecord } from "../contact.types";
 
 const avatarColorStyles = [
   "bg-[#EDF8F3] text-[#176B4D]",
@@ -44,9 +44,9 @@ const buildInitials = (value?: string | null) => {
 };
 
 interface ContactsDataTableProps {
-  contacts: ContactRecordV1[];
+  contacts: ContactRecord[];
   onDeleteContact: (contactId: string) => void;
-  onEditContact: (contact: ContactRecordV1) => void;
+  onEditContact: (contact: ContactRecord) => void;
   onOpenChat?: (phoneNumber: string) => void;
   onSelectContact: (contactId: string) => void;
   selectedContactId: string | null;

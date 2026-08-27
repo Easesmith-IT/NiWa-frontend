@@ -1,31 +1,31 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { v1QueryKeys } from "../../lib/api/v1-query-keys";
-import { listMessagesV1, sendTextMessageV1 } from "./message.api";
-import { mapMessageRecordV1 } from "./message.mappers";
+import { queryKeys } from "../../lib/api/query-keys";
+import { listMessages, sendTextMessage } from "./message.api";
+import { mapMessageRecord } from "./message.mappers";
 
-export const useMessagesV1Query = () =>
+export const useMessagesQuery = () =>
   useQuery({
-    queryKey: v1QueryKeys.messages,
+    queryKey: queryKeys.messages,
     queryFn: async () => {
-      const result = await listMessagesV1();
+      const result = await listMessages();
       return {
         ...result,
-        data: result.data.map(mapMessageRecordV1),
+        data: result.data.map(mapMessageRecord),
       };
     },
   });
 
-export const useSendTextMessageV1Mutation = () => {
+export const useSendTextMessageMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: sendTextMessageV1,
+    mutationFn: sendTextMessage,
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: v1QueryKeys.messages }),
-        queryClient.invalidateQueries({ queryKey: v1QueryKeys.inbox }),
-        queryClient.invalidateQueries({ queryKey: v1QueryKeys.inboxThread }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.messages }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.inbox }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.inboxThread }),
       ]);
     },
   });

@@ -1,4 +1,4 @@
-export const v1FeatureAreas = [
+export const featureAreas = [
   "activities",
   "contacts",
   "conversations",

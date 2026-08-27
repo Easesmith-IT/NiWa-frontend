@@ -1,32 +1,32 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { v1QueryKeys } from "../../lib/api/v1-query-keys";
-import { createNoteV1, deleteNoteV1, listNotesV1, patchNoteV1, pinNoteV1, unpinNoteV1 } from "./note.api";
-import { mapNoteRecordV1 } from "./note.mappers";
+import { queryKeys } from "../../lib/api/query-keys";
+import { createNote, deleteNote, listNotes, patchNote, pinNote, unpinNote } from "./note.api";
+import { mapNoteRecord } from "./note.mappers";
 
-export const useContactNotesV1Query = (contactId: string) =>
+export const useContactNotesQuery = (contactId: string) =>
   useQuery({
     enabled: Boolean(contactId),
-    queryKey: [...v1QueryKeys.notes, contactId],
+    queryKey: [...queryKeys.notes, contactId],
     queryFn: async () => {
-      const result = await listNotesV1(contactId);
+      const result = await listNotes(contactId);
       return {
         ...result,
-        data: result.data.map(mapNoteRecordV1),
+        data: result.data.map(mapNoteRecord),
       };
     },
   });
 
-export const useCreateContactNoteV1Mutation = () => {
+export const useCreateContactNoteMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ contactId, payload }: { contactId: string; payload: Parameters<typeof createNoteV1>[1] }) =>
-      createNoteV1(contactId, payload),
+    mutationFn: ({ contactId, payload }: { contactId: string; payload: Parameters<typeof createNote>[1] }) =>
+      createNote(contactId, payload),
     onSuccess: async (_result, variables) => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: [...v1QueryKeys.notes, variables.contactId] }),
-        queryClient.invalidateQueries({ queryKey: v1QueryKeys.inboxThread }),
+        queryClient.invalidateQueries({ queryKey: [...queryKeys.notes, variables.contactId] }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.inboxThread }),
       ]);
     },
   });
@@ -37,17 +37,17 @@ const invalidateNoteSurfaces = async (
   contactId: string,
 ) => {
   await Promise.all([
-    queryClient.invalidateQueries({ queryKey: [...v1QueryKeys.notes, contactId] }),
-    queryClient.invalidateQueries({ queryKey: v1QueryKeys.inboxThread }),
+    queryClient.invalidateQueries({ queryKey: [...queryKeys.notes, contactId] }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.inboxThread }),
   ]);
 };
 
-export const usePatchNoteV1Mutation = () => {
+export const usePatchNoteMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ noteId, payload }: { noteId: string; payload: { content: string } }) =>
-      patchNoteV1(noteId, payload),
+      patchNote(noteId, payload),
     onSuccess: async (result) => {
       const contactId = String(result.data.contactId ?? "");
       if (contactId) {
@@ -57,11 +57,11 @@ export const usePatchNoteV1Mutation = () => {
   });
 };
 
-export const useDeleteNoteV1Mutation = () => {
+export const useDeleteNoteMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: deleteNoteV1,
+    mutationFn: deleteNote,
     onSuccess: async (result) => {
       const contactId = String(result.data.contactId ?? "");
       if (contactId) {
@@ -71,12 +71,12 @@ export const useDeleteNoteV1Mutation = () => {
   });
 };
 
-export const useSetNotePinnedV1Mutation = () => {
+export const useSetNotePinnedMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ noteId, pinned }: { noteId: string; pinned: boolean }) =>
-      (pinned ? pinNoteV1(noteId) : unpinNoteV1(noteId)),
+      (pinned ? pinNote(noteId) : unpinNote(noteId)),
     onSuccess: async (result) => {
       const contactId = String(result.data.contactId ?? "");
       if (contactId) {

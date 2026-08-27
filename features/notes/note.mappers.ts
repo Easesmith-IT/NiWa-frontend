@@ -1,6 +1,6 @@
-import type { NoteRecordV1 } from "../../lib/api/v1-types";
+import type { NoteRecord } from "../../lib/api/api-types";
 
-export const mapNoteRecordV1 = (record: NoteRecordV1): NoteRecordV1 => ({
+export const mapNoteRecord = (record: NoteRecord): NoteRecord => ({
   ...record,
   content: record.content.trim(),
 });

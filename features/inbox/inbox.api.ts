@@ -1,12 +1,12 @@
-import type { V1ListResponse } from "../../lib/api/v1-types";
-import { v1ApiClient } from "../../lib/api/v1-client";
-import type { InboxThreadDetailV1, InboxThreadRecordV1 } from "./inbox.types";
+import type { ListResponse } from "../../lib/api/api-types";
+import { apiClient } from "../../lib/api/api-client";
+import type { InboxThreadDetail, InboxThreadRecord } from "./inbox.types";
 
-export const listInboxThreadsV1 = async (params?: {
+export const listInboxThreads = async (params?: {
   filter?: "all" | "archived" | "awaiting_reply" | "starred" | "unread";
   search?: string;
 }) => {
-  const response = await v1ApiClient.get<V1ListResponse<InboxThreadRecordV1>>("/inbox", {
+  const response = await apiClient.get<ListResponse<InboxThreadRecord>>("/inbox", {
     params: {
       filter: params?.filter,
       search: params?.search,
@@ -16,37 +16,56 @@ export const listInboxThreadsV1 = async (params?: {
   return response.data;
 };
 
-export const getInboxThreadDetailV1 = async (
+export const getInboxThreadDetail = async (
   conversationId: string,
   params?: { cursor?: string | null; messageLimit?: number },
+  options?: { signal?: AbortSignal },
 ) => {
-  const response = await v1ApiClient.get<{
-    data: InboxThreadDetailV1;
-    pagination: V1ListResponse<never>["pagination"];
+  const response = await apiClient.get<{
+    data: InboxThreadDetail;
+    pagination: {
+      nextCursor: string | null;
+      hasMore: boolean;
+      limit: number;
+    };
   }>(`/inbox/${conversationId}`, {
     params: {
       cursor: params?.cursor || undefined,
       messageLimit: params?.messageLimit,
     },
+    signal: options?.signal,
   });
 
   return response.data;
 };
 
-export const updateInboxThreadStateV1 = async (
+export const updateInboxThreadState = async (
   conversationId: string,
   action: "archive" | "pin" | "read" | "star" | "unarchive" | "unpin" | "unstar",
 ) => {
-  const response = await v1ApiClient.post(`/inbox/${conversationId}/${action}`);
+  const response = await apiClient.post(`/inbox/${conversationId}/${action}`);
   return response.data;
 };
 
-export const syncInboxThreadHistoryV1 = async (conversationId: string) => {
-  const response = await v1ApiClient.post<{
-    data: InboxThreadDetailV1;
+export const syncInboxThreadHistory = async (conversationId: string) => {
+  const response = await apiClient.post<{
+    data: InboxThreadDetail;
     message: string;
   }>(`/inbox/${conversationId}/sync-history`);
 
   return response.data;
 };
+
+export const fetchMessageMediaBlob = async (
+  messageId: string,
+  options?: { signal?: AbortSignal },
+): Promise<Blob> => {
+  const response = await apiClient.get<Blob>(`/messages/${messageId}/media`, {
+    responseType: "blob",
+    signal: options?.signal,
+  });
+
+  return response.data;
+};
+
 

@@ -12,8 +12,10 @@ import {
   ScrollText,
   Settings,
   Slash,
+  Sparkles,
   ListTodo,
   Webhook,
+  Megaphone,
 } from "lucide-react";
 
 export interface NavigationItem {
@@ -64,10 +66,22 @@ export const navigationGroups: NavigationGroup[] = [
     label: "Automate",
     items: [
       {
+        href: "/ai-agent",
+        icon: Sparkles,
+        label: "AI Agent",
+        description: "AI auto-reply settings, testing playground, and activity logs.",
+      },
+      {
         href: "/automations",
         icon: Bot,
         label: "Automations",
         description: "Automation registry and builders.",
+      },
+      {
+        href: "/campaigns",
+        icon: Megaphone,
+        label: "Campaigns",
+        description: "Bulk messaging operations.",
       },
       {
         href: "/scheduled",

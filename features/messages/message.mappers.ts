@@ -1,6 +1,6 @@
-import type { MessageRecordV1 } from "../../lib/api/v1-types";
+import type { MessageRecord } from "../../lib/api/api-types";
 
-export const mapMessageRecordV1 = (record: MessageRecordV1): MessageRecordV1 => ({
+export const mapMessageRecord = (record: MessageRecord): MessageRecord => ({
   ...record,
   previewText: record.previewText || `[${record.messageType}]`,
 });

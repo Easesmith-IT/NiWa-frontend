@@ -1,17 +1,17 @@
-import { v1ApiClient } from "../../lib/api/v1-client";
-import type { V1ListResponse } from "../../lib/api/v1-types";
-import type { AutomationRecordV1, AutomationRunRecordV1 } from "./automation.types";
+import { apiClient } from "../../lib/api/api-client";
+import type { ListResponse } from "../../lib/api/api-types";
+import type { AutomationRecord, AutomationRunRecord } from "./automation.types";
 
-export const listAutomationsV1 = async (params?: {
+export const listAutomations = async (params?: {
   status?: "active" | "archived" | "paused";
 }) => {
-  const response = await v1ApiClient.get<V1ListResponse<AutomationRecordV1>>("/automations", {
+  const response = await apiClient.get<ListResponse<AutomationRecord>>("/automations", {
     params,
   });
   return response.data;
 };
 
-export const createAutomationV1 = async (payload: {
+export const createAutomation = async (payload: {
   conditions: Array<{ operator: "contains" | "equals" | "exists" | "not_equals"; source: string; value?: string }>;
   description?: string;
   name: string;
@@ -23,11 +23,11 @@ export const createAutomationV1 = async (payload: {
     type: "incoming_message" | "manual";
   };
 }) => {
-  const response = await v1ApiClient.post<{ data: AutomationRecordV1 }>("/automations", payload);
+  const response = await apiClient.post<{ data: AutomationRecord }>("/automations", payload);
   return response.data;
 };
 
-export const patchAutomationV1 = async (
+export const patchAutomation = async (
   automationId: string,
   payload: Partial<{
     conditions: Array<{ operator: "contains" | "equals" | "exists" | "not_equals"; source: string; value?: string }>;
@@ -43,24 +43,24 @@ export const patchAutomationV1 = async (
     };
   }>,
 ) => {
-  const response = await v1ApiClient.patch<{ data: AutomationRecordV1 }>(
+  const response = await apiClient.patch<{ data: AutomationRecord }>(
     `/automations/${automationId}`,
     payload,
   );
   return response.data;
 };
 
-export const setAutomationLifecycleV1 = async (
+export const setAutomationLifecycle = async (
   automationId: string,
   action: "activate" | "archive" | "pause",
 ) => {
-  const response = await v1ApiClient.post<{ data: AutomationRecordV1 }>(
+  const response = await apiClient.post<{ data: AutomationRecord }>(
     `/automations/${automationId}/${action}`,
   );
   return response.data;
 };
 
-export const testAutomationV1 = async (
+export const testAutomation = async (
   automationId: string,
   payload: {
     contactId: string;
@@ -68,25 +68,25 @@ export const testAutomationV1 = async (
     messageId?: string;
   },
 ) => {
-  const response = await v1ApiClient.post<{ data: AutomationRunRecordV1 }>(
+  const response = await apiClient.post<{ data: AutomationRunRecord }>(
     `/automations/${automationId}/test`,
     payload,
   );
   return response.data;
 };
 
-export const listAutomationRunsV1 = async (params?: {
+export const listAutomationRuns = async (params?: {
   automationId?: string;
   status?: "cancelled" | "completed" | "failed" | "queued" | "running" | "waiting";
 }) => {
-  const response = await v1ApiClient.get<V1ListResponse<AutomationRunRecordV1>>(
+  const response = await apiClient.get<ListResponse<AutomationRunRecord>>(
     "/automations/runs",
     { params },
   );
   return response.data;
 };
 
-export const getAutomationRunV1 = async (runId: string) => {
-  const response = await v1ApiClient.get<{ data: AutomationRunRecordV1 }>(`/automations/runs/${runId}`);
+export const getAutomationRun = async (runId: string) => {
+  const response = await apiClient.get<{ data: AutomationRunRecord }>(`/automations/runs/${runId}`);
   return response.data;
 };

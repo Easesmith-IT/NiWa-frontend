@@ -1,0 +1,2681 @@
+{
+  "generatedAt": "2026-08-25T20:47:30.517Z",
+  "backendRepository": "https://github.com/Easesmith-IT/NiWa-backend.git",
+  "backendBranch": "origin/main",
+  "backendCommitSHA": "de4488bdb0b855fb56877ed3758ab7a4ae361100",
+  "summary": {
+    "totalBackendRoutes": 182,
+    "v1Routes": 144,
+    "legacyCompatibilityRoutes": 11,
+    "externalWebhookRoutes": 2,
+    "systemRoutes": 3,
+    "unusedLegacyRoutesByFrontend": 11
+  },
+  "routes": [
+    {
+      "method": "GET",
+      "path": "/health",
+      "router": "app.ts",
+      "controller": "anonymous",
+      "middleware": [],
+      "isV1": false,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": false,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Liveness health check"
+    },
+    {
+      "method": "GET",
+      "path": "/ready",
+      "router": "app.ts",
+      "controller": "anonymous",
+      "middleware": [],
+      "isV1": false,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": false,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Readiness probe for K8s / load balancer"
+    },
+    {
+      "method": "GET",
+      "path": "/",
+      "router": "app.ts",
+      "controller": "anonymous",
+      "middleware": [],
+      "isV1": false,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": false,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Root info endpoint"
+    },
+    {
+      "method": "GET",
+      "path": "/webhook/meta",
+      "router": "meta-webhook.ts",
+      "controller": "verifyWebhook",
+      "middleware": [],
+      "isV1": false,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": false,
+      "externalDependency": true,
+      "safeToRemove": false,
+      "notes": "Meta Cloud API Webhook Verification handshake"
+    },
+    {
+      "method": "POST",
+      "path": "/webhook/meta",
+      "router": "meta-webhook.ts",
+      "controller": "receiveWebhook",
+      "middleware": [],
+      "isV1": false,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": false,
+      "externalDependency": true,
+      "safeToRemove": false,
+      "notes": "Meta Cloud API Webhook event notification listener"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/contacts/:contactId/activities",
+      "router": "v1.ts",
+      "controller": "getContactActivitiesV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Contact activity timeline audit history"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/ai-agent/settings",
+      "router": "v1.ts",
+      "controller": "getAISettings",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Workspace AI agent configuration"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/ai-agent/settings",
+      "router": "v1.ts",
+      "controller": "updateAISettings",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Update workspace AI settings"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/ai-agent/agents",
+      "router": "v1.ts",
+      "controller": "listAgents",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "List multi-agent configurations"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/ai-agent/agents",
+      "router": "v1.ts",
+      "controller": "createAgent",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Create new agent instance"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/ai-agent/agents/:id",
+      "router": "v1.ts",
+      "controller": "updateAgent",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Update agent configuration"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/ai-agent/agents/:id",
+      "router": "v1.ts",
+      "controller": "deleteAgent",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Delete agent instance"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/ai-agent/agents/:id/default",
+      "router": "v1.ts",
+      "controller": "setDefaultAgentController",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Set default workspace agent"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/conversations/:conversationId/agent",
+      "router": "v1.ts",
+      "controller": "transferConversationAgent",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Transfer conversation to specific agent"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/ai-agent/templates",
+      "router": "v1.ts",
+      "controller": "getAITemplates",
+      "middleware": [
+        "requireAuth"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Get AI agent templates"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/ai-agent/templates/:templateId/apply",
+      "router": "v1.ts",
+      "controller": "applyAITemplate",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Apply template preset"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/ai-agent/test",
+      "router": "v1.ts",
+      "controller": "testAIPromptPlayground",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Playground prompt test"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/ai-agent/activity",
+      "router": "v1.ts",
+      "controller": "getAIActivityLogs",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "AI processing activity logs"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/ai-agent/knowledge",
+      "router": "v1.ts",
+      "controller": "listKnowledgeSources",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "List RAG knowledge sources"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/ai-agent/knowledge",
+      "router": "v1.ts",
+      "controller": "createKnowledgeSource",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Create RAG source"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/ai-agent/knowledge/:id",
+      "router": "v1.ts",
+      "controller": "updateKnowledgeSource",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Update knowledge source"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/ai-agent/knowledge/:id/status",
+      "router": "v1.ts",
+      "controller": "toggleKnowledgeSourceStatus",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Toggle source active status"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/ai-agent/knowledge/:id",
+      "router": "v1.ts",
+      "controller": "deleteKnowledgeSource",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Delete RAG source"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/ai-agent/knowledge-packs",
+      "router": "v1.ts",
+      "controller": "getKnowledgePacks",
+      "middleware": [
+        "requireAuth"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Get prebuilt knowledge packs"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/conversations/:conversationId/ai-mode",
+      "router": "v1.ts",
+      "controller": "updateConversationAIMode",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Set conversation AI mode"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/login",
+      "router": "v1.ts",
+      "controller": "login",
+      "middleware": [
+        "loginRateLimit"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Operator login"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/logout",
+      "router": "v1.ts",
+      "controller": "logout",
+      "middleware": [],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Operator logout"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/refresh",
+      "router": "v1.ts",
+      "controller": "refresh",
+      "middleware": [
+        "refreshRateLimit"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "JWT Access token refresh"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/auth/profile",
+      "router": "v1.ts",
+      "controller": "profile",
+      "middleware": [
+        "requireAuth"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Get profile"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/auth/profile",
+      "router": "v1.ts",
+      "controller": "updateCurrentProfile",
+      "middleware": [
+        "requireAuth"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Update profile"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/auth/change-password",
+      "router": "v1.ts",
+      "controller": "changeCurrentPassword",
+      "middleware": [
+        "requireAuth",
+        "passwordRateLimit"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Change password"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/automations",
+      "router": "v1.ts",
+      "controller": "getAutomationsV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "List automations"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/automations",
+      "router": "v1.ts",
+      "controller": "postAutomationV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Create automation"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/automations/:automationId",
+      "router": "v1.ts",
+      "controller": "patchAutomationV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Update automation"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/automations/:automationId/activate",
+      "router": "v1.ts",
+      "controller": "postAutomationActivateV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Activate automation"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/automations/:automationId/archive",
+      "router": "v1.ts",
+      "controller": "postAutomationArchiveV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Archive automation"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/automations/:automationId/pause",
+      "router": "v1.ts",
+      "controller": "postAutomationPauseV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Pause automation"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/automations/:automationId/test",
+      "router": "v1.ts",
+      "controller": "postAutomationTestV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Test automation dry run"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/automations/runs",
+      "router": "v1.ts",
+      "controller": "getAutomationRunsV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "List automation runs"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/automations/runs/:runId",
+      "router": "v1.ts",
+      "controller": "getAutomationRunV1ById",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Get automation run details"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/campaigns",
+      "router": "v1.ts",
+      "controller": "createCampaign",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspaceMembership"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Create campaign"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/campaigns",
+      "router": "v1.ts",
+      "controller": "getCampaigns",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspaceMembership"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "List campaigns"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/campaigns/:id",
+      "router": "v1.ts",
+      "controller": "getCampaignById",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspaceMembership"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Get campaign detail"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/campaigns/:id/status",
+      "router": "v1.ts",
+      "controller": "updateCampaignStatus",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspaceMembership"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Pause/resume/cancel campaign"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/campaigns/:id/validate",
+      "router": "v1.ts",
+      "controller": "validateCampaign",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspaceMembership"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Validate campaign"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/campaigns/:id/recipients",
+      "router": "v1.ts",
+      "controller": "getCampaignRecipients",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspaceMembership"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "List campaign recipients"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/campaigns/:id",
+      "router": "v1.ts",
+      "controller": "deleteCampaign",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspaceMembership"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Delete draft campaign"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/campaigns/:id/export",
+      "router": "v1.ts",
+      "controller": "exportCampaignRecipients",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspaceMembership"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Export campaign CSV"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/campaigns/:id/draft",
+      "router": "v1.ts",
+      "controller": "updateDraftCampaign",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspaceMembership"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Update draft campaign"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/contacts",
+      "router": "v1.ts",
+      "controller": "getContactsV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "List contacts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/contacts",
+      "router": "v1.ts",
+      "controller": "postContactV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Create contact"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/contacts/:contactId",
+      "router": "v1.ts",
+      "controller": "patchContactV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Update contact"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/contacts/:contactId",
+      "router": "v1.ts",
+      "controller": "deleteContactRouteV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Delete contact"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/contacts/:contactId/labels",
+      "router": "v1.ts",
+      "controller": "postContactLabelV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Add contact label"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/contacts/:contactId/labels/:labelId",
+      "router": "v1.ts",
+      "controller": "deleteContactLabelRouteV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Remove contact label"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/contacts/export",
+      "router": "v1.ts",
+      "controller": "getContactsExportV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Export contacts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/contacts/duplicates",
+      "router": "v1.ts",
+      "controller": "getContactDuplicatesV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Find duplicates"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/contacts/merge",
+      "router": "v1.ts",
+      "controller": "postContactMergeV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Merge contacts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/contact-imports/upload",
+      "router": "v1.ts",
+      "controller": "uploadFile",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace",
+        "multer"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Upload contact CSV"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/contact-imports/:importId/validate",
+      "router": "v1.ts",
+      "controller": "validateImport",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Validate column mapping"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/contact-imports/:importId/commit",
+      "router": "v1.ts",
+      "controller": "commitImport",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Commit import job"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/contact-imports/:importId",
+      "router": "v1.ts",
+      "controller": "getImport",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Get import detail"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/contact-imports",
+      "router": "v1.ts",
+      "controller": "getImportsList",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "List contact import jobs"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conversations",
+      "router": "v1.ts",
+      "controller": "getConversationsV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "List conversations"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/conversations/:conversationId",
+      "router": "v1.ts",
+      "controller": "getConversationV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Get conversation detail"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/conversations/reply",
+      "router": "v1.ts",
+      "controller": "postConversationReply",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Send agent reply"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/conversations/:conversationId/read",
+      "router": "v1.ts",
+      "controller": "postConversationReadV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Clear conversation unread"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/conversations/:conversationId/labels",
+      "router": "v1.ts",
+      "controller": "putConversationLabels",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Update conversation labels"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/conversations/:conversationId/notes",
+      "router": "v1.ts",
+      "controller": "postConversationNote",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Add note to conversation"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/conversations/:conversationId/notes/:noteId",
+      "router": "v1.ts",
+      "controller": "patchConversationNote",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Update conversation note"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/inbox",
+      "router": "v1.ts",
+      "controller": "getInboxThreadsV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "List inbox threads"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/inbox/:conversationId",
+      "router": "v1.ts",
+      "controller": "getInboxThreadV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Get inbox thread detail"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/inbox/:conversationId/archive",
+      "router": "v1.ts",
+      "controller": "postInboxThreadArchiveV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Archive inbox thread"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/inbox/:conversationId/pin",
+      "router": "v1.ts",
+      "controller": "postInboxThreadPinV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Pin inbox thread"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/inbox/:conversationId/read",
+      "router": "v1.ts",
+      "controller": "postInboxThreadReadV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Read inbox thread"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/inbox/:conversationId/star",
+      "router": "v1.ts",
+      "controller": "postInboxThreadStarV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Star inbox thread"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/inbox/:conversationId/unarchive",
+      "router": "v1.ts",
+      "controller": "postInboxThreadUnarchiveV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Unarchive inbox thread"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/inbox/:conversationId/unpin",
+      "router": "v1.ts",
+      "controller": "postInboxThreadUnpinV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Unpin inbox thread"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/inbox/:conversationId/unstar",
+      "router": "v1.ts",
+      "controller": "postInboxThreadUnstarV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Unstar inbox thread"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/inbox/:conversationId/sync-history",
+      "router": "v1.ts",
+      "controller": "postInboxThreadSyncHistoryV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Sync thread history with Meta API"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/labels",
+      "router": "v1.ts",
+      "controller": "getLabelsV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "List labels"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/labels",
+      "router": "v1.ts",
+      "controller": "postLabelV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Create label"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/labels/:labelId",
+      "router": "v1.ts",
+      "controller": "patchLabelV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Update label"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/labels/:labelId",
+      "router": "v1.ts",
+      "controller": "deleteLabelRouteV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Delete label"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/logs/api",
+      "router": "v1.ts",
+      "controller": "getApiLogs",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Get API logs"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/logs/webhooks",
+      "router": "v1.ts",
+      "controller": "getWebhookLogs",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Get webhook logs"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/media",
+      "router": "v1.ts",
+      "controller": "getMedia",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "List media assets"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/media/:id",
+      "router": "v1.ts",
+      "controller": "getMediaDetail",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Get media detail"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/media/upload",
+      "router": "v1.ts",
+      "controller": "postMediaUpload",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace",
+        "multer"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Upload media asset"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/media/:id",
+      "router": "v1.ts",
+      "controller": "removeMedia",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Delete media asset"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/media/:id",
+      "router": "v1.ts",
+      "controller": "patchMediaMetadata",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Update media metadata"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/messages",
+      "router": "v1.ts",
+      "controller": "getMessagesV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "List messages"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/messages/text",
+      "router": "v1.ts",
+      "controller": "postTextMessageV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Send text message"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/messages/:messageId/media",
+      "router": "v1.ts",
+      "controller": "getMessageMediaV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Fetch message media attachment blob"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/messages/read",
+      "router": "v1.ts",
+      "controller": "postReadMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Mark message read"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/messages/template",
+      "router": "v1.ts",
+      "controller": "postTemplateMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Send template message"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/messages/image",
+      "router": "v1.ts",
+      "controller": "postMediaMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Send image message"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/messages/video",
+      "router": "v1.ts",
+      "controller": "postMediaMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Send video message"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/messages/audio",
+      "router": "v1.ts",
+      "controller": "postMediaMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Send audio message"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/messages/document",
+      "router": "v1.ts",
+      "controller": "postMediaMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Send document message"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/messages/sticker",
+      "router": "v1.ts",
+      "controller": "postMediaMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Send sticker message"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/messages/location",
+      "router": "v1.ts",
+      "controller": "postLocationMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Send location message"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/messages/contact",
+      "router": "v1.ts",
+      "controller": "postContactMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Send contact card message"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/messages/button",
+      "router": "v1.ts",
+      "controller": "postButtonMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Send reply button message"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/messages/list",
+      "router": "v1.ts",
+      "controller": "postListMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Send list picker message"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/messages/reaction",
+      "router": "v1.ts",
+      "controller": "postReactionMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Send emoji reaction message"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/messages/cta-url",
+      "router": "v1.ts",
+      "controller": "postCtaUrlMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Send CTA URL message"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/messages/location-request",
+      "router": "v1.ts",
+      "controller": "postLocationRequestMessage",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Send location request message"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/messages/typing-indicator",
+      "router": "v1.ts",
+      "controller": "postTypingIndicator",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Send typing indicator signal"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/contacts/:contactId/notes",
+      "router": "v1.ts",
+      "controller": "getContactNotesV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "List contact notes"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/contacts/:contactId/notes",
+      "router": "v1.ts",
+      "controller": "postContactNoteV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Create contact note"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/notes/:noteId",
+      "router": "v1.ts",
+      "controller": "patchNoteV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Edit note"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/notes/:noteId",
+      "router": "v1.ts",
+      "controller": "deleteNoteRouteV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Delete note"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/notes/:noteId/pin",
+      "router": "v1.ts",
+      "controller": "postNotePinV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Pin note"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/notes/:noteId/unpin",
+      "router": "v1.ts",
+      "controller": "postNoteUnpinV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Unpin note"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/quick-replies",
+      "router": "v1.ts",
+      "controller": "getQuickRepliesV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "List quick replies"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/quick-replies",
+      "router": "v1.ts",
+      "controller": "postQuickReplyV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Create quick reply"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/quick-replies/:quickReplyId",
+      "router": "v1.ts",
+      "controller": "patchQuickReplyV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Update quick reply"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/quotas",
+      "router": "v1.ts",
+      "controller": "asyncHandler",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Get messaging quota"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/quotas/forecast",
+      "router": "v1.ts",
+      "controller": "asyncHandler",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Get quota forecast"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/scheduled-messages",
+      "router": "v1.ts",
+      "controller": "getScheduledMessagesV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "List scheduled messages"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/scheduled-messages",
+      "router": "v1.ts",
+      "controller": "postScheduledMessageV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Schedule message"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/scheduled-messages/:scheduledMessageId",
+      "router": "v1.ts",
+      "controller": "patchScheduledMessageV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Update scheduled message"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/scheduled-messages/:scheduledMessageId/cancel",
+      "router": "v1.ts",
+      "controller": "postScheduledMessageCancelV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Cancel scheduled message"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/scheduled-messages/:scheduledMessageId/pause",
+      "router": "v1.ts",
+      "controller": "postScheduledMessagePauseV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Pause scheduled message"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/scheduled-messages/:scheduledMessageId/resume",
+      "router": "v1.ts",
+      "controller": "postScheduledMessageResumeV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Resume scheduled message"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/scheduled-messages/:scheduledMessageId/retry",
+      "router": "v1.ts",
+      "controller": "postScheduledMessageRetryV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Retry scheduled message"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/search",
+      "router": "v1.ts",
+      "controller": "getGlobalSearchV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Global search"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/search/inbox",
+      "router": "v1.ts",
+      "controller": "getInboxSearchV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Inbox search"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/dashboard",
+      "router": "v1.ts",
+      "controller": "getDashboardV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Dashboard summary"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/settings",
+      "router": "v1.ts",
+      "controller": "getSettings",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Get settings"
+    },
+    {
+      "method": "PUT",
+      "path": "/api/v1/settings",
+      "router": "v1.ts",
+      "controller": "updateSettings",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Update settings"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/settings/test-connection",
+      "router": "v1.ts",
+      "controller": "testConnection",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Test Meta connection"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/tasks",
+      "router": "v1.ts",
+      "controller": "getTasksV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "List tasks"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tasks",
+      "router": "v1.ts",
+      "controller": "postTaskV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Create task"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tasks/:taskId/complete",
+      "router": "v1.ts",
+      "controller": "postTaskCompleteV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Complete task"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/tasks/:taskId/cancel",
+      "router": "v1.ts",
+      "controller": "postTaskCancelV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Cancel task"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/v1/tasks/:taskId",
+      "router": "v1.ts",
+      "controller": "patchTaskV1",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Update task"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/templates",
+      "router": "v1.ts",
+      "controller": "getTemplates",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "List templates"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/templates/sync",
+      "router": "v1.ts",
+      "controller": "syncTemplates",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Sync templates with Meta"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/webhooks",
+      "router": "v1.ts",
+      "controller": "getWebhookOverview",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Get webhook overview"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/webhooks/test",
+      "router": "v1.ts",
+      "controller": "testWebhook",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace",
+        "webhookTestRateLimit"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Test webhook trigger"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/webhooks/reconcile",
+      "router": "v1.ts",
+      "controller": "reconcileWebhookSubscription",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Reconcile webhook subscription"
+    },
+    {
+      "method": "GET",
+      "path": "/api/v1/whatsapp/connections",
+      "router": "v1.ts",
+      "controller": "getConnectionsHandler",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "List WhatsApp connections"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/whatsapp/connections/:connectionId/sync",
+      "router": "v1.ts",
+      "controller": "syncConnectionHandler",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Sync WABA connection"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/whatsapp/connections/:connectionId/health",
+      "router": "v1.ts",
+      "controller": "checkHealthHandler",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Check connection health"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/v1/whatsapp/connections/:connectionId",
+      "router": "v1.ts",
+      "controller": "disconnectConnectionHandler",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Disconnect WABA connection"
+    },
+    {
+      "method": "POST",
+      "path": "/api/v1/whatsapp/connections/embedded-signup/complete",
+      "router": "v1.ts",
+      "controller": "completeEmbeddedSignupHandler",
+      "middleware": [
+        "requireAuth",
+        "requireWorkspace"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Complete Meta embedded signup"
+    },
+    {
+      "method": "WS",
+      "path": "/socket.io",
+      "router": "v1.ts",
+      "controller": "setupSocketServer",
+      "middleware": [
+        "Socket.IO Handshake Auth"
+      ],
+      "isV1": true,
+      "isLegacy": false,
+      "isCompatibilityAlias": false,
+      "isUsedByFrontend": true,
+      "externalDependency": false,
+      "safeToRemove": false,
+      "notes": "Realtime WebSocket transport for inbox and campaign updates"
+    },
+    {
+      "method": "ANY",
+      "path": "/api/ai-agent",
+      "router": "index.ts",
+      "controller": "Forward to V1 Router",
+      "middleware": [],
+      "isV1": false,
+      "isLegacy": true,
+      "isCompatibilityAlias": true,
+      "isUsedByFrontend": false,
+      "externalDependency": false,
+      "safeToRemove": true,
+      "notes": "Mounted in src/routes/index.ts:19 for legacy back-compat. All frontend calls use /api/v1/ai-agent."
+    },
+    {
+      "method": "ANY",
+      "path": "/api/auth",
+      "router": "index.ts",
+      "controller": "Forward to V1 Router",
+      "middleware": [],
+      "isV1": false,
+      "isLegacy": true,
+      "isCompatibilityAlias": true,
+      "isUsedByFrontend": false,
+      "externalDependency": false,
+      "safeToRemove": true,
+      "notes": "Mounted in src/routes/index.ts:20. Frontend uses /api/v1/auth exclusively."
+    },
+    {
+      "method": "ANY",
+      "path": "/api/conversations",
+      "router": "index.ts",
+      "controller": "Forward to V1 Router",
+      "middleware": [],
+      "isV1": false,
+      "isLegacy": true,
+      "isCompatibilityAlias": true,
+      "isUsedByFrontend": false,
+      "externalDependency": false,
+      "safeToRemove": true,
+      "notes": "Mounted in src/routes/index.ts:21. Frontend uses /api/v1/conversations."
+    },
+    {
+      "method": "ANY",
+      "path": "/api/dashboard",
+      "router": "index.ts",
+      "controller": "Forward to V1 Router",
+      "middleware": [],
+      "isV1": false,
+      "isLegacy": true,
+      "isCompatibilityAlias": true,
+      "isUsedByFrontend": false,
+      "externalDependency": false,
+      "safeToRemove": true,
+      "notes": "Mounted in src/routes/index.ts:22. Frontend uses /api/v1/dashboard."
+    },
+    {
+      "method": "ANY",
+      "path": "/api/logs",
+      "router": "index.ts",
+      "controller": "Forward to V1 Router",
+      "middleware": [],
+      "isV1": false,
+      "isLegacy": true,
+      "isCompatibilityAlias": true,
+      "isUsedByFrontend": false,
+      "externalDependency": false,
+      "safeToRemove": true,
+      "notes": "Mounted in src/routes/index.ts:23. Frontend uses /api/v1/logs."
+    },
+    {
+      "method": "ANY",
+      "path": "/api/media",
+      "router": "index.ts",
+      "controller": "Forward to V1 Router",
+      "middleware": [],
+      "isV1": false,
+      "isLegacy": true,
+      "isCompatibilityAlias": true,
+      "isUsedByFrontend": false,
+      "externalDependency": false,
+      "safeToRemove": true,
+      "notes": "Mounted in src/routes/index.ts:24. Frontend uses /api/v1/media."
+    },
+    {
+      "method": "ANY",
+      "path": "/api/messages",
+      "router": "index.ts",
+      "controller": "Forward to V1 Router",
+      "middleware": [],
+      "isV1": false,
+      "isLegacy": true,
+      "isCompatibilityAlias": true,
+      "isUsedByFrontend": false,
+      "externalDependency": false,
+      "safeToRemove": true,
+      "notes": "Mounted in src/routes/index.ts:25. Frontend uses /api/v1/messages."
+    },
+    {
+      "method": "ANY",
+      "path": "/api/settings",
+      "router": "index.ts",
+      "controller": "Forward to V1 Router",
+      "middleware": [],
+      "isV1": false,
+      "isLegacy": true,
+      "isCompatibilityAlias": true,
+      "isUsedByFrontend": false,
+      "externalDependency": false,
+      "safeToRemove": true,
+      "notes": "Mounted in src/routes/index.ts:26. Frontend uses /api/v1/settings."
+    },
+    {
+      "method": "ANY",
+      "path": "/api/templates",
+      "router": "index.ts",
+      "controller": "Forward to V1 Router",
+      "middleware": [],
+      "isV1": false,
+      "isLegacy": true,
+      "isCompatibilityAlias": true,
+      "isUsedByFrontend": false,
+      "externalDependency": false,
+      "safeToRemove": true,
+      "notes": "Mounted in src/routes/index.ts:27. Frontend uses /api/v1/templates."
+    },
+    {
+      "method": "ANY",
+      "path": "/api/webhooks",
+      "router": "index.ts",
+      "controller": "Forward to V1 Router",
+      "middleware": [],
+      "isV1": false,
+      "isLegacy": true,
+      "isCompatibilityAlias": true,
+      "isUsedByFrontend": false,
+      "externalDependency": false,
+      "safeToRemove": true,
+      "notes": "Mounted in src/routes/index.ts:28. Frontend uses /api/v1/webhooks."
+    },
+    {
+      "method": "ANY",
+      "path": "/api/whatsapp/connections",
+      "router": "index.ts",
+      "controller": "Forward to V1 Router",
+      "middleware": [],
+      "isV1": false,
+      "isLegacy": true,
+      "isCompatibilityAlias": true,
+      "isUsedByFrontend": false,
+      "externalDependency": false,
+      "safeToRemove": true,
+      "notes": "Mounted in src/routes/index.ts:29. Frontend uses /api/v1/whatsapp/connections."
+    }
+  ]
+}

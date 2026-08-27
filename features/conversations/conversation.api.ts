@@ -1,8 +1,7 @@
-import type { V1ListResponse } from "../../lib/api/v1-types";
-import { v1ApiClient } from "../../lib/api/v1-client";
-import type { ConversationRecordV1 } from "./conversation.types";
+import type { ConversationRecord, ListResponse } from "../../lib/api/api-types";
+import { apiClient } from "../../lib/api/api-client";
 
-export const listConversationsV1 = async () => {
-  const response = await v1ApiClient.get<V1ListResponse<ConversationRecordV1>>("/conversations");
+export const listConversations = async () => {
+  const response = await apiClient.get<ListResponse<ConversationRecord>>("/conversations");
   return response.data;
 };

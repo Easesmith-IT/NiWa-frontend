@@ -1,57 +1,57 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { v1QueryKeys } from "../../lib/api/v1-query-keys";
-import { createLabelV1, deleteLabelV1, listLabelsV1, patchLabelV1 } from "./label.api";
-import { mapLabelRecordV1 } from "./label.mappers";
+import { queryKeys } from "../../lib/api/query-keys";
+import { createLabel, deleteLabel, listLabels, patchLabel } from "./label.api";
+import { mapLabelRecord } from "./label.mappers";
 
 const invalidateLabelSurfaces = async (queryClient: ReturnType<typeof useQueryClient>) => {
   await Promise.all([
-    queryClient.invalidateQueries({ queryKey: v1QueryKeys.labels }),
-    queryClient.invalidateQueries({ queryKey: v1QueryKeys.contacts }),
-    queryClient.invalidateQueries({ queryKey: v1QueryKeys.inboxThread }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.labels }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.contacts }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.inboxThread }),
   ]);
 };
 
-export const useLabelsV1Query = (params?: { search?: string }) =>
+export const useLabelsQuery = (params?: { search?: string }) =>
   useQuery({
-    queryKey: [...v1QueryKeys.labels, params?.search ?? ""],
+    queryKey: [...queryKeys.labels, params?.search ?? ""],
     queryFn: async () => {
-      const result = await listLabelsV1(params);
+      const result = await listLabels(params);
       return {
         ...result,
-        data: result.data.map(mapLabelRecordV1),
+        data: result.data.map(mapLabelRecord),
       };
     },
   });
 
-export const useCreateLabelV1Mutation = () => {
+export const useCreateLabelMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: createLabelV1,
+    mutationFn: createLabel,
     onSuccess: async () => {
       await invalidateLabelSurfaces(queryClient);
     },
   });
 };
 
-export const usePatchLabelV1Mutation = () => {
+export const usePatchLabelMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ labelId, payload }: { labelId: string; payload: Parameters<typeof patchLabelV1>[1] }) =>
-      patchLabelV1(labelId, payload),
+    mutationFn: ({ labelId, payload }: { labelId: string; payload: Parameters<typeof patchLabel>[1] }) =>
+      patchLabel(labelId, payload),
     onSuccess: async () => {
       await invalidateLabelSurfaces(queryClient);
     },
   });
 };
 
-export const useDeleteLabelV1Mutation = () => {
+export const useDeleteLabelMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: deleteLabelV1,
+    mutationFn: deleteLabel,
     onSuccess: async () => {
       await invalidateLabelSurfaces(queryClient);
     },

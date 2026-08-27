@@ -1,16 +1,16 @@
-import { v1ApiClient } from "../../lib/api/v1-client";
-import type { V1ListResponse } from "../../lib/api/v1-types";
-import type { TaskRecordV1 } from "./task.types";
+import { apiClient } from "../../lib/api/api-client";
+import type { ListResponse } from "../../lib/api/api-types";
+import type { TaskRecord } from "./task.types";
 
-export const listTasksV1 = async (params?: { contactId?: string; status?: string }) => {
-  const response = await v1ApiClient.get<V1ListResponse<TaskRecordV1>>("/tasks", {
+export const listTasks = async (params?: { contactId?: string; status?: string }) => {
+  const response = await apiClient.get<ListResponse<TaskRecord>>("/tasks", {
     params,
   });
 
   return response.data;
 };
 
-export const createTaskV1 = async (payload: {
+export const createTask = async (payload: {
   contactId: string;
   conversationId?: string;
   description?: string;
@@ -19,21 +19,21 @@ export const createTaskV1 = async (payload: {
   reminderAt?: string;
   title: string;
 }) => {
-  const response = await v1ApiClient.post<{ data: TaskRecordV1 }>("/tasks", payload);
+  const response = await apiClient.post<{ data: TaskRecord }>("/tasks", payload);
   return response.data;
 };
 
-export const completeTaskV1 = async (taskId: string) => {
-  const response = await v1ApiClient.post<{ data: TaskRecordV1 }>(`/tasks/${taskId}/complete`);
+export const completeTask = async (taskId: string) => {
+  const response = await apiClient.post<{ data: TaskRecord }>(`/tasks/${taskId}/complete`);
   return response.data;
 };
 
-export const cancelTaskV1 = async (taskId: string) => {
-  const response = await v1ApiClient.post<{ data: TaskRecordV1 }>(`/tasks/${taskId}/cancel`);
+export const cancelTask = async (taskId: string) => {
+  const response = await apiClient.post<{ data: TaskRecord }>(`/tasks/${taskId}/cancel`);
   return response.data;
 };
 
-export const patchTaskV1 = async (
+export const patchTask = async (
   taskId: string,
   payload: Partial<{
     description: string;
@@ -43,6 +43,6 @@ export const patchTaskV1 = async (
     title: string;
   }>,
 ) => {
-  const response = await v1ApiClient.patch<{ data: TaskRecordV1 }>(`/tasks/${taskId}`, payload);
+  const response = await apiClient.patch<{ data: TaskRecord }>(`/tasks/${taskId}`, payload);
   return response.data;
 };

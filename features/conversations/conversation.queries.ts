@@ -1,17 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 
-import { v1QueryKeys } from "../../lib/api/v1-query-keys";
-import { listConversationsV1 } from "./conversation.api";
-import { mapConversationRecordV1 } from "./conversation.mappers";
+import { queryKeys } from "../../lib/api/query-keys";
+import { listConversations } from "./conversation.api";
+import { mapConversationRecord } from "./conversation.mappers";
 
-export const useConversationsV1Query = () =>
+export const useConversationsListQuery = () =>
   useQuery({
-    queryKey: v1QueryKeys.conversations,
+    queryKey: queryKeys.conversations,
     queryFn: async () => {
-      const result = await listConversationsV1();
+      const result = await listConversations();
       return {
         ...result,
-        data: result.data.map(mapConversationRecordV1),
+        data: result.data.map(mapConversationRecord),
       };
     },
   });

@@ -1,66 +1,66 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { v1QueryKeys } from "../../lib/api/v1-query-keys";
-import { cancelTaskV1, completeTaskV1, createTaskV1, listTasksV1, patchTaskV1 } from "./task.api";
+import { queryKeys } from "../../lib/api/query-keys";
+import { cancelTask, completeTask, createTask, listTasks, patchTask } from "./task.api";
 
-export const useTasksV1Query = (params?: { contactId?: string; status?: string }) =>
+export const useTasksQuery = (params?: { contactId?: string; status?: string }) =>
   useQuery({
-    queryKey: [...v1QueryKeys.tasks, params?.contactId ?? "all", params?.status ?? "all"],
-    queryFn: () => listTasksV1(params),
+    queryKey: [...queryKeys.tasks, params?.contactId ?? "all", params?.status ?? "all"],
+    queryFn: () => listTasks(params),
   });
 
-export const useCreateTaskV1Mutation = () => {
+export const useCreateTaskMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: createTaskV1,
+    mutationFn: createTask,
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: v1QueryKeys.tasks }),
-        queryClient.invalidateQueries({ queryKey: v1QueryKeys.inboxThread }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.tasks }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.inboxThread }),
       ]);
     },
   });
 };
 
-export const useCompleteTaskV1Mutation = () => {
+export const useCompleteTaskMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: completeTaskV1,
+    mutationFn: completeTask,
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: v1QueryKeys.tasks }),
-        queryClient.invalidateQueries({ queryKey: v1QueryKeys.inboxThread }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.tasks }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.inboxThread }),
       ]);
     },
   });
 };
 
-export const useCancelTaskV1Mutation = () => {
+export const useCancelTaskMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: cancelTaskV1,
+    mutationFn: cancelTask,
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: v1QueryKeys.tasks }),
-        queryClient.invalidateQueries({ queryKey: v1QueryKeys.inboxThread }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.tasks }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.inboxThread }),
       ]);
     },
   });
 };
 
-export const usePatchTaskV1Mutation = () => {
+export const usePatchTaskMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ payload, taskId }: { payload: Parameters<typeof patchTaskV1>[1]; taskId: string }) =>
-      patchTaskV1(taskId, payload),
+    mutationFn: ({ payload, taskId }: { payload: Parameters<typeof patchTask>[1]; taskId: string }) =>
+      patchTask(taskId, payload),
     onSuccess: async () => {
       await Promise.all([
-        queryClient.invalidateQueries({ queryKey: v1QueryKeys.tasks }),
-        queryClient.invalidateQueries({ queryKey: v1QueryKeys.inboxThread }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.tasks }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.inboxThread }),
       ]);
     },
   });

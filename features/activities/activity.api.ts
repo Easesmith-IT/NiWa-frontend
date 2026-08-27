@@ -1,9 +1,9 @@
-import type { V1ListResponse } from "../../lib/api/v1-types";
-import { v1ApiClient } from "../../lib/api/v1-client";
-import type { ActivityRecordV1 } from "./activity.types";
+import type { ListResponse } from "../../lib/api/api-types";
+import { apiClient } from "../../lib/api/api-client";
+import type { ActivityRecord } from "./activity.types";
 
-export const listActivitiesV1 = async (contactId: string) => {
-  const response = await v1ApiClient.get<V1ListResponse<ActivityRecordV1>>(
+export const listActivities = async (contactId: string) => {
+  const response = await apiClient.get<ListResponse<ActivityRecord>>(
     `/contacts/${contactId}/activities`,
   );
   return response.data;

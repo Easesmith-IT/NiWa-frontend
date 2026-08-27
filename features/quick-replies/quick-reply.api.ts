@@ -1,24 +1,24 @@
-import { v1ApiClient } from "../../lib/api/v1-client";
-import type { V1ListResponse } from "../../lib/api/v1-types";
-import type { QuickReplyRecordV1 } from "./quick-reply.types";
+import { apiClient } from "../../lib/api/api-client";
+import type { ListResponse } from "../../lib/api/api-types";
+import type { QuickReplyRecord } from "./quick-reply.types";
 
-export const listQuickRepliesV1 = async () => {
-  const response = await v1ApiClient.get<V1ListResponse<QuickReplyRecordV1>>("/quick-replies");
+export const listQuickReplies = async () => {
+  const response = await apiClient.get<ListResponse<QuickReplyRecord>>("/quick-replies");
   return response.data;
 };
 
-export const createQuickReplyV1 = async (payload: {
+export const createQuickReply = async (payload: {
   body: string;
   category?: string;
   shortcut: string;
   title: string;
   variables: string[];
 }) => {
-  const response = await v1ApiClient.post<{ data: QuickReplyRecordV1 }>("/quick-replies", payload);
+  const response = await apiClient.post<{ data: QuickReplyRecord }>("/quick-replies", payload);
   return response.data;
 };
 
-export const patchQuickReplyV1 = async (
+export const patchQuickReply = async (
   quickReplyId: string,
   payload: Partial<{
     body: string;
@@ -29,7 +29,7 @@ export const patchQuickReplyV1 = async (
     variables: string[];
   }>,
 ) => {
-  const response = await v1ApiClient.patch<{ data: QuickReplyRecordV1 }>(
+  const response = await apiClient.patch<{ data: QuickReplyRecord }>(
     `/quick-replies/${quickReplyId}`,
     payload,
   );

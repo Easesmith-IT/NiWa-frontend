@@ -1,15 +1,15 @@
-import type { V1ListResponse } from "../../lib/api/v1-types";
-import { v1ApiClient } from "../../lib/api/v1-client";
-import type { ContactRecordV1 } from "./contact.types";
+import type { ListResponse } from "../../lib/api/api-types";
+import { apiClient } from "../../lib/api/api-client";
+import type { ContactRecord, ContactImportRecord } from "./contact.types";
 
-export const listContactsV1 = async (params?: { search?: string }) => {
-  const response = await v1ApiClient.get<V1ListResponse<ContactRecordV1>>("/contacts", {
+export const listContacts = async (params?: { search?: string; page?: number; limit?: number }) => {
+  const response = await apiClient.get<ListResponse<ContactRecord>>("/contacts", {
     params,
   });
   return response.data;
 };
 
-export const createContactV1 = async (payload: {
+export const createContact = async (payload: {
   company?: string;
   customFields?: Array<{ key: string; type: "boolean" | "date" | "number" | "text"; value: string }>;
   displayName: string;
@@ -19,11 +19,11 @@ export const createContactV1 = async (payload: {
   profileName?: string;
   waId: string;
 }) => {
-  const response = await v1ApiClient.post<{ data: ContactRecordV1 }>("/contacts", payload);
+  const response = await apiClient.post<{ data: ContactRecord }>("/contacts", payload);
   return response.data;
 };
 
-export const patchContactV1 = async (
+export const patchContact = async (
   contactId: string,
   payload: Partial<{
     avatarUrl: string | null;
@@ -37,50 +37,33 @@ export const patchContactV1 = async (
     waId: string;
   }>,
 ) => {
-  const response = await v1ApiClient.patch<{ data: ContactRecordV1 }>(`/contacts/${contactId}`, payload);
+  const response = await apiClient.patch<{ data: ContactRecord }>(`/contacts/${contactId}`, payload);
   return response.data;
 };
 
-export const deleteContactV1 = async (contactId: string) => {
-  const response = await v1ApiClient.delete<{ data: ContactRecordV1 }>(`/contacts/${contactId}`);
+export const deleteContact = async (contactId: string) => {
+  const response = await apiClient.delete<{ data: ContactRecord }>(`/contacts/${contactId}`);
   return response.data;
 };
 
-export const addContactLabelV1 = async (contactId: string, labelId: string) => {
-  const response = await v1ApiClient.post<{ data: ContactRecordV1 }>(`/contacts/${contactId}/labels`, {
+export const addContactLabel = async (contactId: string, labelId: string) => {
+  const response = await apiClient.post<{ data: ContactRecord }>(`/contacts/${contactId}/labels`, {
     labelId,
   });
   return response.data;
 };
 
-export const removeContactLabelV1 = async (contactId: string, labelId: string) => {
-  const response = await v1ApiClient.delete<{ data: ContactRecordV1 }>(
+export const removeContactLabel = async (contactId: string, labelId: string) => {
+  const response = await apiClient.delete<{ data: ContactRecord }>(
     `/contacts/${contactId}/labels/${labelId}`,
   );
   return response.data;
 };
 
-export const importContactsV1 = async (payload: {
-  contacts: Array<{
-    company?: string;
-    customFields?: Array<{ key: string; type: "boolean" | "date" | "number" | "text"; value: string }>;
-    displayName: string;
-    email?: string;
-    phoneNumber: string;
-    phoneNumberE164: string;
-    profileName?: string;
-    waId: string;
-  }>;
-}) => {
-  const response = await v1ApiClient.post<{ data: { created: number; total: number; updated: number } }>(
-    "/contacts/import",
-    payload,
-  );
-  return response.data;
-};
 
-export const exportContactsV1 = async (params?: { format?: "csv" | "json"; search?: string }) => {
-  const response = await v1ApiClient.get("/contacts/export", {
+
+export const exportContacts = async (params?: { format?: "csv" | "json"; search?: string }) => {
+  const response = await apiClient.get("/contacts/export", {
     params,
     responseType: params?.format === "csv" ? "blob" : "json",
   });
@@ -88,12 +71,12 @@ export const exportContactsV1 = async (params?: { format?: "csv" | "json"; searc
   return response.data;
 };
 
-export const getContactDuplicatesV1 = async (params?: {
+export const getContactDuplicates = async (params?: {
   field?: "phoneNumber" | "phoneNumberE164" | "waId";
 }) => {
-  const response = await v1ApiClient.get<{
+  const response = await apiClient.get<{
     data: Array<{
-      contacts: ContactRecordV1[];
+      contacts: ContactRecord[];
       count: number;
       value: string;
     }>;
@@ -107,10 +90,41 @@ export const getContactDuplicatesV1 = async (params?: {
   return response.data;
 };
 
-export const mergeContactsV1 = async (payload: {
+export const mergeContacts = async (payload: {
   sourceContactId: string;
   targetContactId: string;
 }) => {
-  const response = await v1ApiClient.post<{ data: ContactRecordV1 | null }>("/contacts/merge", payload);
+  const response = await apiClient.post<{ data: ContactRecord | null }>("/contacts/merge", payload);
+  return response.data;
+};
+
+export const uploadContactImport = async (file: File) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  const response = await apiClient.post<{ data: ContactImportRecord }>("/contact-imports/upload", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+  return response.data.data;
+};
+
+export const validateContactImport = async (importId: string, payload: { columnMapping: Record<string, string> }) => {
+  const response = await apiClient.post<{ data: ContactImportRecord }>(`/contact-imports/${importId}/validate`, payload);
+  return response.data.data;
+};
+
+export const commitContactImport = async (importId: string) => {
+  const response = await apiClient.post<{ data: ContactImportRecord }>(`/contact-imports/${importId}/commit`);
+  return response.data.data;
+};
+
+export const getContactImport = async (importId: string) => {
+  const response = await apiClient.get<{ data: ContactImportRecord }>(`/contact-imports/${importId}`);
+  return response.data.data;
+};
+
+export const listContactImports = async () => {
+  const response = await apiClient.get<{ data: ContactImportRecord[] }>("/contact-imports");
   return response.data;
 };
