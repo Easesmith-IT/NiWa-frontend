@@ -16,7 +16,7 @@ export const isValidWorkspaceId = (id: unknown): id is string => {
   if (
     typeof process !== "undefined" &&
     process.env.NEXT_PUBLIC_WORKSPACE_ID &&
-    trimmed === process.env.NEXT_PUBLIC_WORKSPACE_ID
+    trimmed !== process.env.NEXT_PUBLIC_WORKSPACE_ID
   ) {
     return false;
   }
