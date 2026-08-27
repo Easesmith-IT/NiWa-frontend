@@ -1,9 +1,12 @@
 import axios from "axios";
 
 import { clearAccessToken, getAccessToken, redirectToLogin, setAccessToken } from "../auth";
+import { getBaseApiUrl } from "./base-url";
+
+const getApiBaseUrl = () => getBaseApiUrl();
 
 export const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5000/api",
+  baseURL: getApiBaseUrl(),
   withCredentials: true,
 });
 
@@ -12,6 +15,14 @@ apiClient.interceptors.request.use((config) => {
 
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+
+  if (!config.headers["x-workspace-id"]) {
+    const activeWorkspaceId =
+      (typeof window !== "undefined" && localStorage.getItem("activeWorkspaceId")) ||
+      process.env.NEXT_PUBLIC_WORKSPACE_ID ||
+      "ws-default";
+    config.headers["x-workspace-id"] = activeWorkspaceId;
   }
 
   return config;

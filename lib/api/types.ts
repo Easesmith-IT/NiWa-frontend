@@ -20,6 +20,62 @@ export interface SettingsResponse {
   metaWebhookEndpoint: string;
 }
 
+export interface WhatsAppConnectionRecord {
+  id: string;
+  workspaceId: string;
+  provider: string;
+  metaBusinessId: string;
+  wabaId: string;
+  phoneNumberId: string;
+  displayPhoneNumber: string;
+  verifiedName: string;
+  displayName: string;
+  qualityRating: string;
+  phoneStatus: string;
+  connectionStatus:
+    | "PENDING"
+    | "CONNECTING"
+    | "CONNECTED"
+    | "ACTION_REQUIRED"
+    | "TOKEN_EXPIRED"
+    | "PERMISSION_ERROR"
+    | "WEBHOOK_ERROR"
+    | "DISCONNECTED"
+    | "FAILED";
+  webhookStatus: string;
+  messagingStatus: string;
+  templateSyncStatus: string;
+  connectionMode: string;
+  connectedBy: string;
+  connectedAt: string | null;
+  lastSyncedAt: string | null;
+  lastWebhookAt: string | null;
+  lastHealthCheckAt: string | null;
+  healthStatus: "healthy" | "warning" | "disconnected";
+  healthMessage: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface WhatsAppConnectionsResponse {
+  workspaceId: string;
+  connections: WhatsAppConnectionRecord[];
+  count: number;
+}
+
+export interface CompleteEmbeddedSignupPayload {
+  code?: string;
+  wabaId: string;
+  phoneNumberId: string;
+  businessId?: string;
+}
+
+export interface EmbeddedSignupResponse {
+  success: boolean;
+  message: string;
+  connection: WhatsAppConnectionRecord;
+}
+
 export interface ConnectionTestResponse {
   success: boolean;
   message: string;
@@ -78,6 +134,11 @@ export interface WebhookLogsResponse {
 export interface WebhooksResponse {
   metaWebhookEndpoint: string;
   configuredWebhookUrl: string;
+  callbackUrlMatchesBackendEndpoint?: boolean;
+  metaAppSubscriptions?: Array<Record<string, unknown>>;
+  metaCallbackUrl?: string | null;
+  metaPhoneNumberWebhookConfiguration?: Record<string, unknown> | null;
+  metaWebhookDiagnosticsMissingFields?: string[];
   verifyTokenConfigured: boolean;
   apiVersion: string;
   verificationStatus?: string;
@@ -85,6 +146,23 @@ export interface WebhooksResponse {
   totalEvents: number;
   lastEventAt: string | null;
   events: WebhookEventRecord[];
+}
+
+export interface WebhookReconcileResponse {
+  success: boolean;
+  message: string;
+  requestBody: unknown;
+  responseBody: unknown;
+  diagnostics: {
+    appSubscriptions: Array<Record<string, unknown>>;
+    callbackUrlMatchesBackendEndpoint: boolean;
+    metaCallbackUrl: string | null;
+    metaPhoneNumberWebhookConfiguration: Record<string, unknown> | null;
+    metaWebhookEndpoint: string;
+    missingFields: string[];
+    savedWebhookUrl: string;
+    verifyTokenConfigured: boolean;
+  };
 }
 
 export interface LoginResponse {
@@ -141,7 +219,30 @@ export interface TemplateRecord {
   language: string;
   status: string;
   variables: string[];
+  bodyText?: string;
+  bodyVariableCount?: number;
+  bodyVariables?: string[];
+  buttonCount?: number;
+  footerText?: string;
+  headerFormat?: string;
+  headerMediaRequired?: boolean;
+  headerText?: string;
+  headerVariableCount?: number;
+  headerVariables?: string[];
   isSendable?: boolean;
+  sendabilityReason?: string | null;
+  supportedFeatures?: string[];
+  unsupportedReasons?: string[];
+  urlButtons?: Array<{
+    dynamic?: boolean;
+    example?: unknown;
+    index: number;
+    phoneNumber?: string;
+    text: string;
+    type: string;
+    url?: string;
+    variableCount?: number;
+  }>;
   components: Array<{
     type: string;
     format?: string;
@@ -176,10 +277,13 @@ export interface TemplateSyncResponse {
 export interface MediaRecord {
   _id: string;
   metaMediaId: string;
+  customName?: string | null;
   fileName: string;
   mimeType: string;
   mediaType: string;
   fileSize: number;
+  folder?: string | null;
+  tags?: string[];
   uploadedAt: string;
   requestPayload?: unknown;
   responsePayload: unknown;

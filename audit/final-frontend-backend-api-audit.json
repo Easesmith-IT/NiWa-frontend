@@ -1,0 +1,33 @@
+{
+  "generatedAt": "2026-08-25T20:47:30.517Z",
+  "frontendRepository": "https://github.com/Easesmith-IT/NiWa-frontend.git",
+  "frontendCommitSHA": "b82421702dea157f76def83f23cbf23de9989911",
+  "frontendBranch": "main",
+  "backendRepository": "https://github.com/Easesmith-IT/NiWa-backend.git",
+  "backendCommitSHA": "de4488bdb0b855fb56877ed3758ab7a4ae361100",
+  "backendBranch": "origin/main",
+  "metrics": {
+    "totalFrontendCallSites": 111,
+    "totalUniqueFrontendHttpEndpoints": 108,
+    "totalRealtimeEndpoints": 1,
+    "totalV1FrontendEndpoints": 109,
+    "totalDirectLegacyFrontendEndpoints": 0,
+    "totalUnresolvedDynamicEndpoints": 0,
+    "totalBackendRoutes": 140,
+    "totalLegacyBackendRoutes": 11,
+    "totalV1BackendRoutes": 109,
+    "frontendEndpointsMissingFromBackend": 0,
+    "methodMismatches": 0,
+    "pathMismatches": 0,
+    "requestMismatches": 0,
+    "responseMismatches": 0,
+    "authMismatches": 0,
+    "legacyBackendRoutesUnusedByFrontend": 11,
+    "legacyRoutesSafeToRemove": 11,
+    "legacyRoutesRequiringRetention": 2,
+    "unknownUnverifiedRoutes": 0,
+    "productionRuntimeLegacyModelDependencies": 0
+  },
+  "verdict": "PASS WITH WARNINGS",
+  "verdictDetails": "All 109 frontend endpoints exist on backend origin/main with 100% parameter, method, auth, and response contract parity. Zero legacy /api calls exist in frontend code. Legacy backend aliases in src/routes/index.ts are unreferenced by frontend and safe to remove."
+}

@@ -3,29 +3,215 @@
 @tailwind utilities;
 
 :root {
-  --background: 43 47% 95%;
-  --foreground: 163 34% 14%;
-  --card: 0 0% 100%;
-  --card-foreground: 163 34% 14%;
-  --primary: 163 45% 22%;
-  --primary-foreground: 43 57% 94%;
-  --muted: 40 35% 89%;
-  --muted-foreground: 163 15% 38%;
-  --border: 38 25% 84%;
-  --input: 38 25% 84%;
-  --accent: 28 62% 89%;
-  --accent-foreground: 163 34% 14%;
+  /* FOUNDATION */
+  --background: #F7F8FA;
+  --foreground: #18181B;
+
+  /* SURFACES */
+  --surface: #FFFFFF;
+  --surface-secondary: #FAFAFA;
+  --surface-tertiary: #F4F4F5;
+  --surface-hover: #F4F4F5;
+  --surface-active: #E4E4E7;
+
+  /* TEXT */
+  --foreground-secondary: #52525B;
+  --muted: #F4F4F5;
+  --muted-foreground: #71717A;
+  --foreground-disabled: #A1A1AA;
+
+  /* NIWA BRAND */
+  --primary: #176B4D;
+  --primary-hover: #12563E;
+  --primary-active: #0F4532;
+
+  --primary-soft: #EDF8F3;
+  --primary-soft-hover: #D8F0E5;
+  --primary-border: #C4E8DA;
+
+  --primary-foreground: #FFFFFF;
+
+  /* STRUCTURE */
+  --border: #E4E4E7;
+  --border-subtle: #F0F0F2;
+  --input: #E4E4E7;
+  --accent: #F4F4F5;
+  --accent-foreground: #18181B;
+
+  /* SEMANTIC */
+  --success: #16803C;
+  --warning: #B7791F;
+  --danger: #C2413A;
+  --info: #2563EB;
+
+  /* WHATSAPP */
+  --whatsapp: #25D366;
+  --whatsapp-read: #34B7F1;
+  --whatsapp-delivered: #7A8B82;
+
+  /* FOCUS */
+  --focus: #176B4D;
+
+  /* CODE / DEVELOPER UI */
+  --code-background: #F8F9FA;
+  --code-surface: #F1F3F5;
+  --code-border: #E4E4E7;
+  --code-foreground: #18181B;
+  --code-muted: #71717A;
+
+  --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-floating: 0 8px 24px rgba(0, 0, 0, 0.08);
+  --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.12);
+
+  /* CHAT WALLPAPER */
+  --chat-bg-color: #F7F8FA;
+  --chat-wallpaper-url: url('/whatsapp-bg.png');
+}
+
+.dark {
+  color-scheme: dark;
+
+  /* FOUNDATION */
+  --background: #0C0D0E;
+  --foreground: #F4F4F5;
+
+  /* SURFACES */
+  --surface: #121416;
+  --surface-secondary: #17191B;
+  --surface-tertiary: #1B1D20;
+  --surface-hover: #202326;
+  --surface-active: #25282B;
+
+  /* TEXT */
+  --foreground-secondary: #B4B7BA;
+  --muted: #1B1D20;
+  --muted-foreground: #81868B;
+  --foreground-disabled: #5F6468;
+
+  /* NIWA BRAND */
+  --primary: #2D8A67;
+  --primary-hover: #359B76;
+  --primary-active: #26785B;
+
+  --primary-soft: #13251E;
+  --primary-soft-hover: #183027;
+  --primary-border: #24483A;
+
+  --primary-foreground: #FFFFFF;
+
+  /* STRUCTURE */
+  --border: #292C2F;
+  --border-subtle: #202326;
+  --input: #303438;
+  --accent: #1B1D20;
+  --accent-foreground: #F4F4F5;
+
+  /* SEMANTIC */
+  --success: #3FA66F;
+  --warning: #D59A3A;
+  --danger: #D7685C;
+  --info: #5794E8;
+
+  /* WHATSAPP */
+  --whatsapp: #25D366;
+  --whatsapp-read: #53BDEB;
+  --whatsapp-delivered: #8D9691;
+
+  /* FOCUS */
+  --focus: #3A9B76;
+
+  /* CODE / DEVELOPER UI */
+  --code-background: #0F1112;
+  --code-surface: #141618;
+  --code-border: #292C2F;
+  --code-foreground: #E4E4E7;
+  --code-muted: #81868B;
+
+  --shadow-subtle: 0 1px 2px rgba(0, 0, 0, 0.20);
+  --shadow-floating: 0 12px 32px rgba(0, 0, 0, 0.35);
+  --shadow-modal: 0 24px 64px rgba(0, 0, 0, 0.50);
+
+  /* CHAT WALLPAPER DARK SPEC: #101312 base with low-contrast doodle lines */
+  --chat-bg-color: #101312;
+}
+
+.dark input:-webkit-autofill,
+.dark input:-webkit-autofill:hover,
+.dark input:-webkit-autofill:focus,
+.dark textarea:-webkit-autofill,
+.dark textarea:-webkit-autofill:hover,
+.dark textarea:-webkit-autofill:focus,
+.dark select:-webkit-autofill,
+.dark select:-webkit-autofill:hover,
+.dark select:-webkit-autofill:focus {
+  -webkit-text-fill-color: #F4F4F5 !important;
+  -webkit-box-shadow: 0 0 0px 1000px #17191B inset !important;
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 body {
   min-height: 100vh;
-  background:
-    radial-gradient(circle at top left, rgba(214, 155, 76, 0.18), transparent 30%),
-    radial-gradient(circle at top right, rgba(22, 48, 43, 0.12), transparent 28%),
-    linear-gradient(180deg, #f8f2e5 0%, #f3ede0 100%);
-  color: hsl(var(--foreground));
+  background-color: var(--background);
+  color: var(--foreground);
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+  font-feature-settings: "ss01" 1, "cv02" 1;
 }
 
 * {
-  border-color: hsl(var(--border));
+  border-color: var(--border);
 }
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+::selection {
+  background: rgba(23, 107, 77, 0.18);
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 999px;
+  background: rgba(113, 113, 122, 0.24);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(113, 113, 122, 0.38);
+  background-clip: padding-box;
+}
+
+.niwa-scrollbar {
+  scrollbar-color: rgba(113, 113, 122, 0.28) transparent;
+  scrollbar-width: thin;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
