@@ -90,13 +90,6 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
               <span>Due: {new Date(task.dueAt).toLocaleString()}</span>
             </div>
           )}
-
-          {task.completedAt && (
-            <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
-              <CheckCircle2 className="w-4 h-4 shrink-0" />
-              <span>Completed at: {new Date(task.completedAt).toLocaleString()}</span>
-            </div>
-          )}
         </div>
 
         {task.linkedRecords && task.linkedRecords.length > 0 && (
