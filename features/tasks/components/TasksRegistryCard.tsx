@@ -5,8 +5,8 @@ import type { TaskRecord } from "../task.types";
 import { TaskItemCard } from "./TaskItemCard";
 
 export interface TasksRegistryCardProps {
-  statusFilter: "all" | "completed" | "todo";
-  onStatusFilterChange: (status: "all" | "completed" | "todo") => void;
+  statusFilter: "all" | "completed" | "todo" | "archived";
+  onStatusFilterChange: (status: "all" | "completed" | "todo" | "archived") => void;
   tasks: TaskRecord[];
   onCompleteTask: (taskId: string) => void;
   onClickTask?: (task: TaskRecord) => void;
@@ -22,7 +22,7 @@ export const TasksRegistryCard: React.FC<TasksRegistryCardProps> = ({
   return (
     <Card className="space-y-3.5 p-4">
       <div className="flex flex-wrap gap-1.5 border-b border-[#F0F0F2] pb-2.5 dark:border-[#202326]">
-        {(["all", "todo", "completed"] as const).map((status) => (
+        {(["all", "todo", "completed", "archived"] as const).map((status) => (
           <Button
             key={status}
             onClick={() => onStatusFilterChange(status)}

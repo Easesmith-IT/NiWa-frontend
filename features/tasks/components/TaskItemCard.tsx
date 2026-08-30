@@ -25,7 +25,7 @@ export const TaskItemCard: React.FC<TaskItemCardProps> = ({
         <div className="flex-1">
           <p className="text-xs font-semibold text-foreground">{task.title}</p>
           <p className="mt-1 text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">
-            {task.priority} priority • {task.status}
+            {task.priority} priority • {task.status} {task.isArchived ? "• ARCHIVED" : ""}
           </p>
 
           {task.dueAt && (
@@ -54,7 +54,7 @@ export const TaskItemCard: React.FC<TaskItemCardProps> = ({
           )}
         </div>
 
-        {isPending ? (
+        {isPending && !task.isArchived ? (
           <div className="flex flex-col gap-1.5 shrink-0" onClick={(e) => e.stopPropagation()}>
             <Button
               onClick={() => onCompleteTask(task._id)}

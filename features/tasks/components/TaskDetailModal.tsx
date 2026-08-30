@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { X, CheckCircle2, Clock, Calendar, User, Tag, Trash2, Edit3, Link as LinkIcon } from "lucide-react";
+import { X, CheckCircle2, Clock, Calendar, User, Tag, Trash2, Edit3, Link as LinkIcon, Archive } from "lucide-react";
 import { TaskRecord } from "../task.types";
-import { useCompleteTaskMutation, useDeleteTaskMutation } from "../task.queries";
+import { useArchiveTaskMutation, useCompleteTaskMutation, useDeleteTaskMutation } from "../task.queries";
 
 interface TaskDetailModalProps {
   task: TaskRecord | null;
@@ -19,6 +19,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
   onEdit,
 }) => {
   const completeTaskMutation = useCompleteTaskMutation();
+  const archiveTaskMutation = useArchiveTaskMutation();
   const deleteTaskMutation = useDeleteTaskMutation();
 
   if (!isOpen || !task) return null;
@@ -27,6 +28,11 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
 
   const handleComplete = async () => {
     await completeTaskMutation.mutateAsync(task._id);
+    onClose();
+  };
+
+  const handleArchive = async () => {
+    await archiveTaskMutation.mutateAsync(task._id);
     onClose();
   };
 
@@ -63,6 +69,11 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
             >
               {task.status}
             </span>
+            {task.isArchived && (
+              <span className="px-2.5 py-0.5 rounded-full text-xs font-semibold uppercase border bg-purple-100 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300 border-purple-200 dark:border-purple-800">
+                ARCHIVED
+              </span>
+            )}
           </div>
 
           <button
@@ -124,7 +135,18 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
             Delete
           </button>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            {!task.isArchived && (
+              <button
+                type="button"
+                onClick={handleArchive}
+                className="inline-flex items-center gap-1.5 rounded-md border border-purple-300 dark:border-purple-700 bg-purple-50 dark:bg-purple-950/40 px-3 py-1.5 text-xs font-medium text-purple-800 dark:text-purple-200 hover:bg-purple-100 dark:hover:bg-purple-900/60 transition-colors"
+              >
+                <Archive className="w-4 h-4" />
+                Archive
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => {
@@ -137,7 +159,7 @@ export const TaskDetailModal: React.FC<TaskDetailModalProps> = ({
               Edit
             </button>
 
-            {!isCompleted && (
+            {!isCompleted && !task.isArchived && (
               <button
                 type="button"
                 onClick={handleComplete}

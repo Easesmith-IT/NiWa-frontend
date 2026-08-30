@@ -21,7 +21,7 @@ export function useTasksOrchestration() {
   const [contactId, setContactId] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [priority, setPriority] = useState<"high" | "low" | "medium">("medium");
-  const [statusFilter, setStatusFilter] = useState<"all" | "completed" | "todo">("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "completed" | "todo" | "archived">("all");
   const [selectedTask, setSelectedTask] = useState<TaskRecord | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailOpen, setIsDetailOpen] = useState(false);
@@ -31,7 +31,9 @@ export function useTasksOrchestration() {
       ? undefined
       : statusFilter === "todo"
         ? { status: "PENDING" }
-        : { status: statusFilter.toUpperCase() };
+        : statusFilter === "archived"
+          ? { isArchived: "true" }
+          : { status: statusFilter.toUpperCase() };
 
   const tasksQuery = useTasksQuery(filterInput);
   const createTaskMutation = useCreateTaskMutation();
