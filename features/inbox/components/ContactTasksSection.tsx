@@ -30,9 +30,7 @@ export interface ContactTasksSectionProps {
   isCreatingTask: boolean;
   onCompleteTask: (taskId: string) => void;
   isCompletingTask: boolean;
-  onCancelTask: (taskId: string) => void;
-  isCancelingTask: boolean;
-}
+  }
 
 export function ContactTasksSection({
   tasks,
@@ -46,9 +44,7 @@ export function ContactTasksSection({
   isCreatingTask,
   onCompleteTask,
   isCompletingTask,
-  onCancelTask,
-  isCancelingTask,
-}: ContactTasksSectionProps) {
+  }: ContactTasksSectionProps) {
   return (
     <PanelSection title="Tasks">
       <div className="space-y-3">
@@ -109,14 +105,6 @@ export function ContactTasksSection({
                     type="button"
                   >
                     <Check className="h-4 w-4" />
-                  </button>
-                  <button
-                    className="rounded-full p-1.5 text-[#6f7f75] transition hover:bg-[#f3ede4] hover:text-[#25342f]"
-                    disabled={isCancelingTask}
-                    onClick={() => onCancelTask(task._id)}
-                    type="button"
-                  >
-                    <X className="h-4 w-4" />
                   </button>
                 </div>
               ) : null}

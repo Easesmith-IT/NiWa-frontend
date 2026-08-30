@@ -15,7 +15,6 @@ import {
   useSetNotePinnedMutation,
 } from "../../notes";
 import {
-  useCancelTaskMutation,
   useCompleteTaskMutation,
   useCreateTaskMutation,
   useTasksQuery,
@@ -80,7 +79,6 @@ export function useInboxContactSidebarOrchestration({
   const removeLabelMutation = useRemoveContactLabelMutation();
   const createTaskMutation = useCreateTaskMutation();
   const completeTaskMutation = useCompleteTaskMutation();
-  const cancelTaskMutation = useCancelTaskMutation();
   const createNoteMutation = useCreateContactNoteMutation();
   const patchNoteMutation = usePatchNoteMutation();
   const deleteNoteMutation = useDeleteNoteMutation();
@@ -154,7 +152,6 @@ export function useInboxContactSidebarOrchestration({
     removeLabelMutation,
     createTaskMutation,
     completeTaskMutation,
-    cancelTaskMutation,
     createNoteMutation,
     patchNoteMutation,
     deleteNoteMutation,

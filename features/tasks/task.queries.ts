@@ -1,12 +1,29 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "../../lib/api/query-keys";
-import { cancelTask, completeTask, createTask, listTasks, patchTask } from "./task.api";
+import {
+  completeTask,
+  createTask,
+  deleteTask,
+  fetchTaskById,
+  linkTaskRecord,
+  listTasks,
+  patchTask,
+  unlinkTaskRecord,
+} from "./task.api";
+import type { LinkedRecord, TaskFilterInput, UpdateTaskPayload } from "./task.types";
 
-export const useTasksQuery = (params?: { contactId?: string; status?: string }) =>
+export const useTasksQuery = (params?: TaskFilterInput) =>
   useQuery({
-    queryKey: [...queryKeys.tasks, params?.contactId ?? "all", params?.status ?? "all"],
+    queryKey: [...queryKeys.tasks, JSON.stringify(params || {})],
     queryFn: () => listTasks(params),
+  });
+
+export const useTaskDetailQuery = (taskId: string, enabled = true) =>
+  useQuery({
+    queryKey: [...queryKeys.tasks, "detail", taskId],
+    queryFn: () => fetchTaskById(taskId),
+    enabled: enabled && !!taskId,
   });
 
 export const useCreateTaskMutation = () => {
@@ -37,11 +54,14 @@ export const useCompleteTaskMutation = () => {
   });
 };
 
-export const useCancelTaskMutation = () => {
+
+
+export const usePatchTaskMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: cancelTask,
+    mutationFn: ({ taskId, payload }: { taskId: string; payload: UpdateTaskPayload }) =>
+      patchTask(taskId, payload),
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.tasks }),
@@ -51,16 +71,43 @@ export const useCancelTaskMutation = () => {
   });
 };
 
-export const usePatchTaskMutation = () => {
+export const useDeleteTaskMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ payload, taskId }: { payload: Parameters<typeof patchTask>[1]; taskId: string }) =>
-      patchTask(taskId, payload),
+    mutationFn: deleteTask,
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.tasks }),
         queryClient.invalidateQueries({ queryKey: queryKeys.inboxThread }),
+      ]);
+    },
+  });
+};
+
+export const useLinkTaskRecordMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ taskId, link }: { taskId: string; link: LinkedRecord }) =>
+      linkTaskRecord(taskId, link),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.tasks }),
+      ]);
+    },
+  });
+};
+
+export const useUnlinkTaskRecordMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ taskId, recordType, recordId }: { taskId: string; recordType: string; recordId: string }) =>
+      unlinkTaskRecord(taskId, recordType, recordId),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.tasks }),
       ]);
     },
   });

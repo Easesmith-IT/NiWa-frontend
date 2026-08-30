@@ -1,10 +1,34 @@
-import type { ListResponse } from "../../lib/api/api-types";
 import { apiClient } from "../../lib/api/api-client";
-import type { ActivityRecord } from "./activity.types";
+import type { ListResponse } from "../../lib/api/api-types";
+import type { ActivityRecord, CreateActivityPayload } from "./activity.types";
 
-export const listActivities = async (contactId: string) => {
-  const response = await apiClient.get<ListResponse<ActivityRecord>>(
-    `/contacts/${contactId}/activities`,
+export const createActivity = async (payload: CreateActivityPayload) => {
+  const response = await apiClient.post<{ success?: boolean; data: ActivityRecord }>("/activities", payload);
+  return response.data;
+};
+
+export const listActivities = async (params?: {
+  type?: string;
+  relatedRecordType?: string;
+  relatedRecordId?: string;
+  contactId?: string;
+  limit?: number;
+  page?: number;
+}) => {
+  if (params?.contactId && !params.relatedRecordId) {
+    const response = await apiClient.get<ListResponse<ActivityRecord>>(`/contacts/${params.contactId}/activities`);
+    return response.data;
+  }
+
+  const response = await apiClient.get<ListResponse<ActivityRecord> & { success?: boolean }>("/activities", {
+    params,
+  });
+  return response.data;
+};
+
+export const listActivitiesForRecord = async (recordType: string, recordId: string) => {
+  const response = await apiClient.get<{ success?: boolean; data: ActivityRecord[] }>(
+    `/activities/record/${recordType}/${recordId}`,
   );
   return response.data;
 };

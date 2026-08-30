@@ -2,11 +2,11 @@
 
 import { useMemo, useState } from "react";
 import {
-  useCancelTaskMutation,
   useCompleteTaskMutation,
   useCreateTaskMutation,
   useTasksQuery,
 } from "../task.queries";
+import { TaskRecord, TaskPriority } from "../task.types";
 
 export const formatDateInputToIso = (value: string) => {
   if (!value) {
@@ -21,34 +21,43 @@ export function useTasksOrchestration() {
   const [contactId, setContactId] = useState("");
   const [dueDate, setDueDate] = useState("");
   const [priority, setPriority] = useState<"high" | "low" | "medium">("medium");
-  const [statusFilter, setStatusFilter] = useState<"all" | "cancelled" | "completed" | "todo">("all");
+  const [statusFilter, setStatusFilter] = useState<"all" | "completed" | "todo">("all");
+  const [selectedTask, setSelectedTask] = useState<TaskRecord | null>(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isDetailOpen, setIsDetailOpen] = useState(false);
 
-  const tasksQuery = useTasksQuery(statusFilter === "all" ? undefined : { status: statusFilter });
+  const filterInput =
+    statusFilter === "all"
+      ? undefined
+      : statusFilter === "todo"
+        ? { status: "PENDING" }
+        : { status: statusFilter.toUpperCase() };
+
+  const tasksQuery = useTasksQuery(filterInput);
   const createTaskMutation = useCreateTaskMutation();
   const completeTaskMutation = useCompleteTaskMutation();
-  const cancelTaskMutation = useCancelTaskMutation();
-
   const tasks = tasksQuery.data?.data ?? [];
   const overdueTasks = useMemo(
     () =>
       tasks.filter(
         (task) =>
-          task.status === "todo" &&
+          task.status === "PENDING" &&
           task.dueAt &&
-          new Date(task.dueAt).getTime() < new Date("2026-08-02T00:00:00.000Z").getTime(),
+          new Date(task.dueAt).getTime() < Date.now(),
       ).length,
     [tasks],
   );
 
   const handleCreateTask = () => {
-    if (!contactId.trim() || !title.trim() || createTaskMutation.isPending) return;
+    if (!title.trim() || createTaskMutation.isPending) return;
 
     createTaskMutation.mutate(
       {
-        contactId: contactId.trim(),
-        dueAt: formatDateInputToIso(dueDate),
-        priority,
         title: title.trim(),
+        description: "",
+        dueAt: formatDateInputToIso(dueDate),
+        priority: priority.toUpperCase() as TaskPriority,
+        contactId: contactId.trim() || undefined,
       },
       {
         onSuccess: () => {
@@ -65,8 +74,15 @@ export function useTasksOrchestration() {
     completeTaskMutation.mutate(taskId);
   };
 
-  const handleCancelTask = (taskId: string) => {
-    cancelTaskMutation.mutate(taskId);
+  const handleSelectTask = (task: TaskRecord) => {
+    setSelectedTask(task);
+    setIsDetailOpen(true);
+  };
+
+  const handleOpenEdit = (task: TaskRecord) => {
+    setSelectedTask(task);
+    setIsDetailOpen(false);
+    setIsFormOpen(true);
   };
 
   return {
@@ -83,11 +99,17 @@ export function useTasksOrchestration() {
     tasksQuery,
     createTaskMutation,
     completeTaskMutation,
-    cancelTaskMutation,
     tasks,
     overdueTasks,
     handleCreateTask,
     handleCompleteTask,
-    handleCancelTask,
+    selectedTask,
+    setSelectedTask,
+    isFormOpen,
+    setIsFormOpen,
+    isDetailOpen,
+    setIsDetailOpen,
+    handleSelectTask,
+    handleOpenEdit,
   };
 }

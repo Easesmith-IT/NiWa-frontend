@@ -65,9 +65,6 @@ export interface InboxContactSidebarProps {
   isCreatingTask: boolean;
   onCompleteTask: (taskId: string) => void;
   isCompletingTask: boolean;
-  onCancelTask: (taskId: string) => void;
-  isCancelingTask: boolean;
-
   // Scheduled messages props
   scheduledItems: ScheduledSendItem[];
 
@@ -125,8 +122,6 @@ export function InboxContactSidebar({
   isCreatingTask,
   onCompleteTask,
   isCompletingTask,
-  onCancelTask,
-  isCancelingTask,
   scheduledItems,
   activities,
 }: InboxContactSidebarProps) {
@@ -193,11 +188,9 @@ export function InboxContactSidebar({
       />
 
       <ContactTasksSection
-        isCancelingTask={isCancelingTask}
         isCompletingTask={isCompletingTask}
         isCreatingTask={isCreatingTask}
         onAddTask={onAddTask}
-        onCancelTask={onCancelTask}
         onCompleteTask={onCompleteTask}
         onTaskDueDateChange={onTaskDueDateChange}
         onTaskPriorityChange={onTaskPriorityChange}

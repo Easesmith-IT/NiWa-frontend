@@ -20,6 +20,7 @@ import {
   useSetNotePinnedMutation,
 } from "../../notes";
 import type { LabelRecord } from "../../labels";
+import { RecordTimeline } from "../../activities/components/RecordTimeline";
 
 interface ContactDetailDrawerProps {
   availableLabels: LabelRecord[];
@@ -408,6 +409,13 @@ export function ContactDetailDrawer({
               <p className="text-xs text-[#7a8b82]">No notes recorded yet.</p>
             ) : null}
           </div>
+        </div>
+
+        <div className="rounded-2xl border border-[#E4E4E7] bg-white p-5 shadow-subtle space-y-4 dark:border-[#292C2F] dark:bg-[#17191B]">
+          <h4 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground">
+            Activity Timeline
+          </h4>
+          <RecordTimeline recordType="Person" recordId={contact._id} />
         </div>
       </div>
     </div>

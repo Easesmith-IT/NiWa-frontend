@@ -84,7 +84,6 @@ export const InboxShell: React.FC<InboxShellProps> = ({ orchestration }) => {
     removeLabelMutation,
     createTaskMutation,
     completeTaskMutation,
-    cancelTaskMutation,
     createNoteMutation,
     patchNoteMutation,
     deleteNoteMutation,
@@ -264,7 +263,6 @@ export const InboxShell: React.FC<InboxShellProps> = ({ orchestration }) => {
             editingNoteContent={editingNoteContent}
             editingNoteId={editingNoteId}
             isAddingLabel={addLabelMutation.isPending}
-            isCancelingTask={cancelTaskMutation.isPending}
             isCompletingTask={completeTaskMutation.isPending}
             isCreatingNote={createNoteMutation.isPending}
             isCreatingTask={createTaskMutation.isPending}
@@ -320,7 +318,6 @@ export const InboxShell: React.FC<InboxShellProps> = ({ orchestration }) => {
                 },
               );
             }}
-            onCancelTask={(taskId) => cancelTaskMutation.mutate(taskId)}
             onClose={() => setContactInfoOpen(false)}
             onCompleteTask={(taskId) => completeTaskMutation.mutate(taskId)}
             onDeleteNote={(noteId) => deleteNoteMutation.mutate(noteId)}
