@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { queryKeys } from "../../lib/api/query-keys";
 import {
+  archiveTask,
   completeTask,
   createTask,
   deleteTask,
@@ -45,6 +46,20 @@ export const useCompleteTaskMutation = () => {
 
   return useMutation({
     mutationFn: completeTask,
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.tasks }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.inboxThread }),
+      ]);
+    },
+  });
+};
+
+export const useArchiveTaskMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: archiveTask,
     onSuccess: async () => {
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.tasks }),

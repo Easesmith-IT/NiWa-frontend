@@ -21,6 +21,10 @@ export interface TaskRecord {
   contactId?: string | null;
   conversationId?: string | null;
   reminderAt?: string | null;
+  isArchived?: boolean;
+  archivedAt?: string | null;
+  archivedBy?: string | null;
+  deletedAt?: string | null;
   createdBy: string;
   updatedBy: string;
   createdAt: string;
@@ -52,6 +56,7 @@ export interface TaskFilterInput {
   recordType?: LinkedRecordType;
   recordId?: string;
   search?: string;
+  isArchived?: string | boolean;
   limit?: number;
   page?: number;
 }

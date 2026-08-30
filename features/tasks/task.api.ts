@@ -25,6 +25,11 @@ export const completeTask = async (taskId: string) => {
   return response.data;
 };
 
+export const archiveTask = async (taskId: string) => {
+  const response = await apiClient.post<{ success?: boolean; data: TaskRecord }>(`/tasks/${taskId}/archive`);
+  return response.data;
+};
+
 export const patchTask = async (taskId: string, payload: UpdateTaskPayload) => {
   const response = await apiClient.patch<{ success?: boolean; data: TaskRecord }>(`/tasks/${taskId}`, payload);
   return response.data;
