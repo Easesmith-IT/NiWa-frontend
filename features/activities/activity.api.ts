@@ -1,5 +1,5 @@
 import { apiClient } from "../../lib/api/api-client";
-import type { ListResponse } from "../../lib/api/api-types";
+import type { ListResponse, OffsetListResponse } from "../../lib/api/api-types";
 import type { ActivityRecord, CreateActivityPayload } from "./activity.types";
 
 export const createActivity = async (payload: CreateActivityPayload) => {
@@ -16,18 +16,18 @@ export const listActivities = async (params?: {
   page?: number;
 }) => {
   if (params?.contactId && !params.relatedRecordId) {
-    const response = await apiClient.get<ListResponse<ActivityRecord>>(`/contacts/${params.contactId}/activities`);
+    const response = await apiClient.get<OffsetListResponse<ActivityRecord>>(`/contacts/${params.contactId}/activities`);
     return response.data;
   }
 
-  const response = await apiClient.get<ListResponse<ActivityRecord> & { success?: boolean }>("/activities", {
+  const response = await apiClient.get<OffsetListResponse<ActivityRecord> & { success?: boolean }>("/activities", {
     params,
   });
   return response.data;
 };
 
 export const listActivitiesForRecord = async (recordType: string, recordId: string) => {
-  const response = await apiClient.get<{ success?: boolean; data: ActivityRecord[] }>(
+  const response = await apiClient.get<OffsetListResponse<ActivityRecord> & { success?: boolean }>(
     `/activities/record/${recordType}/${recordId}`,
   );
   return response.data;

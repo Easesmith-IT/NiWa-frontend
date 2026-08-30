@@ -1,9 +1,9 @@
 import { apiClient } from "../../lib/api/api-client";
-import type { ListResponse } from "../../lib/api/api-types";
+import type { OffsetListResponse } from "../../lib/api/api-types";
 import type { CreateTaskPayload, LinkedRecord, TaskFilterInput, TaskRecord, UpdateTaskPayload } from "./task.types";
 
 export const listTasks = async (params?: TaskFilterInput) => {
-  const response = await apiClient.get<ListResponse<TaskRecord> & { success?: boolean }>(
+  const response = await apiClient.get<OffsetListResponse<TaskRecord> & { success?: boolean }>(
     "/tasks",
     { params },
   );

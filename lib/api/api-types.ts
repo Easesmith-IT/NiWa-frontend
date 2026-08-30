@@ -4,9 +4,22 @@ export interface CursorPagination {
   limit: number;
 }
 
+export interface OffsetPagination {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+  hasMore: boolean;
+}
+
 export interface ListResponse<TItem> {
   data: TItem[];
   pagination: CursorPagination;
+}
+
+export interface OffsetListResponse<TItem> {
+  data: TItem[];
+  pagination: OffsetPagination;
 }
 
 export interface RecordBase {
