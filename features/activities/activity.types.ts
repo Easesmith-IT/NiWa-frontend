@@ -12,7 +12,7 @@ export type ActivityType =
   | "meeting"
   | "note";
 
-export type ActivityRecordType = "Person" | "Company" | "Lead" | "Deal";
+export type ActivityRecordType = "Person" | "Company" | "Lead" | "Deal" | "Conversation";
 
 export interface ActivityRecord {
   _id: string;

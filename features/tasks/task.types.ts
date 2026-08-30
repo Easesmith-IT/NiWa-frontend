@@ -23,7 +23,6 @@ export interface TaskRecord {
   reminderAt?: string | null;
   createdBy: string;
   updatedBy: string;
-  completedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
