@@ -6,11 +6,7 @@ export type ActivityType =
   | "TASK_CREATED"
   | "TASK_COMPLETED"
   | "STATUS_CHANGED"
-  | "LEAD_CONVERTED"
-  | "call"
-  | "email"
-  | "meeting"
-  | "note";
+  | "LEAD_CONVERTED";
 
 export type ActivityRecordType = "Person" | "Company" | "Lead" | "Deal" | "Conversation";
 
