@@ -102,9 +102,16 @@ export const DealsShell: React.FC = () => {
     ? executedRecords
     : safeStandardDeals;
 
-  // Filter deals by active pipeline for board view or if pipeline filter selected
+  // Correction 4 Precedence:
+  // When a Saved View is active, executeView() backend results control the dataset.
+  // Do not subsequently narrow Saved View results by activePipelineId.
+  // When no Saved View is active, standard activePipelineId filtering applies.
   const pipelineDeals = Array.isArray(activeDealsList)
-    ? (activePipelineId ? activeDealsList.filter((d) => d && d.pipelineId === activePipelineId) : activeDealsList)
+    ? (activeSavedView
+        ? activeDealsList
+        : activePipelineId
+        ? activeDealsList.filter((d) => d && d.pipelineId === activePipelineId)
+        : activeDealsList)
     : [];
 
   const isLoading =

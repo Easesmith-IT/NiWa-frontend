@@ -43,3 +43,23 @@ export const executeView = async <T = any>(id: string, options?: { page?: number
   const response = await apiClient.post<ViewExecutionResult<T>>(`/crm/views/${id}/execute`, options);
   return response.data;
 };
+
+export const fetchCrmViewFields = async (objectKey: CrmViewObjectKey) => {
+  const response = await apiClient.get<{
+    objectKey: CrmViewObjectKey;
+    fields: Array<{
+      key: string;
+      label: string;
+      type: string;
+      filterable: boolean;
+      sortable: boolean;
+      selectable: boolean;
+      groupable: boolean;
+      isCustom?: boolean;
+      fieldDefinitionId?: string;
+    }>;
+  }>("/crm/views/fields", {
+    params: { objectKey },
+  });
+  return response.data;
+};

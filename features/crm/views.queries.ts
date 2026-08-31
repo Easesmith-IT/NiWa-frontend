@@ -6,6 +6,7 @@ import {
   executeView,
   fetchViewById,
   fetchViews,
+  fetchCrmViewFields,
   setDefaultView,
   updateView,
 } from "./views.api";
@@ -70,4 +71,10 @@ export const useExecuteCrmViewQuery = (id: string, options?: { page?: number; li
     queryKey: [...queryKeys.views, "execute", id, JSON.stringify(options || {})],
     queryFn: () => executeView(id, options),
     enabled: enabled && !!id,
+  });
+
+export const useCrmViewFieldsQuery = (objectKey: CrmViewObjectKey) =>
+  useQuery({
+    queryKey: [...queryKeys.views, "fields", objectKey],
+    queryFn: () => fetchCrmViewFields(objectKey),
   });
