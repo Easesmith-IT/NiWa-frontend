@@ -31,4 +31,5 @@ export const queryKeys = {
   pipelines: ["pipelines"] as const,
   stages: ["stages"] as const,
   deals: ["deals"] as const,
+  views: ["views"] as const,
 };

@@ -9,6 +9,8 @@ import { DealFormModal } from "./DealFormModal";
 import { DealListView } from "./DealListView";
 import { DealMoveModal } from "./DealMoveModal";
 import type { DealRecord, DealStatus } from "../deal.types";
+import { SavedViewsManager } from "../../crm/components/SavedViewsManager";
+import type { CrmViewRecord } from "../../crm/views.types";
 
 export const DealsShell: React.FC = () => {
   const { data: pipelines = [], isLoading: isLoadingPipelines } = usePipelinesQuery();
@@ -16,6 +18,7 @@ export const DealsShell: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [viewMode, setViewMode] = useState<"board" | "list">("board");
+  const [activeSavedView, setActiveSavedView] = useState<CrmViewRecord | null>(null);
 
   const activePipelineId = selectedPipelineId || (pipelines.length > 0 ? pipelines[0]._id : "");
 
@@ -108,6 +111,13 @@ export const DealsShell: React.FC = () => {
       {/* Filter Controls */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-white p-3 rounded-lg border border-slate-200">
         <div className="flex flex-wrap items-center gap-3">
+          {/* Saved Views Selector */}
+          <SavedViewsManager
+            objectKey="Deal"
+            activeViewId={activeSavedView?._id}
+            onSelectView={(v) => setActiveSavedView(v)}
+          />
+
           {/* Pipeline Switcher */}
           <div>
             <select
