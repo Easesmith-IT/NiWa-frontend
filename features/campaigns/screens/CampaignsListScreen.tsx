@@ -39,18 +39,24 @@ export function CampaignsListScreen() {
   };
 
   const campaigns = useMemo(() => {
-    if (!data?.campaigns) return [];
+    const rawCampaigns = Array.isArray(data)
+      ? data
+      : Array.isArray((data as any)?.campaigns)
+      ? (data as any).campaigns
+      : Array.isArray((data as any)?.data)
+      ? (data as any).data
+      : [];
 
-    let filtered: Campaign[] = data.campaigns;
+    let filtered: Campaign[] = rawCampaigns;
 
     if (statusFilter) {
-      filtered = filtered.filter((c) => c.status === statusFilter);
+      filtered = filtered.filter((c) => c && c.status === statusFilter);
     }
 
     if (search.trim()) {
       const q = search.toLowerCase();
       filtered = filtered.filter(
-        (c) => c.name.toLowerCase().includes(q) || c.description?.toLowerCase().includes(q)
+        (c) => c && (c.name?.toLowerCase().includes(q) || c.description?.toLowerCase().includes(q))
       );
     }
     return filtered;
@@ -58,11 +64,18 @@ export function CampaignsListScreen() {
 
   // Executive KPI stats calculation
   const kpiStats = useMemo(() => {
-    const all = data?.campaigns || [];
+    const all: Campaign[] = Array.isArray(data)
+      ? data
+      : Array.isArray((data as any)?.campaigns)
+      ? (data as any).campaigns
+      : Array.isArray((data as any)?.data)
+      ? (data as any).data
+      : [];
+
     const total = all.length;
-    const running = all.filter((c) => c.status === "running" || c.status === "scheduled").length;
-    const completed = all.filter((c) => c.status === "completed").length;
-    const drafts = all.filter((c) => c.status === "draft").length;
+    const running = all.filter((c) => c && (c.status === "running" || c.status === "scheduled")).length;
+    const completed = all.filter((c) => c && c.status === "completed").length;
+    const drafts = all.filter((c) => c && c.status === "draft").length;
     
     const totalRecipients = all.reduce((acc, c) => acc + (c.stats?.totalRecipients || 0), 0);
     const totalDelivered = all.reduce((acc, c) => acc + (c.stats?.delivered || 0), 0);

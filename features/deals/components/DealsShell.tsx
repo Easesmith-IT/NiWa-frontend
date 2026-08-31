@@ -72,14 +72,40 @@ export const DealsShell: React.FC = () => {
   // View Execution Architecture:
   // If a saved view is active, the dataset comes directly from the backend executeView() execution engine.
   // Otherwise, falls back to the standard un-filtered deals query.
+  const rawExecutedData = (executedViewResult as any)?.data || executedViewResult;
+  let executedRecords: DealRecord[] = [];
+  if (Array.isArray(rawExecutedData)) {
+    executedRecords = rawExecutedData;
+  } else if (rawExecutedData && typeof rawExecutedData === "object") {
+    if (Array.isArray((rawExecutedData as any).data)) {
+      executedRecords = (rawExecutedData as any).data;
+    } else if (Array.isArray((rawExecutedData as any).items)) {
+      executedRecords = (rawExecutedData as any).items;
+    }
+  }
+
+  const rawStandardDeals = (standardDeals as any)?.data || standardDeals;
+  let safeStandardDeals: DealRecord[] = [];
+  if (Array.isArray(rawStandardDeals)) {
+    safeStandardDeals = rawStandardDeals;
+  } else if (rawStandardDeals && typeof rawStandardDeals === "object") {
+    if (Array.isArray((rawStandardDeals as any).deals)) {
+      safeStandardDeals = (rawStandardDeals as any).deals;
+    } else if (Array.isArray((rawStandardDeals as any).items)) {
+      safeStandardDeals = (rawStandardDeals as any).items;
+    } else if (Array.isArray((rawStandardDeals as any).data)) {
+      safeStandardDeals = (rawStandardDeals as any).data;
+    }
+  }
+
   const activeDealsList: DealRecord[] = activeSavedView
-    ? (executedViewResult?.data as DealRecord[]) || []
-    : standardDeals;
+    ? executedRecords
+    : safeStandardDeals;
 
   // Filter deals by active pipeline for board view or if pipeline filter selected
-  const pipelineDeals = activePipelineId
-    ? activeDealsList.filter((d) => d.pipelineId === activePipelineId)
-    : activeDealsList;
+  const pipelineDeals = Array.isArray(activeDealsList)
+    ? (activePipelineId ? activeDealsList.filter((d) => d && d.pipelineId === activePipelineId) : activeDealsList)
+    : [];
 
   const isLoading =
     isLoadingPipelines ||

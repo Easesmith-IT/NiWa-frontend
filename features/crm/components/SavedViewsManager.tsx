@@ -22,7 +22,9 @@ export const SavedViewsManager: React.FC<SavedViewsManagerProps> = ({
   activeViewId,
   onSelectView,
 }) => {
-  const { data: views = [] } = useCrmViewsQuery(objectKey);
+  const { data: viewsData } = useCrmViewsQuery(objectKey);
+  const rawViews = (viewsData as any)?.views || (viewsData as any)?.data || viewsData;
+  const views: CrmViewRecord[] = Array.isArray(rawViews) ? rawViews : [];
   const createMutation = useCreateCrmViewMutation();
   const updateMutation = useUpdateCrmViewMutation();
   const deleteMutation = useDeleteCrmViewMutation();
@@ -44,7 +46,7 @@ export const SavedViewsManager: React.FC<SavedViewsManagerProps> = ({
   const [visibleFieldsStr, setVisibleFieldsStr] = useState("title,value,status,createdAt");
   const [columnWidthsStr, setColumnWidthsStr] = useState('{"title":200,"value":120}');
 
-  const activeView = views.find((v) => v._id === activeViewId) || null;
+  const activeView = views.find((v) => v && v._id === activeViewId) || null;
 
   const handleOpenCreate = () => {
     setEditingView(null);

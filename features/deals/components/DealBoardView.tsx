@@ -47,8 +47,9 @@ export const DealBoardView: React.FC<DealBoardViewProps> = ({
   return (
     <div className="flex gap-4 overflow-x-auto pb-6 pt-2">
       {sortedStages.map((stage, stageIdx) => {
-        const stageDeals = deals.filter((d) => d.stageId === stage._id);
-        const stageTotalValue = stageDeals.reduce((sum, d) => sum + (d.value || 0), 0);
+        const safeDeals = Array.isArray(deals) ? deals : [];
+        const stageDeals = safeDeals.filter((d) => d && d.stageId === stage._id);
+        const stageTotalValue = stageDeals.reduce((sum, d) => sum + (d?.value || 0), 0);
 
         return (
           <div

@@ -85,8 +85,9 @@ export function ContactDetailDrawer({
     setIsEditing(false);
   };
 
-  const contactLabels = availableLabels.filter((label) =>
-    contact.labels?.includes(label._id),
+  const safeLabels = Array.isArray(availableLabels) ? availableLabels : [];
+  const contactLabels = safeLabels.filter((label) =>
+    label && contact.labels?.includes(label._id),
   );
 
   return (

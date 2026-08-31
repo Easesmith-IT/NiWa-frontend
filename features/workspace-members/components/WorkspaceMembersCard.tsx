@@ -44,9 +44,10 @@ export const WorkspaceMembersCard: React.FC = () => {
 
   // Derived current user & current workspace role from centralized state
   const currentUserId = contextUser?.id;
-  const members = data?.members ?? [];
+  const rawMembers = (data as any)?.members || data;
+  const members: WorkspaceMemberItem[] = Array.isArray(rawMembers) ? rawMembers : [];
   const activeOwnerCount = members.filter(
-    (m) => m.role === "owner" && m.status === "active",
+    (m) => m && m.role === "owner" && m.status === "active",
   ).length;
 
   const currentMembershipInList = members.find((m) => m.userId === currentUserId);
