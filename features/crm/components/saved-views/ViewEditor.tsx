@@ -65,7 +65,7 @@ export const ViewEditor: React.FC<ViewEditorProps> = ({
               id: "cond-1",
               field: editingView.filterAst.field,
               comparator: editingView.filterAst.comparator,
-              value: editingView.filterAst.value,
+              value: editingView.filterAst.value !== undefined ? editingView.filterAst.value : "",
             },
           ]);
         } else if (editingView.filterAst.type === "LOGICAL") {

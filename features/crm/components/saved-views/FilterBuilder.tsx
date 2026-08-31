@@ -2,13 +2,13 @@ import React from "react";
 import { Plus, X } from "lucide-react";
 import { Button } from "../../../../components/ui/button";
 import { Input } from "../../../../components/ui/input";
-import type { CrmComparator, CrmFieldMetadata } from "../../views.types";
+import type { CrmComparator, CrmFieldMetadata, FilterValue } from "../../views.types";
 
 export interface FilterConditionItem {
   id: string;
   field: string;
   comparator: CrmComparator;
-  value: unknown;
+  value: FilterValue;
 }
 
 interface FilterBuilderProps {
@@ -40,7 +40,7 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({
     setFilterConditions((prev) => prev.filter((c) => c.id !== id));
   };
 
-  const handleConditionChange = (id: string, key: keyof FilterConditionItem, val: unknown) => {
+  const handleConditionChange = (id: string, key: keyof FilterConditionItem, val: FilterValue) => {
     setFilterConditions((prev) =>
       prev.map((c) => {
         if (c.id === id) {

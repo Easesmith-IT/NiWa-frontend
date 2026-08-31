@@ -1,6 +1,21 @@
 export type CrmViewObjectKey = "Person" | "Company" | "Lead" | "Deal";
 export type CrmViewVisibilityScope = "private" | "team" | "workspace";
 
+export type CrmFieldType =
+  | "TEXT"
+  | "LONG_TEXT"
+  | "NUMBER"
+  | "CURRENCY"
+  | "BOOLEAN"
+  | "DATE"
+  | "DATE_TIME"
+  | "OPTION"
+  | "MULTI_OPTION"
+  | "EMAIL"
+  | "PHONE"
+  | "URL"
+  | "RECORD_RELATIONSHIP";
+
 export type CrmComparator =
   | "="
   | "!="
@@ -13,6 +28,14 @@ export type CrmComparator =
   | "IS EMPTY"
   | "IS NOT EMPTY";
 
+export type FilterValue =
+  | string
+  | number
+  | boolean
+  | string[]
+  | number[]
+  | null;
+
 export interface SortSpec {
   field: string;
   direction: "asc" | "desc";
@@ -22,7 +45,7 @@ export interface PredicateAstNode {
   type: "PREDICATE";
   field: string;
   comparator: CrmComparator;
-  value?: unknown;
+  value?: FilterValue;
 }
 
 export interface LogicalAstNode {
@@ -36,12 +59,12 @@ export type FilterAstNode = PredicateAstNode | LogicalAstNode;
 export interface CrmFieldMetadata {
   key: string;
   label: string;
-  type: string;
+  type: CrmFieldType;
   filterable: boolean;
   sortable: boolean;
   selectable: boolean;
   groupable: boolean;
-  comparators?: string[];
+  comparators?: CrmComparator[];
   isCustom?: boolean;
   fieldDefinitionId?: string;
 }
