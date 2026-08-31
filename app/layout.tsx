@@ -7,6 +7,11 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "NiWa Console",
   description: "Internal console for Meta WhatsApp Business Cloud API operations.",
+  icons: {
+    icon: "/niwa-logo.png",
+    shortcut: "/niwa-logo.png",
+    apple: "/niwa-logo.png",
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
