@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../../../components/ui/dialog";
 import { Button } from "../../../components/ui/button";
 import { usePipelinesQuery, useStagesQuery } from "../../pipelines/pipeline.queries";
@@ -12,7 +12,7 @@ interface DealMoveModalProps {
 }
 
 export const DealMoveModal: React.FC<DealMoveModalProps> = ({ isOpen, onClose, deal }) => {
-  const { data: pipelines = [] } = usePipelinesQuery({ isActive: true });
+  const { data: pipelines = [] } = usePipelinesQuery();
   const [pipelineId, setPipelineId] = useState("");
   const [stageId, setStageId] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
@@ -89,8 +89,8 @@ export const DealMoveModal: React.FC<DealMoveModalProps> = ({ isOpen, onClose, d
             >
               <option value="">Select Pipeline...</option>
               {pipelines.map((p) => (
-                <option key={p._id} value={p._id}>
-                  {p.name} {p.isDefault ? "(Default)" : ""}
+                <option key={p._id} value={p._id} disabled={!p.isActive && p._id !== deal?.pipelineId}>
+                  {p.name} {p.isDefault ? "(Default)" : ""} {!p.isActive ? "(Inactive)" : ""}
                 </option>
               ))}
             </select>

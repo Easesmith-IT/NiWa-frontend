@@ -1,4 +1,4 @@
-﻿import React from "react";
+import React from "react";
 import { ArrowRight, Edit2, Move, DollarSign, Calendar } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
@@ -32,8 +32,6 @@ export const DealBoardView: React.FC<DealBoardViewProps> = ({
       id: deal._id,
       payload: {
         stageId: nextStage._id,
-        // Automatically set status to WON if stage isWon, etc.
-        status: nextStage.isWon ? "WON" : nextStage.isLost ? "LOST" : deal.status,
       },
     });
   };

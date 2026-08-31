@@ -1,4 +1,4 @@
-﻿import React, { useState } from "react";
+import React, { useState } from "react";
 import { Plus, LayoutGrid, List, Search, Briefcase } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
@@ -59,7 +59,7 @@ export const DealsShell: React.FC = () => {
 
   // Filter deals by active pipeline for board view or if pipeline filter selected
   const pipelineDeals = activePipelineId
-    ? deals.filter((d) => !d.pipelineId || d.pipelineId === activePipelineId)
+    ? deals.filter((d) => d.pipelineId === activePipelineId)
     : deals;
 
   const isLoading = isLoadingPipelines || isLoadingStages || isLoadingDeals;
