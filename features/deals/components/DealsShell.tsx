@@ -32,6 +32,8 @@ export const DealsShell: React.FC = () => {
   const { data: standardDeals = [], isLoading: isLoadingStandardDeals } = useDealsQuery({
     status: statusFilter !== "ALL" ? (statusFilter as DealStatus) : undefined,
     search: searchTerm.trim() || undefined,
+  }, {
+    enabled: !activeSavedView?._id,
   });
 
   // Saved View Execution query
@@ -184,6 +186,11 @@ export const DealsShell: React.FC = () => {
                 </option>
               ))}
             </select>
+            {activeSavedView && (
+              <span className="text-[10px] text-slate-500 italic px-2 bg-slate-100 rounded border border-slate-200">
+                Board Layout Only
+              </span>
+            )}
           </div>
           <div className="flex items-center rounded-lg border border-slate-200 bg-white p-1 ml-2">
             <button

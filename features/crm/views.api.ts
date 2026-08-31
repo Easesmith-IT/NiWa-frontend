@@ -55,6 +55,7 @@ export const fetchCrmViewFields = async (objectKey: CrmViewObjectKey) => {
       sortable: boolean;
       selectable: boolean;
       groupable: boolean;
+      comparators?: string[];
       isCustom?: boolean;
       fieldDefinitionId?: string;
     }>;

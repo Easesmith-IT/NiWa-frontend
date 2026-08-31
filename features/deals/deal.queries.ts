@@ -1,12 +1,13 @@
-﻿import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { queryKeys } from "../../lib/api/query-keys";
 import { archiveDeal, createDeal, fetchDealById, listDeals, updateDeal } from "./deal.api";
 import type { CreateDealPayload, DealFilterInput, UpdateDealPayload } from "./deal.types";
 
-export const useDealsQuery = (params?: DealFilterInput) =>
+export const useDealsQuery = (params?: DealFilterInput, options?: { enabled?: boolean }) =>
   useQuery({
     queryKey: [...queryKeys.deals, JSON.stringify(params || {})],
     queryFn: () => listDeals(params),
+    enabled: options?.enabled,
   });
 
 export const useDealDetailQuery = (id: string, enabled = true) =>

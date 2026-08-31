@@ -32,6 +32,7 @@ export const TasksShell: React.FC<TasksShellProps> = ({ orchestration }) => {
     handleCreateTask,
     handleCompleteTask,
     selectedTask,
+    setSelectedTask,
     isFormOpen,
     setIsFormOpen,
     isDetailOpen,
@@ -46,12 +47,24 @@ export const TasksShell: React.FC<TasksShellProps> = ({ orchestration }) => {
       title="Tasks Ledger"
       description="Operator task tracking linked directly to customer conversations and CRM records."
       primaryAction={
-        <div className="flex gap-2">
-          <div className="flex flex-col items-end mr-2">
+        <button
+          onClick={() => {
+            setSelectedTask(null);
+            setIsFormOpen(true);
+          }}
+          className="flex items-center gap-1.5 rounded-md bg-indigo-600 px-3 py-1.5 text-sm font-medium text-white shadow hover:bg-indigo-700"
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4"></path></svg>
+          New Task
+        </button>
+      }
+      viewContext={
+        <div className="flex gap-4">
+          <div className="flex flex-col">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Visible</span>
             <span className="text-sm font-bold text-foreground">{tasks.length}</span>
           </div>
-          <div className="flex flex-col items-end border-l border-slate-200 pl-3">
+          <div className="flex flex-col border-l border-slate-200 pl-4">
             <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Overdue</span>
             <span className="text-sm font-bold text-red-600">{overdueTasks}</span>
           </div>
