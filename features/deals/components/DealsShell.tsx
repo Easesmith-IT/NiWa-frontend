@@ -11,6 +11,7 @@ import { DealMoveModal } from "./DealMoveModal";
 import type { DealRecord, DealStatus } from "../deal.types";
 import { SavedViewsManager } from "../../crm/components/SavedViewsManager";
 import type { CrmViewRecord } from "../../crm/views.types";
+import { useExecuteCrmViewQuery } from "../../crm/views.queries";
 
 export const DealsShell: React.FC = () => {
   const { data: pipelines = [], isLoading: isLoadingPipelines } = usePipelinesQuery();
@@ -26,10 +27,18 @@ export const DealsShell: React.FC = () => {
     activePipelineId ? { pipelineId: activePipelineId } : undefined
   );
 
-  const { data: deals = [], isLoading: isLoadingDeals } = useDealsQuery({
+  // Standard un-view-filtered deals query
+  const { data: standardDeals = [], isLoading: isLoadingStandardDeals } = useDealsQuery({
     status: statusFilter !== "ALL" ? (statusFilter as DealStatus) : undefined,
     search: searchTerm.trim() || undefined,
   });
+
+  // Saved View Execution query
+  const { data: executedViewResult, isLoading: isLoadingExecutedView } = useExecuteCrmViewQuery(
+    activeSavedView?._id || "",
+    { page: 1, limit: 100 },
+    Boolean(activeSavedView?._id),
+  );
 
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [editingDeal, setEditingDeal] = useState<DealRecord | null>(null);
@@ -60,12 +69,22 @@ export const DealsShell: React.FC = () => {
     }
   };
 
+  // View Execution Architecture:
+  // If a saved view is active, the dataset comes directly from the backend executeView() execution engine.
+  // Otherwise, falls back to the standard un-filtered deals query.
+  const activeDealsList: DealRecord[] = activeSavedView
+    ? (executedViewResult?.data as DealRecord[]) || []
+    : standardDeals;
+
   // Filter deals by active pipeline for board view or if pipeline filter selected
   const pipelineDeals = activePipelineId
-    ? deals.filter((d) => d.pipelineId === activePipelineId)
-    : deals;
+    ? activeDealsList.filter((d) => d.pipelineId === activePipelineId)
+    : activeDealsList;
 
-  const isLoading = isLoadingPipelines || isLoadingStages || isLoadingDeals;
+  const isLoading =
+    isLoadingPipelines ||
+    isLoadingStages ||
+    (activeSavedView ? isLoadingExecutedView : isLoadingStandardDeals);
 
   return (
     <div className="space-y-6 p-6">
@@ -134,30 +153,34 @@ export const DealsShell: React.FC = () => {
           </div>
 
           {/* Status Filter */}
-          <div>
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
-              className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-blue-500 focus:ring-blue-500"
-            >
-              <option value="ALL">Status: All</option>
-              <option value="OPEN">Status: OPEN</option>
-              <option value="WON">Status: WON</option>
-              <option value="LOST">Status: LOST</option>
-            </select>
-          </div>
+          {!activeSavedView && (
+            <div>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-blue-500 focus:ring-blue-500"
+              >
+                <option value="ALL">Status: All</option>
+                <option value="OPEN">Status: OPEN</option>
+                <option value="WON">Status: WON</option>
+                <option value="LOST">Status: LOST</option>
+              </select>
+            </div>
+          )}
         </div>
 
         {/* Search */}
-        <div className="relative w-full sm:w-64">
-          <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
-          <Input
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Search deals by title..."
-            className="pl-8 text-xs h-8"
-          />
-        </div>
+        {!activeSavedView && (
+          <div className="relative w-full sm:w-64">
+            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+            <Input
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              placeholder="Search deals by title..."
+              className="pl-8 text-xs h-8"
+            />
+          </div>
+        )}
       </div>
 
       {/* Main View Area */}
@@ -197,4 +220,3 @@ export const DealsShell: React.FC = () => {
     </div>
   );
 };
-
