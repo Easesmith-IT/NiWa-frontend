@@ -28,4 +28,7 @@ export const queryKeys = {
   webhooks: ["webhooks"] as const,
   whatsappConnections: ["whatsapp-connections"] as const,
   workspaceMembers: ["workspace-members"] as const,
+  pipelines: ["pipelines"] as const,
+  stages: ["stages"] as const,
+  deals: ["deals"] as const,
 };

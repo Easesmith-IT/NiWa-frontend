@@ -16,6 +16,8 @@ import {
   ListTodo,
   Webhook,
   Megaphone,
+  Briefcase,
+  GitFork,
 } from "lucide-react";
 
 export interface NavigationItem {
@@ -59,6 +61,18 @@ export const navigationGroups: NavigationGroup[] = [
         icon: ListTodo,
         label: "Tasks",
         description: "Follow-up execution and due work.",
+      },
+      {
+        href: "/deals",
+        icon: Briefcase,
+        label: "Deals",
+        description: "Sales opportunities, stages, and pipeline progress.",
+      },
+      {
+        href: "/pipelines",
+        icon: GitFork,
+        label: "Pipelines",
+        description: "Configure deal pipelines and stage workflows.",
       },
     ],
   },
