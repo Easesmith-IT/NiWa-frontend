@@ -1,6 +1,18 @@
 export type CrmViewObjectKey = "Person" | "Company" | "Lead" | "Deal";
 export type CrmViewVisibilityScope = "private" | "team" | "workspace";
 
+export type CrmComparator =
+  | "="
+  | "!="
+  | ">"
+  | "<"
+  | ">="
+  | "<="
+  | "IN"
+  | "NOT IN"
+  | "IS EMPTY"
+  | "IS NOT EMPTY";
+
 export interface SortSpec {
   field: string;
   direction: "asc" | "desc";
@@ -9,8 +21,8 @@ export interface SortSpec {
 export interface PredicateAstNode {
   type: "PREDICATE";
   field: string;
-  comparator: "=" | "!=" | ">" | "<" | ">=" | "<=" | "IN" | "NOT IN" | "IS EMPTY" | "IS NOT EMPTY";
-  value?: any;
+  comparator: CrmComparator;
+  value?: unknown;
 }
 
 export interface LogicalAstNode {
@@ -71,7 +83,7 @@ export interface CreateCrmViewPayload {
 
 export interface UpdateCrmViewPayload extends Partial<CreateCrmViewPayload> {}
 
-export interface ViewExecutionResult<T = any> {
+export interface ViewExecutionResult<T = unknown> {
   view: {
     _id: string;
     name: string;

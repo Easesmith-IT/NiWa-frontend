@@ -5,7 +5,17 @@ import { Input } from "../../../../components/ui/input";
 import { FilterBuilder, FilterConditionItem } from "./FilterBuilder";
 import { SortBuilder, SortItem } from "./SortBuilder";
 import { ColumnConfigurator } from "./ColumnConfigurator";
-import type { CrmViewObjectKey, CrmViewRecord, CreateCrmViewPayload, UpdateCrmViewPayload, FilterAstNode, SortSpec, CrmFieldMetadata } from "../../views.types";
+import type {
+  CrmViewObjectKey,
+  CrmViewRecord,
+  CreateCrmViewPayload,
+  UpdateCrmViewPayload,
+  FilterAstNode,
+  PredicateAstNode,
+  SortSpec,
+  CrmFieldMetadata,
+  CrmViewVisibilityScope,
+} from "../../views.types";
 
 interface ViewEditorProps {
   objectKey: CrmViewObjectKey;
@@ -30,7 +40,7 @@ export const ViewEditor: React.FC<ViewEditorProps> = ({
 }) => {
   const [viewName, setViewName] = useState("");
   const [viewDescription, setViewDescription] = useState("");
-  const [visibilityScope, setVisibilityScope] = useState<"private" | "team" | "workspace">("private");
+  const [visibilityScope, setVisibilityScope] = useState<CrmViewVisibilityScope>("private");
   const [isDefault, setIsDefault] = useState(false);
 
   const [logicalOp, setLogicalOp] = useState<"AND" | "OR">("AND");
@@ -60,12 +70,17 @@ export const ViewEditor: React.FC<ViewEditorProps> = ({
           ]);
         } else if (editingView.filterAst.type === "LOGICAL") {
           setLogicalOp(editingView.filterAst.operator || "AND");
-          const items = (editingView.filterAst.conditions || []).map((c: any, idx: number) => ({
-            id: `cond-${idx + 1}`,
-            field: c.field,
-            comparator: c.comparator,
-            value: c.value !== undefined ? c.value : "",
-          }));
+          const items: FilterConditionItem[] = (editingView.filterAst.conditions || []).map(
+            (c: FilterAstNode, idx: number) => {
+              const pred = c as PredicateAstNode;
+              return {
+                id: `cond-${idx + 1}`,
+                field: pred.field || "",
+                comparator: pred.comparator || "=",
+                value: pred.value !== undefined ? pred.value : "",
+              };
+            }
+          );
           setFilterConditions(items);
         }
       } else {
@@ -74,7 +89,13 @@ export const ViewEditor: React.FC<ViewEditorProps> = ({
 
       // Parse Multi-Sort
       if (editingView.sorting && editingView.sorting.length > 0) {
-        setSortSpecs(editingView.sorting.map((s: any, idx: number) => ({ id: `sort-${idx + 1}`, field: s.field, direction: s.direction })));
+        setSortSpecs(
+          editingView.sorting.map((s: SortSpec, idx: number) => ({
+            id: `sort-${idx + 1}`,
+            field: s.field,
+            direction: s.direction,
+          }))
+        );
       } else {
         setSortSpecs([]);
       }
@@ -88,7 +109,7 @@ export const ViewEditor: React.FC<ViewEditorProps> = ({
       setIsDefault(false);
       setLogicalOp("AND");
       setFilterConditions([]);
-      const defaultSortField = availableFields.find(f => f.key === "createdAt" || f.sortable)?.key;
+      const defaultSortField = availableFields.find((f) => f.key === "createdAt" || f.sortable)?.key;
       setSortSpecs(defaultSortField ? [{ id: "sort-1", field: defaultSortField, direction: "desc" }] : []);
       setSelectedVisibleFields(availableFields.slice(0, 5).map((f) => f.key));
       setColumnWidths({});
@@ -107,7 +128,7 @@ export const ViewEditor: React.FC<ViewEditorProps> = ({
       filterAst = {
         type: "PREDICATE",
         field: cond.field,
-        comparator: cond.comparator as any,
+        comparator: cond.comparator,
         value: ["IS EMPTY", "IS NOT EMPTY"].includes(cond.comparator) ? undefined : cond.value,
       };
     } else if (validConditions.length > 1) {
@@ -117,7 +138,7 @@ export const ViewEditor: React.FC<ViewEditorProps> = ({
         conditions: validConditions.map((cond) => ({
           type: "PREDICATE",
           field: cond.field,
-          comparator: cond.comparator as any,
+          comparator: cond.comparator,
           value: ["IS EMPTY", "IS NOT EMPTY"].includes(cond.comparator) ? undefined : cond.value,
         })),
       };
@@ -157,7 +178,6 @@ export const ViewEditor: React.FC<ViewEditorProps> = ({
           </div>
         ) : (
           <form onSubmit={handleSubmit} className="flex-1 overflow-y-auto pr-2 space-y-6">
-            
             <div className="space-y-4">
               <div>
                 <h3 className="text-sm font-semibold text-slate-800">View Details</h3>
@@ -166,7 +186,7 @@ export const ViewEditor: React.FC<ViewEditorProps> = ({
                     <label className="block text-xs font-medium text-slate-700 mb-1">Name</label>
                     <Input
                       value={viewName}
-                      onChange={(e) => setViewName(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setViewName(e.target.value)}
                       placeholder="e.g. High Value Deals"
                       className="text-sm"
                       required
@@ -176,7 +196,7 @@ export const ViewEditor: React.FC<ViewEditorProps> = ({
                     <label className="block text-xs font-medium text-slate-700 mb-1">Description (Optional)</label>
                     <Input
                       value={viewDescription}
-                      onChange={(e) => setViewDescription(e.target.value)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setViewDescription(e.target.value)}
                       placeholder="Briefly describe the purpose of this view"
                       className="text-sm"
                     />
@@ -189,7 +209,9 @@ export const ViewEditor: React.FC<ViewEditorProps> = ({
                 <div className="mt-2 space-y-3">
                   <select
                     value={visibilityScope}
-                    onChange={(e) => setVisibilityScope(e.target.value as any)}
+                    onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+                      setVisibilityScope(e.target.value as CrmViewVisibilityScope)
+                    }
                     className="w-full rounded-md border border-slate-300 bg-white p-2 text-sm"
                   >
                     <option value="private">Private (Only Me)</option>
@@ -201,7 +223,7 @@ export const ViewEditor: React.FC<ViewEditorProps> = ({
                       type="checkbox"
                       id="isDefaultCheck"
                       checked={isDefault}
-                      onChange={(e) => setIsDefault(e.target.checked)}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setIsDefault(e.target.checked)}
                       className="rounded border-slate-300"
                     />
                     <label htmlFor="isDefaultCheck" className="text-xs text-slate-700 font-medium">
@@ -231,7 +253,7 @@ export const ViewEditor: React.FC<ViewEditorProps> = ({
                 setSelectedVisibleFields={setSelectedVisibleFields}
               />
             </div>
-            
+
             <div className="flex items-center justify-end space-x-2 pt-4 border-t border-slate-200 shrink-0 sticky bottom-0 bg-white">
               <Button type="button" variant="outline" onClick={onCancel}>
                 Cancel

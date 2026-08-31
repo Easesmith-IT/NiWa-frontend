@@ -2,13 +2,13 @@ import React from "react";
 import { Plus, X } from "lucide-react";
 import { Button } from "../../../../components/ui/button";
 import { Input } from "../../../../components/ui/input";
-import type { CrmFieldMetadata } from "../../views.types";
+import type { CrmComparator, CrmFieldMetadata } from "../../views.types";
 
 export interface FilterConditionItem {
   id: string;
   field: string;
-  comparator: string;
-  value: any;
+  comparator: CrmComparator;
+  value: unknown;
 }
 
 interface FilterBuilderProps {
@@ -32,7 +32,7 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({
     const comparators = fieldMeta?.comparators || ["="];
     setFilterConditions((prev) => [
       ...prev,
-      { id: `cond-${Date.now()}`, field: firstField, comparator: comparators[0], value: "" },
+      { id: `cond-${Date.now()}`, field: firstField, comparator: (comparators[0] || "=") as CrmComparator, value: "" },
     ]);
   };
 
@@ -40,7 +40,7 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({
     setFilterConditions((prev) => prev.filter((c) => c.id !== id));
   };
 
-  const handleConditionChange = (id: string, key: keyof FilterConditionItem, val: any) => {
+  const handleConditionChange = (id: string, key: keyof FilterConditionItem, val: unknown) => {
     setFilterConditions((prev) =>
       prev.map((c) => {
         if (c.id === id) {
@@ -49,7 +49,7 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({
             const fieldMeta = availableFields.find((f) => f.key === val);
             const allowed = fieldMeta?.comparators || [];
             if (allowed.length > 0 && !allowed.includes(updated.comparator)) {
-              updated.comparator = allowed[0];
+              updated.comparator = allowed[0] as CrmComparator;
             }
           }
           return updated;
@@ -159,7 +159,7 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({
                 ) : fieldMeta.type === "NUMBER" || fieldMeta.type === "CURRENCY" ? (
                   <Input
                     type="number"
-                    value={cond.value !== undefined ? cond.value : ""}
+                    value={typeof cond.value === "number" ? cond.value : typeof cond.value === "string" ? cond.value : ""}
                     onChange={(e) => handleConditionChange(cond.id, "value", e.target.value ? Number(e.target.value) : "")}
                     placeholder="Numeric value"
                     className="h-8 text-xs"
@@ -167,20 +167,20 @@ export const FilterBuilder: React.FC<FilterBuilderProps> = ({
                 ) : fieldMeta.type === "DATE" ? (
                   <Input
                     type="date"
-                    value={cond.value || ""}
+                    value={typeof cond.value === "string" ? cond.value : ""}
                     onChange={(e) => handleConditionChange(cond.id, "value", e.target.value)}
                     className="h-8 text-xs"
                   />
                 ) : fieldMeta.type === "DATE_TIME" ? (
                   <Input
                     type="datetime-local"
-                    value={cond.value || ""}
+                    value={typeof cond.value === "string" ? cond.value : ""}
                     onChange={(e) => handleConditionChange(cond.id, "value", e.target.value)}
                     className="h-8 text-xs"
                   />
                 ) : (
                   <Input
-                    value={cond.value || ""}
+                    value={typeof cond.value === "string" || typeof cond.value === "number" ? cond.value : ""}
                     onChange={(e) => handleConditionChange(cond.id, "value", e.target.value)}
                     placeholder="Value"
                     className="h-8 text-xs"
