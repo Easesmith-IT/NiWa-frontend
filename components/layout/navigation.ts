@@ -50,6 +50,11 @@ export const navigationGroups: NavigationGroup[] = [
         label: "Inbox",
         description: "Live conversations, context, and messaging actions.",
       },
+    ],
+  },
+  {
+    label: "CRM",
+    items: [
       {
         href: "/contacts",
         icon: ContactRound,
@@ -57,16 +62,16 @@ export const navigationGroups: NavigationGroup[] = [
         description: "Customer directory, import, and labels.",
       },
       {
-        href: "/tasks",
-        icon: ListTodo,
-        label: "Tasks",
-        description: "Follow-up execution and due work.",
-      },
-      {
         href: "/deals",
         icon: Briefcase,
         label: "Deals",
         description: "Sales opportunities, stages, and pipeline progress.",
+      },
+      {
+        href: "/tasks",
+        icon: ListTodo,
+        label: "Tasks",
+        description: "Follow-up execution and due work.",
       },
       {
         href: "/pipelines",

@@ -12,6 +12,7 @@ import type { DealRecord, DealStatus } from "../deal.types";
 import { SavedViewsManager } from "../../crm/components/SavedViewsManager";
 import type { CrmViewRecord } from "../../crm/views.types";
 import { useExecuteCrmViewQuery } from "../../crm/views.queries";
+import { CrmPageShell } from "../../crm/components/CrmPageShell";
 
 export const DealsShell: React.FC = () => {
   const { data: pipelines = [], isLoading: isLoadingPipelines } = usePipelinesQuery();
@@ -120,22 +121,71 @@ export const DealsShell: React.FC = () => {
     (activeSavedView ? isLoadingExecutedView : isLoadingStandardDeals);
 
   return (
-    <div className="space-y-6 p-6">
-      {/* Header */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <h1 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-            <Briefcase className="h-5 w-5 text-blue-600" />
-            Deals Management
-          </h1>
-          <p className="text-xs text-slate-500">
-            Track sales opportunities across pipelines and progress stages toward Won/Lost.
-          </p>
-        </div>
-
-        <div className="flex items-center space-x-2">
-          {/* View Toggle */}
-          <div className="flex items-center rounded-lg border border-slate-200 bg-white p-1">
+    <CrmPageShell
+      title="Deals Management"
+      description="Track sales opportunities across pipelines and progress stages toward Won/Lost."
+      breadcrumb="CRM / Deals"
+      primaryAction={
+        <Button onClick={handleOpenCreateDeal} className="flex items-center gap-1 text-xs">
+          <Plus className="h-4 w-4" /> Create Deal
+        </Button>
+      }
+      viewContext={
+        <SavedViewsManager
+          objectKey="Deal"
+          activeViewId={activeSavedView?._id}
+          onSelectView={(v) => setActiveSavedView(v)}
+        />
+      }
+      queryControls={
+        !activeSavedView ? (
+          <>
+            <div className="relative w-full sm:w-64">
+              <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
+              <Input
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search deals by title..."
+                className="pl-8 text-xs h-8"
+              />
+            </div>
+            <div>
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value)}
+                className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-blue-500 focus:ring-blue-500"
+              >
+                <option value="ALL">Status: All</option>
+                <option value="OPEN">Status: OPEN</option>
+                <option value="WON">Status: WON</option>
+                <option value="LOST">Status: LOST</option>
+              </select>
+            </div>
+          </>
+        ) : (
+          <div className="text-xs text-slate-500 italic">
+            Query controlled by active Saved View.
+          </div>
+        )
+      }
+      executionContext={
+        <>
+          <div className="flex items-center gap-2">
+            <span className="text-xs font-medium text-slate-500">Pipeline:</span>
+            <select
+              value={activePipelineId}
+              onChange={(e) => setSelectedPipelineId(e.target.value)}
+              className="rounded-md border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-800 focus:border-blue-500 focus:ring-blue-500"
+              title={activeSavedView ? "Controls board stage columns (does not filter results)" : "Filters results by pipeline"}
+            >
+              {pipelines.map((p) => (
+                <option key={p._id} value={p._id}>
+                  {p.name} {p.isDefault ? "(Default)" : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex items-center rounded-lg border border-slate-200 bg-white p-1 ml-2">
             <button
               onClick={() => setViewMode("board")}
               className={`flex items-center gap-1 px-3 py-1 text-xs font-medium rounded-md transition-all ${
@@ -153,103 +203,57 @@ export const DealsShell: React.FC = () => {
               <List className="h-3.5 w-3.5" /> List
             </button>
           </div>
-
-          <Button onClick={handleOpenCreateDeal} className="flex items-center gap-1 text-xs">
-            <Plus className="h-4 w-4" /> Create Deal
-          </Button>
-        </div>
-      </div>
-
-      {/* Filter Controls */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between bg-white p-3 rounded-lg border border-slate-200">
-        <div className="flex flex-wrap items-center gap-3">
-          {/* Saved Views Selector */}
-          <SavedViewsManager
-            objectKey="Deal"
-            activeViewId={activeSavedView?._id}
-            onSelectView={(v) => setActiveSavedView(v)}
+        </>
+      }
+      dataSurface={
+        isLoading ? (
+          <div className="flex flex-col items-center justify-center py-12 text-slate-400">
+            <div className="h-8 w-8 animate-spin rounded-full border-4 border-slate-200 border-t-blue-500 mb-4"></div>
+            <p className="text-xs">Loading deals...</p>
+          </div>
+        ) : pipelineDeals.length === 0 ? (
+          <div className="flex h-full flex-col items-center justify-center p-8 text-center text-slate-500">
+            <Briefcase className="h-10 w-10 text-slate-300 mb-3" />
+            <p className="text-sm font-semibold text-slate-700">No deals found</p>
+            <p className="mt-1 text-xs">
+              {activeSavedView
+                ? "No records match current view filters."
+                : "Try changing your filters or create your first deal."}
+            </p>
+            <Button onClick={handleOpenCreateDeal} variant="outline" className="mt-4 text-xs">
+              <Plus className="h-3.5 w-3.5 mr-1" /> Create Deal
+            </Button>
+          </div>
+        ) : viewMode === "board" ? (
+          <DealBoardView
+            stages={stages}
+            deals={pipelineDeals}
+            onEditDeal={handleOpenEditDeal}
+            onMoveDeal={handleOpenMoveDeal}
           />
-
-          {/* Pipeline Switcher */}
-          <div>
-            <select
-              value={activePipelineId}
-              onChange={(e) => setSelectedPipelineId(e.target.value)}
-              className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-800 focus:border-blue-500 focus:ring-blue-500"
-            >
-              {pipelines.map((p) => (
-                <option key={p._id} value={p._id}>
-                  Pipeline: {p.name} {p.isDefault ? "(Default)" : ""}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          {/* Status Filter */}
-          {!activeSavedView && (
-            <div>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="rounded-md border border-slate-300 bg-white px-3 py-1.5 text-xs text-slate-800 focus:border-blue-500 focus:ring-blue-500"
-              >
-                <option value="ALL">Status: All</option>
-                <option value="OPEN">Status: OPEN</option>
-                <option value="WON">Status: WON</option>
-                <option value="LOST">Status: LOST</option>
-              </select>
-            </div>
-          )}
-        </div>
-
-        {/* Search */}
-        {!activeSavedView && (
-          <div className="relative w-full sm:w-64">
-            <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-slate-400" />
-            <Input
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search deals by title..."
-              className="pl-8 text-xs h-8"
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Main View Area */}
-      {isLoading ? (
-        <div className="py-12 text-center text-xs text-slate-400">Loading deals...</div>
-      ) : viewMode === "board" ? (
-        <DealBoardView
-          stages={stages}
-          deals={pipelineDeals}
-          onEditDeal={handleOpenEditDeal}
-          onMoveDeal={handleOpenMoveDeal}
-        />
-      ) : (
-        <DealListView
-          deals={pipelineDeals}
-          pipelines={pipelines}
-          stages={stages}
-          onEditDeal={handleOpenEditDeal}
-          onMoveDeal={handleOpenMoveDeal}
-          onArchiveDeal={handleArchiveDeal}
-        />
-      )}
-
-      {/* Modals */}
+        ) : (
+          <DealListView
+            deals={pipelineDeals}
+            pipelines={pipelines}
+            stages={stages}
+            onEditDeal={handleOpenEditDeal}
+            onMoveDeal={handleOpenMoveDeal}
+            onArchiveDeal={handleArchiveDeal}
+          />
+        )
+      }
+    >
       <DealFormModal
         isOpen={isFormModalOpen}
         onClose={() => setIsFormModalOpen(false)}
         deal={editingDeal}
         defaultPipelineId={activePipelineId}
       />
-
       <DealMoveModal
         isOpen={isMoveModalOpen}
         onClose={() => setIsMoveModalOpen(false)}
         deal={movingDeal}
       />
-    </div>
+    </CrmPageShell>
   );
 };

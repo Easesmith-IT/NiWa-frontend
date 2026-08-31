@@ -69,6 +69,7 @@ export const SavedViewsManager: React.FC<SavedViewsManagerProps> = ({
   const [editingView, setEditingView] = useState<CrmViewRecord | null>(null);
 
   const [viewName, setViewName] = useState("");
+  const [viewDescription, setViewDescription] = useState("");
   const [visibilityScope, setVisibilityScope] = useState<"private" | "team" | "workspace">("private");
   const [isDefault, setIsDefault] = useState(false);
 
@@ -88,6 +89,7 @@ export const SavedViewsManager: React.FC<SavedViewsManagerProps> = ({
   const handleOpenCreate = () => {
     setEditingView(null);
     setViewName("");
+    setViewDescription("");
     setVisibilityScope("private");
     setIsDefault(false);
     setLogicalOp("AND");
@@ -101,6 +103,7 @@ export const SavedViewsManager: React.FC<SavedViewsManagerProps> = ({
   const handleOpenEdit = (view: CrmViewRecord) => {
     setEditingView(view);
     setViewName(view.name);
+    setViewDescription(view.description || "");
     setVisibilityScope(view.visibilityScope);
     setIsDefault(view.isDefault);
 
@@ -229,6 +232,7 @@ export const SavedViewsManager: React.FC<SavedViewsManagerProps> = ({
         id: editingView._id,
         payload: {
           name: viewName.trim(),
+          description: viewDescription.trim() || undefined,
           visibilityScope,
           isDefault,
           filterAst,
@@ -242,6 +246,7 @@ export const SavedViewsManager: React.FC<SavedViewsManagerProps> = ({
     } else {
       const created = await createMutation.mutateAsync({
         name: viewName.trim(),
+        description: viewDescription.trim() || undefined,
         objectKey,
         visibilityScope,
         isDefault,
@@ -365,6 +370,15 @@ export const SavedViewsManager: React.FC<SavedViewsManagerProps> = ({
                     onChange={(e) => setViewName(e.target.value)}
                     placeholder="e.g. High Value Deals"
                     required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-slate-700 font-medium mb-1">Description (Optional)</label>
+                  <Input
+                    value={viewDescription}
+                    onChange={(e) => setViewDescription(e.target.value)}
+                    placeholder="Briefly describe the purpose of this view"
                   />
                 </div>
 
