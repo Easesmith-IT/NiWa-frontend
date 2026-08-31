@@ -2,6 +2,7 @@ import React from "react";
 import { Plus, X } from "lucide-react";
 import { Button } from "../../../../components/ui/button";
 import { Input } from "../../../../components/ui/input";
+import type { CrmFieldMetadata } from "../../views.types";
 
 export interface FilterConditionItem {
   id: string;
@@ -11,7 +12,7 @@ export interface FilterConditionItem {
 }
 
 interface FilterBuilderProps {
-  availableFields: any[];
+  availableFields: CrmFieldMetadata[];
   logicalOp: "AND" | "OR";
   setLogicalOp: (op: "AND" | "OR") => void;
   filterConditions: FilterConditionItem[];

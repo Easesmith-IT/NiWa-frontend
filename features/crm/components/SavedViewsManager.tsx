@@ -9,7 +9,7 @@ import {
   useDeleteCrmViewMutation,
   useSetDefaultCrmViewMutation,
 } from "../views.queries";
-import type { CrmViewObjectKey, CrmViewRecord } from "../views.types";
+import type { CrmViewObjectKey, CrmViewRecord, CreateCrmViewPayload, UpdateCrmViewPayload } from "../views.types";
 import { ViewEditor } from "./saved-views/ViewEditor";
 
 interface SavedViewsManagerProps {
@@ -24,8 +24,7 @@ export const SavedViewsManager: React.FC<SavedViewsManagerProps> = ({
   onSelectView,
 }) => {
   const { data: viewsData } = useCrmViewsQuery(objectKey);
-  const rawViews = (viewsData as any)?.views || (viewsData as any)?.data || viewsData;
-  const views: CrmViewRecord[] = Array.isArray(rawViews) ? rawViews : [];
+  const views: CrmViewRecord[] = Array.isArray(viewsData) ? viewsData : [];
   
   const { data: fieldsData, isLoading: isLoadingFields, isError: isFieldsError } = useCrmViewFieldsQuery(objectKey);
   const availableFields = fieldsData?.fields || [];
@@ -50,21 +49,21 @@ export const SavedViewsManager: React.FC<SavedViewsManagerProps> = ({
     setIsModalOpen(true);
   };
 
-  const handleSaveView = async (payload: any) => {
+  const handleSaveView = async (payload: CreateCrmViewPayload | UpdateCrmViewPayload) => {
     if (editingView) {
       const updated = await updateMutation.mutateAsync({
         id: editingView._id,
-        payload,
+        payload: payload as UpdateCrmViewPayload,
       });
       setIsModalOpen(false);
-      onSelectView(updated as any);
+      onSelectView(updated);
     } else {
       const created = await createMutation.mutateAsync({
-        ...payload,
+        ...(payload as CreateCrmViewPayload),
         objectKey,
       });
       setIsModalOpen(false);
-      onSelectView(created as any);
+      onSelectView(created);
     }
   };
 

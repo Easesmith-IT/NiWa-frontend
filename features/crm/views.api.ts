@@ -3,6 +3,7 @@ import type {
   CreateCrmViewPayload,
   CrmViewObjectKey,
   CrmViewRecord,
+  CrmFieldMetadata,
   UpdateCrmViewPayload,
   ViewExecutionResult,
 } from "./views.types";
@@ -47,18 +48,7 @@ export const executeView = async <T = any>(id: string, options?: { page?: number
 export const fetchCrmViewFields = async (objectKey: CrmViewObjectKey) => {
   const response = await apiClient.get<{
     objectKey: CrmViewObjectKey;
-    fields: Array<{
-      key: string;
-      label: string;
-      type: string;
-      filterable: boolean;
-      sortable: boolean;
-      selectable: boolean;
-      groupable: boolean;
-      comparators?: string[];
-      isCustom?: boolean;
-      fieldDefinitionId?: string;
-    }>;
+    fields: CrmFieldMetadata[];
   }>("/crm/views/fields", {
     params: { objectKey },
   });

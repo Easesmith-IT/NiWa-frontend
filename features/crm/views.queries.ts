@@ -66,10 +66,10 @@ export const useSetDefaultCrmViewMutation = () => {
   });
 };
 
-export const useExecuteCrmViewQuery = (id: string, options?: { page?: number; limit?: number }, enabled = true) =>
+export const useExecuteCrmViewQuery = <T = any>(id: string, options?: { page?: number; limit?: number }, enabled = true) =>
   useQuery({
     queryKey: [...queryKeys.views, "execute", id, JSON.stringify(options || {})],
-    queryFn: () => executeView(id, options),
+    queryFn: () => executeView<T>(id, options),
     enabled: enabled && !!id,
   });
 

@@ -5,15 +5,15 @@ import { Input } from "../../../../components/ui/input";
 import { FilterBuilder, FilterConditionItem } from "./FilterBuilder";
 import { SortBuilder, SortItem } from "./SortBuilder";
 import { ColumnConfigurator } from "./ColumnConfigurator";
-import type { CrmViewObjectKey, CrmViewRecord, FilterAstNode, SortSpec } from "../../views.types";
+import type { CrmViewObjectKey, CrmViewRecord, CreateCrmViewPayload, UpdateCrmViewPayload, FilterAstNode, SortSpec, CrmFieldMetadata } from "../../views.types";
 
 interface ViewEditorProps {
   objectKey: CrmViewObjectKey;
   editingView: CrmViewRecord | null;
-  availableFields: any[];
+  availableFields: CrmFieldMetadata[];
   isLoadingFields: boolean;
   isFieldsError: boolean;
-  onSave: (payload: any) => Promise<void>;
+  onSave: (payload: CreateCrmViewPayload | UpdateCrmViewPayload) => Promise<void>;
   onCancel: () => void;
   isSaving: boolean;
 }

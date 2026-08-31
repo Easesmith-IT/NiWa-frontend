@@ -21,6 +21,19 @@ export interface LogicalAstNode {
 
 export type FilterAstNode = PredicateAstNode | LogicalAstNode;
 
+export interface CrmFieldMetadata {
+  key: string;
+  label: string;
+  type: string;
+  filterable: boolean;
+  sortable: boolean;
+  selectable: boolean;
+  groupable: boolean;
+  comparators?: string[];
+  isCustom?: boolean;
+  fieldDefinitionId?: string;
+}
+
 export interface CrmViewRecord {
   _id: string;
   workspaceId: string;

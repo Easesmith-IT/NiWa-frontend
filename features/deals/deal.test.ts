@@ -1,4 +1,4 @@
-﻿import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { archiveDeal, createDeal, fetchDealById, listDeals, updateDeal } from "./deal.api";
 import type { CreateDealPayload, DealRecord, UpdateDealPayload } from "./deal.types";
 import type { StageRecord } from "../pipelines/pipeline.types";
@@ -97,6 +97,38 @@ describe("Deals & Cross-Pipeline Movement Unit Suite", () => {
     expect(isStageSelectable(stages[0], null)).toBe(true);
     expect(isStageSelectable(stages[1], null)).toBe(false); // New deal cannot select inactive stage
     expect(isStageSelectable(stages[1], historicalDeal.stageId)).toBe(true); // Historical deal retains its inactive stage
+  });
+});
+
+import { resolveDealListColumns } from "./deal.utils";
+import type { CrmViewRecord } from "../crm/views.types";
+
+describe("Deal List Column Resolution", () => {
+  it("A. Saved View columns are applied", () => {
+    const view = { visibleFields: ["title", "value"] } as CrmViewRecord;
+    expect(resolveDealListColumns(view)).toEqual(["title", "value"]);
+  });
+
+  it("B. Column order is respected", () => {
+    const view = { 
+      visibleFields: ["title", "value", "status"], 
+      columnOrder: ["value", "status", "title"] 
+    } as CrmViewRecord;
+    expect(resolveDealListColumns(view)).toEqual(["value", "status", "title"]);
+  });
+
+  it("C. Hidden fields do not render (only visible fields from order are picked)", () => {
+    // If a field is in columnOrder but not visibleFields, it's hidden
+    const view = {
+      visibleFields: ["title", "status"],
+      columnOrder: ["title", "value", "status"]
+    } as CrmViewRecord;
+    expect(resolveDealListColumns(view)).toEqual(["title", "status"]);
+  });
+
+  it("E. No Saved View regression (returns defaults)", () => {
+    const cols = resolveDealListColumns(null);
+    expect(cols).toEqual(["title", "pipelineId", "stageId", "value", "expectedCloseDate", "status"]);
   });
 });
 

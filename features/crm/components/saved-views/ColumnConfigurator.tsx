@@ -1,9 +1,10 @@
 import React from "react";
 import { ArrowUp, ArrowDown, Eye, EyeOff } from "lucide-react";
 import { Button } from "../../../../components/ui/button";
+import type { CrmFieldMetadata } from "../../views.types";
 
 interface ColumnConfiguratorProps {
-  availableFields: any[];
+  availableFields: CrmFieldMetadata[];
   selectedVisibleFields: string[];
   setSelectedVisibleFields: (fields: string[] | ((prev: string[]) => string[])) => void;
 }

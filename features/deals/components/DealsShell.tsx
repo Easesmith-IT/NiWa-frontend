@@ -36,12 +36,7 @@ export const DealsShell: React.FC = () => {
     enabled: !activeSavedView?._id,
   });
 
-  // Saved View Execution query
-  const { data: executedViewResult, isLoading: isLoadingExecutedView } = useExecuteCrmViewQuery(
-    activeSavedView?._id || "",
-    { page: 1, limit: 100 },
-    Boolean(activeSavedView?._id),
-  );
+
 
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [editingDeal, setEditingDeal] = useState<DealRecord | null>(null);
@@ -72,34 +67,15 @@ export const DealsShell: React.FC = () => {
     }
   };
 
-  // View Execution Architecture:
-  // If a saved view is active, the dataset comes directly from the backend executeView() execution engine.
-  // Otherwise, falls back to the standard un-filtered deals query.
-  const rawExecutedData = (executedViewResult as any)?.data || executedViewResult;
-  let executedRecords: DealRecord[] = [];
-  if (Array.isArray(rawExecutedData)) {
-    executedRecords = rawExecutedData;
-  } else if (rawExecutedData && typeof rawExecutedData === "object") {
-    if (Array.isArray((rawExecutedData as any).data)) {
-      executedRecords = (rawExecutedData as any).data;
-    } else if (Array.isArray((rawExecutedData as any).items)) {
-      executedRecords = (rawExecutedData as any).items;
-    }
-  }
+  // Saved View Execution query
+  const { data: executedViewResult, isLoading: isLoadingExecutedView } = useExecuteCrmViewQuery<DealRecord>(
+    activeSavedView?._id || "",
+    { page: 1, limit: 100 },
+    Boolean(activeSavedView?._id)
+  );
 
-  const rawStandardDeals = (standardDeals as any)?.data || standardDeals;
-  let safeStandardDeals: DealRecord[] = [];
-  if (Array.isArray(rawStandardDeals)) {
-    safeStandardDeals = rawStandardDeals;
-  } else if (rawStandardDeals && typeof rawStandardDeals === "object") {
-    if (Array.isArray((rawStandardDeals as any).deals)) {
-      safeStandardDeals = (rawStandardDeals as any).deals;
-    } else if (Array.isArray((rawStandardDeals as any).items)) {
-      safeStandardDeals = (rawStandardDeals as any).items;
-    } else if (Array.isArray((rawStandardDeals as any).data)) {
-      safeStandardDeals = (rawStandardDeals as any).data;
-    }
-  }
+  const executedRecords = executedViewResult?.data || [];
+  const safeStandardDeals = Array.isArray(standardDeals) ? standardDeals : [];
 
   const activeDealsList: DealRecord[] = activeSavedView
     ? executedRecords
@@ -246,6 +222,7 @@ export const DealsShell: React.FC = () => {
             onEditDeal={handleOpenEditDeal}
             onMoveDeal={handleOpenMoveDeal}
             onArchiveDeal={handleArchiveDeal}
+            activeSavedView={activeSavedView}
           />
         )
       }

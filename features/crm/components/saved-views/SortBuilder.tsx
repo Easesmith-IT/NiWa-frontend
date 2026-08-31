@@ -1,6 +1,7 @@
 import React from "react";
 import { Plus, X, ArrowUp, ArrowDown } from "lucide-react";
 import { Button } from "../../../../components/ui/button";
+import type { CrmFieldMetadata } from "../../views.types";
 
 export interface SortItem {
   id: string;
@@ -9,7 +10,7 @@ export interface SortItem {
 }
 
 interface SortBuilderProps {
-  availableFields: any[];
+  availableFields: CrmFieldMetadata[];
   sortSpecs: SortItem[];
   setSortSpecs: (val: SortItem[] | ((prev: SortItem[]) => SortItem[])) => void;
 }
