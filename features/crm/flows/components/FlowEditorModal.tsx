@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useCreateFlow, useUpdateFlow } from "../flow.queries";
 import { CrmFlow, FlowCondition, FlowStep, FlowTriggerType } from "../flow.types";
-import { FlowConditionBuilder } from "./FlowConditionBuilder";
+import { FlowConditionBuilder, CrmTargetEntityType } from "./FlowConditionBuilder";
 import { FlowActionBuilder } from "./FlowActionBuilder";
 
 interface FlowEditorModalProps {
@@ -11,17 +11,17 @@ interface FlowEditorModalProps {
   onClose: () => void;
 }
 
-const TRIGGER_OPTIONS: { label: string; value: FlowTriggerType }[] = [
-  { label: "Lead Created", value: "lead.created" },
-  { label: "Lead Status Changed", value: "lead.status_changed" },
-  { label: "Deal Created", value: "deal.created" },
-  { label: "Deal Stage Changed", value: "deal.stage_changed" },
-  { label: "Deal Won", value: "deal.won" },
-  { label: "Deal Lost", value: "deal.lost" },
-  { label: "Custom Field Changed", value: "field_value.changed" },
-  { label: "Task Due", value: "task.due" },
-  { label: "Incoming Message", value: "incoming_message" },
-  { label: "Manual Test", value: "manual" },
+const TRIGGER_OPTIONS: { label: string; value: FlowTriggerType; targetEntity: CrmTargetEntityType }[] = [
+  { label: "Lead Created", value: "lead.created", targetEntity: "Lead" },
+  { label: "Lead Status Changed", value: "lead.status_changed", targetEntity: "Lead" },
+  { label: "Deal Created", value: "deal.created", targetEntity: "Deal" },
+  { label: "Deal Stage Changed", value: "deal.stage_changed", targetEntity: "Deal" },
+  { label: "Deal Won", value: "deal.won", targetEntity: "Deal" },
+  { label: "Deal Lost", value: "deal.lost", targetEntity: "Deal" },
+  { label: "Custom Field Changed", value: "field_value.changed", targetEntity: "Lead" },
+  { label: "Task Due", value: "task.due", targetEntity: "Task" },
+  { label: "Incoming Message", value: "incoming_message", targetEntity: "Person" },
+  { label: "Manual Test", value: "manual", targetEntity: "Lead" },
 ];
 
 export const FlowEditorModal: React.FC<FlowEditorModalProps> = ({ flow, onClose }) => {
@@ -34,6 +34,9 @@ export const FlowEditorModal: React.FC<FlowEditorModalProps> = ({ flow, onClose 
   const [conditions, setConditions] = useState<FlowCondition[]>(flow?.conditions || []);
   const [steps, setSteps] = useState<FlowStep[]>(flow?.steps || []);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  const selectedTriggerOption = TRIGGER_OPTIONS.find((t) => t.value === triggerType) || TRIGGER_OPTIONS[0];
+  const targetEntityType: CrmTargetEntityType = selectedTriggerOption.targetEntity;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -143,9 +146,13 @@ export const FlowEditorModal: React.FC<FlowEditorModalProps> = ({ flow, onClose 
             </div>
           </div>
 
-          {/* Condition Builder */}
+          {/* Condition Builder (Target Entity Aware) */}
           <div className="border-t border-slate-800 pt-4">
-            <FlowConditionBuilder conditions={conditions} onChange={setConditions} />
+            <FlowConditionBuilder
+              conditions={conditions}
+              onChange={setConditions}
+              targetEntityType={targetEntityType}
+            />
           </div>
 
           {/* Action Builder */}

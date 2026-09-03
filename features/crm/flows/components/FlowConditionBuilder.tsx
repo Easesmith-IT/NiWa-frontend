@@ -4,83 +4,159 @@ import React from "react";
 import { Plus, Trash2 } from "lucide-react";
 import type { FlowCondition, FlowOperator } from "../flow.types";
 
+export type CrmTargetEntityType = "Lead" | "Deal" | "Person" | "Company" | "Task" | "Activity";
 export type FieldDataType = "string" | "number" | "boolean" | "date" | "option";
 
-export interface AllowlistedSource {
-  value: string;
+export interface CustomFieldDefinition {
+  id: string; // e.g. "custom.66a98efc2f992d996df1370e" or "fields.66a98efc2f992d996df1370e"
+  fieldKey: string;
   label: string;
-  category: "Lead" | "Deal" | "Person" | "Company" | "Task" | "Activity" | "Relationship" | "Custom";
+  entityType: CrmTargetEntityType;
   type: FieldDataType;
   options?: string[];
 }
 
-export const ALLOWLISTED_SOURCES: AllowlistedSource[] = [
-  // Lead
-  { value: "entity.status", label: "Lead: Status", category: "Lead", type: "option", options: ["NEW", "CONTACTED", "QUALIFIED", "UNQUALIFIED", "CONVERTED"] },
-  { value: "entity.source", label: "Lead: Source", category: "Lead", type: "string" },
-  { value: "entity.score", label: "Lead: Score", category: "Lead", type: "number" },
-  { value: "entity.title", label: "Lead: Title", category: "Lead", type: "string" },
-  { value: "entity.name", label: "Lead: Name", category: "Lead", type: "string" },
-  { value: "entity.email", label: "Lead: Email", category: "Lead", type: "string" },
-  { value: "entity.phone", label: "Lead: Phone", category: "Lead", type: "string" },
-  { value: "entity.companyName", label: "Lead: Company Name", category: "Lead", type: "string" },
-  { value: "entity.value", label: "Lead: Value", category: "Lead", type: "number" },
-  { value: "entity.ownerUserId", label: "Lead: Owner User ID", category: "Lead", type: "string" },
-  { value: "entity.createdAt", label: "Lead: Created At", category: "Lead", type: "date" },
-  { value: "entity.updatedAt", label: "Lead: Updated At", category: "Lead", type: "date" },
+export interface AllowlistedSourceField {
+  value: string;
+  label: string;
+  entityType: CrmTargetEntityType;
+  type: FieldDataType;
+  isRelationship?: boolean;
+  options?: string[];
+}
 
-  // Deal
-  { value: "entity.stage", label: "Deal: Stage", category: "Deal", type: "option" },
-  { value: "entity.stageId", label: "Deal: Stage ID", category: "Deal", type: "string" },
-  { value: "entity.value", label: "Deal: Value", category: "Deal", type: "number" },
-  { value: "entity.title", label: "Deal: Title", category: "Deal", type: "string" },
-  { value: "entity.name", label: "Deal: Name", category: "Deal", type: "string" },
-  { value: "entity.pipelineId", label: "Deal: Pipeline ID", category: "Deal", type: "string" },
-  { value: "entity.probability", label: "Deal: Probability", category: "Deal", type: "number" },
-  { value: "entity.expectedCloseDate", label: "Deal: Expected Close Date", category: "Deal", type: "date" },
-  { value: "entity.closedAt", label: "Deal: Closed At", category: "Deal", type: "date" },
-  { value: "entity.ownerUserId", label: "Deal: Owner User ID", category: "Deal", type: "string" },
+/**
+ * Authoritative Backend Source Registry Catalog matching crm-flow-source-registry.ts
+ */
+export const BACKEND_SOURCE_CATALOG: Record<CrmTargetEntityType, AllowlistedSourceField[]> = {
+  Lead: [
+    { value: "entity._id", label: "Lead: ID (_id)", entityType: "Lead", type: "string" },
+    { value: "entity.id", label: "Lead: ID (id)", entityType: "Lead", type: "string" },
+    { value: "entity.title", label: "Lead: Title", entityType: "Lead", type: "string" },
+    { value: "entity.status", label: "Lead: Status", entityType: "Lead", type: "option", options: ["NEW", "CONTACTED", "QUALIFIED", "UNQUALIFIED", "CONVERTED"] },
+    { value: "entity.source", label: "Lead: Source", entityType: "Lead", type: "string" },
+    { value: "entity.value", label: "Lead: Value", entityType: "Lead", type: "number" },
+    { value: "entity.currency", label: "Lead: Currency", entityType: "Lead", type: "string" },
+    { value: "entity.ownerUserId", label: "Lead: Owner User ID", entityType: "Lead", type: "string" },
+    { value: "entity.createdBy", label: "Lead: Created By", entityType: "Lead", type: "string" },
+    { value: "entity.createdAt", label: "Lead: Created At", entityType: "Lead", type: "date" },
+    { value: "entity.updatedAt", label: "Lead: Updated At", entityType: "Lead", type: "date" },
+    // Lead -> Company Relationship
+    { value: "entity.company.name", label: "Related Company: Name", entityType: "Lead", type: "string", isRelationship: true },
+    { value: "entity.company.domain", label: "Related Company: Domain", entityType: "Lead", type: "string", isRelationship: true },
+    { value: "entity.company.industry", label: "Related Company: Industry", entityType: "Lead", type: "string", isRelationship: true },
+    { value: "entity.company.ownerUserId", label: "Related Company: Owner User ID", entityType: "Lead", type: "string", isRelationship: true },
+    { value: "entity.company.createdBy", label: "Related Company: Created By", entityType: "Lead", type: "string", isRelationship: true },
+    { value: "entity.company.createdAt", label: "Related Company: Created At", entityType: "Lead", type: "date", isRelationship: true },
+    { value: "entity.company.updatedAt", label: "Related Company: Updated At", entityType: "Lead", type: "date", isRelationship: true },
+    // Lead -> Primary Person Relationship
+    { value: "entity.primaryPerson.firstName", label: "Related Person: First Name", entityType: "Lead", type: "string", isRelationship: true },
+    { value: "entity.primaryPerson.lastName", label: "Related Person: Last Name", entityType: "Lead", type: "string", isRelationship: true },
+    { value: "entity.primaryPerson.email", label: "Related Person: Email", entityType: "Lead", type: "string", isRelationship: true },
+    { value: "entity.primaryPerson.phone", label: "Related Person: Phone", entityType: "Lead", type: "string", isRelationship: true },
+    { value: "entity.primaryPerson.jobTitle", label: "Related Person: Job Title", entityType: "Lead", type: "string", isRelationship: true },
+    { value: "entity.primaryPerson.companyId", label: "Related Person: Company ID", entityType: "Lead", type: "string", isRelationship: true },
+    { value: "entity.primaryPerson.ownerUserId", label: "Related Person: Owner User ID", entityType: "Lead", type: "string", isRelationship: true },
+    { value: "entity.primaryPerson.createdBy", label: "Related Person: Created By", entityType: "Lead", type: "string", isRelationship: true },
+    { value: "entity.primaryPerson.createdAt", label: "Related Person: Created At", entityType: "Lead", type: "date", isRelationship: true },
+    { value: "entity.primaryPerson.updatedAt", label: "Related Person: Updated At", entityType: "Lead", type: "date", isRelationship: true },
+  ],
 
-  // Person
-  { value: "entity.firstName", label: "Person: First Name", category: "Person", type: "string" },
-  { value: "entity.lastName", label: "Person: Last Name", category: "Person", type: "string" },
-  { value: "entity.displayName", label: "Person: Display Name", category: "Person", type: "string" },
-  { value: "entity.email", label: "Person: Email", category: "Person", type: "string" },
-  { value: "entity.phone", label: "Person: Phone", category: "Person", type: "string" },
-  { value: "entity.jobTitle", label: "Person: Job Title", category: "Person", type: "string" },
-  { value: "entity.ownerUserId", label: "Person: Owner User ID", category: "Person", type: "string" },
+  Deal: [
+    { value: "entity._id", label: "Deal: ID (_id)", entityType: "Deal", type: "string" },
+    { value: "entity.id", label: "Deal: ID (id)", entityType: "Deal", type: "string" },
+    { value: "entity.title", label: "Deal: Title", entityType: "Deal", type: "string" },
+    { value: "entity.stageId", label: "Deal: Stage ID", entityType: "Deal", type: "string" },
+    { value: "entity.pipelineId", label: "Deal: Pipeline ID", entityType: "Deal", type: "string" },
+    { value: "entity.value", label: "Deal: Value", entityType: "Deal", type: "number" },
+    { value: "entity.currency", label: "Deal: Currency", entityType: "Deal", type: "string" },
+    { value: "entity.status", label: "Deal: Status", entityType: "Deal", type: "option", options: ["OPEN", "WON", "LOST"] },
+    { value: "entity.ownerUserId", label: "Deal: Owner User ID", entityType: "Deal", type: "string" },
+    { value: "entity.expectedCloseDate", label: "Deal: Expected Close Date", entityType: "Deal", type: "date" },
+    { value: "entity.createdBy", label: "Deal: Created By", entityType: "Deal", type: "string" },
+    { value: "entity.createdAt", label: "Deal: Created At", entityType: "Deal", type: "date" },
+    { value: "entity.updatedAt", label: "Deal: Updated At", entityType: "Deal", type: "date" },
+    // Deal -> Company Relationship
+    { value: "entity.company.name", label: "Related Company: Name", entityType: "Deal", type: "string", isRelationship: true },
+    { value: "entity.company.domain", label: "Related Company: Domain", entityType: "Deal", type: "string", isRelationship: true },
+    { value: "entity.company.industry", label: "Related Company: Industry", entityType: "Deal", type: "string", isRelationship: true },
+    { value: "entity.company.ownerUserId", label: "Related Company: Owner User ID", entityType: "Deal", type: "string", isRelationship: true },
+    { value: "entity.company.createdBy", label: "Related Company: Created By", entityType: "Deal", type: "string", isRelationship: true },
+    { value: "entity.company.createdAt", label: "Related Company: Created At", entityType: "Deal", type: "date", isRelationship: true },
+    { value: "entity.company.updatedAt", label: "Related Company: Updated At", entityType: "Deal", type: "date", isRelationship: true },
+    // Deal -> Primary Person Relationship
+    { value: "entity.primaryPerson.firstName", label: "Related Person: First Name", entityType: "Deal", type: "string", isRelationship: true },
+    { value: "entity.primaryPerson.lastName", label: "Related Person: Last Name", entityType: "Deal", type: "string", isRelationship: true },
+    { value: "entity.primaryPerson.email", label: "Related Person: Email", entityType: "Deal", type: "string", isRelationship: true },
+    { value: "entity.primaryPerson.phone", label: "Related Person: Phone", entityType: "Deal", type: "string", isRelationship: true },
+    { value: "entity.primaryPerson.jobTitle", label: "Related Person: Job Title", entityType: "Deal", type: "string", isRelationship: true },
+    { value: "entity.primaryPerson.companyId", label: "Related Person: Company ID", entityType: "Deal", type: "string", isRelationship: true },
+    { value: "entity.primaryPerson.ownerUserId", label: "Related Person: Owner User ID", entityType: "Deal", type: "string", isRelationship: true },
+    { value: "entity.primaryPerson.createdBy", label: "Related Person: Created By", entityType: "Deal", type: "string", isRelationship: true },
+    { value: "entity.primaryPerson.createdAt", label: "Related Person: Created At", entityType: "Deal", type: "date", isRelationship: true },
+    { value: "entity.primaryPerson.updatedAt", label: "Related Person: Updated At", entityType: "Deal", type: "date", isRelationship: true },
+  ],
 
-  // Company
-  { value: "entity.name", label: "Company: Name", category: "Company", type: "string" },
-  { value: "entity.domain", label: "Company: Domain", category: "Company", type: "string" },
-  { value: "entity.industry", label: "Company: Industry", category: "Company", type: "string" },
-  { value: "entity.employeeCount", label: "Company: Employee Count", category: "Company", type: "number" },
-  { value: "entity.annualRevenue", label: "Company: Annual Revenue", category: "Company", type: "number" },
-  { value: "entity.ownerUserId", label: "Company: Owner User ID", category: "Company", type: "string" },
+  Person: [
+    { value: "entity._id", label: "Person: ID (_id)", entityType: "Person", type: "string" },
+    { value: "entity.id", label: "Person: ID (id)", entityType: "Person", type: "string" },
+    { value: "entity.firstName", label: "Person: First Name", entityType: "Person", type: "string" },
+    { value: "entity.lastName", label: "Person: Last Name", entityType: "Person", type: "string" },
+    { value: "entity.email", label: "Person: Email", entityType: "Person", type: "string" },
+    { value: "entity.phone", label: "Person: Phone", entityType: "Person", type: "string" },
+    { value: "entity.jobTitle", label: "Person: Job Title", entityType: "Person", type: "string" },
+    { value: "entity.companyId", label: "Person: Company ID", entityType: "Person", type: "string" },
+    { value: "entity.ownerUserId", label: "Person: Owner User ID", entityType: "Person", type: "string" },
+    { value: "entity.createdBy", label: "Person: Created By", entityType: "Person", type: "string" },
+    { value: "entity.createdAt", label: "Person: Created At", entityType: "Person", type: "date" },
+    { value: "entity.updatedAt", label: "Person: Updated At", entityType: "Person", type: "date" },
+    // Person -> Company Relationship
+    { value: "entity.company.name", label: "Related Company: Name", entityType: "Person", type: "string", isRelationship: true },
+    { value: "entity.company.domain", label: "Related Company: Domain", entityType: "Person", type: "string", isRelationship: true },
+    { value: "entity.company.industry", label: "Related Company: Industry", entityType: "Person", type: "string", isRelationship: true },
+    { value: "entity.company.ownerUserId", label: "Related Company: Owner User ID", entityType: "Person", type: "string", isRelationship: true },
+    { value: "entity.company.createdBy", label: "Related Company: Created By", entityType: "Person", type: "string", isRelationship: true },
+    { value: "entity.company.createdAt", label: "Related Company: Created At", entityType: "Person", type: "date", isRelationship: true },
+    { value: "entity.company.updatedAt", label: "Related Company: Updated At", entityType: "Person", type: "date", isRelationship: true },
+  ],
 
-  // Task
-  { value: "entity.title", label: "Task: Title", category: "Task", type: "string" },
-  { value: "entity.status", label: "Task: Status", category: "Task", type: "option", options: ["PENDING", "COMPLETED"] },
-  { value: "entity.priority", label: "Task: Priority", category: "Task", type: "option", options: ["LOW", "MEDIUM", "HIGH"] },
-  { value: "entity.dueAt", label: "Task: Due At", category: "Task", type: "date" },
-  { value: "entity.assignedTo", label: "Task: Assigned To", category: "Task", type: "string" },
+  Company: [
+    { value: "entity._id", label: "Company: ID (_id)", entityType: "Company", type: "string" },
+    { value: "entity.id", label: "Company: ID (id)", entityType: "Company", type: "string" },
+    { value: "entity.name", label: "Company: Name", entityType: "Company", type: "string" },
+    { value: "entity.domain", label: "Company: Domain", entityType: "Company", type: "string" },
+    { value: "entity.industry", label: "Company: Industry", entityType: "Company", type: "string" },
+    { value: "entity.ownerUserId", label: "Company: Owner User ID", entityType: "Company", type: "string" },
+    { value: "entity.createdBy", label: "Company: Created By", entityType: "Company", type: "string" },
+    { value: "entity.createdAt", label: "Company: Created At", entityType: "Company", type: "date" },
+    { value: "entity.updatedAt", label: "Company: Updated At", entityType: "Company", type: "date" },
+  ],
 
-  // Activity
-  { value: "entity.type", label: "Activity: Type", category: "Activity", type: "option", options: ["NOTE", "CALL", "MEETING", "EMAIL", "TASK"] },
-  { value: "entity.subject", label: "Activity: Subject", category: "Activity", type: "string" },
-  { value: "entity.description", label: "Activity: Description", category: "Activity", type: "string" },
-  { value: "entity.performedAt", label: "Activity: Performed At", category: "Activity", type: "date" },
+  Task: [
+    { value: "entity._id", label: "Task: ID (_id)", entityType: "Task", type: "string" },
+    { value: "entity.id", label: "Task: ID (id)", entityType: "Task", type: "string" },
+    { value: "entity.title", label: "Task: Title", entityType: "Task", type: "string" },
+    { value: "entity.status", label: "Task: Status", entityType: "Task", type: "option", options: ["PENDING", "COMPLETED"] },
+    { value: "entity.priority", label: "Task: Priority", entityType: "Task", type: "option", options: ["LOW", "MEDIUM", "HIGH"] },
+    { value: "entity.dueAt", label: "Task: Due At", entityType: "Task", type: "date" },
+    { value: "entity.authorId", label: "Task: Author ID", entityType: "Task", type: "string" },
+    { value: "entity.createdBy", label: "Task: Created By", entityType: "Task", type: "string" },
+    { value: "entity.createdAt", label: "Task: Created At", entityType: "Task", type: "date" },
+    { value: "entity.updatedAt", label: "Task: Updated At", entityType: "Task", type: "date" },
+  ],
 
-  // 1-Hop Relationships
-  { value: "entity.company.name", label: "Related Company: Name", category: "Relationship", type: "string" },
-  { value: "entity.company.domain", label: "Related Company: Domain", category: "Relationship", type: "string" },
-  { value: "entity.company.industry", label: "Related Company: Industry", category: "Relationship", type: "string" },
-  { value: "entity.primaryPerson.displayName", label: "Related Person: Display Name", category: "Relationship", type: "string" },
-  { value: "entity.primaryPerson.email", label: "Related Person: Email", category: "Relationship", type: "string" },
-  { value: "entity.primaryPerson.phone", label: "Related Person: Phone", category: "Relationship", type: "string" },
-  { value: "entity.pipeline.name", label: "Related Pipeline: Name", category: "Relationship", type: "string" },
-  { value: "entity.stage.name", label: "Related Stage: Name", category: "Relationship", type: "string" },
-];
+  Activity: [
+    { value: "entity._id", label: "Activity: ID (_id)", entityType: "Activity", type: "string" },
+    { value: "entity.id", label: "Activity: ID (id)", entityType: "Activity", type: "string" },
+    { value: "entity.type", label: "Activity: Type", entityType: "Activity", type: "option", options: ["NOTE", "CALL", "MEETING", "EMAIL", "TASK"] },
+    { value: "entity.description", label: "Activity: Description", entityType: "Activity", type: "string" },
+    { value: "entity.actorId", label: "Activity: Actor ID", entityType: "Activity", type: "string" },
+    { value: "entity.relatedRecordId", label: "Activity: Related Record ID", entityType: "Activity", type: "string" },
+    { value: "entity.relatedRecordType", label: "Activity: Related Record Type", entityType: "Activity", type: "string" },
+    { value: "entity.createdAt", label: "Activity: Created At", entityType: "Activity", type: "date" },
+    { value: "entity.updatedAt", label: "Activity: Updated At", entityType: "Activity", type: "date" },
+  ],
+};
 
 export const OPERATORS_BY_TYPE: Record<FieldDataType, FlowOperator[]> = {
   string: ["=", "!=", "contains", "exists", "IS EMPTY", "IS NOT EMPTY", "IN", "NOT IN"],
@@ -95,19 +171,28 @@ export const NO_VALUE_OPERATORS: FlowOperator[] = ["IS EMPTY", "IS NOT EMPTY", "
 export interface FlowConditionBuilderProps {
   conditions: FlowCondition[];
   onChange: (conditions: FlowCondition[]) => void;
+  targetEntityType?: CrmTargetEntityType;
+  customFieldDefinitions?: CustomFieldDefinition[];
   readOnly?: boolean;
 }
 
 export const FlowConditionBuilder: React.FC<FlowConditionBuilderProps> = ({
   conditions,
   onChange,
+  targetEntityType = "Lead",
+  customFieldDefinitions = [],
   readOnly = false,
 }) => {
+  // Filter available fields based on target entity type
+  const availableTargetFields = BACKEND_SOURCE_CATALOG[targetEntityType] || BACKEND_SOURCE_CATALOG.Lead;
+  const availableCustomFields = customFieldDefinitions.filter((cf) => cf.entityType === targetEntityType);
+
   const handleAddCondition = () => {
+    const defaultField = availableTargetFields[0]?.value || "entity.status";
     onChange([
       ...conditions,
       {
-        source: "entity.status",
+        source: defaultField,
         operator: "=",
         value: "QUALIFIED",
         logic: "AND",
@@ -133,24 +218,44 @@ export const FlowConditionBuilder: React.FC<FlowConditionBuilderProps> = ({
     onChange(next);
   };
 
-  const getSourceMeta = (source: string): AllowlistedSource => {
-    const found = ALLOWLISTED_SOURCES.find((s) => s.value === source);
-    if (found) return found;
+  // Strictly look up source metadata from catalog or custom field definitions. ZERO HEURISTIC NAMING GUESSES!
+  const getSourceMeta = (source: string): AllowlistedSourceField => {
+    const catalog = BACKEND_SOURCE_CATALOG[targetEntityType] || BACKEND_SOURCE_CATALOG.Lead;
+    const foundInTarget = catalog.find((s) => s.value === source);
+    if (foundInTarget) return foundInTarget;
 
-    // Detect type for unknown / custom field paths
-    if (source.includes("score") || source.includes("value") || source.includes("count") || source.includes("number")) {
-      return { value: source, label: source, category: "Custom", type: "number" };
+    // Check across all backend catalog categories
+    for (const catList of Object.values(BACKEND_SOURCE_CATALOG)) {
+      const found = catList.find((s) => s.value === source);
+      if (found) return found;
     }
-    if (source.includes("date") || source.includes("At") || source.includes("time")) {
-      return { value: source, label: source, category: "Custom", type: "date" };
+
+    // Check explicit custom field definitions
+    if (customFieldDefinitions.length > 0) {
+      const customDef = customFieldDefinitions.find(
+        (cf) =>
+          cf.id === source ||
+          cf.fieldKey === source ||
+          `custom.${cf.fieldKey}` === source ||
+          `fields.${cf.fieldKey}` === source ||
+          `custom.${cf.id}` === source,
+      );
+      if (customDef) {
+        return {
+          value: source,
+          label: customDef.label || source,
+          entityType: customDef.entityType,
+          type: customDef.type,
+          options: customDef.options,
+        };
+      }
     }
-    if (source.includes("is") || source.includes("has") || source.includes("flag")) {
-      return { value: source, label: source, category: "Custom", type: "boolean" };
-    }
-    return { value: source, label: source, category: "Custom", type: "string" };
+
+    // Canonical Fallback for unknown / custom field paths: TYPE IS STRING (NO regex/name heuristic guessing!)
+    return { value: source, label: source, entityType: targetEntityType, type: "string" };
   };
 
-  const renderValueInput = (cond: FlowCondition, index: number, meta: AllowlistedSource) => {
+  const renderValueInput = (cond: FlowCondition, index: number, meta: AllowlistedSourceField) => {
     if (NO_VALUE_OPERATORS.includes(cond.operator)) {
       return (
         <span className="text-[11px] text-slate-400 italic px-2 py-1 bg-slate-900/50 rounded border border-slate-800">
@@ -277,7 +382,7 @@ export const FlowConditionBuilder: React.FC<FlowConditionBuilderProps> = ({
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wider">
-          Conditions ({conditions.length})
+          Conditions ({conditions.length}) — Target: {targetEntityType}
         </h4>
         {!readOnly && (
           <button
@@ -319,7 +424,7 @@ export const FlowConditionBuilder: React.FC<FlowConditionBuilderProps> = ({
                   <option value="OR">OR</option>
                 </select>
 
-                {/* Source Picker */}
+                {/* Target-Entity Aware Source Picker */}
                 <select
                   disabled={readOnly}
                   value={cond.source}
@@ -332,43 +437,27 @@ export const FlowConditionBuilder: React.FC<FlowConditionBuilderProps> = ({
                   }}
                   className="w-full md:w-56 bg-slate-900 border border-slate-800 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
                 >
-                  <optgroup label="Lead">
-                    {ALLOWLISTED_SOURCES.filter((s) => s.category === "Lead").map((s) => (
+                  <optgroup label={`${targetEntityType} Standard Fields`}>
+                    {availableTargetFields.filter((s) => !s.isRelationship).map((s) => (
                       <option key={s.value} value={s.value}>{s.label}</option>
                     ))}
                   </optgroup>
-                  <optgroup label="Deal">
-                    {ALLOWLISTED_SOURCES.filter((s) => s.category === "Deal").map((s) => (
-                      <option key={s.value} value={s.value}>{s.label}</option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="Person">
-                    {ALLOWLISTED_SOURCES.filter((s) => s.category === "Person").map((s) => (
-                      <option key={s.value} value={s.value}>{s.label}</option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="Company">
-                    {ALLOWLISTED_SOURCES.filter((s) => s.category === "Company").map((s) => (
-                      <option key={s.value} value={s.value}>{s.label}</option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="Task">
-                    {ALLOWLISTED_SOURCES.filter((s) => s.category === "Task").map((s) => (
-                      <option key={s.value} value={s.value}>{s.label}</option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="Activity">
-                    {ALLOWLISTED_SOURCES.filter((s) => s.category === "Activity").map((s) => (
-                      <option key={s.value} value={s.value}>{s.label}</option>
-                    ))}
-                  </optgroup>
-                  <optgroup label="1-Hop Relationships">
-                    {ALLOWLISTED_SOURCES.filter((s) => s.category === "Relationship").map((s) => (
-                      <option key={s.value} value={s.value}>{s.label}</option>
-                    ))}
-                  </optgroup>
-                  {!ALLOWLISTED_SOURCES.some((s) => s.value === cond.source) && (
-                    <optgroup label="Custom Field Path">
+                  {availableTargetFields.some((s) => s.isRelationship) && (
+                    <optgroup label="Allowed 1-Hop Relationships">
+                      {availableTargetFields.filter((s) => s.isRelationship).map((s) => (
+                        <option key={s.value} value={s.value}>{s.label}</option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {availableCustomFields.length > 0 && (
+                    <optgroup label="Custom Fields">
+                      {availableCustomFields.map((cf) => (
+                        <option key={cf.id} value={cf.id}>{cf.label}</option>
+                      ))}
+                    </optgroup>
+                  )}
+                  {!availableTargetFields.some((s) => s.value === cond.source) && (
+                    <optgroup label="Existing / Custom Path">
                       <option value={cond.source}>{cond.source}</option>
                     </optgroup>
                   )}

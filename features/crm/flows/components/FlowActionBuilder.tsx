@@ -41,7 +41,7 @@ export const FlowActionBuilder: React.FC<FlowActionBuilderProps> = ({
       const firstMemberId = members[0]?.userId || members[0]?.user?._id || "";
       defaultConfig = { targetEntity: "Lead", ownerUserId: firstMemberId };
     } else if (type === "send_message") {
-      defaultConfig = { body: "Hello {{ entity.name }}, thank you for your interest." };
+      defaultConfig = { body: "Hello {{ entity.title }}, thank you for reaching out." };
     } else if (type === "wait") {
       defaultConfig = { delayMinutes: 5 };
     }
@@ -124,10 +124,10 @@ export const FlowActionBuilder: React.FC<FlowActionBuilderProps> = ({
       );
     }
 
-    // 2. Update Record Form (Restricted Targets)
+    // 2. Update Record Form (Restricted Targets: Lead.status & Deal.stageId ONLY!)
     if (step.type === "update_record") {
       const targetEntity = String(config.targetEntity ?? "Lead");
-      const field = String(config.field ?? "status");
+      const field = String(config.field ?? (targetEntity === "Deal" ? "stageId" : "status"));
 
       return (
         <div className="grid gap-2 md:grid-cols-3">
@@ -138,8 +138,8 @@ export const FlowActionBuilder: React.FC<FlowActionBuilderProps> = ({
               value={targetEntity}
               onChange={(e) => {
                 const newTarget = e.target.value;
-                const newField = newTarget === "Lead" ? "status" : newTarget === "Deal" ? "stage" : "customField";
-                const newVal = newTarget === "Lead" ? "QUALIFIED" : "DISCOVERY";
+                const newField = newTarget === "Lead" ? "status" : "stageId";
+                const newVal = newTarget === "Lead" ? "QUALIFIED" : "";
                 handleUpdateStepConfig(index, { targetEntity: newTarget, field: newField, value: newVal });
               }}
               className="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
@@ -154,7 +154,7 @@ export const FlowActionBuilder: React.FC<FlowActionBuilderProps> = ({
             {targetEntity === "Lead" ? (
               <select
                 disabled={readOnly}
-                value={field}
+                value="status"
                 onChange={(e) => handleUpdateStepConfig(index, { field: e.target.value })}
                 className="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
               >
@@ -163,11 +163,10 @@ export const FlowActionBuilder: React.FC<FlowActionBuilderProps> = ({
             ) : targetEntity === "Deal" ? (
               <select
                 disabled={readOnly}
-                value={field}
+                value="stageId"
                 onChange={(e) => handleUpdateStepConfig(index, { field: e.target.value })}
                 className="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
               >
-                <option value="stage">stage</option>
                 <option value="stageId">stageId</option>
               </select>
             ) : (
@@ -203,7 +202,7 @@ export const FlowActionBuilder: React.FC<FlowActionBuilderProps> = ({
                 disabled={readOnly}
                 value={String(config.value ?? "")}
                 onChange={(e) => handleUpdateStepConfig(index, { value: e.target.value })}
-                placeholder="Target value"
+                placeholder={targetEntity === "Deal" ? "Target Stage ID (ObjectId)" : "Target value"}
                 className="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
               />
             )}
@@ -259,7 +258,7 @@ export const FlowActionBuilder: React.FC<FlowActionBuilderProps> = ({
       );
     }
 
-    // 4. Assign Owner Form (P1-13)
+    // 4. Assign Owner Form (P1-13: Only Lead, Deal, Person, Company allowed!)
     if (step.type === "assign_owner") {
       const selectedOwnerId = String(config.ownerUserId ?? "");
       const targetEntity = String(config.targetEntity ?? "Lead");
@@ -278,7 +277,6 @@ export const FlowActionBuilder: React.FC<FlowActionBuilderProps> = ({
               <option value="Deal">Deal</option>
               <option value="Person">Person</option>
               <option value="Company">Company</option>
-              <option value="Task">Task</option>
             </select>
           </div>
 
@@ -317,7 +315,7 @@ export const FlowActionBuilder: React.FC<FlowActionBuilderProps> = ({
             disabled={readOnly}
             value={String(config.body ?? "")}
             onChange={(e) => handleUpdateStepConfig(index, { body: e.target.value })}
-            placeholder="Message template (supports {{ entity.name }} placeholders)"
+            placeholder="Message template (supports {{ entity.title }} placeholders)"
             className="w-full bg-slate-900 border border-slate-800 rounded px-2.5 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-emerald-500"
           />
         </div>
