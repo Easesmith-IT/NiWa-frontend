@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { archiveDeal, createDeal, fetchDealById, listDeals, updateDeal } from "./deal.api";
+import { archiveDeal, createDeal, fetchDealById, listDeals, unwrapData, updateDeal } from "./deal.api";
 import type { CreateDealPayload, DealRecord, UpdateDealPayload } from "./deal.types";
 import type { StageRecord } from "../pipelines/pipeline.types";
 import { resolveDealListColumns, resolveDealFieldValue } from "./deal.utils";
@@ -12,6 +12,18 @@ describe("Deals & Cross-Pipeline Movement Unit Suite", () => {
     expect(typeof createDeal).toBe("function");
     expect(typeof updateDeal).toBe("function");
     expect(typeof archiveDeal).toBe("function");
+    expect(typeof unwrapData).toBe("function");
+  });
+
+  it("1b. unwrapData extracts data from { success: true, data } envelope or raw payload", () => {
+    const rawArray = [{ _id: "d1", title: "Deal 1" }];
+    expect(unwrapData(rawArray)).toBe(rawArray);
+
+    const wrappedArray = { success: true, data: [{ _id: "d1", title: "Deal 1" }] };
+    expect(unwrapData(wrappedArray)).toEqual([{ _id: "d1", title: "Deal 1" }]);
+
+    const wrappedItem = { success: true, data: { _id: "d2", title: "Deal 2" } };
+    expect(unwrapData(wrappedItem)).toEqual({ _id: "d2", title: "Deal 2" });
   });
 
   it("2. CreateDealPayload enforces pipelineId and stageId", () => {

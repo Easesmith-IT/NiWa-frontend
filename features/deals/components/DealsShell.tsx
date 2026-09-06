@@ -75,7 +75,11 @@ export const DealsShell: React.FC = () => {
   );
 
   const executedRecords = executedViewResult?.data || [];
-  const safeStandardDeals = Array.isArray(standardDeals) ? standardDeals : [];
+  const safeStandardDeals = Array.isArray(standardDeals)
+    ? standardDeals
+    : Array.isArray((standardDeals as any)?.data)
+    ? (standardDeals as any).data
+    : [];
 
   const activeDealsList: DealRecord[] = activeSavedView
     ? executedRecords
@@ -89,7 +93,7 @@ export const DealsShell: React.FC = () => {
     ? (activeSavedView
         ? activeDealsList
         : activePipelineId
-        ? activeDealsList.filter((d) => d && d.pipelineId === activePipelineId)
+        ? activeDealsList.filter((d) => d && String(d.pipelineId) === String(activePipelineId))
         : activeDealsList)
     : [];
 
