@@ -309,6 +309,7 @@ export default function LocationsPage() {
           role="dialog"
           aria-modal="true"
           aria-labelledby="location-modal-title"
+          aria-describedby="location-modal-desc"
         >
           <div
             ref={locationDialogRef}
@@ -316,10 +317,17 @@ export default function LocationsPage() {
             className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-gray-100 space-y-4 focus:outline-none"
           >
             <div className="flex items-center justify-between pb-3 border-b border-gray-200">
-              <h3 id="location-modal-title" className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-indigo-600" />
-                {editingLocation ? "Edit Location" : "Add Location"}
-              </h3>
+              <div>
+                <h3 id="location-modal-title" className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-indigo-600" />
+                  {editingLocation ? "Edit Location" : "Add Location"}
+                </h3>
+                <p id="location-modal-desc" className="text-xs text-gray-500 mt-0.5">
+                  {editingLocation
+                    ? "Update existing workspace inventory location parameters."
+                    : "Add a new store, warehouse, or retail counter location."}
+                </p>
+              </div>
               <button
                 onClick={closeModal}
                 className="text-gray-400 hover:text-gray-600 rounded-lg p-1"

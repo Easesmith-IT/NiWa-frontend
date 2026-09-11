@@ -132,6 +132,11 @@ test.describe('Products & Inventory — Accessible Dialog Hardening', () => {
     await expect(dialog).toHaveAttribute('aria-modal', 'true');
     await expect(dialog).toHaveAccessibleName(/adjust stock/i);
 
+    // Verify aria-labelledby references existing title
+    const labelledBy = await dialog.getAttribute('aria-labelledby');
+    expect(labelledBy).toBeTruthy();
+    await expect(page.locator(`#${labelledBy}`)).toBeVisible();
+
     // Verify Accessible Close button
     const closeBtn = page.getByRole('button', { name: /close dialog/i });
     await expect(closeBtn).toBeVisible();
@@ -165,6 +170,15 @@ test.describe('Products & Inventory — Accessible Dialog Hardening', () => {
       await expect(dialog).toHaveAttribute('aria-modal', 'true');
       await expect(dialog).toHaveAccessibleName(/transfer stock/i);
 
+      // Verify aria-labelledby and aria-describedby
+      const labelledBy = await dialog.getAttribute('aria-labelledby');
+      expect(labelledBy).toBe('transfer-stock-title');
+      await expect(page.locator(`#${labelledBy}`)).toBeVisible();
+
+      const describedBy = await dialog.getAttribute('aria-describedby');
+      expect(describedBy).toBe('transfer-stock-desc');
+      await expect(page.locator(`#${describedBy}`)).toBeVisible();
+
       // Verify form controls
       await expect(page.getByLabel(/destination location/i)).toBeVisible();
       await expect(page.getByLabel(/quantity to transfer/i)).toBeVisible();
@@ -196,6 +210,15 @@ test.describe('Products & Inventory — Accessible Dialog Hardening', () => {
       await expect(dialog).toHaveAttribute('aria-modal', 'true');
       await expect(dialog).toHaveAccessibleName(/reorder settings/i);
 
+      // Verify aria-labelledby and aria-describedby
+      const labelledBy = await dialog.getAttribute('aria-labelledby');
+      expect(labelledBy).toBe('reorder-settings-title');
+      await expect(page.locator(`#${labelledBy}`)).toBeVisible();
+
+      const describedBy = await dialog.getAttribute('aria-describedby');
+      expect(describedBy).toBe('reorder-settings-desc');
+      await expect(page.locator(`#${describedBy}`)).toBeVisible();
+
       // Verify form controls and hint associations
       const reorderPointInput = page.getByLabel(/reorder point/i);
       await expect(reorderPointInput).toBeVisible();
@@ -203,7 +226,7 @@ test.describe('Products & Inventory — Accessible Dialog Hardening', () => {
 
       const reorderQtyInput = page.getByLabel(/reorder quantity/i);
       await expect(reorderQtyInput).toBeVisible();
-      await expect(reorderQtyInput).toHaveAttribute('aria-describedby', 'reorder-quantity-hint');
+      await expect(reorderQtyInput).toHaveAttribute('aria-describedby', 'reorder-qty-hint');
 
       // Close on Escape
       await page.keyboard.press('Escape');
@@ -231,6 +254,15 @@ test.describe('Products & Inventory — Accessible Dialog Hardening', () => {
       await expect(dialog).toBeVisible();
       await expect(dialog).toHaveAttribute('aria-modal', 'true');
       await expect(dialog).toHaveAccessibleName(/add stock/i);
+
+      // Verify aria-labelledby and aria-describedby
+      const labelledBy = await dialog.getAttribute('aria-labelledby');
+      expect(labelledBy).toBe('stock-action-modal-title');
+      await expect(page.locator(`#${labelledBy}`)).toBeVisible();
+
+      const describedBy = await dialog.getAttribute('aria-describedby');
+      expect(describedBy).toBe('stock-action-modal-desc');
+      await expect(page.locator(`#${describedBy}`)).toBeVisible();
 
       // Verify form controls
       await expect(page.getByLabel(/product variant/i)).toBeVisible();
@@ -262,6 +294,15 @@ test.describe('Products & Inventory — Accessible Dialog Hardening', () => {
       await expect(dialog).toBeVisible();
       await expect(dialog).toHaveAttribute('aria-modal', 'true');
       await expect(dialog).toHaveAccessibleName(/add location/i);
+
+      // Verify aria-labelledby and aria-describedby
+      const labelledBy = await dialog.getAttribute('aria-labelledby');
+      expect(labelledBy).toBe('location-modal-title');
+      await expect(page.locator(`#${labelledBy}`)).toBeVisible();
+
+      const describedBy = await dialog.getAttribute('aria-describedby');
+      expect(describedBy).toBe('location-modal-desc');
+      await expect(page.locator(`#${describedBy}`)).toBeVisible();
 
       // Verify form controls
       await expect(page.getByLabel(/location name/i)).toBeVisible();

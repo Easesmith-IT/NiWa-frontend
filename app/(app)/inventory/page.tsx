@@ -674,6 +674,7 @@ function InventoryStockContent() {
           role="dialog"
           aria-modal="true"
           aria-labelledby="adjust-stock-title"
+          aria-describedby={adjustTarget ? "adjust-stock-desc" : undefined}
         >
           <div
             ref={adjustDialogRef}
@@ -703,7 +704,7 @@ function InventoryStockContent() {
             <form onSubmit={handleAdjustSubmit} className="space-y-4">
               {/* Target Details */}
               {adjustTarget ? (
-                <div className="p-3 bg-gray-50 rounded-lg text-sm space-y-1">
+                <div id="adjust-stock-desc" className="p-3 bg-gray-50 rounded-lg text-sm space-y-1">
                   <div className="font-semibold text-gray-800">{adjustTarget.title}</div>
                   <div className="text-xs text-gray-500">
                     Current stock on hand:{" "}
@@ -905,6 +906,7 @@ function InventoryStockContent() {
           role="dialog"
           aria-modal="true"
           aria-labelledby="transfer-stock-title"
+          aria-describedby="transfer-stock-desc"
         >
           <div
             ref={transferDialogRef}
@@ -933,7 +935,7 @@ function InventoryStockContent() {
 
             <form onSubmit={handleTransferSubmit} className="space-y-4">
               {/* Target Item Details */}
-              <div className="p-3 bg-purple-50/50 border border-purple-100 rounded-lg text-sm space-y-1">
+              <div id="transfer-stock-desc" className="p-3 bg-purple-50/50 border border-purple-100 rounded-lg text-sm space-y-1">
                 <div className="font-semibold text-gray-900">
                   {transferTarget.productTitle} ({transferTarget.variantName})
                 </div>
@@ -1057,6 +1059,7 @@ function InventoryStockContent() {
           role="dialog"
           aria-modal="true"
           aria-labelledby="reorder-settings-title"
+          aria-describedby="reorder-settings-desc"
         >
           <div
             ref={reorderDialogRef}
@@ -1085,7 +1088,7 @@ function InventoryStockContent() {
             )}
 
             <form onSubmit={handleReorderSubmit} className="space-y-4">
-              <div className="p-3 bg-amber-50/50 border border-amber-100 rounded-lg text-sm space-y-1">
+              <div id="reorder-settings-desc" className="p-3 bg-amber-50/50 border border-amber-100 rounded-lg text-sm space-y-1">
                 <div className="font-semibold text-gray-900">
                   {reorderTarget.inventoryItemId?.productVariantId?.productId?.name || "Product"} (
                   {reorderTarget.inventoryItemId?.productVariantId?.name || "Standard"})

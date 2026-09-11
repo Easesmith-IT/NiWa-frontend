@@ -1159,6 +1159,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           role="dialog"
           aria-modal="true"
           aria-labelledby="stock-action-modal-title"
+          aria-describedby="stock-action-modal-desc"
         >
           <div
             ref={stockDialogRef}
@@ -1191,7 +1192,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                     </>
                   )}
                 </h3>
-                <p className="text-xs text-gray-400 mt-0.5">
+                <p id="stock-action-modal-desc" className="text-xs text-gray-400 mt-0.5">
                   {product?.name} • Context-preserving stock mutation
                 </p>
               </div>
