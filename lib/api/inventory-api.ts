@@ -233,13 +233,24 @@ export interface AdjustStockPayload {
   operationId?: string | null;
 }
 
+function generateOperationId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return `op_${crypto.randomUUID()}`;
+  }
+  return `op_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`;
+}
+
 export async function adjustStock(
   data: AdjustStockPayload
 ): Promise<{ success: boolean; data: { level: InventoryLevelItem; movement: StockMovementItem } }> {
+  const payload: AdjustStockPayload = {
+    ...data,
+    operationId: data.operationId || generateOperationId(),
+  };
   const res = await apiClient.post<{
     success: boolean;
     data: { level: InventoryLevelItem; movement: StockMovementItem };
-  }>("/api/inventory/adjust", data);
+  }>("/api/inventory/adjust", payload);
   return res.data;
 }
 
@@ -264,6 +275,10 @@ export async function transferStock(
     movement: StockMovementItem;
   };
 }> {
+  const payload: TransferStockPayload = {
+    ...data,
+    operationId: data.operationId || generateOperationId(),
+  };
   const res = await apiClient.post<{
     success: boolean;
     data: {
@@ -271,7 +286,7 @@ export async function transferStock(
       destinationLevel: InventoryLevelItem;
       movement: StockMovementItem;
     };
-  }>("/api/inventory/transfer", data);
+  }>("/api/inventory/transfer", payload);
   return res.data;
 }
 

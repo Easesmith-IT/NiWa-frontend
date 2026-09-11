@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Search, Filter, Package, Tag, Layers, Truck, Boxes } from "lucide-react";
 import { productsApi, ProductItem } from "lib/api/products-api";
+import { getInventoryLevels, InventoryLevelItem } from "lib/api/inventory-api";
 import { queryKeys } from "lib/api/query-keys";
 
 export default function ProductsPage() {
@@ -22,6 +23,39 @@ export default function ProductsPage() {
         limit: 20,
       }),
   });
+
+  // Fetch workspace inventory levels in 1 single batched request (no N+1 queries)
+  const { data: levelsData } = useQuery({
+    queryKey: queryKeys.inventoryLevels,
+    queryFn: () => getInventoryLevels({ limit: 100 }),
+  });
+  const allLevels: InventoryLevelItem[] = levelsData?.data || [];
+
+  const stockSummaryByProductId = useMemo(() => {
+    const map = new Map<
+      string,
+      { totalOnHand: number; totalAvailable: number; isLowStock: boolean; count: number }
+    >();
+    allLevels.forEach((lvl) => {
+      const prod = lvl.inventoryItemId?.productVariantId?.productId;
+      const pId = prod?._id;
+      if (!pId) return;
+      const current = map.get(pId) || {
+        totalOnHand: 0,
+        totalAvailable: 0,
+        isLowStock: false,
+        count: 0,
+      };
+      current.totalOnHand += lvl.onHand || 0;
+      current.totalAvailable += lvl.available ?? ((lvl.onHand || 0) - (lvl.reserved || 0));
+      if (lvl.isLowStock) {
+        current.isLowStock = true;
+      }
+      current.count += 1;
+      map.set(pId, current);
+    });
+    return map;
+  }, [allLevels]);
 
   const products: ProductItem[] = productsData?.data || [];
   const pagination = productsData?.pagination;
@@ -146,49 +180,69 @@ export default function ProductsPage() {
                   <th className="px-6 py-3 font-semibold">Business ID</th>
                   <th className="px-6 py-3 font-semibold">Status</th>
                   <th className="px-6 py-3 font-semibold">Selling Price</th>
+                  <th className="px-6 py-3 font-semibold">Stock Status</th>
                   <th className="px-6 py-3 font-semibold">Unit</th>
                   <th className="px-6 py-3 font-semibold">Category</th>
                   <th className="px-6 py-3 font-semibold text-right">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {products.map((product: ProductItem) => (
-                  <tr key={product._id} className="hover:bg-gray-50 transition">
-                    <td className="px-6 py-4 font-medium text-gray-900">
-                      <Link href={`/products/${product._id}`} className="hover:text-indigo-600">
-                        {product.name}
-                      </Link>
-                      {product.variantsCount > 1 && (
-                        <span className="ml-2 px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded">
-                          {product.variantsCount} variants
+                {products.map((product: ProductItem) => {
+                  const stock = stockSummaryByProductId.get(product._id);
+                  return (
+                    <tr key={product._id} className="hover:bg-gray-50 transition">
+                      <td className="px-6 py-4 font-medium text-gray-900">
+                        <Link href={`/products/${product._id}`} className="hover:text-indigo-600">
+                          {product.name}
+                        </Link>
+                        {product.variantsCount > 1 && (
+                          <span className="ml-2 px-2 py-0.5 text-xs bg-gray-100 text-gray-600 rounded">
+                            {product.variantsCount} variants
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-xs font-mono text-gray-500">
+                        {product.productId}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`inline-flex px-2.5 py-0.5 text-xs font-semibold rounded-full ${
+                            product.status === "ACTIVE"
+                              ? "bg-green-100 text-green-800"
+                              : product.status === "DRAFT"
+                              ? "bg-yellow-100 text-yellow-800"
+                              : "bg-gray-100 text-gray-800"
+                          }`}
+                        >
+                          {product.status}
                         </span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 text-xs font-mono text-gray-500">
-                      {product.productId}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`inline-flex px-2.5 py-0.5 text-xs font-semibold rounded-full ${
-                          product.status === "ACTIVE"
-                            ? "bg-green-100 text-green-800"
-                            : product.status === "DRAFT"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-gray-100 text-gray-800"
-                        }`}
-                      >
-                        {product.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 font-semibold text-gray-900">
-                      ₹{product.sellingPrice ? product.sellingPrice.toLocaleString() : "0"}
-                    </td>
-                    <td className="px-6 py-4 text-gray-500">
-                      {product.defaultUnitId?.name || product.defaultUnitId?.code || "pcs"}
-                    </td>
-                    <td className="px-6 py-4 text-gray-500">
-                      {product.categoryId?.name || "Uncategorized"}
-                    </td>
+                      </td>
+                      <td className="px-6 py-4 font-semibold text-gray-900">
+                        ₹{product.sellingPrice ? product.sellingPrice.toLocaleString() : "0"}
+                      </td>
+                      <td className="px-6 py-4">
+                        {!stock || stock.count === 0 ? (
+                          <span className="text-xs text-gray-400 font-medium">—</span>
+                        ) : stock.totalOnHand <= 0 ? (
+                          <span className="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-red-50 text-red-700 border border-red-200">
+                            Out of stock
+                          </span>
+                        ) : stock.isLowStock ? (
+                          <span className="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-amber-50 text-amber-700 border border-amber-200">
+                            Low stock ({stock.totalOnHand})
+                          </span>
+                        ) : (
+                          <span className="inline-flex items-center px-2 py-0.5 text-xs font-semibold rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
+                            In stock ({stock.totalOnHand})
+                          </span>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-gray-500">
+                        {product.defaultUnitId?.name || product.defaultUnitId?.code || "pcs"}
+                      </td>
+                      <td className="px-6 py-4 text-gray-500">
+                        {product.categoryId?.name || "Uncategorized"}
+                      </td>
                     <td className="px-6 py-4 text-right space-x-3 whitespace-nowrap">
                       <Link
                         href={`/inventory?q=${encodeURIComponent(product.name)}`}
@@ -206,7 +260,8 @@ export default function ProductsPage() {
                       </Link>
                     </td>
                   </tr>
-                ))}
+                );
+              })}
               </tbody>
             </table>
           </div>

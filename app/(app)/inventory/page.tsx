@@ -489,7 +489,17 @@ export default function InventoryStockPage() {
                     <tr key={level._id} className="hover:bg-gray-50 transition">
                       <td className="px-6 py-4">
                         <div className="font-medium text-gray-900">
-                          {product?.name || "Unknown Product"}
+                          {product?._id ? (
+                            <Link
+                              href={`/products/${product._id}`}
+                              className="hover:text-indigo-600 hover:underline transition"
+                              title="View product details & variants"
+                            >
+                              {product.name}
+                            </Link>
+                          ) : (
+                            product?.name || "Unknown Product"
+                          )}
                         </div>
                         <div className="text-xs text-gray-500">
                           {variant?.name || "Standard"} {product?.productId ? `• ${product.productId}` : ""}
