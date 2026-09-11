@@ -40,4 +40,10 @@ export const queryKeys = {
   brands: ["brands"] as const,
   units: ["units"] as const,
   suppliers: ["suppliers"] as const,
+  locations: ["locations"] as const,
+  location: (id: string) => ["locations", id] as const,
+  inventoryLevels: ["inventory-levels"] as const,
+  inventoryLevel: (id: string) => ["inventory-levels", id] as const,
+  inventoryItems: ["inventory-items"] as const,
+  stockMovements: ["stock-movements"] as const,
 };

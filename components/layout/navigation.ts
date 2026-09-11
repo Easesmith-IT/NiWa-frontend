@@ -22,6 +22,9 @@ import {
   Tag,
   Layers,
   Truck,
+  Boxes,
+  MapPin,
+  History,
 } from "lucide-react";
 
 export interface NavigationItem {
@@ -89,6 +92,33 @@ export const navigationGroups: NavigationGroup[] = [
         label: "Suppliers",
         description: "Supplier contacts and variant links.",
         moduleKey: "products",
+      },
+    ],
+  },
+  {
+    label: "Inventory",
+    moduleKey: "inventory",
+    items: [
+      {
+        href: "/inventory",
+        icon: Boxes,
+        label: "Stock",
+        description: "Stock levels, on-hand counts, and availability.",
+        moduleKey: "inventory",
+      },
+      {
+        href: "/inventory/locations",
+        icon: MapPin,
+        label: "Locations",
+        description: "Warehouses, stores, and stock locations.",
+        moduleKey: "inventory",
+      },
+      {
+        href: "/inventory/movements",
+        icon: History,
+        label: "Movements",
+        description: "Stock movement ledger and audit history.",
+        moduleKey: "inventory",
       },
     ],
   },
