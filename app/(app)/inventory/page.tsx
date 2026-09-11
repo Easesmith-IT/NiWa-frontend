@@ -29,6 +29,7 @@ import {
 } from "lib/api/inventory-api";
 import { productsApi, ProductItem } from "lib/api/products-api";
 import { queryKeys } from "lib/api/query-keys";
+import { useDialogA11y } from "lib/hooks/use-dialog-a11y";
 
 function InventoryStockContent() {
   const queryClient = useQueryClient();
@@ -372,19 +373,32 @@ function InventoryStockContent() {
     });
   };
 
-  // Global Escape key handler for accessible modal dismissal
+  // Modal dialog accessibility hooks (focus trapping, initial focus, focus restoration, escape handling)
+  const adjustDialogRef = useDialogA11y({
+    isOpen: isAdjustModalOpen,
+    onClose: closeAdjustModal,
+  });
+
+  const transferDialogRef = useDialogA11y({
+    isOpen: isTransferModalOpen,
+    onClose: closeTransferModal,
+  });
+
+  const reorderDialogRef = useDialogA11y({
+    isOpen: isReorderModalOpen,
+    onClose: closeReorderModal,
+  });
+
+  // Global Escape key handler for active dropdown row
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape") {
-        if (isAdjustModalOpen) closeAdjustModal();
-        if (isTransferModalOpen) closeTransferModal();
-        if (isReorderModalOpen) closeReorderModal();
-        if (activeDropdownRowId) setActiveDropdownRowId(null);
+      if (e.key === "Escape" && activeDropdownRowId) {
+        setActiveDropdownRowId(null);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isAdjustModalOpen, isTransferModalOpen, isReorderModalOpen, activeDropdownRowId]);
+  }, [activeDropdownRowId]);
 
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
@@ -661,7 +675,11 @@ function InventoryStockContent() {
           aria-modal="true"
           aria-labelledby="adjust-stock-title"
         >
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-gray-100 space-y-4">
+          <div
+            ref={adjustDialogRef}
+            tabIndex={-1}
+            className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-gray-100 space-y-4 focus:outline-none"
+          >
             <div className="flex items-center justify-between pb-3 border-b border-gray-200">
               <h3 id="adjust-stock-title" className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <ArrowUpDown className="w-5 h-5 text-indigo-600" />
@@ -677,7 +695,7 @@ function InventoryStockContent() {
             </div>
 
             {adjustError && (
-              <div role="alert" className="p-3 text-sm bg-red-50 text-red-700 rounded-lg border border-red-200">
+              <div role="alert" id="adjust-error-msg" className="p-3 text-sm bg-red-50 text-red-700 rounded-lg border border-red-200">
                 {adjustError}
               </div>
             )}
@@ -695,10 +713,11 @@ function InventoryStockContent() {
               ) : (
                 <>
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                    <label htmlFor="adjust-variant-id" className="block text-xs font-medium text-gray-700 mb-1">
                       Product Variant *
                     </label>
                     <select
+                      id="adjust-variant-id"
                       value={adjustVariantId}
                       onChange={(e) => setAdjustVariantId(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 bg-white"
@@ -717,10 +736,11 @@ function InventoryStockContent() {
                   </div>
 
                   <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
+                    <label htmlFor="adjust-location-id" className="block text-xs font-medium text-gray-700 mb-1">
                       Location *
                     </label>
                     <select
+                      id="adjust-location-id"
                       value={adjustLocationId}
                       onChange={(e) => setAdjustLocationId(e.target.value)}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 bg-white"
@@ -746,6 +766,7 @@ function InventoryStockContent() {
                   <button
                     type="button"
                     onClick={() => setAdjustType("ADD")}
+                    aria-pressed={adjustType === "ADD"}
                     className={`py-2 text-xs font-medium rounded-lg border transition ${
                       adjustType === "ADD"
                         ? "bg-indigo-50 text-indigo-700 border-indigo-300 ring-2 ring-indigo-500/20"
@@ -757,6 +778,7 @@ function InventoryStockContent() {
                   <button
                     type="button"
                     onClick={() => setAdjustType("REDUCE")}
+                    aria-pressed={adjustType === "REDUCE"}
                     className={`py-2 text-xs font-medium rounded-lg border transition ${
                       adjustType === "REDUCE"
                         ? "bg-indigo-50 text-indigo-700 border-indigo-300 ring-2 ring-indigo-500/20"
@@ -768,6 +790,7 @@ function InventoryStockContent() {
                   <button
                     type="button"
                     onClick={() => setAdjustType("SET")}
+                    aria-pressed={adjustType === "SET"}
                     className={`py-2 text-xs font-medium rounded-lg border transition ${
                       adjustType === "SET"
                         ? "bg-indigo-50 text-indigo-700 border-indigo-300 ring-2 ring-indigo-500/20"
@@ -779,6 +802,7 @@ function InventoryStockContent() {
                   <button
                     type="button"
                     onClick={() => setAdjustType("OPENING")}
+                    aria-pressed={adjustType === "OPENING"}
                     className={`py-2 text-xs font-medium rounded-lg border transition ${
                       adjustType === "OPENING"
                         ? "bg-indigo-50 text-indigo-700 border-indigo-300 ring-2 ring-indigo-500/20"
@@ -793,10 +817,11 @@ function InventoryStockContent() {
               {/* Reduction Category if in REDUCE mode */}
               {adjustType === "REDUCE" && (
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <label htmlFor="adjust-reduction-category" className="block text-xs font-medium text-gray-700 mb-1">
                     Reduction Reason Category *
                   </label>
                   <select
+                    id="adjust-reduction-category"
                     value={reductionCategory}
                     onChange={(e) => setReductionCategory(e.target.value as any)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-indigo-500"
@@ -811,7 +836,7 @@ function InventoryStockContent() {
 
               {/* Quantity Input */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label htmlFor="adjust-quantity" className="block text-xs font-medium text-gray-700 mb-1">
                   {adjustType === "SET"
                     ? "New Actual Count *"
                     : adjustType === "OPENING"
@@ -821,6 +846,7 @@ function InventoryStockContent() {
                     : "Quantity to Add *"}
                 </label>
                 <input
+                  id="adjust-quantity"
                   type="number"
                   min="0"
                   step="1"
@@ -829,6 +855,8 @@ function InventoryStockContent() {
                     setAdjustQty(e.target.value === "" ? "" : Number(e.target.value))
                   }
                   placeholder={adjustType === "SET" ? "e.g. 50" : "e.g. 10"}
+                  aria-invalid={!!adjustError}
+                  aria-describedby={adjustError ? "adjust-error-msg" : undefined}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500"
                   required
                 />
@@ -836,10 +864,11 @@ function InventoryStockContent() {
 
               {/* Reason Input */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label htmlFor="adjust-reason" className="block text-xs font-medium text-gray-700 mb-1">
                   Reason / Note
                 </label>
                 <input
+                  id="adjust-reason"
                   type="text"
                   value={adjustReason}
                   onChange={(e) => setAdjustReason(e.target.value)}
@@ -877,7 +906,11 @@ function InventoryStockContent() {
           aria-modal="true"
           aria-labelledby="transfer-stock-title"
         >
-          <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-gray-100 space-y-4">
+          <div
+            ref={transferDialogRef}
+            tabIndex={-1}
+            className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-gray-100 space-y-4 focus:outline-none"
+          >
             <div className="flex items-center justify-between pb-3 border-b border-gray-200">
               <h3 id="transfer-stock-title" className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <ArrowRightLeft className="w-5 h-5 text-purple-600" />
@@ -893,7 +926,7 @@ function InventoryStockContent() {
             </div>
 
             {transferError && (
-              <div role="alert" className="p-3 text-sm bg-red-50 text-red-700 rounded-lg border border-red-200">
+              <div role="alert" id="transfer-error-msg" className="p-3 text-sm bg-red-50 text-red-700 rounded-lg border border-red-200">
                 {transferError}
               </div>
             )}
@@ -920,10 +953,11 @@ function InventoryStockContent() {
 
               {/* Destination Location Selector */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label htmlFor="transfer-dest-location-id" className="block text-xs font-medium text-gray-700 mb-1">
                   Destination Location *
                 </label>
                 <select
+                  id="transfer-dest-location-id"
                   value={transferDestLocationId}
                   onChange={(e) => setTransferDestLocationId(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500 bg-white"
@@ -954,7 +988,7 @@ function InventoryStockContent() {
               {/* Transfer Quantity */}
               <div>
                 <div className="flex items-center justify-between mb-1">
-                  <label className="text-xs font-medium text-gray-700">
+                  <label htmlFor="transfer-quantity" className="text-xs font-medium text-gray-700">
                     Quantity to Transfer *
                   </label>
                   <span className="text-xs text-gray-500">
@@ -962,6 +996,7 @@ function InventoryStockContent() {
                   </span>
                 </div>
                 <input
+                  id="transfer-quantity"
                   type="number"
                   min="1"
                   max={transferTarget.availableStock}
@@ -971,6 +1006,8 @@ function InventoryStockContent() {
                     setTransferQty(e.target.value === "" ? "" : Number(e.target.value))
                   }
                   placeholder="e.g. 5"
+                  aria-invalid={!!transferError}
+                  aria-describedby={transferError ? "transfer-error-msg" : undefined}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-purple-500"
                   required
                 />
@@ -978,10 +1015,11 @@ function InventoryStockContent() {
 
               {/* Transfer Reason */}
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label htmlFor="transfer-reason" className="block text-xs font-medium text-gray-700 mb-1">
                   Transfer Reason / Note
                 </label>
                 <input
+                  id="transfer-reason"
                   type="text"
                   value={transferReason}
                   onChange={(e) => setTransferReason(e.target.value)}
@@ -1020,7 +1058,11 @@ function InventoryStockContent() {
           aria-modal="true"
           aria-labelledby="reorder-settings-title"
         >
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-gray-100 space-y-4">
+          <div
+            ref={reorderDialogRef}
+            tabIndex={-1}
+            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-gray-100 space-y-4 focus:outline-none"
+          >
             <div className="flex items-center justify-between pb-3 border-b border-gray-200">
               <h3 id="reorder-settings-title" className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <Settings className="w-5 h-5 text-amber-600" />
@@ -1037,7 +1079,7 @@ function InventoryStockContent() {
             </div>
 
             {reorderError && (
-              <div role="alert" className="p-3 text-sm bg-red-50 text-red-700 rounded-lg border border-red-200">
+              <div role="alert" id="reorder-error-msg" className="p-3 text-sm bg-red-50 text-red-700 rounded-lg border border-red-200">
                 {reorderError}
               </div>
             )}
@@ -1055,10 +1097,11 @@ function InventoryStockContent() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label htmlFor="reorder-point-input" className="block text-xs font-medium text-gray-700 mb-1">
                   Reorder Point (Threshold)
                 </label>
                 <input
+                  id="reorder-point-input"
                   type="number"
                   min="0"
                   step="1"
@@ -1067,18 +1110,20 @@ function InventoryStockContent() {
                     setReorderPointInput(e.target.value === "" ? "" : Number(e.target.value))
                   }
                   placeholder="e.g. 10 (triggers low stock alert)"
+                  aria-describedby="reorder-point-hint"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p id="reorder-point-hint" className="text-xs text-gray-500 mt-1">
                   When available stock drops to or below this quantity, it will be flagged as Low Stock.
                 </p>
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label htmlFor="reorder-qty-input" className="block text-xs font-medium text-gray-700 mb-1">
                   Reorder Quantity (Suggested)
                 </label>
                 <input
+                  id="reorder-qty-input"
                   type="number"
                   min="0"
                   step="1"
@@ -1087,9 +1132,10 @@ function InventoryStockContent() {
                     setReorderQtyInput(e.target.value === "" ? "" : Number(e.target.value))
                   }
                   placeholder="e.g. 50"
+                  aria-describedby="reorder-qty-hint"
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p id="reorder-qty-hint" className="text-xs text-gray-500 mt-1">
                   Suggested replenishment quantity when placing reorders.
                 </p>
               </div>

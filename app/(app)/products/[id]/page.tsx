@@ -30,6 +30,7 @@ import {
   LocationItem,
 } from "lib/api/inventory-api";
 import { queryKeys } from "lib/api/query-keys";
+import { useDialogA11y } from "lib/hooks/use-dialog-a11y";
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
@@ -302,11 +303,16 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     setPreferred(false);
   };
 
-  // Global Escape key handler for accessible modal dismissal
+  // Modal dialog accessibility hook (focus trapping, initial focus, focus restoration, escape handling)
+  const stockDialogRef = useDialogA11y({
+    isOpen: isStockModalOpen,
+    onClose: () => setIsStockModalOpen(false),
+  });
+
+  // Global Escape key handler for accessible collapsible forms dismissal
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
-        if (isStockModalOpen) setIsStockModalOpen(false);
         if (showAddVariant) setShowAddVariant(false);
         if (editingVariant) setEditingVariant(null);
         if (linkingVariantId) setLinkingVariantId(null);
@@ -314,7 +320,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isStockModalOpen, showAddVariant, editingVariant, linkingVariantId]);
+  }, [showAddVariant, editingVariant, linkingVariantId]);
 
   const startEdit = () => {
     if (product) {
@@ -846,6 +852,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                             type="button"
                             onClick={() => setLinkingVariantId(null)}
                             className="text-gray-400 hover:text-gray-600"
+                            aria-label="Close supplier linking form"
                           >
                             <X className="w-4 h-4" />
                           </button>
@@ -1153,7 +1160,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
           aria-modal="true"
           aria-labelledby="stock-action-modal-title"
         >
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200">
+          <div
+            ref={stockDialogRef}
+            tabIndex={-1}
+            className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-gray-100 animate-in zoom-in-95 duration-200 focus:outline-none"
+          >
             {/* Modal Header */}
             <div className="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
               <div>
@@ -1188,7 +1199,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 type="button"
                 onClick={() => setIsStockModalOpen(false)}
                 className="text-gray-400 hover:text-gray-600 p-1.5 rounded-lg hover:bg-gray-100 transition"
-                aria-label="Close modal"
+                aria-label="Close dialog"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -1203,7 +1214,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               className="p-6 space-y-4"
             >
               {stockModalError && (
-                <div role="alert" className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium">
+                <div role="alert" id="stock-modal-error-msg" className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium">
                   {stockModalError}
                 </div>
               )}
@@ -1217,10 +1228,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
               {/* Variant Selector */}
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label htmlFor="stock-modal-variant-id" className="block text-xs font-semibold text-gray-700 mb-1">
                   Product Variant <span className="text-red-500">*</span>
                 </label>
                 <select
+                  id="stock-modal-variant-id"
                   value={stockModalVariantId}
                   onChange={(e) => setStockModalVariantId(e.target.value)}
                   required
@@ -1240,11 +1252,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
               {/* Source / Main Location Selector */}
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label htmlFor="stock-modal-location-id" className="block text-xs font-semibold text-gray-700 mb-1">
                   {stockModalMode === "TRANSFER" ? "Source Location" : "Location"}{" "}
                   <span className="text-red-500">*</span>
                 </label>
                 <select
+                  id="stock-modal-location-id"
                   value={stockModalLocationId}
                   onChange={(e) => setStockModalLocationId(e.target.value)}
                   required
@@ -1261,10 +1274,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               {/* Destination Location (for Transfers) */}
               {stockModalMode === "TRANSFER" && (
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  <label htmlFor="stock-modal-dest-location-id" className="block text-xs font-semibold text-gray-700 mb-1">
                     Destination Location <span className="text-red-500">*</span>
                   </label>
                   <select
+                    id="stock-modal-dest-location-id"
                     value={stockModalDestLocationId}
                     onChange={(e) => setStockModalDestLocationId(e.target.value)}
                     required
@@ -1285,10 +1299,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               {/* Reduction Classification (for Reduce Mode) */}
               {stockModalMode === "REDUCE" && (
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1">
+                  <label htmlFor="stock-modal-reduction-category" className="block text-xs font-semibold text-gray-700 mb-1">
                     Reduction Reason / Classification <span className="text-red-500">*</span>
                   </label>
                   <select
+                    id="stock-modal-reduction-category"
                     value={stockModalReductionCategory}
                     onChange={(e) =>
                       setStockModalReductionCategory(
@@ -1307,16 +1322,19 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
               {/* Quantity */}
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label htmlFor="stock-modal-quantity" className="block text-xs font-semibold text-gray-700 mb-1">
                   Quantity <span className="text-red-500">*</span>
                 </label>
                 <input
+                  id="stock-modal-quantity"
                   type="number"
                   min="1"
                   step="any"
                   value={stockModalQuantity}
                   onChange={(e) => setStockModalQuantity(e.target.value)}
                   placeholder="e.g., 25"
+                  aria-invalid={!!stockModalError}
+                  aria-describedby={stockModalError ? "stock-modal-error-msg" : undefined}
                   required
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
@@ -1324,10 +1342,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
               {/* Notes / Reason */}
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">
+                <label htmlFor="stock-modal-reason" className="block text-xs font-semibold text-gray-700 mb-1">
                   Reference Note / Memo (Optional)
                 </label>
                 <input
+                  id="stock-modal-reason"
                   type="text"
                   value={stockModalReason}
                   onChange={(e) => setStockModalReason(e.target.value)}

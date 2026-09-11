@@ -22,6 +22,7 @@ import {
   LocationItem,
 } from "lib/api/inventory-api";
 import { queryKeys } from "lib/api/query-keys";
+import { useDialogA11y } from "lib/hooks/use-dialog-a11y";
 
 export default function LocationsPage() {
   const queryClient = useQueryClient();
@@ -36,16 +37,6 @@ export default function LocationsPage() {
   const [parentId, setParentId] = useState("");
   const [address, setAddress] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
-
-  useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === "Escape" && isModalOpen) {
-        closeModal();
-      }
-    };
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isModalOpen]);
 
   const { data: locationsData, isLoading } = useQuery({
     queryKey: queryKeys.locations,
@@ -123,6 +114,11 @@ export default function LocationsPage() {
     setEditingLocation(null);
     setErrorMsg("");
   };
+
+  const locationDialogRef = useDialogA11y({
+    isOpen: isModalOpen,
+    onClose: closeModal,
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -314,7 +310,11 @@ export default function LocationsPage() {
           aria-modal="true"
           aria-labelledby="location-modal-title"
         >
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-gray-100 space-y-4">
+          <div
+            ref={locationDialogRef}
+            tabIndex={-1}
+            className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-gray-100 space-y-4 focus:outline-none"
+          >
             <div className="flex items-center justify-between pb-3 border-b border-gray-200">
               <h3 id="location-modal-title" className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-indigo-600" />
@@ -330,21 +330,24 @@ export default function LocationsPage() {
             </div>
 
             {errorMsg && (
-              <div role="alert" className="p-3 text-sm bg-red-50 text-red-700 rounded-lg border border-red-200">
+              <div role="alert" id="location-error-msg" className="p-3 text-sm bg-red-50 text-red-700 rounded-lg border border-red-200">
                 {errorMsg}
               </div>
             )}
 
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label htmlFor="location-name-input" className="block text-xs font-medium text-gray-700 mb-1">
                   Location Name *
                 </label>
                 <input
+                  id="location-name-input"
                   type="text"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="e.g. Main Warehouse, Shop Counter"
+                  aria-invalid={!!errorMsg}
+                  aria-describedby={errorMsg ? "location-error-msg" : undefined}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500"
                   required
                 />
@@ -352,10 +355,11 @@ export default function LocationsPage() {
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <label htmlFor="location-code-input" className="block text-xs font-medium text-gray-700 mb-1">
                     Code (Optional)
                   </label>
                   <input
+                    id="location-code-input"
                     type="text"
                     value={code}
                     onChange={(e) => setCode(e.target.value)}
@@ -364,10 +368,11 @@ export default function LocationsPage() {
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                  <label htmlFor="location-type-input" className="block text-xs font-medium text-gray-700 mb-1">
                     Type
                   </label>
                   <select
+                    id="location-type-input"
                     value={type}
                     onChange={(e) => setType(e.target.value)}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 bg-white"
@@ -383,10 +388,11 @@ export default function LocationsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label htmlFor="location-parent-input" className="block text-xs font-medium text-gray-700 mb-1">
                   Parent Location (Optional Hierarchy)
                 </label>
                 <select
+                  id="location-parent-input"
                   value={parentId}
                   onChange={(e) => setParentId(e.target.value)}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 bg-white"
@@ -403,10 +409,11 @@ export default function LocationsPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-medium text-gray-700 mb-1">
+                <label htmlFor="location-address-input" className="block text-xs font-medium text-gray-700 mb-1">
                   Address / Physical Notes
                 </label>
                 <textarea
+                  id="location-address-input"
                   rows={2}
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
