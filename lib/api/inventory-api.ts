@@ -243,6 +243,38 @@ export async function adjustStock(
   return res.data;
 }
 
+export interface TransferStockPayload {
+  inventoryItemId: string;
+  sourceLocationId: string;
+  destinationLocationId: string;
+  quantity: number;
+  reason?: string | null;
+  referenceType?: string | null;
+  referenceId?: string | null;
+  operationId?: string | null;
+}
+
+export async function transferStock(
+  data: TransferStockPayload
+): Promise<{
+  success: boolean;
+  data: {
+    sourceLevel: InventoryLevelItem;
+    destinationLevel: InventoryLevelItem;
+    movement: StockMovementItem;
+  };
+}> {
+  const res = await apiClient.post<{
+    success: boolean;
+    data: {
+      sourceLevel: InventoryLevelItem;
+      destinationLevel: InventoryLevelItem;
+      movement: StockMovementItem;
+    };
+  }>("/api/inventory/transfer", data);
+  return res.data;
+}
+
 // ==========================================
 // 4. STOCK MOVEMENTS LEDGER API
 // ==========================================

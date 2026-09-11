@@ -10,6 +10,7 @@ import {
   ArrowUpRight,
   ArrowDownLeft,
   ArrowUpDown,
+  ArrowRightLeft,
   Filter,
 } from "lucide-react";
 import {
@@ -210,7 +211,18 @@ export default function StockMovementsPage() {
                         </div>
                       </td>
                       <td className="px-6 py-4 text-xs text-gray-700 font-medium">
-                        {location?.name || "—"}
+                        {mov.movementType === "TRANSFER" ? (
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-gray-600">
+                              From: <strong className="text-gray-900">{mov.sourceLocationId?.name || "—"}</strong>
+                            </span>
+                            <span className="text-indigo-600">
+                              To: <strong className="text-indigo-700">{mov.destinationLocationId?.name || "—"}</strong>
+                            </span>
+                          </div>
+                        ) : (
+                          location?.name || "—"
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <span
@@ -223,16 +235,29 @@ export default function StockMovementsPage() {
                       </td>
                       <td
                         className={`px-6 py-4 text-right font-semibold text-sm ${
-                          isPositive ? "text-emerald-600" : "text-rose-600"
+                          mov.movementType === "TRANSFER"
+                            ? "text-purple-700"
+                            : isPositive
+                            ? "text-emerald-600"
+                            : "text-rose-600"
                         }`}
                       >
-                        <span className="inline-flex items-center gap-0.5">
-                          {isPositive ? (
+                        <span className="inline-flex items-center gap-1 justify-end">
+                          {mov.movementType === "TRANSFER" ? (
+                            <ArrowRightLeft className="w-3.5 h-3.5 text-purple-600" />
+                          ) : isPositive ? (
                             <ArrowDownLeft className="w-3.5 h-3.5" />
                           ) : (
                             <ArrowUpRight className="w-3.5 h-3.5" />
                           )}
-                          {isPositive ? `+${mov.quantity}` : mov.quantity} {unit}
+                          <span>
+                            {mov.movementType === "TRANSFER"
+                              ? `${mov.quantity}`
+                              : isPositive
+                              ? `+${mov.quantity}`
+                              : mov.quantity}{" "}
+                            {unit}
+                          </span>
                         </span>
                       </td>
                       <td className="px-6 py-4 text-xs text-gray-600 max-w-xs truncate">
