@@ -27,11 +27,13 @@ export interface NavigationItem {
   shortLabel?: string;
   keywords?: string[];
   description: string;
+  moduleKey?: string;
 }
 
 export interface NavigationGroup {
   label: string;
   items: NavigationItem[];
+  moduleKey?: string;
 }
 
 export const navigationGroups: NavigationGroup[] = [
@@ -190,3 +192,34 @@ export const routeMeta = new Map(
     item,
   ]),
 );
+
+/**
+ * Filters navigation groups and items based on the active workspace's enabled modules.
+ * - Items/groups without moduleKey are core and always included.
+ * - Items/groups with moduleKey are included only if moduleKey is in enabledModuleKeys.
+ * - Groups with no remaining items are omitted.
+ */
+export function filterNavigationByModules(
+  groups: NavigationGroup[],
+  enabledModuleKeys: string[]
+): NavigationGroup[] {
+  const enabledSet = new Set(enabledModuleKeys.map((k) => k.toLowerCase()));
+
+  return groups
+    .filter((group) => {
+      if (group.moduleKey && !enabledSet.has(group.moduleKey.toLowerCase())) {
+        return false;
+      }
+      return true;
+    })
+    .map((group) => ({
+      ...group,
+      items: group.items.filter((item) => {
+        if (item.moduleKey && !enabledSet.has(item.moduleKey.toLowerCase())) {
+          return false;
+        }
+        return true;
+      }),
+    }))
+    .filter((group) => group.items.length > 0);
+}
