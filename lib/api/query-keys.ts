@@ -32,4 +32,10 @@ export const queryKeys = {
   stages: ["stages"] as const,
   deals: ["deals"] as const,
   views: ["views"] as const,
+  products: ["products"] as const,
+  product: (id: string) => ["products", id] as const,
+  categories: ["categories"] as const,
+  brands: ["brands"] as const,
+  units: ["units"] as const,
+  suppliers: ["suppliers"] as const,
 };

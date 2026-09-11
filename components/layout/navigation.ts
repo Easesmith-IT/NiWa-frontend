@@ -18,6 +18,10 @@ import {
   Megaphone,
   Briefcase,
   GitFork,
+  Package,
+  Tag,
+  Layers,
+  Truck,
 } from "lucide-react";
 
 export interface NavigationItem {
@@ -51,6 +55,40 @@ export const navigationGroups: NavigationGroup[] = [
         icon: Inbox,
         label: "Inbox",
         description: "Live conversations, context, and messaging actions.",
+      },
+    ],
+  },
+  {
+    label: "Products",
+    moduleKey: "products",
+    items: [
+      {
+        href: "/products",
+        icon: Package,
+        label: "Products",
+        description: "Product catalog, variants, and pricing.",
+        moduleKey: "products",
+      },
+      {
+        href: "/products/categories",
+        icon: Layers,
+        label: "Categories",
+        description: "Hierarchical product category tree.",
+        moduleKey: "products",
+      },
+      {
+        href: "/products/brands",
+        icon: Tag,
+        label: "Brands",
+        description: "Product brand registry.",
+        moduleKey: "products",
+      },
+      {
+        href: "/products/suppliers",
+        icon: Truck,
+        label: "Suppliers",
+        description: "Supplier contacts and variant links.",
+        moduleKey: "products",
       },
     ],
   },
