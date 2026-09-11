@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -29,13 +30,30 @@ import {
 import { productsApi, ProductItem } from "lib/api/products-api";
 import { queryKeys } from "lib/api/query-keys";
 
-export default function InventoryStockPage() {
+function InventoryStockContent() {
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
 
-  const [search, setSearch] = useState("");
-  const [selectedLocation, setSelectedLocation] = useState("");
-  const [lowStockOnly, setLowStockOnly] = useState(false);
+  const [search, setSearch] = useState(searchParams.get("q") || searchParams.get("search") || "");
+  const [selectedLocation, setSelectedLocation] = useState(searchParams.get("locationId") || "");
+  const [lowStockOnly, setLowStockOnly] = useState(searchParams.get("lowStock") === "true");
   const [page, setPage] = useState(1);
+
+  // Sync state if URL query params change dynamically
+  useEffect(() => {
+    const q = searchParams.get("q") || searchParams.get("search");
+    if (q !== null && q !== undefined) {
+      setSearch(q);
+    }
+    const loc = searchParams.get("locationId");
+    if (loc !== null && loc !== undefined) {
+      setSelectedLocation(loc);
+    }
+    const low = searchParams.get("lowStock");
+    if (low !== null && low !== undefined) {
+      setLowStockOnly(low === "true");
+    }
+  }, [searchParams]);
 
   // Row dropdown state
   const [activeDropdownRowId, setActiveDropdownRowId] = useState<string | null>(null);
@@ -354,6 +372,20 @@ export default function InventoryStockPage() {
     });
   };
 
+  // Global Escape key handler for accessible modal dismissal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (isAdjustModalOpen) closeAdjustModal();
+        if (isTransferModalOpen) closeTransferModal();
+        if (isReorderModalOpen) closeReorderModal();
+        if (activeDropdownRowId) setActiveDropdownRowId(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isAdjustModalOpen, isTransferModalOpen, isReorderModalOpen, activeDropdownRowId]);
+
   return (
     <div className="p-6 max-w-7xl mx-auto space-y-6">
       {/* Header */}
@@ -623,23 +655,29 @@ export default function InventoryStockPage() {
 
       {/* Adjust Stock Modal */}
       {isAdjustModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="adjust-stock-title"
+        >
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-gray-100 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <h3 id="adjust-stock-title" className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <ArrowUpDown className="w-5 h-5 text-indigo-600" />
                 Adjust Stock
               </h3>
               <button
                 onClick={closeAdjustModal}
                 className="text-gray-400 hover:text-gray-600 rounded-lg p-1"
+                aria-label="Close dialog"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {adjustError && (
-              <div className="p-3 text-sm bg-red-50 text-red-700 rounded-lg border border-red-200">
+              <div role="alert" className="p-3 text-sm bg-red-50 text-red-700 rounded-lg border border-red-200">
                 {adjustError}
               </div>
             )}
@@ -833,24 +871,29 @@ export default function InventoryStockPage() {
 
       {/* Transfer Stock Modal */}
       {isTransferModalOpen && transferTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="transfer-stock-title"
+        >
           <div className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-gray-100 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <h3 id="transfer-stock-title" className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <ArrowRightLeft className="w-5 h-5 text-purple-600" />
                 Transfer Stock Between Locations
               </h3>
               <button
                 onClick={closeTransferModal}
                 className="text-gray-400 hover:text-gray-600 rounded-lg p-1"
-                aria-label="Close transfer modal"
+                aria-label="Close dialog"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {transferError && (
-              <div className="p-3 text-sm bg-red-50 text-red-700 rounded-lg border border-red-200">
+              <div role="alert" className="p-3 text-sm bg-red-50 text-red-700 rounded-lg border border-red-200">
                 {transferError}
               </div>
             )}
@@ -971,10 +1014,15 @@ export default function InventoryStockPage() {
 
       {/* Reorder Settings Modal */}
       {isReorderModalOpen && reorderTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="reorder-settings-title"
+        >
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-gray-100 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <h3 id="reorder-settings-title" className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <Settings className="w-5 h-5 text-amber-600" />
                 Reorder Settings
               </h3>
@@ -982,14 +1030,14 @@ export default function InventoryStockPage() {
                 type="button"
                 onClick={closeReorderModal}
                 className="text-gray-400 hover:text-gray-600 rounded-lg p-1"
-                aria-label="Close reorder modal"
+                aria-label="Close dialog"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {reorderError && (
-              <div className="p-3 text-sm bg-red-50 text-red-700 rounded-lg border border-red-200">
+              <div role="alert" className="p-3 text-sm bg-red-50 text-red-700 rounded-lg border border-red-200">
                 {reorderError}
               </div>
             )}
@@ -1069,3 +1117,18 @@ export default function InventoryStockPage() {
     </div>
   );
 }
+
+export default function InventoryStockPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 text-center text-sm text-gray-400">
+          Loading inventory console...
+        </div>
+      }
+    >
+      <InventoryStockContent />
+    </Suspense>
+  );
+}
+

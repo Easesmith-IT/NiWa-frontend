@@ -12,6 +12,10 @@ const routes = [
   { path: '/deals', name: 'deals' },
   { path: '/contacts', name: 'contacts' },
   { path: '/inbox', name: 'inbox' },
+  { path: '/products', name: 'products' },
+  { path: '/products/new', name: 'products-new' },
+  { path: '/inventory', name: 'inventory' },
+  { path: '/inventory/movements', name: 'inventory-movements' },
 ];
 
 for (const vp of viewports) {

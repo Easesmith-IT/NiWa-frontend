@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -36,6 +36,16 @@ export default function LocationsPage() {
   const [parentId, setParentId] = useState("");
   const [address, setAddress] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && isModalOpen) {
+        closeModal();
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isModalOpen]);
 
   const { data: locationsData, isLoading } = useQuery({
     queryKey: queryKeys.locations,
@@ -298,23 +308,29 @@ export default function LocationsPage() {
 
       {/* Create / Edit Modal */}
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="location-modal-title"
+        >
           <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-gray-100 space-y-4">
             <div className="flex items-center justify-between pb-3 border-b border-gray-200">
-              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+              <h3 id="location-modal-title" className="text-lg font-semibold text-gray-900 flex items-center gap-2">
                 <MapPin className="w-5 h-5 text-indigo-600" />
                 {editingLocation ? "Edit Location" : "Add Location"}
               </h3>
               <button
                 onClick={closeModal}
                 className="text-gray-400 hover:text-gray-600 rounded-lg p-1"
+                aria-label="Close dialog"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {errorMsg && (
-              <div className="p-3 text-sm bg-red-50 text-red-700 rounded-lg border border-red-200">
+              <div role="alert" className="p-3 text-sm bg-red-50 text-red-700 rounded-lg border border-red-200">
                 {errorMsg}
               </div>
             )}

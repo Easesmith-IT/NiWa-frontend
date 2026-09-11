@@ -302,6 +302,20 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     setPreferred(false);
   };
 
+  // Global Escape key handler for accessible modal dismissal
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (isStockModalOpen) setIsStockModalOpen(false);
+        if (showAddVariant) setShowAddVariant(false);
+        if (editingVariant) setEditingVariant(null);
+        if (linkingVariantId) setLinkingVariantId(null);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isStockModalOpen, showAddVariant, editingVariant, linkingVariantId]);
+
   const startEdit = () => {
     if (product) {
       setName(product.name);
@@ -1189,13 +1203,13 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               className="p-6 space-y-4"
             >
               {stockModalError && (
-                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium">
+                <div role="alert" className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-700 font-medium">
                   {stockModalError}
                 </div>
               )}
 
               {stockModalSuccess && (
-                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-700 font-medium flex items-center gap-1.5">
+                <div role="status" className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-700 font-medium flex items-center gap-1.5">
                   <CheckCircle className="w-4 h-4" />
                   {stockModalSuccess}
                 </div>

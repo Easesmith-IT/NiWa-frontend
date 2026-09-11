@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import {
@@ -21,10 +22,22 @@ import {
 } from "lib/api/inventory-api";
 import { queryKeys } from "lib/api/query-keys";
 
-export default function StockMovementsPage() {
-  const [selectedLocation, setSelectedLocation] = useState("");
-  const [selectedType, setSelectedType] = useState("");
+function StockMovementsContent() {
+  const searchParams = useSearchParams();
+  const [selectedLocation, setSelectedLocation] = useState(searchParams.get("locationId") || "");
+  const [selectedType, setSelectedType] = useState(searchParams.get("movementType") || "");
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const loc = searchParams.get("locationId");
+    if (loc !== null && loc !== undefined) {
+      setSelectedLocation(loc);
+    }
+    const mType = searchParams.get("movementType");
+    if (mType !== null && mType !== undefined) {
+      setSelectedType(mType);
+    }
+  }, [searchParams]);
 
   const { data: movementsData, isLoading } = useQuery({
     queryKey: [
@@ -302,3 +315,18 @@ export default function StockMovementsPage() {
     </div>
   );
 }
+
+export default function StockMovementsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 text-center text-sm text-gray-400">
+          Loading stock movements...
+        </div>
+      }
+    >
+      <StockMovementsContent />
+    </Suspense>
+  );
+}
+

@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useEffect, useMemo, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { Plus, Search, Filter, Package, Tag, Layers, Truck, Boxes } from "lucide-react";
@@ -8,10 +9,22 @@ import { productsApi, ProductItem } from "lib/api/products-api";
 import { getInventoryLevels, InventoryLevelItem } from "lib/api/inventory-api";
 import { queryKeys } from "lib/api/query-keys";
 
-export default function ProductsPage() {
-  const [search, setSearch] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+function ProductsContent() {
+  const searchParams = useSearchParams();
+  const [search, setSearch] = useState(searchParams.get("q") || searchParams.get("search") || "");
+  const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "");
   const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const q = searchParams.get("q") || searchParams.get("search");
+    if (q !== null && q !== undefined) {
+      setSearch(q);
+    }
+    const st = searchParams.get("status");
+    if (st !== null && st !== undefined) {
+      setStatusFilter(st);
+    }
+  }, [searchParams]);
 
   const { data: productsData, isLoading, error } = useQuery({
     queryKey: [...queryKeys.products, { search, status: statusFilter, page }],
@@ -295,3 +308,18 @@ export default function ProductsPage() {
     </div>
   );
 }
+
+export default function ProductsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="p-6 text-center text-sm text-gray-400">
+          Loading product catalog...
+        </div>
+      }
+    >
+      <ProductsContent />
+    </Suspense>
+  );
+}
+
