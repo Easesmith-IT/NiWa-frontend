@@ -15,12 +15,14 @@ import {
   XCircle,
   X,
   ArrowRightLeft,
+  Settings,
 } from "lucide-react";
 import {
   getInventoryLevels,
   getLocations,
   adjustStock,
   transferStock,
+  updateReorderSettings,
   InventoryLevelItem,
   LocationItem,
 } from "lib/api/inventory-api";
@@ -35,8 +37,12 @@ export default function InventoryStockPage() {
   const [lowStockOnly, setLowStockOnly] = useState(false);
   const [page, setPage] = useState(1);
 
-  // Modal state
+  // Row dropdown state
+  const [activeDropdownRowId, setActiveDropdownRowId] = useState<string | null>(null);
+
+  // Modal state for Adjust Stock
   const [isAdjustModalOpen, setIsAdjustModalOpen] = useState(false);
+  const [adjustOpId, setAdjustOpId] = useState("");
   const [adjustTarget, setAdjustTarget] = useState<{
     productId?: string;
     variantId?: string;
@@ -45,7 +51,8 @@ export default function InventoryStockPage() {
     title?: string;
   } | null>(null);
 
-  const [adjustType, setAdjustType] = useState<"ADD" | "REDUCE" | "SET">("ADD");
+  const [adjustType, setAdjustType] = useState<"ADD" | "REDUCE" | "SET" | "OPENING">("ADD");
+  const [reductionCategory, setReductionCategory] = useState<"SALE" | "DAMAGE" | "WASTAGE" | "ADJUSTMENT">("SALE");
   const [adjustQty, setAdjustQty] = useState<number | "">("");
   const [adjustReason, setAdjustReason] = useState("");
   const [adjustLocationId, setAdjustLocationId] = useState("");
@@ -54,6 +61,7 @@ export default function InventoryStockPage() {
 
   // Transfer Modal state
   const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
+  const [transferOpId, setTransferOpId] = useState("");
   const [transferTarget, setTransferTarget] = useState<{
     inventoryItemId: string;
     productTitle: string;
@@ -68,6 +76,13 @@ export default function InventoryStockPage() {
   const [transferQty, setTransferQty] = useState<number | "">("");
   const [transferReason, setTransferReason] = useState("");
   const [transferError, setTransferError] = useState("");
+
+  // Reorder Settings Modal state
+  const [isReorderModalOpen, setIsReorderModalOpen] = useState(false);
+  const [reorderTarget, setReorderTarget] = useState<InventoryLevelItem | null>(null);
+  const [reorderPointInput, setReorderPointInput] = useState<number | "">("");
+  const [reorderQtyInput, setReorderQtyInput] = useState<number | "">("");
+  const [reorderError, setReorderError] = useState("");
 
   // Queries
   const { data: levelsData, isLoading: isLevelsLoading } = useQuery({
@@ -147,6 +162,8 @@ export default function InventoryStockPage() {
     setTransferQty("");
     setTransferReason("");
     setTransferDestLocationId("");
+    const opId = "op_" + (typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString());
+    setTransferOpId(opId);
 
     const available = level.available ?? (level.onHand - level.reserved);
     const itm = level.inventoryItemId;
@@ -174,6 +191,7 @@ export default function InventoryStockPage() {
     setTransferQty("");
     setTransferReason("");
     setTransferDestLocationId("");
+    setTransferOpId("");
   };
 
   const handleTransferSubmit = (e: React.FormEvent) => {
@@ -210,13 +228,21 @@ export default function InventoryStockPage() {
       destinationLocationId: transferDestLocationId,
       quantity: Number(transferQty),
       reason: transferReason.trim() || undefined,
+      operationId: transferOpId || undefined,
     });
   };
 
-  const openAdjustModal = (level?: InventoryLevelItem) => {
+  const openAdjustModal = (
+    level?: InventoryLevelItem,
+    initialType: "ADD" | "REDUCE" | "SET" | "OPENING" = "ADD"
+  ) => {
     setAdjustError("");
     setAdjustQty("");
     setAdjustReason("");
+    const opId = "op_" + (typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : Date.now().toString());
+    setAdjustOpId(opId);
+    setAdjustType(initialType);
+    setReductionCategory("SALE");
 
     if (level) {
       setAdjustTarget({
@@ -227,12 +253,10 @@ export default function InventoryStockPage() {
       });
       setAdjustLocationId(level.locationId?._id);
       setAdjustVariantId(level.inventoryItemId?.productVariantId?._id);
-      setAdjustType("ADD");
     } else {
       setAdjustTarget(null);
       setAdjustLocationId(locations[0]?._id || "");
       setAdjustVariantId(products[0]?.defaultVariant?._id || "");
-      setAdjustType("ADD");
     }
 
     setIsAdjustModalOpen(true);
@@ -244,6 +268,7 @@ export default function InventoryStockPage() {
     setAdjustError("");
     setAdjustQty("");
     setAdjustReason("");
+    setAdjustOpId("");
   };
 
   const handleAdjustSubmit = (e: React.FormEvent) => {
@@ -269,20 +294,64 @@ export default function InventoryStockPage() {
       locationId: adjustLocationId,
       inventoryItemId: adjustVariantId,
       reason: adjustReason.trim() || undefined,
+      operationId: adjustOpId || undefined,
     };
 
     if (adjustType === "ADD") {
       payload.type = "RECEIPT";
       payload.quantity = qty;
     } else if (adjustType === "REDUCE") {
-      payload.type = "SALE";
-      payload.quantity = -qty;
+      payload.type = reductionCategory;
+      payload.quantity = qty;
     } else if (adjustType === "SET") {
       payload.type = "ADJUSTMENT";
       payload.newQuantity = qty;
+    } else if (adjustType === "OPENING") {
+      payload.type = "OPENING";
+      payload.quantity = qty;
     }
 
     adjustMutation.mutate(payload);
+  };
+
+  // Reorder Settings Modal handlers
+  const openReorderModal = (level: InventoryLevelItem) => {
+    setReorderTarget(level);
+    setReorderPointInput(level.reorderPoint ?? 0);
+    setReorderQtyInput(level.reorderQuantity ?? 0);
+    setReorderError("");
+    setIsReorderModalOpen(true);
+  };
+
+  const closeReorderModal = () => {
+    setIsReorderModalOpen(false);
+    setReorderTarget(null);
+    setReorderError("");
+  };
+
+  const reorderMutation = useMutation({
+    mutationFn: ({ id, data }: { id: string; data: { reorderPoint?: number; reorderQuantity?: number } }) =>
+      updateReorderSettings(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventoryLevels });
+      closeReorderModal();
+    },
+    onError: (err: any) => {
+      setReorderError(err.response?.data?.message || err.message || "Failed to update reorder settings");
+    },
+  });
+
+  const handleReorderSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reorderTarget) return;
+
+    reorderMutation.mutate({
+      id: reorderTarget._id,
+      data: {
+        reorderPoint: reorderPointInput === "" ? 0 : Number(reorderPointInput),
+        reorderQuantity: reorderQtyInput === "" ? 0 : Number(reorderQtyInput),
+      },
+    });
   };
 
   return (
@@ -463,21 +532,75 @@ export default function InventoryStockPage() {
                           </span>
                         )}
                       </td>
-                      <td className="px-6 py-4 text-right space-x-2 whitespace-nowrap">
+                      <td className="px-6 py-4 text-right space-x-1.5 whitespace-nowrap">
+                        {/* Quick + Add */}
                         <button
-                          onClick={() => openTransferModal(level)}
-                          className="text-xs font-medium text-purple-700 hover:text-purple-900 bg-purple-50 hover:bg-purple-100 px-3 py-1.5 rounded-lg transition inline-flex items-center gap-1.5"
-                          title="Transfer stock to another location"
+                          onClick={() => openAdjustModal(level, "ADD")}
+                          className="px-2.5 py-1 text-xs font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded-lg transition border border-emerald-200"
+                          title="Quick Add Stock (Receipt)"
+                          aria-label={`Add stock for ${product?.name || "product"}`}
                         >
-                          <ArrowRightLeft className="w-3.5 h-3.5" />
-                          Transfer
+                          +
                         </button>
+                        {/* Quick − Reduce */}
                         <button
-                          onClick={() => openAdjustModal(level)}
-                          className="text-xs font-medium text-indigo-600 hover:text-indigo-800 bg-indigo-50 hover:bg-indigo-100 px-3 py-1.5 rounded-lg transition"
+                          onClick={() => openAdjustModal(level, "REDUCE")}
+                          className="px-2.5 py-1 text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 rounded-lg transition border border-rose-200"
+                          title="Quick Reduce Stock (Sale / Damage / Wastage)"
+                          aria-label={`Reduce stock for ${product?.name || "product"}`}
                         >
-                          Adjust
+                          −
                         </button>
+                        {/* More Actions Dropdown */}
+                        <div className="relative inline-block text-left">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setActiveDropdownRowId(
+                                activeDropdownRowId === level._id ? null : level._id
+                              )
+                            }
+                            className="px-2.5 py-1 text-xs font-medium text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-lg transition border border-gray-200 inline-flex items-center gap-1"
+                            aria-haspopup="true"
+                            aria-expanded={activeDropdownRowId === level._id}
+                          >
+                            More ▾
+                          </button>
+                          {activeDropdownRowId === level._id && (
+                            <div className="absolute right-0 mt-1 w-44 bg-white rounded-xl shadow-lg border border-gray-200 py-1.5 z-30 text-left">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveDropdownRowId(null);
+                                  openAdjustModal(level, "SET");
+                                }}
+                                className="w-full px-3 py-1.5 text-xs text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 flex items-center gap-2 transition"
+                              >
+                                <span>✎</span> Physical Count
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveDropdownRowId(null);
+                                  openTransferModal(level);
+                                }}
+                                className="w-full px-3 py-1.5 text-xs text-gray-700 hover:bg-purple-50 hover:text-purple-600 flex items-center gap-2 transition"
+                              >
+                                <span>⇄</span> Transfer Stock
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveDropdownRowId(null);
+                                  openReorderModal(level);
+                                }}
+                                className="w-full px-3 py-1.5 text-xs text-gray-700 hover:bg-amber-50 hover:text-amber-600 flex items-center gap-2 transition"
+                              >
+                                <span>⚙</span> Reorder Settings
+                              </button>
+                            </div>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -571,7 +694,7 @@ export default function InventoryStockPage() {
                 <label className="block text-xs font-medium text-gray-700 mb-1">
                   Operation *
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-4 gap-2">
                   <button
                     type="button"
                     onClick={() => setAdjustType("ADD")}
@@ -581,7 +704,7 @@ export default function InventoryStockPage() {
                         : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
                     }`}
                   >
-                    + Add Stock
+                    + Add
                   </button>
                   <button
                     type="button"
@@ -592,7 +715,7 @@ export default function InventoryStockPage() {
                         : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
                     }`}
                   >
-                    - Reduce Stock
+                    − Reduce
                   </button>
                   <button
                     type="button"
@@ -603,15 +726,51 @@ export default function InventoryStockPage() {
                         : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
                     }`}
                   >
-                    = Set Quantity
+                    ✎ Count
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAdjustType("OPENING")}
+                    className={`py-2 text-xs font-medium rounded-lg border transition ${
+                      adjustType === "OPENING"
+                        ? "bg-indigo-50 text-indigo-700 border-indigo-300 ring-2 ring-indigo-500/20"
+                        : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                    }`}
+                  >
+                    ★ Opening
                   </button>
                 </div>
               </div>
 
+              {/* Reduction Category if in REDUCE mode */}
+              {adjustType === "REDUCE" && (
+                <div>
+                  <label className="block text-xs font-medium text-gray-700 mb-1">
+                    Reduction Reason Category *
+                  </label>
+                  <select
+                    value={reductionCategory}
+                    onChange={(e) => setReductionCategory(e.target.value as any)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value="SALE">Offline / Manual Sale (SALE)</option>
+                    <option value="DAMAGE">Damaged Goods (DAMAGE)</option>
+                    <option value="WASTAGE">Wastage / Spoilage (WASTAGE)</option>
+                    <option value="ADJUSTMENT">General Reduction (ADJUSTMENT)</option>
+                  </select>
+                </div>
+              )}
+
               {/* Quantity Input */}
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">
-                  {adjustType === "SET" ? "New Actual Quantity *" : "Quantity Delta *"}
+                  {adjustType === "SET"
+                    ? "New Actual Count *"
+                    : adjustType === "OPENING"
+                    ? "Initial Opening Stock Quantity *"
+                    : adjustType === "REDUCE"
+                    ? "Quantity to Deduct *"
+                    : "Quantity to Add *"}
                 </label>
                 <input
                   type="number"
@@ -793,6 +952,104 @@ export default function InventoryStockPage() {
                 >
                   <ArrowRightLeft className="w-4 h-4" />
                   {transferMutation.isPending ? "Transferring..." : "Execute Transfer"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Reorder Settings Modal */}
+      {isReorderModalOpen && reorderTarget && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-xl border border-gray-100 space-y-4">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-200">
+              <h3 className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                <Settings className="w-5 h-5 text-amber-600" />
+                Reorder Settings
+              </h3>
+              <button
+                type="button"
+                onClick={closeReorderModal}
+                className="text-gray-400 hover:text-gray-600 rounded-lg p-1"
+                aria-label="Close reorder modal"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {reorderError && (
+              <div className="p-3 text-sm bg-red-50 text-red-700 rounded-lg border border-red-200">
+                {reorderError}
+              </div>
+            )}
+
+            <form onSubmit={handleReorderSubmit} className="space-y-4">
+              <div className="p-3 bg-amber-50/50 border border-amber-100 rounded-lg text-sm space-y-1">
+                <div className="font-semibold text-gray-900">
+                  {reorderTarget.inventoryItemId?.productVariantId?.productId?.name || "Product"} (
+                  {reorderTarget.inventoryItemId?.productVariantId?.name || "Standard"})
+                </div>
+                <div className="text-xs text-gray-600">
+                  Location: <strong className="text-gray-900">{reorderTarget.locationId?.name}</strong> • Current on hand:{" "}
+                  <strong className="text-gray-900">{reorderTarget.onHand}</strong>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Reorder Point (Threshold)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={reorderPointInput}
+                  onChange={(e) =>
+                    setReorderPointInput(e.target.value === "" ? "" : Number(e.target.value))
+                  }
+                  placeholder="e.g. 10 (triggers low stock alert)"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  When available stock drops to or below this quantity, it will be flagged as Low Stock.
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">
+                  Reorder Quantity (Suggested)
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  step="1"
+                  value={reorderQtyInput}
+                  onChange={(e) =>
+                    setReorderQtyInput(e.target.value === "" ? "" : Number(e.target.value))
+                  }
+                  placeholder="e.g. 50"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-amber-500"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Suggested replenishment quantity when placing reorders.
+                </p>
+              </div>
+
+              <div className="flex items-center justify-end gap-3 pt-4 border-t border-gray-200">
+                <button
+                  type="button"
+                  onClick={closeReorderModal}
+                  className="px-4 py-2 border border-gray-300 text-gray-700 font-medium text-sm rounded-lg hover:bg-gray-50 transition"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={reorderMutation.isPending}
+                  className="px-4 py-2 bg-amber-600 text-white font-medium text-sm rounded-lg hover:bg-amber-700 transition disabled:opacity-50"
+                >
+                  {reorderMutation.isPending ? "Saving..." : "Save Settings"}
                 </button>
               </div>
             </form>

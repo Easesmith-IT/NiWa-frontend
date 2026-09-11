@@ -4,8 +4,9 @@ import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Edit3, Save, Trash2, Plus, Star, Truck, CheckCircle, X } from "lucide-react";
+import { ArrowLeft, Edit3, Save, Trash2, Plus, Star, Truck, CheckCircle, X, Boxes } from "lucide-react";
 import { productsApi, SupplierItem, UnitItem } from "lib/api/products-api";
+import { getInventoryLevels, InventoryLevelItem } from "lib/api/inventory-api";
 import { queryKeys } from "lib/api/query-keys";
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -54,9 +55,15 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     queryFn: () => productsApi.getSuppliers(),
   });
 
+  const { data: inventoryData, isLoading: isInventoryLoading } = useQuery({
+    queryKey: [...queryKeys.inventoryLevels, { productId }],
+    queryFn: () => getInventoryLevels({ productId }),
+  });
+
   const product = productData?.data;
   const units: UnitItem[] = unitsData?.data || [];
   const suppliers: SupplierItem[] = suppliersData?.data || [];
+  const inventoryLevels: InventoryLevelItem[] = inventoryData?.data || [];
 
   // Product Mutations
   const updateMutation = useMutation({
@@ -774,6 +781,71 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
           {/* Custom Fields & Summary Sidebar */}
           <div className="space-y-6">
+            {/* Lightweight Stock & Availability Card */}
+            <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-3">
+              <div className="flex items-center justify-between pb-2 border-b border-gray-100">
+                <h3 className="text-sm font-semibold text-gray-900 flex items-center gap-1.5">
+                  <Boxes className="w-4 h-4 text-indigo-600" />
+                  Stock & Availability
+                </h3>
+                <Link
+                  href="/inventory"
+                  className="text-xs text-indigo-600 hover:text-indigo-800 font-medium"
+                >
+                  Manage →
+                </Link>
+              </div>
+
+              {isInventoryLoading ? (
+                <p className="text-xs text-gray-400 py-2">Loading stock levels...</p>
+              ) : inventoryLevels.length === 0 ? (
+                <div className="py-2 text-xs text-gray-500">
+                  <p>No stock recorded at any location.</p>
+                  <Link
+                    href="/inventory"
+                    className="inline-block mt-2 text-xs text-indigo-600 font-medium hover:underline"
+                  >
+                    + Record Opening Stock
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-2 pt-1">
+                  {inventoryLevels.map((lvl) => (
+                    <div
+                      key={lvl._id}
+                      className="flex items-center justify-between text-xs py-1.5 border-b border-gray-50 last:border-0"
+                    >
+                      <div>
+                        <div className="font-medium text-gray-800">
+                          {lvl.locationId?.name || "Location"}
+                        </div>
+                        <div className="text-[10px] text-gray-400">
+                          {lvl.inventoryItemId?.productVariantId?.name || "Standard"}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div>
+                          <span className="font-semibold text-gray-900">{lvl.onHand}</span>
+                          <span className="text-gray-400 ml-1">
+                            {lvl.inventoryItemId?.productVariantId?.unitId?.code || "units"}
+                          </span>
+                        </div>
+                        <div>
+                          {lvl.onHand <= 0 ? (
+                            <span className="text-[10px] text-red-600 font-medium">Out of stock</span>
+                          ) : lvl.isLowStock ? (
+                            <span className="text-[10px] text-amber-600 font-medium">Low stock</span>
+                          ) : (
+                            <span className="text-[10px] text-emerald-600 font-medium">In stock</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
             <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-3">
               <h3 className="text-sm font-semibold text-gray-900 pb-2 border-b border-gray-100">
                 Pricing Summary

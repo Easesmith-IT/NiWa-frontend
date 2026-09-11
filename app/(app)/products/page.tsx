@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, Filter, Package, Tag, Layers, Truck } from "lucide-react";
+import { Plus, Search, Filter, Package, Tag, Layers, Truck, Boxes } from "lucide-react";
 import { productsApi, ProductItem } from "lib/api/products-api";
 import { queryKeys } from "lib/api/query-keys";
 
@@ -189,7 +189,15 @@ export default function ProductsPage() {
                     <td className="px-6 py-4 text-gray-500">
                       {product.categoryId?.name || "Uncategorized"}
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-6 py-4 text-right space-x-3 whitespace-nowrap">
+                      <Link
+                        href={`/inventory?q=${encodeURIComponent(product.name)}`}
+                        className="text-gray-500 hover:text-indigo-600 font-medium text-xs inline-flex items-center gap-1 transition"
+                        title="View stock in Inventory"
+                      >
+                        <Boxes className="w-3.5 h-3.5" />
+                        Stock
+                      </Link>
                       <Link
                         href={`/products/${product._id}`}
                         className="text-indigo-600 hover:text-indigo-900 font-medium text-xs"
