@@ -24,6 +24,15 @@ apiClient.interceptors.request.use((config) => {
     config.headers.Authorization = `Bearer ${token}`;
   }
 
+  // Defensively strip leading "/api" so that endpoints called with "/api/..." don't duplicate against baseURL
+  if (config.url) {
+    if (config.url.startsWith("/api/")) {
+      config.url = config.url.substring(4);
+    } else if (config.url === "/api") {
+      config.url = "/";
+    }
+  }
+
   const url = config.url;
 
   if (isPlatformEndpoint(url)) {

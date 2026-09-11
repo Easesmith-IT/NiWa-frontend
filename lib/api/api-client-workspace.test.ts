@@ -146,4 +146,16 @@ describe("API Client Workspace Interceptor & Scoping", () => {
     expect(workspaceMembership.role).toBe("owner");
     expect(customerUser.platformRole).not.toBe("SUPER_ADMIN");
   });
+
+  it("9. Request interceptor defensively normalizes /api prefix to avoid duplicate baseURL path", async () => {
+    setActiveWorkspaceId("ws_test_prefix");
+    const res = await runInterceptor("/api/products");
+    expect(res.url).toBe("/products");
+
+    const resCategories = await runInterceptor("/api/products/categories");
+    expect(resCategories.url).toBe("/products/categories");
+
+    const resPlain = await runInterceptor("/products");
+    expect(resPlain.url).toBe("/products");
+  });
 });
