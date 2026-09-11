@@ -154,4 +154,56 @@ export const productsApi = {
     const res = await apiClient.post("/api/products/suppliers", data);
     return res.data;
   },
+
+  updateSupplier: async (id: string, data: Record<string, any>): Promise<{ success: boolean; data: SupplierItem }> => {
+    const res = await apiClient.patch(`/api/products/suppliers/${id}`, data);
+    return res.data;
+  },
+
+  deleteSupplier: async (id: string): Promise<{ success: boolean; message: string }> => {
+    const res = await apiClient.delete(`/api/products/suppliers/${id}`);
+    return res.data;
+  },
+
+  // Variants
+  getVariants: async (productId: string): Promise<{ success: boolean; data: any[] }> => {
+    const res = await apiClient.get(`/api/products/${productId}/variants`);
+    return res.data;
+  },
+
+  createVariant: async (productId: string, data: Record<string, any>): Promise<{ success: boolean; data: any }> => {
+    const res = await apiClient.post(`/api/products/${productId}/variants`, data);
+    return res.data;
+  },
+
+  updateVariant: async (id: string, data: Record<string, any>): Promise<{ success: boolean; data: any }> => {
+    const res = await apiClient.patch(`/api/products/variants/${id}`, data);
+    return res.data;
+  },
+
+  deleteVariant: async (id: string): Promise<{ success: boolean; message: string }> => {
+    const res = await apiClient.delete(`/api/products/variants/${id}`);
+    return res.data;
+  },
+
+  // ProductSupplier Relationship
+  getVariantSuppliers: async (variantId: string): Promise<{ success: boolean; data: any[] }> => {
+    const res = await apiClient.get(`/api/products/variants/${variantId}/suppliers`);
+    return res.data;
+  },
+
+  linkSupplierToVariant: async (variantId: string, data: Record<string, any>): Promise<{ success: boolean; data: any }> => {
+    const res = await apiClient.post(`/api/products/variants/${variantId}/suppliers`, data);
+    return res.data;
+  },
+
+  updateProductSupplier: async (id: string, data: Record<string, any>): Promise<{ success: boolean; data: any }> => {
+    const res = await apiClient.patch(`/api/products/product-suppliers/${id}`, data);
+    return res.data;
+  },
+
+  unlinkSupplierFromVariant: async (id: string): Promise<{ success: boolean; message: string }> => {
+    const res = await apiClient.delete(`/api/products/product-suppliers/${id}`);
+    return res.data;
+  },
 };

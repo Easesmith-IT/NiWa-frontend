@@ -34,6 +34,8 @@ export const queryKeys = {
   views: ["views"] as const,
   products: ["products"] as const,
   product: (id: string) => ["products", id] as const,
+  variants: (productId: string) => ["products", productId, "variants"] as const,
+  variantSuppliers: (variantId: string) => ["variants", variantId, "suppliers"] as const,
   categories: ["categories"] as const,
   brands: ["brands"] as const,
   units: ["units"] as const,

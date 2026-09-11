@@ -4,8 +4,8 @@ import { use, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { ArrowLeft, Edit3, Save, Trash2 } from "lucide-react";
-import { productsApi } from "lib/api/products-api";
+import { ArrowLeft, Edit3, Save, Trash2, Plus, Star, Truck, CheckCircle, X } from "lucide-react";
+import { productsApi, SupplierItem, UnitItem } from "lib/api/products-api";
 import { queryKeys } from "lib/api/query-keys";
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -20,13 +20,45 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [status, setStatus] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
+  // Variant Modal State
+  const [showAddVariant, setShowAddVariant] = useState(false);
+  const [editingVariant, setEditingVariant] = useState<any | null>(null);
+  const [variantName, setVariantName] = useState("");
+  const [variantSku, setVariantSku] = useState("");
+  const [variantBarcode, setVariantBarcode] = useState("");
+  const [variantSellingPrice, setVariantSellingPrice] = useState<number | "">("");
+  const [variantCostPrice, setVariantCostPrice] = useState<number | "">("");
+  const [variantUnitId, setVariantUnitId] = useState("");
+
+  // Link Supplier Modal State
+  const [linkingVariantId, setLinkingVariantId] = useState<string | null>(null);
+  const [supplierId, setSupplierId] = useState("");
+  const [supplierSku, setSupplierSku] = useState("");
+  const [purchasePrice, setPurchasePrice] = useState<number | "">("");
+  const [minimumOrderQuantity, setMinimumOrderQuantity] = useState<number>(1);
+  const [preferred, setPreferred] = useState(false);
+
+  // Queries
   const { data: productData, isLoading, error } = useQuery({
     queryKey: queryKeys.product(productId),
     queryFn: () => productsApi.getProductById(productId),
   });
 
-  const product = productData?.data;
+  const { data: unitsData } = useQuery({
+    queryKey: queryKeys.units,
+    queryFn: () => productsApi.getUnits(),
+  });
 
+  const { data: suppliersData } = useQuery({
+    queryKey: queryKeys.suppliers,
+    queryFn: () => productsApi.getSuppliers(),
+  });
+
+  const product = productData?.data;
+  const units: UnitItem[] = unitsData?.data || [];
+  const suppliers: SupplierItem[] = suppliersData?.data || [];
+
+  // Product Mutations
   const updateMutation = useMutation({
     mutationFn: (payload: any) => productsApi.updateProduct(productId, payload),
     onSuccess: () => {
@@ -50,6 +82,83 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     },
   });
 
+  // Variant Mutations
+  const createVariantMutation = useMutation({
+    mutationFn: (payload: any) => productsApi.createVariant(productId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.product(productId) });
+      setShowAddVariant(false);
+      resetVariantForm();
+    },
+    onError: (err: any) => {
+      setErrorMsg(err.response?.data?.message || err.message || "Failed to create variant");
+    },
+  });
+
+  const updateVariantMutation = useMutation({
+    mutationFn: ({ variantId, payload }: { variantId: string; payload: any }) =>
+      productsApi.updateVariant(variantId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.product(productId) });
+      setEditingVariant(null);
+      resetVariantForm();
+    },
+    onError: (err: any) => {
+      setErrorMsg(err.response?.data?.message || err.message || "Failed to update variant");
+    },
+  });
+
+  const archiveVariantMutation = useMutation({
+    mutationFn: (variantId: string) => productsApi.deleteVariant(variantId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.product(productId) });
+    },
+    onError: (err: any) => {
+      setErrorMsg(err.response?.data?.message || err.message || "Failed to archive variant");
+    },
+  });
+
+  // ProductSupplier Mutations
+  const linkSupplierMutation = useMutation({
+    mutationFn: ({ variantId, payload }: { variantId: string; payload: any }) =>
+      productsApi.linkSupplierToVariant(variantId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.product(productId) });
+      setLinkingVariantId(null);
+      resetSupplierLinkForm();
+    },
+    onError: (err: any) => {
+      setErrorMsg(err.response?.data?.message || err.message || "Failed to link supplier");
+    },
+  });
+
+  const unlinkSupplierMutation = useMutation({
+    mutationFn: (productSupplierId: string) => productsApi.unlinkSupplierFromVariant(productSupplierId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.product(productId) });
+    },
+    onError: (err: any) => {
+      setErrorMsg(err.response?.data?.message || err.message || "Failed to unlink supplier");
+    },
+  });
+
+  const resetVariantForm = () => {
+    setVariantName("");
+    setVariantSku("");
+    setVariantBarcode("");
+    setVariantSellingPrice("");
+    setVariantCostPrice("");
+    setVariantUnitId("");
+  };
+
+  const resetSupplierLinkForm = () => {
+    setSupplierId("");
+    setSupplierSku("");
+    setPurchasePrice("");
+    setMinimumOrderQuantity(1);
+    setPreferred(false);
+  };
+
   const startEdit = () => {
     if (product) {
       setName(product.name);
@@ -66,6 +175,66 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       name,
       description,
       status,
+    });
+  };
+
+  const handleCreateVariant = (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg("");
+    if (!variantName.trim()) {
+      setErrorMsg("Variant name is required");
+      return;
+    }
+    if (variantSellingPrice === "") {
+      setErrorMsg("Selling price is required");
+      return;
+    }
+
+    createVariantMutation.mutate({
+      name: variantName.trim(),
+      sellingPrice: Number(variantSellingPrice),
+      costPrice: variantCostPrice !== "" ? Number(variantCostPrice) : 0,
+      sku: variantSku.trim() || undefined,
+      barcode: variantBarcode.trim() || undefined,
+      unitId: variantUnitId || undefined,
+    });
+  };
+
+  const handleUpdateVariant = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingVariant) return;
+    setErrorMsg("");
+    updateVariantMutation.mutate({
+      variantId: editingVariant._id,
+      payload: {
+        name: variantName.trim() || undefined,
+        sellingPrice: variantSellingPrice !== "" ? Number(variantSellingPrice) : undefined,
+        costPrice: variantCostPrice !== "" ? Number(variantCostPrice) : undefined,
+        sku: variantSku.trim() || undefined,
+        barcode: variantBarcode.trim() || undefined,
+        unitId: variantUnitId || undefined,
+      },
+    });
+  };
+
+  const handleLinkSupplier = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!linkingVariantId) return;
+    setErrorMsg("");
+    if (!supplierId) {
+      setErrorMsg("Please select a supplier");
+      return;
+    }
+
+    linkSupplierMutation.mutate({
+      variantId: linkingVariantId,
+      payload: {
+        supplierId,
+        supplierSku: supplierSku.trim() || undefined,
+        purchasePrice: purchasePrice !== "" ? Number(purchasePrice) : undefined,
+        minimumOrderQuantity: Number(minimumOrderQuantity) || 1,
+        preferred,
+      },
     });
   };
 
@@ -143,12 +312,15 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       </div>
 
       {errorMsg && (
-        <div className="p-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg">
-          {errorMsg}
+        <div className="p-4 bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg flex items-center justify-between">
+          <span>{errorMsg}</span>
+          <button onClick={() => setErrorMsg("")} className="text-red-500 hover:text-red-700">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       )}
 
-      {/* Main Content */}
+      {/* Product Information Form or View */}
       {isEditing ? (
         <form onSubmit={handleSave} className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
           <h2 className="text-base font-semibold text-gray-900 border-b border-gray-100 pb-2">
@@ -202,8 +374,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         </form>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Details Column */}
+          {/* Details & Variants Column */}
           <div className="lg:col-span-2 space-y-6">
+            {/* General Details */}
             <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
               <h2 className="text-base font-semibold text-gray-900 pb-2 border-b border-gray-100">
                 Product Details
@@ -236,35 +409,363 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               )}
             </div>
 
-            {/* Variants Section */}
+            {/* Product Variants Section */}
             <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
               <div className="flex items-center justify-between pb-2 border-b border-gray-100">
                 <h2 className="text-base font-semibold text-gray-900">
                   Product Variants ({product.variants?.length || 0})
                 </h2>
+                <button
+                  onClick={() => {
+                    setShowAddVariant(!showAddVariant);
+                    setEditingVariant(null);
+                    resetVariantForm();
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 text-indigo-700 font-semibold text-xs rounded-lg hover:bg-indigo-100 transition"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  {showAddVariant ? "Cancel" : "Add Variant"}
+                </button>
               </div>
+
+              {/* Add Variant Form */}
+              {showAddVariant && (
+                <form onSubmit={handleCreateVariant} className="p-4 bg-indigo-50/50 border border-indigo-100 rounded-lg space-y-3">
+                  <h3 className="text-xs font-bold text-indigo-900 uppercase">Create New Variant</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">Variant Name *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="e.g. Red / Large"
+                        value={variantName}
+                        onChange={(e) => setVariantName(e.target.value)}
+                        className="w-full px-2.5 py-1.5 border border-gray-300 rounded text-xs bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">Selling Price (₹) *</label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="any"
+                        required
+                        placeholder="350"
+                        value={variantSellingPrice}
+                        onChange={(e) => setVariantSellingPrice(e.target.value === "" ? "" : Number(e.target.value))}
+                        className="w-full px-2.5 py-1.5 border border-gray-300 rounded text-xs bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">SKU</label>
+                      <input
+                        type="text"
+                        placeholder="SKU-001"
+                        value={variantSku}
+                        onChange={(e) => setVariantSku(e.target.value)}
+                        className="w-full px-2.5 py-1.5 border border-gray-300 rounded text-xs bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">Barcode</label>
+                      <input
+                        type="text"
+                        placeholder="890123..."
+                        value={variantBarcode}
+                        onChange={(e) => setVariantBarcode(e.target.value)}
+                        className="w-full px-2.5 py-1.5 border border-gray-300 rounded text-xs bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">Cost Price (₹)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="any"
+                        placeholder="280"
+                        value={variantCostPrice}
+                        onChange={(e) => setVariantCostPrice(e.target.value === "" ? "" : Number(e.target.value))}
+                        className="w-full px-2.5 py-1.5 border border-gray-300 rounded text-xs bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">Unit</label>
+                      <select
+                        value={variantUnitId}
+                        onChange={(e) => setVariantUnitId(e.target.value)}
+                        className="w-full px-2.5 py-1.5 border border-gray-300 rounded text-xs bg-white"
+                      >
+                        <option value="">Default Unit</option>
+                        {units.map((u) => (
+                          <option key={u._id} value={u._id}>
+                            {u.name} ({u.code})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2 pt-2">
+                    <button
+                      type="submit"
+                      disabled={createVariantMutation.isPending}
+                      className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded hover:bg-indigo-700"
+                    >
+                      {createVariantMutation.isPending ? "Creating..." : "Save Variant"}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* Edit Variant Form */}
+              {editingVariant && (
+                <form onSubmit={handleUpdateVariant} className="p-4 bg-amber-50/50 border border-amber-200 rounded-lg space-y-3">
+                  <h3 className="text-xs font-bold text-amber-900 uppercase">Edit Variant: {editingVariant.name}</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">Variant Name</label>
+                      <input
+                        type="text"
+                        value={variantName}
+                        onChange={(e) => setVariantName(e.target.value)}
+                        className="w-full px-2.5 py-1.5 border border-gray-300 rounded text-xs bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">Selling Price (₹)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="any"
+                        value={variantSellingPrice}
+                        onChange={(e) => setVariantSellingPrice(e.target.value === "" ? "" : Number(e.target.value))}
+                        className="w-full px-2.5 py-1.5 border border-gray-300 rounded text-xs bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">SKU</label>
+                      <input
+                        type="text"
+                        value={variantSku}
+                        onChange={(e) => setVariantSku(e.target.value)}
+                        className="w-full px-2.5 py-1.5 border border-gray-300 rounded text-xs bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">Barcode</label>
+                      <input
+                        type="text"
+                        value={variantBarcode}
+                        onChange={(e) => setVariantBarcode(e.target.value)}
+                        className="w-full px-2.5 py-1.5 border border-gray-300 rounded text-xs bg-white"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">Cost Price (₹)</label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="any"
+                        value={variantCostPrice}
+                        onChange={(e) => setVariantCostPrice(e.target.value === "" ? "" : Number(e.target.value))}
+                        className="w-full px-2.5 py-1.5 border border-gray-300 rounded text-xs bg-white"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex justify-end gap-2 pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setEditingVariant(null)}
+                      className="px-3 py-1.5 border border-gray-300 text-gray-700 text-xs rounded hover:bg-gray-50"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={updateVariantMutation.isPending}
+                      className="px-3 py-1.5 bg-indigo-600 text-white text-xs font-semibold rounded hover:bg-indigo-700"
+                    >
+                      {updateVariantMutation.isPending ? "Updating..." : "Update Variant"}
+                    </button>
+                  </div>
+                </form>
+              )}
+
+              {/* Variant List */}
               <div className="divide-y divide-gray-100">
                 {product.variants?.map((variant: any) => (
-                  <div key={variant._id} className="py-3 flex items-center justify-between text-sm">
-                    <div>
-                      <div className="font-medium text-gray-900 flex items-center gap-2">
-                        {variant.name}
-                        {variant.isDefault && (
-                          <span className="px-2 py-0.5 text-[10px] bg-indigo-50 text-indigo-700 font-semibold rounded">
-                            Default
-                          </span>
-                        )}
+                  <div key={variant._id} className="py-3.5 space-y-2">
+                    <div className="flex items-center justify-between text-sm">
+                      <div>
+                        <div className="font-medium text-gray-900 flex items-center gap-2">
+                          {variant.name}
+                          {variant.isDefault && (
+                            <span className="px-2 py-0.5 text-[10px] bg-indigo-50 text-indigo-700 font-semibold rounded flex items-center gap-1">
+                              <CheckCircle className="w-3 h-3 text-indigo-600" /> Default
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-gray-500 font-mono mt-0.5">
+                          ID: {variant.variantId} {variant.sku ? `| SKU: ${variant.sku}` : ""}{" "}
+                          {variant.barcode ? `| Barcode: ${variant.barcode}` : ""}
+                        </div>
                       </div>
-                      <div className="text-xs text-gray-500 font-mono mt-0.5">
-                        ID: {variant.variantId} {variant.sku ? `| SKU: ${variant.sku}` : ""}
+
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <div className="font-bold text-gray-900">₹{variant.sellingPrice}</div>
+                          {variant.costPrice > 0 && (
+                            <div className="text-xs text-gray-400">Cost: ₹{variant.costPrice}</div>
+                          )}
+                        </div>
+
+                        <div className="flex items-center gap-1">
+                          {!variant.isDefault && (
+                            <button
+                              onClick={() =>
+                                updateVariantMutation.mutate({
+                                  variantId: variant._id,
+                                  payload: { isDefault: true },
+                                })
+                              }
+                              className="p-1.5 text-gray-400 hover:text-amber-600 rounded hover:bg-gray-100"
+                              title="Set as Default Variant"
+                            >
+                              <Star className="w-4 h-4" />
+                            </button>
+                          )}
+                          <button
+                            onClick={() => {
+                              setEditingVariant(variant);
+                              setShowAddVariant(false);
+                              setVariantName(variant.name);
+                              setVariantSku(variant.sku || "");
+                              setVariantBarcode(variant.barcode || "");
+                              setVariantSellingPrice(variant.sellingPrice);
+                              setVariantCostPrice(variant.costPrice || "");
+                              setVariantUnitId(variant.unitId?._id || "");
+                            }}
+                            className="p-1.5 text-gray-400 hover:text-indigo-600 rounded hover:bg-gray-100"
+                            title="Edit Variant"
+                          >
+                            <Edit3 className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              setLinkingVariantId(linkingVariantId === variant._id ? null : variant._id);
+                              resetSupplierLinkForm();
+                            }}
+                            className="p-1.5 text-gray-400 hover:text-emerald-600 rounded hover:bg-gray-100"
+                            title="Link Supplier"
+                          >
+                            <Truck className="w-4 h-4" />
+                          </button>
+                          {!variant.isDefault && (
+                            <button
+                              onClick={() => {
+                                if (confirm(`Archive variant '${variant.name}'?`)) {
+                                  archiveVariantMutation.mutate(variant._id);
+                                }
+                              }}
+                              className="p-1.5 text-gray-400 hover:text-red-600 rounded hover:bg-gray-100"
+                              title="Archive Variant"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="font-bold text-gray-900">₹{variant.sellingPrice}</div>
-                      {variant.costPrice > 0 && (
-                        <div className="text-xs text-gray-400">Cost: ₹{variant.costPrice}</div>
-                      )}
-                    </div>
+
+                    {/* Inline Link Supplier Form */}
+                    {linkingVariantId === variant._id && (
+                      <form onSubmit={handleLinkSupplier} className="p-3 bg-emerald-50/50 border border-emerald-200 rounded-lg space-y-3">
+                        <div className="flex items-center justify-between">
+                          <h4 className="text-xs font-bold text-emerald-900 uppercase flex items-center gap-1.5">
+                            <Truck className="w-3.5 h-3.5 text-emerald-600" />
+                            Link Supplier to '{variant.name}'
+                          </h4>
+                          <button
+                            type="button"
+                            onClick={() => setLinkingVariantId(null)}
+                            className="text-gray-400 hover:text-gray-600"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                        </div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
+                          <div>
+                            <label className="block font-semibold text-gray-700 mb-0.5">Supplier *</label>
+                            <select
+                              required
+                              value={supplierId}
+                              onChange={(e) => setSupplierId(e.target.value)}
+                              className="w-full px-2 py-1.5 border border-gray-300 rounded bg-white"
+                            >
+                              <option value="">Select Supplier</option>
+                              {suppliers.map((s) => (
+                                <option key={s._id} value={s._id}>
+                                  {s.name} ({s.supplierId})
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="block font-semibold text-gray-700 mb-0.5">Supplier SKU</label>
+                            <input
+                              type="text"
+                              placeholder="e.g. SUP-SKU-99"
+                              value={supplierSku}
+                              onChange={(e) => setSupplierSku(e.target.value)}
+                              className="w-full px-2 py-1.5 border border-gray-300 rounded bg-white"
+                            />
+                          </div>
+                          <div>
+                            <label className="block font-semibold text-gray-700 mb-0.5">Purchase Price (₹)</label>
+                            <input
+                              type="number"
+                              min="0"
+                              step="any"
+                              placeholder="250"
+                              value={purchasePrice}
+                              onChange={(e) => setPurchasePrice(e.target.value === "" ? "" : Number(e.target.value))}
+                              className="w-full px-2 py-1.5 border border-gray-300 rounded bg-white"
+                            />
+                          </div>
+                          <div>
+                            <label className="block font-semibold text-gray-700 mb-0.5">Min Order Qty</label>
+                            <input
+                              type="number"
+                              min="1"
+                              value={minimumOrderQuantity}
+                              onChange={(e) => setMinimumOrderQuantity(Number(e.target.value))}
+                              className="w-full px-2 py-1.5 border border-gray-300 rounded bg-white"
+                            />
+                          </div>
+                          <div className="md:col-span-2 flex items-center gap-2 pt-1">
+                            <input
+                              type="checkbox"
+                              id={`preferred-${variant._id}`}
+                              checked={preferred}
+                              onChange={(e) => setPreferred(e.target.checked)}
+                              className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                            />
+                            <label htmlFor={`preferred-${variant._id}`} className="font-medium text-gray-700">
+                              Set as Preferred Supplier for this Variant
+                            </label>
+                          </div>
+                        </div>
+                        <div className="flex justify-end gap-2 pt-1">
+                          <button
+                            type="submit"
+                            disabled={linkSupplierMutation.isPending}
+                            className="px-3 py-1.5 bg-emerald-600 text-white text-xs font-semibold rounded hover:bg-emerald-700"
+                          >
+                            {linkSupplierMutation.isPending ? "Linking..." : "Link Supplier"}
+                          </button>
+                        </div>
+                      </form>
+                    )}
                   </div>
                 ))}
               </div>

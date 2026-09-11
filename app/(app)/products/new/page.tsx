@@ -78,9 +78,15 @@ export default function NewProductPage() {
       return;
     }
 
+    if (!unitId) {
+      setErrorMsg("Unit of Measurement is required");
+      return;
+    }
+
     const payload: any = {
       name: name.trim(),
       sellingPrice: Number(sellingPrice),
+      defaultUnitId: unitId,
       productType,
       status,
     };
@@ -164,9 +170,10 @@ export default function NewProductPage() {
 
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Unit of Measurement
+                Unit of Measurement <span className="text-red-500">*</span>
               </label>
               <select
+                required
                 value={unitId}
                 onChange={(e) => setUnitId(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
