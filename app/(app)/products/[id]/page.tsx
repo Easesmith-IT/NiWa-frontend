@@ -930,6 +930,57 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                         </div>
                       </form>
                     )}
+
+                    {/* Linked Suppliers */}
+                    {variant.suppliers && variant.suppliers.length > 0 && (
+                      <div className="mt-2 pl-3 border-l-2 border-emerald-200 space-y-1.5">
+                        <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
+                          Suppliers ({variant.suppliers.length})
+                        </div>
+                        <div className="space-y-1">
+                          {variant.suppliers.map((ps: any) => (
+                            <div
+                              key={ps._id}
+                              className="flex items-center justify-between text-xs bg-gray-50 px-2.5 py-1.5 rounded border border-gray-100"
+                            >
+                              <div className="flex items-center gap-2">
+                                <span className="font-medium text-gray-800">
+                                  {ps.supplierId?.name || "Supplier"}
+                                </span>
+                                {ps.supplierSku && (
+                                  <span className="text-gray-400 font-mono text-[11px]">
+                                    SKU: {ps.supplierSku}
+                                  </span>
+                                )}
+                                {ps.purchasePrice != null && (
+                                  <span className="text-emerald-700 font-medium text-[11px]">
+                                    ₹{ps.purchasePrice}
+                                  </span>
+                                )}
+                                {ps.preferred && (
+                                  <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded">
+                                    Preferred
+                                  </span>
+                                )}
+                              </div>
+                              <button
+                                type="button"
+                                title="Unlink Supplier"
+                                onClick={() => {
+                                  if (confirm(`Unlink supplier from variant?`)) {
+                                    unlinkSupplierMutation.mutate(ps._id);
+                                  }
+                                }}
+                                disabled={unlinkSupplierMutation.isPending}
+                                className="text-gray-400 hover:text-red-600 text-[11px] font-medium transition"
+                              >
+                                Unlink
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

@@ -674,7 +674,7 @@ function InventoryStockContent() {
           role="dialog"
           aria-modal="true"
           aria-labelledby="adjust-stock-title"
-          aria-describedby={adjustTarget ? "adjust-stock-desc" : undefined}
+          aria-describedby="adjust-stock-desc"
         >
           <div
             ref={adjustDialogRef}
@@ -682,10 +682,15 @@ function InventoryStockContent() {
             className="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl border border-gray-100 space-y-4 focus:outline-none"
           >
             <div className="flex items-center justify-between pb-3 border-b border-gray-200">
-              <h3 id="adjust-stock-title" className="text-lg font-semibold text-gray-900 flex items-center gap-2">
-                <ArrowUpDown className="w-5 h-5 text-indigo-600" />
-                Adjust Stock
-              </h3>
+              <div>
+                <h3 id="adjust-stock-title" className="text-lg font-semibold text-gray-900 flex items-center gap-2">
+                  <ArrowUpDown className="w-5 h-5 text-indigo-600" />
+                  Adjust Stock
+                </h3>
+                <p id="adjust-stock-desc" className="text-xs text-gray-500 mt-0.5">
+                  Record inventory receipt, reduction, physical count, or opening stock balance.
+                </p>
+              </div>
               <button
                 onClick={closeAdjustModal}
                 className="text-gray-400 hover:text-gray-600 rounded-lg p-1"
@@ -704,7 +709,7 @@ function InventoryStockContent() {
             <form onSubmit={handleAdjustSubmit} className="space-y-4">
               {/* Target Details */}
               {adjustTarget ? (
-                <div id="adjust-stock-desc" className="p-3 bg-gray-50 rounded-lg text-sm space-y-1">
+                <div className="p-3 bg-gray-50 rounded-lg text-sm space-y-1">
                   <div className="font-semibold text-gray-800">{adjustTarget.title}</div>
                   <div className="text-xs text-gray-500">
                     Current stock on hand:{" "}

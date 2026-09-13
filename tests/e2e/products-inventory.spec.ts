@@ -1,20 +1,19 @@
-import { test, expect } from '../fixtures/app.fixture';
+import { test, expect } from '@playwright/test';
+import { setupAuthenticatedContext } from '../helpers/auth';
 
 test.describe('NIWA Products & Inventory — Critical User Journeys', () => {
+  test.beforeEach(async ({ page }) => {
+    await setupAuthenticatedContext(page, 'admin@niwa.local', 'ChangeMe123!');
+  });
+
   test('Journey A: Products Catalog & Create Product Form Verification', async ({ page }) => {
     // Navigate to /products
     await page.goto('/products');
     await page.waitForLoadState('domcontentloaded');
 
-    const url = page.url();
-    if (url.includes('/login')) {
-      await expect(page).toHaveURL(/\/login/);
-      return;
-    }
-
     // Verify catalog title and Add Product CTA
     await expect(page).toHaveURL(/\/products/);
-    const addProductLink = page.getByRole('link', { name: /add product/i }).first();
+    const addProductLink = page.locator('a[href="/products/new"]').first();
     await expect(addProductLink).toBeVisible();
 
     // Navigate to Create Product page
@@ -23,7 +22,7 @@ test.describe('NIWA Products & Inventory — Critical User Journeys', () => {
     await expect(page).toHaveURL(/\/products\/new/);
 
     // Verify essential form controls
-    const nameInput = page.getByPlaceholder(/e\.g\., Basmati Rice/i);
+    const nameInput = page.getByPlaceholder(/Basmati Rice 5kg/i);
     await expect(nameInput).toBeVisible();
 
     const priceInput = page.getByPlaceholder(/350/i);
@@ -33,7 +32,7 @@ test.describe('NIWA Products & Inventory — Critical User Journeys', () => {
     const toggleAdvancedBtn = page.getByRole('button', { name: /show advanced/i });
     if (await toggleAdvancedBtn.isVisible()) {
       await toggleAdvancedBtn.click();
-      await expect(page.getByPlaceholder(/SKU-001/i)).toBeVisible();
+      await expect(page.getByPlaceholder(/RICE-5KG-001/i)).toBeVisible();
     }
   });
 
@@ -41,12 +40,6 @@ test.describe('NIWA Products & Inventory — Critical User Journeys', () => {
     // Navigate to /inventory
     await page.goto('/inventory');
     await page.waitForLoadState('domcontentloaded');
-
-    const url = page.url();
-    if (url.includes('/login')) {
-      await expect(page).toHaveURL(/\/login/);
-      return;
-    }
 
     await expect(page).toHaveURL(/\/inventory/);
 
@@ -74,25 +67,18 @@ test.describe('NIWA Products & Inventory — Critical User Journeys', () => {
     await page.goto('/inventory/movements');
     await page.waitForLoadState('domcontentloaded');
 
-    const url = page.url();
-    if (url.includes('/login')) {
-      await expect(page).toHaveURL(/\/login/);
-      return;
-    }
-
     await expect(page).toHaveURL(/\/inventory\/movements/);
 
     // Verify sub-navigation bar links
-    await expect(page.getByRole('link', { name: /stock levels/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: /locations/i })).toBeVisible();
-    await expect(page.getByRole('link', { name: /movement ledger/i })).toBeVisible();
+    const mainArea = page.getByRole('main');
+    await expect(mainArea.getByRole('link', { name: /stock levels/i })).toBeVisible();
+    await expect(mainArea.getByRole('link', { name: /locations/i })).toBeVisible();
+    await expect(mainArea.getByRole('link', { name: /movement ledger/i })).toBeVisible();
 
     // Verify query param context preservation on /inventory
     await page.goto('/inventory?q=Rice');
     await page.waitForLoadState('domcontentloaded');
-    if (!page.url().includes('/login')) {
-      const searchInput = page.getByPlaceholder(/search products by name/i);
-      await expect(searchInput).toHaveValue('Rice');
-    }
+    const searchInput = page.getByPlaceholder(/search by product name, sku, or location/i);
+    await expect(searchInput).toHaveValue('Rice');
   });
 });

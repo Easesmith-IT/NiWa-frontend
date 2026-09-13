@@ -1,12 +1,9 @@
 import { test, expect } from '@playwright/test';
+import { setupAuthenticatedContext } from '../helpers/auth';
 
 // Helper to set up authenticated browser context and route mocks
 async function setupAuthenticatedInventoryMocks(page: any) {
-  // 1. Inject localStorage session
-  await page.addInitScript(() => {
-    window.localStorage.setItem('niwa.accessToken', 'e2e-test-token-jwt');
-    window.localStorage.setItem('activeWorkspaceId', 'ws-e2e-a11y-test');
-  });
+  await setupAuthenticatedContext(page, 'admin@niwa.local', 'ChangeMe123!');
 
   // 2. Intercept API routes with realistic mock data
   await page.route('**/api/inventory/locations*', async (route: any) => {
