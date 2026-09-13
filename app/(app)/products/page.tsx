@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { Plus, Search, Filter, Package, Tag, Layers, Truck, Boxes } from "lucide-react";
+import { Plus, Search, Filter, Package, Tag, Layers, Truck, Boxes, Scale } from "lucide-react";
 import { productsApi, ProductItem } from "lib/api/products-api";
 import { getInventoryLevels, InventoryLevelItem } from "lib/api/inventory-api";
 import { queryKeys } from "lib/api/query-keys";
@@ -126,6 +126,13 @@ function ProductsContent() {
         >
           <Truck className="w-4 h-4" />
           Suppliers
+        </Link>
+        <Link
+          href="/products/units"
+          className="px-3 py-1.5 text-gray-600 hover:text-gray-900 flex items-center gap-1.5"
+        >
+          <Scale className="w-4 h-4" />
+          Units
         </Link>
       </div>
 

@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Layers, Plus, Save, Trash2, ArrowLeft } from "lucide-react";
+import { Layers, Plus, Save, Trash2, ArrowLeft, Package, Tag, Truck, Scale } from "lucide-react";
 import { productsApi, CategoryItem } from "lib/api/products-api";
 import { queryKeys } from "lib/api/query-keys";
 
@@ -85,6 +85,45 @@ export default function CategoriesPage() {
           <Plus className="w-4 h-4" />
           {showForm ? "Cancel" : "Add Category"}
         </button>
+      </div>
+
+      {/* Quick Nav Sub-bar */}
+      <div className="flex items-center gap-2 border-b border-gray-200 text-sm pb-2">
+        <Link
+          href="/products"
+          className="px-3 py-1.5 text-gray-600 hover:text-gray-900 flex items-center gap-1.5"
+        >
+          <Package className="w-4 h-4" />
+          Products
+        </Link>
+        <Link
+          href="/products/categories"
+          className="px-3 py-1.5 font-medium text-indigo-600 border-b-2 border-indigo-600 flex items-center gap-1.5"
+        >
+          <Layers className="w-4 h-4" />
+          Categories
+        </Link>
+        <Link
+          href="/products/brands"
+          className="px-3 py-1.5 text-gray-600 hover:text-gray-900 flex items-center gap-1.5"
+        >
+          <Tag className="w-4 h-4" />
+          Brands
+        </Link>
+        <Link
+          href="/products/suppliers"
+          className="px-3 py-1.5 text-gray-600 hover:text-gray-900 flex items-center gap-1.5"
+        >
+          <Truck className="w-4 h-4" />
+          Suppliers
+        </Link>
+        <Link
+          href="/products/units"
+          className="px-3 py-1.5 text-gray-600 hover:text-gray-900 flex items-center gap-1.5"
+        >
+          <Scale className="w-4 h-4" />
+          Units
+        </Link>
       </div>
 
       {errorMsg && (

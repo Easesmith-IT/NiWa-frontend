@@ -128,6 +128,11 @@ export const productsApi = {
     return res.data;
   },
 
+  updateBrand: async (id: string, data: Record<string, any>): Promise<{ success: boolean; data: BrandItem }> => {
+    const res = await apiClient.patch(`/api/products/brands/${id}`, data);
+    return res.data;
+  },
+
   deleteBrand: async (id: string): Promise<{ success: boolean; message: string }> => {
     const res = await apiClient.delete(`/api/products/brands/${id}`);
     return res.data;
@@ -141,6 +146,16 @@ export const productsApi = {
 
   createUnit: async (data: Record<string, any>): Promise<{ success: boolean; data: UnitItem }> => {
     const res = await apiClient.post("/api/products/units", data);
+    return res.data;
+  },
+
+  updateUnit: async (id: string, data: Record<string, any>): Promise<{ success: boolean; data: UnitItem }> => {
+    const res = await apiClient.patch(`/api/products/units/${id}`, data);
+    return res.data;
+  },
+
+  deleteUnit: async (id: string): Promise<{ success: boolean; message: string }> => {
+    const res = await apiClient.delete(`/api/products/units/${id}`);
     return res.data;
   },
 

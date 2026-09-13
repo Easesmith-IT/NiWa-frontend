@@ -19,8 +19,11 @@ import {
   ArrowRightLeft,
   AlertTriangle,
   RefreshCw,
+  Tag,
+  Layers,
+  Scale,
 } from "lucide-react";
-import { productsApi, SupplierItem, UnitItem } from "lib/api/products-api";
+import { productsApi, SupplierItem, UnitItem, BrandItem, CategoryItem } from "lib/api/products-api";
 import {
   getInventoryLevels,
   getLocations,
@@ -42,6 +45,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState("");
+  const [brandId, setBrandId] = useState("");
+  const [categoryId, setCategoryId] = useState("");
+  const [defaultUnitId, setDefaultUnitId] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
   // Variant Modal State
@@ -54,7 +60,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [variantCostPrice, setVariantCostPrice] = useState<number | "">("");
   const [variantUnitId, setVariantUnitId] = useState("");
 
-  // Link Supplier Modal State
+  // Link Supplier State
   const [linkingVariantId, setLinkingVariantId] = useState<string | null>(null);
   const [supplierId, setSupplierId] = useState("");
   const [supplierSku, setSupplierSku] = useState("");
@@ -62,10 +68,27 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [minimumOrderQuantity, setMinimumOrderQuantity] = useState<number>(1);
   const [preferred, setPreferred] = useState(false);
 
+  // Edit Supplier Relationship State
+  const [editingProductSupplierId, setEditingProductSupplierId] = useState<string | null>(null);
+  const [editSupplierSku, setEditSupplierSku] = useState("");
+  const [editPurchasePrice, setEditPurchasePrice] = useState<number | "">("");
+  const [editMinimumOrderQuantity, setEditMinimumOrderQuantity] = useState<number>(1);
+  const [editPreferred, setEditPreferred] = useState(false);
+
   // Queries
   const { data: productData, isLoading, error } = useQuery({
     queryKey: queryKeys.product(productId),
     queryFn: () => productsApi.getProductById(productId),
+  });
+
+  const { data: brandsData } = useQuery({
+    queryKey: queryKeys.brands,
+    queryFn: () => productsApi.getBrands(),
+  });
+
+  const { data: categoriesData } = useQuery({
+    queryKey: queryKeys.categories,
+    queryFn: () => productsApi.getCategories(),
   });
 
   const { data: unitsData } = useQuery({
@@ -89,6 +112,8 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   });
 
   const product = productData?.data;
+  const brands: BrandItem[] = brandsData?.data || [];
+  const categories: CategoryItem[] = categoriesData?.data || [];
   const units: UnitItem[] = unitsData?.data || [];
   const suppliers: SupplierItem[] = suppliersData?.data || [];
   const inventoryLevels: InventoryLevelItem[] = inventoryData?.data || [];
@@ -286,6 +311,40 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     },
   });
 
+  const updateProductSupplierMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: any }) =>
+      productsApi.updateProductSupplier(id, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.product(productId) });
+      setEditingProductSupplierId(null);
+    },
+    onError: (err: any) => {
+      setErrorMsg(err.response?.data?.message || err.message || "Failed to update supplier relationship");
+    },
+  });
+
+  const handleStartEditProductSupplier = (ps: any) => {
+    setEditingProductSupplierId(ps._id);
+    setEditSupplierSku(ps.supplierSku || "");
+    setEditPurchasePrice(ps.purchasePrice != null ? ps.purchasePrice : "");
+    setEditMinimumOrderQuantity(ps.minimumOrderQuantity || 1);
+    setEditPreferred(Boolean(ps.preferred));
+  };
+
+  const handleSaveProductSupplier = (e: React.FormEvent, psId: string) => {
+    e.preventDefault();
+    setErrorMsg("");
+    updateProductSupplierMutation.mutate({
+      id: psId,
+      payload: {
+        supplierSku: editSupplierSku.trim() || undefined,
+        purchasePrice: editPurchasePrice !== "" ? Number(editPurchasePrice) : undefined,
+        minimumOrderQuantity: Number(editMinimumOrderQuantity) || 1,
+        preferred: editPreferred,
+      },
+    });
+  };
+
   const resetVariantForm = () => {
     setVariantName("");
     setVariantSku("");
@@ -316,17 +375,21 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
         if (showAddVariant) setShowAddVariant(false);
         if (editingVariant) setEditingVariant(null);
         if (linkingVariantId) setLinkingVariantId(null);
+        if (editingProductSupplierId) setEditingProductSupplierId(null);
       }
     };
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [showAddVariant, editingVariant, linkingVariantId]);
+  }, [showAddVariant, editingVariant, linkingVariantId, editingProductSupplierId]);
 
-  const startEdit = () => {
+  const startEdit = (initialFocusField?: "brand") => {
     if (product) {
       setName(product.name);
       setDescription(product.description || "");
       setStatus(product.status);
+      setBrandId(product.brandId?._id || product.brandId || "");
+      setCategoryId(product.categoryId?._id || product.categoryId || "");
+      setDefaultUnitId(product.defaultUnitId?._id || product.defaultUnitId || "");
       setIsEditing(true);
     }
   };
@@ -335,9 +398,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     e.preventDefault();
     setErrorMsg("");
     updateMutation.mutate({
-      name,
-      description,
+      name: name.trim(),
+      description: description.trim() || undefined,
       status,
+      brandId: brandId || null,
+      categoryId: categoryId || null,
+      defaultUnitId: defaultUnitId || null,
     });
   };
 
@@ -411,66 +477,120 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
-      {/* Top Bar */}
-      <div className="flex items-center justify-between pb-4 border-b border-gray-200">
-        <div className="flex items-center gap-4">
-          <Link
-            href="/products"
-            className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 transition"
-          >
-            <ArrowLeft className="w-5 h-5" />
-          </Link>
-          <div>
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-gray-900">{product.name}</h1>
-              <span
-                className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${
-                  product.status === "ACTIVE"
-                    ? "bg-green-100 text-green-800"
-                    : product.status === "DRAFT"
-                    ? "bg-yellow-100 text-yellow-800"
-                    : "bg-gray-100 text-gray-800"
-                }`}
-              >
-                {product.status}
-              </span>
+      {/* Top Bar / Header Summary */}
+      <div className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <Link
+              href="/products"
+              className="p-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-gray-600 transition shrink-0"
+              title="Back to Products"
+            >
+              <ArrowLeft className="w-5 h-5" />
+            </Link>
+            <div>
+              <div className="flex items-center gap-3 flex-wrap">
+                <h1 className="text-2xl font-bold text-gray-900">{product.name}</h1>
+                <span
+                  className={`px-2.5 py-0.5 text-xs font-semibold rounded-full ${
+                    product.status === "ACTIVE"
+                      ? "bg-green-100 text-green-800"
+                      : product.status === "DRAFT"
+                      ? "bg-yellow-100 text-yellow-800"
+                      : "bg-gray-100 text-gray-800"
+                  }`}
+                >
+                  {product.status}
+                </span>
+              </div>
+              <p className="text-xs font-mono text-gray-500 mt-0.5">
+                Business ID: {product.productId}
+              </p>
             </div>
-            <p className="text-xs font-mono text-gray-500 mt-0.5">
-              Business ID: {product.productId}
-            </p>
+          </div>
+
+          <div className="flex items-center gap-2 shrink-0">
+            {!isEditing ? (
+              <>
+                <button
+                  onClick={() => startEdit()}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-50 transition"
+                >
+                  <Edit3 className="w-4 h-4" />
+                  Edit Product
+                </button>
+                <button
+                  onClick={() => {
+                    if (confirm("Are you sure you want to archive this product?")) {
+                      deleteMutation.mutate();
+                    }
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-red-200 text-red-600 rounded-lg text-xs font-medium hover:bg-red-50 transition"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  Archive
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => setIsEditing(false)}
+                className="px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-50"
+              >
+                Cancel Edit
+              </button>
+            )}
           </div>
         </div>
 
-        <div className="flex items-center gap-2">
-          {!isEditing ? (
-            <>
-              <button
-                onClick={startEdit}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-50 transition"
-              >
-                <Edit3 className="w-4 h-4" />
-                Edit
-              </button>
-              <button
-                onClick={() => {
-                  if (confirm("Are you sure you want to archive this product?")) {
-                    deleteMutation.mutate();
-                  }
-                }}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 border border-red-200 text-red-600 rounded-lg text-xs font-medium hover:bg-red-50 transition"
-              >
-                <Trash2 className="w-4 h-4" />
-                Archive
-              </button>
-            </>
-          ) : (
-            <button
-              onClick={() => setIsEditing(false)}
-              className="px-3 py-1.5 border border-gray-300 rounded-lg text-xs font-medium text-gray-700 hover:bg-gray-50"
-            >
-              Cancel Edit
-            </button>
-          )}
+        {/* Prominent Relationship Metadata Bar */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-3 border-t border-gray-100 text-xs">
+          {/* Brand */}
+          <div className="flex items-center gap-2.5 p-2.5 bg-gray-50 rounded-lg border border-gray-100">
+            <Tag className="w-4 h-4 text-indigo-600 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <span className="text-gray-500 font-medium block text-[11px]">Brand</span>
+              {product.brandId ? (
+                <span className="font-semibold text-gray-900 truncate block">
+                  {product.brandId.name || product.brandId}
+                </span>
+              ) : (
+                <div className="flex items-center gap-1.5 text-gray-400">
+                  <span>No brand assigned</span>
+                  <button
+                    type="button"
+                    onClick={() => startEdit("brand")}
+                    className="text-indigo-600 hover:text-indigo-800 font-semibold underline text-[11px]"
+                  >
+                    [Assign Brand]
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Category */}
+          <div className="flex items-center gap-2.5 p-2.5 bg-gray-50 rounded-lg border border-gray-100">
+            <Layers className="w-4 h-4 text-emerald-600 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <span className="text-gray-500 font-medium block text-[11px]">Category</span>
+              <span className="font-semibold text-gray-900 truncate block">
+                {product.categoryId?.name || "None"}
+              </span>
+            </div>
+          </div>
+
+          {/* Unit */}
+          <div className="flex items-center gap-2.5 p-2.5 bg-gray-50 rounded-lg border border-gray-100">
+            <Scale className="w-4 h-4 text-amber-600 shrink-0" />
+            <div className="flex-1 min-w-0">
+              <span className="text-gray-500 font-medium block text-[11px]">Unit</span>
+              <span className="font-semibold text-gray-900 truncate block">
+                {product.defaultUnitId?.name
+                  ? `${product.defaultUnitId.name} (${product.defaultUnitId.code})`
+                  : product.defaultUnitId?.code || "None"}
+              </span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -486,45 +606,109 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       {/* Product Information Form or View */}
       {isEditing ? (
         <form onSubmit={handleSave} className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm space-y-4">
-          <h2 className="text-base font-semibold text-gray-900 border-b border-gray-100 pb-2">
-            Edit Product Information
+          <h2 className="text-base font-semibold text-gray-900 border-b border-gray-100 pb-2 flex items-center justify-between">
+            <span>Edit Product Details & Relationships</span>
+            <span className="text-xs font-normal text-gray-500 font-mono">ID: {product.productId}</span>
           </h2>
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">Product Name</label>
-            <input
-              type="text"
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-            />
-          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">
+                Product Name <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                required
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">Status</label>
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white"
-            >
-              <option value="ACTIVE">Active</option>
-              <option value="DRAFT">Draft</option>
-              <option value="INACTIVE">Inactive</option>
-            </select>
-          </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Status</label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              >
+                <option value="ACTIVE">Active</option>
+                <option value="DRAFT">Draft</option>
+                <option value="INACTIVE">Inactive</option>
+                <option value="ARCHIVED">Archived</option>
+              </select>
+            </div>
 
-          <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">Description</label>
-            <textarea
-              rows={3}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
-            />
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Brand</label>
+              <select
+                value={brandId}
+                onChange={(e) => setBrandId(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              >
+                <option value="">No Brand (None)</option>
+                {brands.map((b) => (
+                  <option key={b._id} value={b._id}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
+              <p className="text-[11px] text-gray-400 mt-0.5">Selected from Brand Master registry.</p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Category</label>
+              <select
+                value={categoryId}
+                onChange={(e) => setCategoryId(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              >
+                <option value="">No Category (None)</option>
+                {categories.map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.name}
+                  </option>
+                ))}
+              </select>
+              <p className="text-[11px] text-gray-400 mt-0.5">Selected from Category hierarchy.</p>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Default Unit</label>
+              <select
+                value={defaultUnitId}
+                onChange={(e) => setDefaultUnitId(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              >
+                <option value="">Select Default Unit</option>
+                {units.map((u) => (
+                  <option key={u._id} value={u._id}>
+                    {u.name} ({u.code})
+                  </option>
+                ))}
+              </select>
+              <p className="text-[11px] text-gray-400 mt-0.5">Measurement unit for product variants.</p>
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="block text-xs font-semibold text-gray-700 mb-1">Description</label>
+              <textarea
+                rows={3}
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
           </div>
 
           <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
+            <button
+              type="button"
+              onClick={() => setIsEditing(false)}
+              className="px-4 py-2 border border-gray-300 text-gray-700 font-medium text-sm rounded-lg hover:bg-gray-50"
+            >
+              Cancel
+            </button>
             <button
               type="submit"
               disabled={updateMutation.isPending}
@@ -931,56 +1115,223 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                       </form>
                     )}
 
-                    {/* Linked Suppliers */}
-                    {variant.suppliers && variant.suppliers.length > 0 && (
-                      <div className="mt-2 pl-3 border-l-2 border-emerald-200 space-y-1.5">
-                        <div className="text-[11px] font-semibold text-gray-500 uppercase tracking-wide">
-                          Suppliers ({variant.suppliers.length})
+                    {/* Variant Suppliers Relationship Section */}
+                    <div className="mt-3 pt-3 border-t border-gray-100 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <div className="text-xs font-bold text-gray-700 uppercase tracking-wide flex items-center gap-1.5">
+                          <Truck className="w-3.5 h-3.5 text-emerald-600" />
+                          Suppliers ({variant.suppliers?.length || 0})
                         </div>
-                        <div className="space-y-1">
-                          {variant.suppliers.map((ps: any) => (
-                            <div
-                              key={ps._id}
-                              className="flex items-center justify-between text-xs bg-gray-50 px-2.5 py-1.5 rounded border border-gray-100"
-                            >
-                              <div className="flex items-center gap-2">
-                                <span className="font-medium text-gray-800">
-                                  {ps.supplierId?.name || "Supplier"}
-                                </span>
-                                {ps.supplierSku && (
-                                  <span className="text-gray-400 font-mono text-[11px]">
-                                    SKU: {ps.supplierSku}
-                                  </span>
-                                )}
-                                {ps.purchasePrice != null && (
-                                  <span className="text-emerald-700 font-medium text-[11px]">
-                                    ₹{ps.purchasePrice}
-                                  </span>
-                                )}
-                                {ps.preferred && (
-                                  <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded">
-                                    Preferred
-                                  </span>
-                                )}
-                              </div>
-                              <button
-                                type="button"
-                                title="Unlink Supplier"
-                                onClick={() => {
-                                  if (confirm(`Unlink supplier from variant?`)) {
-                                    unlinkSupplierMutation.mutate(ps._id);
-                                  }
-                                }}
-                                disabled={unlinkSupplierMutation.isPending}
-                                className="text-gray-400 hover:text-red-600 text-[11px] font-medium transition"
-                              >
-                                Unlink
-                              </button>
-                            </div>
-                          ))}
-                        </div>
+                        {linkingVariantId !== variant._id && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setLinkingVariantId(variant._id);
+                              resetSupplierLinkForm();
+                            }}
+                            className="inline-flex items-center gap-1 text-[11px] font-semibold text-emerald-700 hover:text-emerald-900 transition"
+                          >
+                            <Plus className="w-3 h-3" /> Add Supplier
+                          </button>
+                        )}
                       </div>
-                    )}
+
+                      {/* Empty State */}
+                      {(!variant.suppliers || variant.suppliers.length === 0) && linkingVariantId !== variant._id && (
+                        <div className="p-3 bg-gray-50 rounded-lg border border-dashed border-gray-200 text-center text-xs text-gray-500">
+                          <p className="font-medium text-gray-700">No suppliers linked to this variant.</p>
+                          <p className="text-[11px] text-gray-400 mt-0.5">
+                            Connect vendors or distributors supplying this product variant.
+                          </p>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setLinkingVariantId(variant._id);
+                              resetSupplierLinkForm();
+                            }}
+                            className="mt-2 inline-flex items-center gap-1 px-2.5 py-1 text-xs font-semibold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 rounded border border-emerald-200 transition"
+                          >
+                            <Plus className="w-3.5 h-3.5" /> Add Supplier
+                          </button>
+                        </div>
+                      )}
+
+                      {/* Linked Suppliers List */}
+                      {variant.suppliers && variant.suppliers.length > 0 && (
+                        <div className="space-y-1.5">
+                          {variant.suppliers.map((ps: any) => {
+                            const isEditingPs = editingProductSupplierId === ps._id;
+
+                            if (isEditingPs) {
+                              return (
+                                <form
+                                  key={ps._id}
+                                  onSubmit={(e) => handleSaveProductSupplier(e, ps._id)}
+                                  className="p-3 bg-emerald-50/70 border border-emerald-300 rounded-lg space-y-2.5 text-xs"
+                                >
+                                  <div className="flex items-center justify-between border-b border-emerald-200 pb-1.5">
+                                    <span className="font-bold text-emerald-900">
+                                      Edit Supplier: {ps.supplierId?.name || "Supplier"}
+                                    </span>
+                                    <button
+                                      type="button"
+                                      onClick={() => setEditingProductSupplierId(null)}
+                                      className="text-gray-400 hover:text-gray-600"
+                                      aria-label="Cancel editing supplier"
+                                    >
+                                      <X className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+
+                                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                                    <div>
+                                      <label className="block text-[10px] font-semibold text-gray-600 mb-0.5">
+                                        Supplier SKU
+                                      </label>
+                                      <input
+                                        type="text"
+                                        placeholder="e.g. SUP-SKU"
+                                        value={editSupplierSku}
+                                        onChange={(e) => setEditSupplierSku(e.target.value)}
+                                        className="w-full px-2 py-1 border border-gray-300 rounded bg-white text-xs"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-[10px] font-semibold text-gray-600 mb-0.5">
+                                        Purchase Price (₹)
+                                      </label>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        step="any"
+                                        placeholder="e.g. 250"
+                                        value={editPurchasePrice}
+                                        onChange={(e) =>
+                                          setEditPurchasePrice(e.target.value === "" ? "" : Number(e.target.value))
+                                        }
+                                        className="w-full px-2 py-1 border border-gray-300 rounded bg-white text-xs"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="block text-[10px] font-semibold text-gray-600 mb-0.5">
+                                        Min Order Qty (MOQ)
+                                      </label>
+                                      <input
+                                        type="number"
+                                        min="1"
+                                        value={editMinimumOrderQuantity}
+                                        onChange={(e) => setEditMinimumOrderQuantity(Number(e.target.value))}
+                                        className="w-full px-2 py-1 border border-gray-300 rounded bg-white text-xs"
+                                      />
+                                    </div>
+                                  </div>
+
+                                  <div className="flex items-center justify-between pt-1">
+                                    <label className="flex items-center gap-1.5 text-xs text-gray-700 cursor-pointer">
+                                      <input
+                                        type="checkbox"
+                                        checked={editPreferred}
+                                        onChange={(e) => setEditPreferred(e.target.checked)}
+                                        className="rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                                      />
+                                      <span>Set as Preferred Supplier</span>
+                                    </label>
+
+                                    <div className="flex items-center gap-2">
+                                      <button
+                                        type="button"
+                                        onClick={() => setEditingProductSupplierId(null)}
+                                        className="px-2.5 py-1 text-xs border border-gray-300 text-gray-700 rounded hover:bg-gray-50 bg-white"
+                                      >
+                                        Cancel
+                                      </button>
+                                      <button
+                                        type="submit"
+                                        disabled={updateProductSupplierMutation.isPending}
+                                        className="px-2.5 py-1 text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 rounded transition"
+                                      >
+                                        {updateProductSupplierMutation.isPending ? "Saving..." : "Save"}
+                                      </button>
+                                    </div>
+                                  </div>
+                                </form>
+                              );
+                            }
+
+                            return (
+                              <div
+                                key={ps._id}
+                                className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 p-2.5 bg-gray-50 rounded-lg border border-gray-200 text-xs"
+                              >
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-2 flex-wrap">
+                                    <span className="font-semibold text-gray-900">
+                                      {ps.supplierId?.name || "Supplier"}
+                                    </span>
+                                    {ps.preferred && (
+                                      <span className="text-[10px] bg-emerald-100 text-emerald-800 font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
+                                        <CheckCircle className="w-2.5 h-2.5 text-emerald-600" /> Preferred
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  <div className="flex items-center gap-3 text-[11px] text-gray-500 flex-wrap">
+                                    {ps.supplierSku ? (
+                                      <span className="font-mono">
+                                        Supplier SKU: <strong className="text-gray-700">{ps.supplierSku}</strong>
+                                      </span>
+                                    ) : (
+                                      <span className="text-gray-400">No Supplier SKU</span>
+                                    )}
+
+                                    {ps.purchasePrice != null ? (
+                                      <span>
+                                        Purchase Price: <strong className="text-emerald-700">₹{ps.purchasePrice}</strong>
+                                      </span>
+                                    ) : null}
+
+                                    <span>
+                                      MOQ: <strong className="text-gray-700">{ps.minimumOrderQuantity || 1}</strong>
+                                    </span>
+                                  </div>
+                                </div>
+
+                                <div className="flex items-center gap-2 self-end sm:self-center shrink-0">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleStartEditProductSupplier(ps)}
+                                    className="px-2 py-1 text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50 rounded font-medium text-xs inline-flex items-center gap-1 transition"
+                                    title="Edit supplier relationship"
+                                  >
+                                    <Edit3 className="w-3 h-3" />
+                                    Edit
+                                  </button>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      if (
+                                        confirm(
+                                          `Remove supplier '${ps.supplierId?.name || "Supplier"}' from this variant?\n\n(The supplier master record will remain intact in the Supplier Directory)`
+                                        )
+                                      ) {
+                                        unlinkSupplierMutation.mutate(ps._id);
+                                      }
+                                    }}
+                                    disabled={unlinkSupplierMutation.isPending}
+                                    className="px-2 py-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded font-medium text-xs inline-flex items-center gap-1 transition"
+                                    title="Unlink Supplier"
+                                    aria-label="Unlink Supplier"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                    Remove
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                   </div>
                 ))}
               </div>
