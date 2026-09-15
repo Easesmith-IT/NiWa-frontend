@@ -365,4 +365,142 @@ export async function getInvoicePayments(invoiceId: string): Promise<PaymentItem
   return res.data.data;
 }
 
+// ==========================================
+// 4. SALES RETURNS
+// ==========================================
+
+export type ReturnStatus = "DRAFT" | "CONFIRMED" | "CANCELLED";
+export type ReturnItemCondition = "RESTOCKABLE" | "DAMAGED";
+
+export interface SalesReturnLineItem {
+  _id?: string;
+  productVariantId: string;
+  productId: string;
+  sku: string;
+  productName: string;
+  variantName: string;
+  unitId?: string | null;
+  unitCode?: string;
+  quantity: number;
+  unitPrice: number;
+  taxRatePercent: number;
+  subtotal: number;
+  taxAmount: number;
+  lineTotal: number;
+  condition: ReturnItemCondition;
+}
+
+export interface SalesReturnItem {
+  _id: string;
+  returnId: string;
+  salesOrderId: string | { _id: string; orderId: string };
+  invoiceId?: string | { _id: string; invoiceId: string } | null;
+  customer: CustomerSnapshot;
+  lines: SalesReturnLineItem[];
+  reason?: string | null;
+  status: ReturnStatus;
+  returnDate: string;
+  refundAmount: number;
+  confirmedAt?: string | null;
+  cancelledAt?: string | null;
+  cancelledReason?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateReturnLineInput {
+  productVariantId: string;
+  quantity: number;
+  condition?: ReturnItemCondition;
+}
+
+export interface CreateSalesReturnInput {
+  salesOrderId: string;
+  invoiceId?: string | null;
+  lines: CreateReturnLineInput[];
+  reason?: string | null;
+  returnDate?: string | null;
+}
+
+export interface ReturnFilterParams {
+  status?: string;
+  salesOrderId?: string;
+  invoiceId?: string;
+  customerId?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface PaginatedReturnsResponse {
+  data: SalesReturnItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+
+export interface ReturnableLineQuantity {
+  productVariantId: string;
+  sku: string;
+  productName: string;
+  variantName: string;
+  unitCode: string;
+  unitPrice: number;
+  soldQuantity: number;
+  confirmedReturnedQuantity: number;
+  remainingReturnableQuantity: number;
+}
+
+export interface ReturnableQuantitiesResponse {
+  order: SalesOrderItem;
+  returnableLines: ReturnableLineQuantity[];
+}
+
+export async function getSalesReturns(params?: ReturnFilterParams): Promise<PaginatedReturnsResponse> {
+  const res = await apiClient.get<{ success: boolean; data: PaginatedReturnsResponse }>("/api/sales/returns", {
+    params,
+  });
+  return res.data.data;
+}
+
+export async function getSalesReturn(id: string): Promise<SalesReturnItem> {
+  const res = await apiClient.get<{ success: boolean; data: SalesReturnItem }>(`/api/sales/returns/${id}`);
+  return res.data.data;
+}
+
+export async function createSalesReturn(data: CreateSalesReturnInput): Promise<SalesReturnItem> {
+  const res = await apiClient.post<{ success: boolean; data: SalesReturnItem }>("/api/sales/returns", data);
+  return res.data.data;
+}
+
+export async function confirmSalesReturn(id: string): Promise<SalesReturnItem> {
+  const res = await apiClient.post<{ success: boolean; data: SalesReturnItem }>(`/api/sales/returns/${id}/confirm`);
+  return res.data.data;
+}
+
+export async function cancelSalesReturn(id: string, reason?: string): Promise<SalesReturnItem> {
+  const res = await apiClient.post<{ success: boolean; data: SalesReturnItem }>(`/api/sales/returns/${id}/cancel`, {
+    reason,
+  });
+  return res.data.data;
+}
+
+export async function getOrderReturnableQuantities(orderId: string): Promise<ReturnableQuantitiesResponse> {
+  const res = await apiClient.get<{ success: boolean; data: ReturnableQuantitiesResponse }>(
+    `/api/sales/returns/order/${orderId}/returnable-quantities`
+  );
+  return res.data.data;
+}
+
+export async function getOrderReturns(orderId: string): Promise<PaginatedReturnsResponse> {
+  const res = await apiClient.get<{ success: boolean; data: PaginatedReturnsResponse }>(
+    `/api/sales/orders/${orderId}/returns`
+  );
+  return res.data.data;
+}
+
+
 

@@ -54,5 +54,9 @@ export const queryKeys = {
   payments: ["payments"] as const,
   payment: (id: string) => ["payments", id] as const,
   invoicePayments: (invoiceId: string) => ["invoices", invoiceId, "payments"] as const,
+  salesReturns: ["sales-returns"] as const,
+  salesReturn: (id: string) => ["sales-returns", id] as const,
+  orderReturns: (orderId: string) => ["sales-orders", orderId, "returns"] as const,
+  orderReturnableQuantities: (orderId: string) => ["sales-orders", orderId, "returnable-quantities"] as const,
 };
 

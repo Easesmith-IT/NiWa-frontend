@@ -18,7 +18,9 @@ import {
   Trash2,
   Eye,
   FileText,
+  RotateCcw,
 } from "lucide-react";
+import Link from "next/link";
 import {
   getSalesOrders,
   getSalesOrder,
@@ -26,7 +28,9 @@ import {
   confirmSalesOrder,
   fulfillSalesOrder,
   cancelSalesOrder,
+  getOrderReturns,
   SalesOrderItem,
+  SalesReturnItem,
   OrderStatus,
   CreateOrderLineInput,
 } from "lib/api/sales-api";
@@ -99,6 +103,13 @@ export default function SalesOrdersPage() {
     queryFn: () => (selectedOrderId ? getSalesOrder(selectedOrderId) : null),
     enabled: !!selectedOrderId,
   });
+
+  const { data: relatedReturnsData } = useQuery({
+    queryKey: activeOrder ? queryKeys.orderReturns(activeOrder.orderId) : ["null-order-returns"],
+    queryFn: () => (activeOrder ? getOrderReturns(activeOrder.orderId) : null),
+    enabled: !!activeOrder,
+  });
+  const relatedReturns: SalesReturnItem[] = relatedReturnsData?.data || [];
 
   const { data: locationsData } = useQuery({
     queryKey: queryKeys.locations,
@@ -969,6 +980,50 @@ export default function SalesOrdersPage() {
                     </div>
                   )}
 
+                  {/* Related Returns */}
+                  {relatedReturns && relatedReturns.length > 0 && (
+                    <div className="space-y-2">
+                      <div className="text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        Related Returns ({relatedReturns.length})
+                      </div>
+                      <div className="border border-slate-200 dark:border-slate-800 rounded-lg divide-y divide-slate-100 dark:divide-slate-800 bg-white dark:bg-slate-900 overflow-hidden text-xs">
+                        {relatedReturns.map((ret) => (
+                          <div key={ret.returnId} className="p-3 flex items-center justify-between">
+                            <div>
+                              <div className="font-semibold text-slate-800 dark:text-slate-200 font-mono">
+                                {ret.returnId}
+                              </div>
+                              <div className="text-[11px] text-slate-500">
+                                {new Date(ret.createdAt).toLocaleDateString()} • {ret.lines.length} items • ${ret.refundAmount.toFixed(2)}
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`inline-flex items-center px-2 py-0.5 rounded text-[10px] font-semibold ${
+                                  ret.status === "CONFIRMED"
+                                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300"
+                                    : ret.status === "DRAFT"
+                                    ? "bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300"
+                                    : "bg-rose-100 text-rose-800 dark:bg-rose-950/60 dark:text-rose-300"
+                                }`}
+                              >
+                                {ret.status}
+                              </span>
+                              <Link
+                                href="/sales/returns"
+                                className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                                title="View in Returns"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                              </Link>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Actions Bar */}
                   <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-2">
                     {activeOrder.status === "DRAFT" && (
@@ -1001,6 +1056,16 @@ export default function SalesOrdersPage() {
                           {cancelOrderMutation.isPending ? "Cancelling..." : "Cancel Order (Restore Stock)"}
                         </button>
                       </>
+                    )}
+
+                    {(activeOrder.status === "CONFIRMED" || activeOrder.status === "FULFILLED") && (
+                      <Link
+                        href={`/sales/returns?orderId=${activeOrder.orderId}`}
+                        className="w-full py-2 px-4 text-xs font-semibold rounded-lg border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-850 transition-colors flex items-center justify-center gap-2 text-center"
+                      >
+                        <RotateCcw className="w-3.5 h-3.5" />
+                        Create Sales Return
+                      </Link>
                     )}
 
                     {activeOrder.status === "FULFILLED" && (

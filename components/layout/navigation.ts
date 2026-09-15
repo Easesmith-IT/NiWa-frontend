@@ -28,6 +28,7 @@ import {
   ShoppingBag,
   FileText,
   CreditCard,
+  RotateCcw,
 } from "lucide-react";
 
 
@@ -149,6 +150,13 @@ export const navigationGroups: NavigationGroup[] = [
         icon: CreditCard,
         label: "Payments",
         description: "Payment collection, receipt records, and invoice settlements.",
+        moduleKey: "sales",
+      },
+      {
+        href: "/sales/returns",
+        icon: RotateCcw,
+        label: "Returns",
+        description: "Customer returns, product restocking, and credit tracking.",
         moduleKey: "sales",
       },
     ],
