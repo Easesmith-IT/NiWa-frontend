@@ -3,8 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Scale, Plus, Save, Trash2, ArrowLeft, Edit3, X, Package, Layers, Tag, Truck } from "lucide-react";
-import { productsApi, UnitItem } from "lib/api/products-api";
+import { Scale, Plus, Save, Trash2, ArrowLeft, Edit3, X, Package, Layers, Tag, Truck, Sparkles, Loader2 } from "lucide-react";
+import { productsApi, UnitItem, STANDARD_UNITS } from "lib/api/products-api";
 import { queryKeys } from "lib/api/query-keys";
 
 export default function UnitsPage() {
@@ -13,6 +13,7 @@ export default function UnitsPage() {
   const [code, setCode] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
   const [showForm, setShowForm] = useState(false);
+  const [isSeeding, setIsSeeding] = useState(false);
 
   // Edit unit state
   const [editingUnit, setEditingUnit] = useState<UnitItem | null>(null);
@@ -105,6 +106,31 @@ export default function UnitsPage() {
     });
   };
 
+  const handleSeedStandardUnits = async () => {
+    setErrorMsg("");
+    setIsSeeding(true);
+    try {
+      for (const std of STANDARD_UNITS) {
+        const alreadyExists = units.some((u) => u.code.toUpperCase() === std.code.toUpperCase());
+        if (!alreadyExists) {
+          try {
+            await productsApi.createUnit({
+              name: std.name,
+              code: std.code,
+            });
+          } catch {
+            // Ignore if duplicate
+          }
+        }
+      }
+      await queryClient.invalidateQueries({ queryKey: queryKeys.units });
+    } catch (err: any) {
+      setErrorMsg(err.response?.data?.message || err.message || "Failed to add standard units");
+    } finally {
+      setIsSeeding(false);
+    }
+  };
+
   return (
     <div className="p-6 max-w-5xl mx-auto space-y-6">
       {/* Header */}
@@ -124,16 +150,26 @@ export default function UnitsPage() {
             <p className="text-xs text-gray-500">Manage units for product inventory packaging and pricing.</p>
           </div>
         </div>
-        <button
-          onClick={() => {
-            setShowForm(!showForm);
-            setEditingUnit(null);
-          }}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-medium text-sm rounded-lg hover:bg-indigo-700 transition"
-        >
-          <Plus className="w-4 h-4" />
-          {showForm ? "Cancel" : "Add Unit"}
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={handleSeedStandardUnits}
+            disabled={isSeeding}
+            className="inline-flex items-center gap-2 px-3.5 py-2 bg-indigo-50 border border-indigo-200 text-indigo-700 font-medium text-sm rounded-lg hover:bg-indigo-100 transition disabled:opacity-50"
+          >
+            {isSeeding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4 text-indigo-600" />}
+            Add Standard Units
+          </button>
+          <button
+            onClick={() => {
+              setShowForm(!showForm);
+              setEditingUnit(null);
+            }}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-medium text-sm rounded-lg hover:bg-indigo-700 transition"
+          >
+            <Plus className="w-4 h-4" />
+            {showForm ? "Cancel" : "Add Unit"}
+          </button>
+        </div>
       </div>
 
       {/* Quick Nav Sub-bar */}
@@ -187,6 +223,33 @@ export default function UnitsPage() {
           <h2 className="text-sm font-semibold text-gray-900 border-b border-gray-100 pb-2">
             Create Unit of Measurement
           </h2>
+
+          {/* Preset Chips */}
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1.5">
+              Common Presets (Click to autofill)
+            </label>
+            <div className="flex flex-wrap gap-1.5">
+              {STANDARD_UNITS.map((preset) => (
+                <button
+                  key={preset.code}
+                  type="button"
+                  onClick={() => {
+                    setName(preset.name);
+                    setCode(preset.code);
+                  }}
+                  className={`text-xs px-2.5 py-1 rounded-full border transition ${
+                    code.toUpperCase() === preset.code
+                      ? "bg-indigo-50 border-indigo-300 text-indigo-700 font-semibold"
+                      : "bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100"
+                  }`}
+                >
+                  {preset.name} ({preset.code})
+                </button>
+              ))}
+            </div>
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">
@@ -302,7 +365,26 @@ export default function UnitsPage() {
         {isLoading ? (
           <div className="p-8 text-center text-gray-500">Loading units...</div>
         ) : units.length === 0 ? (
-          <div className="p-8 text-center text-gray-500">No units created yet.</div>
+          <div className="p-12 text-center space-y-3">
+            <div className="w-12 h-12 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mx-auto">
+              <Scale className="w-6 h-6" />
+            </div>
+            <h3 className="font-semibold text-gray-900 text-base">No units of measurement yet</h3>
+            <p className="text-xs text-gray-500 max-w-sm mx-auto">
+              Units are required for product creation, pricing, and inventory management. Add standard industry units in one click.
+            </p>
+            <div className="pt-2 flex justify-center gap-3">
+              <button
+                type="button"
+                onClick={handleSeedStandardUnits}
+                disabled={isSeeding}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white font-medium text-xs rounded-lg hover:bg-indigo-700 transition disabled:opacity-50"
+              >
+                {isSeeding ? <Loader2 className="w-4 h-4 animate-spin" /> : <Sparkles className="w-4 h-4" />}
+                Add Standard Units (Piece, Box, KG...)
+              </button>
+            </div>
+          </div>
         ) : (
           <table className="w-full text-left text-sm text-gray-600">
             <thead className="bg-gray-50 text-xs uppercase text-gray-500 border-b border-gray-200">

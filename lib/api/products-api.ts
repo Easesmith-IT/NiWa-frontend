@@ -58,6 +58,19 @@ export interface UnitItem {
   status: "ACTIVE" | "INACTIVE" | "ARCHIVED";
 }
 
+export const STANDARD_UNITS = [
+  { name: "Piece", code: "PCS" },
+  { name: "Box", code: "BOX" },
+  { name: "Kilogram", code: "KG" },
+  { name: "Gram", code: "G" },
+  { name: "Liter", code: "LTR" },
+  { name: "Milliliter", code: "ML" },
+  { name: "Meter", code: "M" },
+  { name: "Pack", code: "PAC" },
+  { name: "Dozen", code: "DOZ" },
+  { name: "Set", code: "SET" },
+] as const;
+
 export interface SupplierItem {
   _id: string;
   supplierId: string;
