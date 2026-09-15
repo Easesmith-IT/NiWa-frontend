@@ -46,4 +46,7 @@ export const queryKeys = {
   inventoryLevel: (id: string) => ["inventory-levels", id] as const,
   inventoryItems: ["inventory-items"] as const,
   stockMovements: ["stock-movements"] as const,
+  salesOrders: ["sales-orders"] as const,
+  salesOrder: (id: string) => ["sales-orders", id] as const,
+  quotes: ["quotes"] as const,
 };

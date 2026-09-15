@@ -25,6 +25,7 @@ import {
   Boxes,
   MapPin,
   History,
+  ShoppingBag,
 } from "lucide-react";
 
 export interface NavigationItem {
@@ -119,6 +120,19 @@ export const navigationGroups: NavigationGroup[] = [
         label: "Movements",
         description: "Stock movement ledger and audit history.",
         moduleKey: "inventory",
+      },
+    ],
+  },
+  {
+    label: "Sales",
+    moduleKey: "sales",
+    items: [
+      {
+        href: "/sales/orders",
+        icon: ShoppingBag,
+        label: "Sales Orders",
+        description: "Commercial orders, status tracking, and inventory fulfillment.",
+        moduleKey: "sales",
       },
     ],
   },
