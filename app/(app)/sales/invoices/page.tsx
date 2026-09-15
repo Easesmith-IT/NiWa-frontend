@@ -18,6 +18,7 @@ import {
   DollarSign,
   Trash2,
   CreditCard,
+  Printer,
 } from "lucide-react";
 import {
   getInvoices,
@@ -39,6 +40,8 @@ import {
 import { productsApi, ProductItem } from "lib/api/products-api";
 import { apiClient } from "lib/api/api-client";
 import { queryKeys } from "lib/api/query-keys";
+import { InvoicePrintPreviewModal } from "components/sales/InvoicePrintPreviewModal";
+import { getDueDateStatus } from "features/sales/utils/due-date-helper";
 
 interface VariantOption {
   _id: string;
@@ -78,6 +81,7 @@ export default function InvoicesPage() {
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const [actionError, setActionError] = useState<string | null>(null);
+  const [previewInvoice, setPreviewInvoice] = useState<InvoiceItem | null>(null);
 
   // Convert Order form state
   const [convertOrderId, setConvertOrderId] = useState<string>("");
@@ -317,6 +321,26 @@ export default function InvoicesPage() {
     );
   }
 
+  function handleUpdateLineUnitPrice(index: number, unitPrice: number) {
+    setInvoiceLines((prev) =>
+      prev.map((line, idx) => (idx === index ? { ...line, unitPrice: Math.max(0, isNaN(unitPrice) ? 0 : unitPrice) } : line))
+    );
+  }
+
+  function handleUpdateLineDiscount(index: number, discountValue: number) {
+    const clamped = Math.max(0, Math.min(100, isNaN(discountValue) ? 0 : discountValue));
+    setInvoiceLines((prev) =>
+      prev.map((line, idx) => (idx === index ? { ...line, discountValue: clamped } : line))
+    );
+  }
+
+  function handleUpdateLineTax(index: number, taxRatePercent: number) {
+    const clamped = Math.max(0, Math.min(100, isNaN(taxRatePercent) ? 0 : taxRatePercent));
+    setInvoiceLines((prev) =>
+      prev.map((line, idx) => (idx === index ? { ...line, taxRatePercent: clamped } : line))
+    );
+  }
+
   function handleRemoveLine(index: number) {
     setInvoiceLines((prev) => prev.filter((_, idx) => idx !== index));
   }
@@ -543,7 +567,34 @@ export default function InvoicesPage() {
                       ${inv.balanceDue.toFixed(2)}
                     </td>
                     <td className="px-6 py-4 text-neutral-500 text-xs">
-                      {inv.dueDate ? new Date(inv.dueDate).toLocaleDateString() : "—"}
+                      <div className="flex flex-col gap-1">
+                        <span>{inv.dueDate ? new Date(inv.dueDate).toLocaleDateString() : "—"}</span>
+                        {(() => {
+                          const dueInfo = getDueDateStatus(inv.dueDate, inv.paymentStatus);
+                          if (dueInfo.status === "OVERDUE") {
+                            return (
+                              <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300 w-fit">
+                                {dueInfo.label}
+                              </span>
+                            );
+                          }
+                          if (dueInfo.status === "DUE_TODAY") {
+                            return (
+                              <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 w-fit">
+                                {dueInfo.label}
+                              </span>
+                            );
+                          }
+                          if (dueInfo.status === "DUE_SOON") {
+                            return (
+                              <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold bg-blue-100 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300 w-fit">
+                                {dueInfo.label}
+                              </span>
+                            );
+                          }
+                          return null;
+                        })()}
+                      </div>
                     </td>
                     <td className="px-6 py-4 text-right">
                       <div className="flex items-center justify-end gap-1.5">
@@ -563,8 +614,19 @@ export default function InvoicesPage() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
+                            setPreviewInvoice(inv);
+                          }}
+                          title="Print / PDF Preview"
+                          className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
+                        >
+                          <Printer className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setSelectedInvoiceId(inv._id);
                           }}
+                          title="View Details"
                           className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
                         >
                           <Eye className="w-4 h-4" />
@@ -603,12 +665,22 @@ export default function InvoicesPage() {
                         {activeInvoice.issuedAt && ` • Issued on ${new Date(activeInvoice.issuedAt).toLocaleString()}`}
                       </p>
                     </div>
-                    <button
-                      onClick={() => setSelectedInvoiceId(null)}
-                      className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-800"
-                    >
-                      <XCircle className="w-5 h-5" />
-                    </button>
+                    <div className="flex items-center gap-1.5">
+                      <button
+                        onClick={() => setPreviewInvoice(activeInvoice)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 text-neutral-700 dark:text-neutral-300 transition"
+                        title="Print / PDF Preview"
+                      >
+                        <Printer className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                        <span>Print</span>
+                      </button>
+                      <button
+                        onClick={() => setSelectedInvoiceId(null)}
+                        className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-800"
+                      >
+                        <XCircle className="w-5 h-5" />
+                      </button>
+                    </div>
                   </div>
 
                   {/* Customer Snapshot */}
@@ -1054,45 +1126,86 @@ export default function InvoicesPage() {
                   No items added yet. Click &quot;+ Add&quot; above to select products.
                 </div>
               ) : (
-                <div className="rounded-lg border border-neutral-200 dark:border-neutral-800 overflow-hidden text-xs">
+                <div className="rounded-lg border border-neutral-200 dark:border-neutral-800 overflow-x-auto text-xs">
                   <table className="w-full text-left">
                     <thead className="bg-neutral-50 dark:bg-neutral-800 text-neutral-500 border-b border-neutral-200 dark:border-neutral-800">
                       <tr>
                         <th className="p-2">Item</th>
-                        <th className="p-2 w-20">Qty</th>
-                        <th className="p-2 text-right">Unit Price</th>
+                        <th className="p-2 w-16">Qty</th>
+                        <th className="p-2 w-24 text-right">Price ($)</th>
+                        <th className="p-2 w-20 text-right">Disc %</th>
+                        <th className="p-2 w-20 text-right">Tax %</th>
                         <th className="p-2 text-right">Line Total</th>
-                        <th className="p-2 text-right w-12">Action</th>
+                        <th className="p-2 text-right w-10">Action</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-neutral-200 dark:divide-neutral-800">
-                      {invoiceLines.map((l, idx) => (
-                        <tr key={idx}>
-                          <td className="p-2 font-medium">{l.variantName}</td>
-                          <td className="p-2">
-                            <input
-                              type="number"
-                              min={1}
-                              value={l.quantity}
-                              onChange={(e) => handleUpdateLineQuantity(idx, parseInt(e.target.value) || 1)}
-                              className="w-16 px-1.5 py-1 rounded border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900"
-                            />
-                          </td>
-                          <td className="p-2 text-right font-mono">${l.unitPrice.toFixed(2)}</td>
-                          <td className="p-2 text-right font-medium font-mono">
-                            ${(l.quantity * l.unitPrice).toFixed(2)}
-                          </td>
-                          <td className="p-2 text-right">
-                            <button
-                              type="button"
-                              onClick={() => handleRemoveLine(idx)}
-                              className="text-red-500 hover:text-red-700 p-1"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
+                      {invoiceLines.map((l, idx) => {
+                        const lineBase = l.quantity * l.unitPrice;
+                        const lineDisc = (lineBase * (l.discountValue || 0)) / 100;
+                        const lineNet = lineBase - lineDisc;
+                        const lineTax = (lineNet * (l.taxRatePercent || 0)) / 100;
+                        const lineTotal = lineNet + lineTax;
+
+                        return (
+                          <tr key={idx}>
+                            <td className="p-2 font-medium">{l.variantName}</td>
+                            <td className="p-2">
+                              <input
+                                type="number"
+                                min={1}
+                                value={l.quantity}
+                                onChange={(e) => handleUpdateLineQuantity(idx, parseInt(e.target.value) || 1)}
+                                className="w-14 px-1.5 py-1 rounded border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-center"
+                              />
+                            </td>
+                            <td className="p-2 text-right">
+                              <input
+                                type="number"
+                                min={0}
+                                step="0.01"
+                                value={l.unitPrice}
+                                onChange={(e) => handleUpdateLineUnitPrice(idx, parseFloat(e.target.value) || 0)}
+                                className="w-20 px-1.5 py-1 text-right font-mono rounded border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900"
+                              />
+                            </td>
+                            <td className="p-2 text-right">
+                              <input
+                                type="number"
+                                min={0}
+                                max={100}
+                                step="1"
+                                value={l.discountValue || 0}
+                                onChange={(e) => handleUpdateLineDiscount(idx, parseFloat(e.target.value) || 0)}
+                                className="w-16 px-1.5 py-1 text-right font-mono rounded border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900"
+                              />
+                            </td>
+                            <td className="p-2 text-right">
+                              <input
+                                type="number"
+                                min={0}
+                                max={100}
+                                step="0.5"
+                                value={l.taxRatePercent || 0}
+                                onChange={(e) => handleUpdateLineTax(idx, parseFloat(e.target.value) || 0)}
+                                className="w-16 px-1.5 py-1 text-right font-mono rounded border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900"
+                              />
+                            </td>
+                            <td className="p-2 text-right font-medium font-mono">
+                              ${lineTotal.toFixed(2)}
+                            </td>
+                            <td className="p-2 text-right">
+                              <button
+                                type="button"
+                                onClick={() => handleRemoveLine(idx)}
+                                className="text-red-500 hover:text-red-700 p-1"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -1101,14 +1214,26 @@ export default function InvoicesPage() {
 
             {/* Live Financial Rollup */}
             {invoiceLines.length > 0 && (
-              <div className="bg-neutral-50 dark:bg-neutral-800/40 p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 text-xs space-y-1">
-                <div className="flex justify-between">
+              <div className="bg-neutral-50 dark:bg-neutral-800/40 p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 text-xs space-y-1.5">
+                <div className="flex justify-between text-neutral-600 dark:text-neutral-400">
                   <span>Subtotal:</span>
-                  <span>${previewSubtotal.toFixed(2)}</span>
+                  <span className="font-mono">${previewSubtotal.toFixed(2)}</span>
                 </div>
-                <div className="flex justify-between text-sm font-bold pt-1 border-t border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-neutral-100">
+                {previewDiscount > 0 && (
+                  <div className="flex justify-between text-amber-600 dark:text-amber-400">
+                    <span>Discount:</span>
+                    <span className="font-mono">-${previewDiscount.toFixed(2)}</span>
+                  </div>
+                )}
+                {previewTax > 0 && (
+                  <div className="flex justify-between text-neutral-500 dark:text-neutral-400">
+                    <span>Tax:</span>
+                    <span className="font-mono">+${previewTax.toFixed(2)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between text-sm font-bold pt-1.5 border-t border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-neutral-100">
                   <span>Grand Total:</span>
-                  <span>${previewGrandTotal.toFixed(2)}</span>
+                  <span className="font-mono text-emerald-600 dark:text-emerald-400">${previewGrandTotal.toFixed(2)}</span>
                 </div>
               </div>
             )}
@@ -1358,6 +1483,30 @@ export default function InvoicesPage() {
           </div>
         </div>
       )}
+
+      {/* Invoice Document Print / Preview Modal */}
+      <InvoicePrintPreviewModal
+        isOpen={!!previewInvoice}
+        invoice={previewInvoice}
+        onClose={() => setPreviewInvoice(null)}
+        onIssueInvoice={
+          previewInvoice?.status === "DRAFT"
+            ? (id) => {
+                issueInvoiceMutation.mutate(id);
+                setPreviewInvoice((prev) => (prev ? { ...prev, status: "ISSUED" as InvoiceStatus } : null));
+              }
+            : undefined
+        }
+        onRecordPayment={
+          previewInvoice?.status === "ISSUED" && previewInvoice?.paymentStatus !== "PAID"
+            ? (inv) => {
+                setPreviewInvoice(null);
+                openPaymentModal(inv);
+              }
+            : undefined
+        }
+        isIssuing={issueInvoiceMutation.isPending}
+      />
     </div>
   );
 
