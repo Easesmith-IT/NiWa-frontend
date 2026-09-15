@@ -502,5 +502,43 @@ export async function getOrderReturns(orderId: string): Promise<PaginatedReturns
   return res.data.data;
 }
 
+// ==========================================
+// WORKSPACE INVOICE SETTINGS
+// ==========================================
 
+export interface WorkspaceInvoiceSettings {
+  workspaceId?: string;
+  businessName?: string | null;
+  address?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  taxId?: string | null;
+  website?: string | null;
+  bankName?: string | null;
+  accountHolderName?: string | null;
+  accountNumber?: string | null;
+  ifscOrRoutingCode?: string | null;
+  swiftCode?: string | null;
+  upiId?: string | null;
+  paymentTerms?: string | null;
+  paymentNotes?: string | null;
+}
 
+export type UpdateInvoiceSettingsInput = Partial<WorkspaceInvoiceSettings>;
+
+export async function getInvoiceSettings(): Promise<WorkspaceInvoiceSettings | null> {
+  const res = await apiClient.get<{ success: boolean; data: WorkspaceInvoiceSettings | null }>(
+    "/api/sales/invoices/settings"
+  );
+  return res.data?.data || null;
+}
+
+export async function updateInvoiceSettings(
+  data: UpdateInvoiceSettingsInput
+): Promise<WorkspaceInvoiceSettings> {
+  const res = await apiClient.put<{ success: boolean; data: WorkspaceInvoiceSettings }>(
+    "/api/sales/invoices/settings",
+    data
+  );
+  return res.data.data;
+}

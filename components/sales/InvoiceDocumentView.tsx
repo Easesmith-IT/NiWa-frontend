@@ -57,35 +57,26 @@ export interface InvoiceDocumentViewProps {
   className?: string;
 }
 
-const DEFAULT_BUSINESS_INFO: BusinessInfo = {
-  name: "NiWa Enterprise",
-  shortName: "NW",
-  address: "Digital Business Console, Multi-Tenant Cloud",
-  email: "billing@niwa.local",
-  phone: "+1 (555) 019-2834",
-  taxId: "TAX-ID-99218204",
-};
-
-const DEFAULT_PAYMENT_INSTRUCTIONS: PaymentInstructions = {
-  bankName: "Commercial Business Bank",
-  accountHolder: "NiWa Operations Ltd",
-  accountNumber: "9823-4412-0091-88",
-  routingOrIfsc: "CBBN000129",
-  swiftBic: "CBBNUS33",
-  upiId: "niwa.billing@bank",
-  notes: "Please include the Invoice ID as the transaction reference when transferring funds.",
-};
-
 export function InvoiceDocumentView({
   invoice,
-  businessInfo = DEFAULT_BUSINESS_INFO,
-  paymentInstructions = DEFAULT_PAYMENT_INSTRUCTIONS,
+  businessInfo,
+  paymentInstructions,
   showWatermark = true,
   className = "",
 }: InvoiceDocumentViewProps) {
   const isPaid = invoice.paymentStatus === "PAID";
   const isVoid = invoice.status === "VOID";
   const isDraft = invoice.status === "DRAFT";
+
+  const hasPaymentDetails = Boolean(
+    paymentInstructions?.bankName ||
+      paymentInstructions?.accountHolder ||
+      paymentInstructions?.accountNumber ||
+      paymentInstructions?.routingOrIfsc ||
+      paymentInstructions?.swiftBic ||
+      paymentInstructions?.upiId ||
+      paymentInstructions?.notes
+  );
 
   return (
     <div
@@ -116,21 +107,32 @@ export function InvoiceDocumentView({
         <div className="space-y-1.5 max-w-sm">
           <div className="flex items-center gap-2">
             <div className="w-8 h-8 rounded-lg bg-emerald-600 text-white font-bold flex items-center justify-center text-sm shadow-sm print:bg-neutral-900">
-              {businessInfo.shortName || "NW"}
+              {businessInfo?.shortName ||
+                (businessInfo?.name
+                  ? businessInfo.name.substring(0, 2).toUpperCase()
+                  : "NW")}
             </div>
-            <h1 className="text-xl font-bold tracking-tight text-neutral-900">
-              {businessInfo.name}
-            </h1>
+            {businessInfo?.name ? (
+              <h1 className="text-xl font-bold tracking-tight text-neutral-900">
+                {businessInfo.name}
+              </h1>
+            ) : (
+              <h1 className="text-sm font-medium tracking-tight text-neutral-400 italic">
+                Business details not configured
+              </h1>
+            )}
           </div>
-          <p className="text-xs text-neutral-500 leading-relaxed">
-            {businessInfo.address}
-          </p>
-          {(businessInfo.email || businessInfo.phone) && (
+          {businessInfo?.address && (
+            <p className="text-xs text-neutral-500 leading-relaxed">
+              {businessInfo.address}
+            </p>
+          )}
+          {(businessInfo?.email || businessInfo?.phone) && (
             <p className="text-xs text-neutral-500">
               {businessInfo.email} {businessInfo.phone && `• ${businessInfo.phone}`}
             </p>
           )}
-          {businessInfo.taxId && (
+          {businessInfo?.taxId && (
             <p className="text-[11px] text-neutral-400 font-mono">
               Tax ID / VAT: {businessInfo.taxId}
             </p>
@@ -328,50 +330,56 @@ export function InvoiceDocumentView({
           <div className="font-semibold uppercase tracking-wider text-neutral-500 text-[11px]">
             Payment Instructions
           </div>
-          <div className="space-y-1 text-neutral-700">
-            {paymentInstructions.bankName && (
-              <div>
-                <span className="text-neutral-500">Bank:</span>{" "}
-                <span className="font-medium">{paymentInstructions.bankName}</span>
-              </div>
-            )}
-            {paymentInstructions.accountHolder && (
-              <div>
-                <span className="text-neutral-500">Account Name:</span>{" "}
-                <span className="font-medium">{paymentInstructions.accountHolder}</span>
-              </div>
-            )}
-            {paymentInstructions.accountNumber && (
-              <div>
-                <span className="text-neutral-500">Account #:</span>{" "}
-                <span className="font-mono font-medium">{paymentInstructions.accountNumber}</span>
-              </div>
-            )}
-            {paymentInstructions.routingOrIfsc && (
-              <div>
-                <span className="text-neutral-500">IFSC / Routing:</span>{" "}
-                <span className="font-mono">{paymentInstructions.routingOrIfsc}</span>
-              </div>
-            )}
-            {paymentInstructions.swiftBic && (
-              <div>
-                <span className="text-neutral-500">SWIFT / BIC:</span>{" "}
-                <span className="font-mono">{paymentInstructions.swiftBic}</span>
-              </div>
-            )}
-            {paymentInstructions.upiId && (
-              <div>
-                <span className="text-neutral-500">UPI ID:</span>{" "}
-                <span className="font-mono font-medium text-emerald-700">
-                  {paymentInstructions.upiId}
-                </span>
-              </div>
-            )}
-          </div>
-          {paymentInstructions.notes && (
-            <p className="text-[11px] text-neutral-500 italic pt-1 border-t border-neutral-200">
-              {paymentInstructions.notes}
-            </p>
+          {hasPaymentDetails ? (
+            <div className="space-y-1 text-neutral-700">
+              {paymentInstructions?.bankName && (
+                <div>
+                  <span className="text-neutral-500">Bank:</span>{" "}
+                  <span className="font-medium">{paymentInstructions.bankName}</span>
+                </div>
+              )}
+              {paymentInstructions?.accountHolder && (
+                <div>
+                  <span className="text-neutral-500">Account Name:</span>{" "}
+                  <span className="font-medium">{paymentInstructions.accountHolder}</span>
+                </div>
+              )}
+              {paymentInstructions?.accountNumber && (
+                <div>
+                  <span className="text-neutral-500">Account #:</span>{" "}
+                  <span className="font-mono font-medium">{paymentInstructions.accountNumber}</span>
+                </div>
+              )}
+              {paymentInstructions?.routingOrIfsc && (
+                <div>
+                  <span className="text-neutral-500">IFSC / Routing:</span>{" "}
+                  <span className="font-mono">{paymentInstructions.routingOrIfsc}</span>
+                </div>
+              )}
+              {paymentInstructions?.swiftBic && (
+                <div>
+                  <span className="text-neutral-500">SWIFT / BIC:</span>{" "}
+                  <span className="font-mono">{paymentInstructions.swiftBic}</span>
+                </div>
+              )}
+              {paymentInstructions?.upiId && (
+                <div>
+                  <span className="text-neutral-500">UPI ID:</span>{" "}
+                  <span className="font-mono font-medium text-emerald-700">
+                    {paymentInstructions.upiId}
+                  </span>
+                </div>
+              )}
+              {paymentInstructions?.notes && (
+                <p className="text-[11px] text-neutral-500 italic pt-1 border-t border-neutral-200">
+                  {paymentInstructions.notes}
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="text-neutral-400 italic py-2 text-xs">
+              Payment details not configured
+            </div>
           )}
         </div>
 
@@ -451,7 +459,7 @@ export function InvoiceDocumentView({
             {/* Signature space */}
           </div>
           <p className="font-semibold text-neutral-800 text-[11px]">Authorized Signatory</p>
-          <p className="text-neutral-400 text-[10px]">{businessInfo.name}</p>
+          <p className="text-neutral-400 text-[10px]">{businessInfo?.name || ""}</p>
         </div>
       </div>
 

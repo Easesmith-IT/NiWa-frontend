@@ -6,3 +6,4 @@ export * from "./components/SettingsHeader";
 export * from "./components/OperatorProfileCard";
 export * from "./components/SecurityCredentialsCard";
 export * from "./components/MetaCredentialsCard";
+export * from "./components/InvoiceSettingsCard";

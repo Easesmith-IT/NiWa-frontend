@@ -18,7 +18,7 @@
  * Copyright (c) 2025 Evaldas L.
  */
 
-import React from "react";
+import React, { useEffect } from "react";
 import { InvoiceItem } from "lib/api/sales-api";
 import { InvoiceDocumentView, BusinessInfo, PaymentInstructions } from "./InvoiceDocumentView";
 import { Printer, X, CreditCard, CheckCircle2, ArrowRight } from "lucide-react";
@@ -44,6 +44,21 @@ export function InvoicePrintPreviewModal({
   businessInfo,
   paymentInstructions,
 }: InvoicePrintPreviewModalProps) {
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
   if (!isOpen || !invoice) return null;
 
   const handlePrint = () => {
@@ -53,8 +68,21 @@ export function InvoicePrintPreviewModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-6 print:p-0 print:bg-white print:static print:overflow-visible">
-      <div className="bg-white dark:bg-neutral-900 rounded-2xl w-full max-w-5xl shadow-2xl border border-neutral-200 dark:border-neutral-800 flex flex-col max-h-[95vh] print:max-h-none print:shadow-none print:border-none print:w-full print:rounded-none">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`Invoice Preview ${invoice.invoiceId}`}
+      onClick={(e) => {
+        if (e.target === e.currentTarget) {
+          onClose();
+        }
+      }}
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-6 print:p-0 print:bg-white print:static print:overflow-visible cursor-pointer"
+    >
+      <div
+        onClick={(e) => e.stopPropagation()}
+        className="bg-white dark:bg-neutral-900 rounded-2xl w-full max-w-5xl shadow-2xl border border-neutral-200 dark:border-neutral-800 flex flex-col max-h-[95vh] print:max-h-none print:shadow-none print:border-none print:w-full print:rounded-none cursor-default"
+      >
         {/* Modal Toolbar (Stripped during print) */}
         <div className="no-print flex justify-between items-center px-6 py-4 border-b border-neutral-200 dark:border-neutral-800 bg-neutral-50/80 dark:bg-neutral-800/50 rounded-t-2xl">
           <div className="flex items-center gap-3">

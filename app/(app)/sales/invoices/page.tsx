@@ -29,6 +29,7 @@ import {
   cancelInvoice,
   recordPayment,
   getInvoicePayments,
+  getInvoiceSettings,
   InvoiceItem,
   InvoiceStatus,
   PaymentStatus,
@@ -41,6 +42,7 @@ import { productsApi, ProductItem } from "lib/api/products-api";
 import { apiClient } from "lib/api/api-client";
 import { queryKeys } from "lib/api/query-keys";
 import { InvoicePrintPreviewModal } from "components/sales/InvoicePrintPreviewModal";
+import { BusinessInfo, PaymentInstructions } from "components/sales/InvoiceDocumentView";
 import { getDueDateStatus } from "features/sales/utils/due-date-helper";
 
 interface VariantOption {
@@ -181,6 +183,31 @@ export default function InvoicesPage() {
     },
     enabled: isConvertModalOpen,
   });
+
+  // Query Workspace Invoice Settings for print/preview presentation
+  const { data: invoiceSettings } = useQuery({
+    queryKey: queryKeys.invoiceSettings,
+    queryFn: getInvoiceSettings,
+  });
+
+  const businessInfo: BusinessInfo | undefined = invoiceSettings ? {
+    name: invoiceSettings.businessName ?? undefined,
+    address: invoiceSettings.address ?? undefined,
+    email: invoiceSettings.email ?? undefined,
+    phone: invoiceSettings.phone ?? undefined,
+    taxId: invoiceSettings.taxId ?? undefined,
+    website: invoiceSettings.website ?? undefined,
+  } : undefined;
+
+  const paymentInstructions: PaymentInstructions | undefined = invoiceSettings ? {
+    bankName: invoiceSettings.bankName ?? undefined,
+    accountHolder: invoiceSettings.accountHolderName ?? undefined,
+    accountNumber: invoiceSettings.accountNumber ?? undefined,
+    routingOrIfsc: invoiceSettings.ifscOrRoutingCode ?? undefined,
+    swiftBic: invoiceSettings.swiftCode ?? undefined,
+    upiId: invoiceSettings.upiId ?? undefined,
+    notes: invoiceSettings.paymentNotes ?? invoiceSettings.paymentTerms ?? undefined,
+  } : undefined;
 
   // Mutations
   const createInvoiceMutation = useMutation({
@@ -570,7 +597,7 @@ export default function InvoicesPage() {
                       <div className="flex flex-col gap-1">
                         <span>{inv.dueDate ? new Date(inv.dueDate).toLocaleDateString() : "—"}</span>
                         {(() => {
-                          const dueInfo = getDueDateStatus(inv.dueDate, inv.paymentStatus);
+                          const dueInfo = getDueDateStatus(inv.dueDate, inv.paymentStatus, inv.status);
                           if (dueInfo.status === "OVERDUE") {
                             return (
                               <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold bg-red-100 text-red-700 dark:bg-red-950/60 dark:text-red-300 w-fit">
@@ -1489,6 +1516,8 @@ export default function InvoicesPage() {
         isOpen={!!previewInvoice}
         invoice={previewInvoice}
         onClose={() => setPreviewInvoice(null)}
+        businessInfo={businessInfo}
+        paymentInstructions={paymentInstructions}
         onIssueInvoice={
           previewInvoice?.status === "DRAFT"
             ? (id) => {

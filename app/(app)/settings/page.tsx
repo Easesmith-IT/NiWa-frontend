@@ -5,6 +5,7 @@ import {
   OperatorProfileCard,
   SecurityCredentialsCard,
   SettingsHeader,
+  InvoiceSettingsCard,
   useSettingsOrchestration,
 } from "../../../features/settings";
 import { WhatsAppSettingsModule } from "../../../features/whatsapp-connections/WhatsAppSettingsModule";
@@ -32,6 +33,9 @@ export default function SettingsPage() {
 
       {/* Meta WABA Credentials Card */}
       <MetaCredentialsCard meta={meta} />
+
+      {/* Workspace Invoice & Payment Presentation Settings Card */}
+      <InvoiceSettingsCard />
     </div>
   );
 }
