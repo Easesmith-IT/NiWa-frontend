@@ -256,6 +256,7 @@ export default function InvoicesPage() {
       });
     },
     onSuccess: () => {
+      const targetId = selectedInvoiceId || paymentTargetInvoice?._id;
       setIsPaymentModalOpen(false);
       setPaymentTargetInvoice(null);
       setPaymentAmount("");
@@ -263,9 +264,9 @@ export default function InvoicesPage() {
       setPaymentNotes("");
       setPaymentError(null);
       queryClient.invalidateQueries({ queryKey: queryKeys.invoices });
-      if (selectedInvoiceId) {
-        queryClient.invalidateQueries({ queryKey: queryKeys.invoice(selectedInvoiceId) });
-        queryClient.invalidateQueries({ queryKey: queryKeys.invoicePayments(selectedInvoiceId) });
+      if (targetId) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.invoice(targetId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.invoicePayments(targetId) });
       }
       queryClient.invalidateQueries({ queryKey: queryKeys.payments });
     },

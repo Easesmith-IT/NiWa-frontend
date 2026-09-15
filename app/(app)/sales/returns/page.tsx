@@ -213,6 +213,11 @@ export default function SalesReturnsPage() {
       queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders });
       queryClient.invalidateQueries({ queryKey: queryKeys.inventoryLevels });
       queryClient.invalidateQueries({ queryKey: queryKeys.stockMovements });
+      queryClient.invalidateQueries({ queryKey: queryKeys.salesReturn(confirmedReturn._id) });
+      const orderIdStr = typeof confirmedReturn.salesOrderId === "object" ? confirmedReturn.salesOrderId._id : confirmedReturn.salesOrderId;
+      if (orderIdStr) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.orderReturnableQuantities(orderIdStr) });
+      }
       setSelectedReturnId(confirmedReturn._id);
       setActionError(null);
     },
@@ -229,6 +234,11 @@ export default function SalesReturnsPage() {
       queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders });
       queryClient.invalidateQueries({ queryKey: queryKeys.inventoryLevels });
       queryClient.invalidateQueries({ queryKey: queryKeys.stockMovements });
+      queryClient.invalidateQueries({ queryKey: queryKeys.salesReturn(cancelledReturn._id) });
+      const orderIdStr = typeof cancelledReturn.salesOrderId === "object" ? cancelledReturn.salesOrderId._id : cancelledReturn.salesOrderId;
+      if (orderIdStr) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.orderReturnableQuantities(orderIdStr) });
+      }
       setSelectedReturnId(cancelledReturn._id);
       setIsCancelModalOpen(false);
       setCancelReason("");
