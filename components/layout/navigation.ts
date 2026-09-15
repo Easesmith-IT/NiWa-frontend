@@ -17,6 +17,7 @@ import {
   Webhook,
   Megaphone,
   Briefcase,
+  Building2,
   GitFork,
   Package,
   Tag,
@@ -170,6 +171,12 @@ export const navigationGroups: NavigationGroup[] = [
         icon: ContactRound,
         label: "Contacts",
         description: "Customer directory, import, and labels.",
+      },
+      {
+        href: "/companies",
+        icon: Building2,
+        label: "Companies",
+        description: "B2B accounts, organizations, and industry details.",
       },
       {
         href: "/deals",

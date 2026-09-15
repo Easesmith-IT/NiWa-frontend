@@ -19,6 +19,9 @@ import {
   Eye,
   FileText,
   RotateCcw,
+  Sparkles,
+  Loader2,
+  X,
 } from "lucide-react";
 import Link from "next/link";
 import {
@@ -38,6 +41,8 @@ import { productsApi, ProductItem } from "lib/api/products-api";
 import { getLocations, LocationItem } from "lib/api/inventory-api";
 import { apiClient } from "lib/api/api-client";
 import { queryKeys } from "lib/api/query-keys";
+import { listContacts } from "features/contacts/contact.api";
+import type { ContactRecord } from "features/contacts/contact.types";
 
 interface CrmPerson {
   _id: string;
@@ -72,6 +77,25 @@ export default function SalesOrdersPage() {
   // Form state for creating order
   const [customerType, setCustomerType] = useState<"PERSON" | "COMPANY">("PERSON");
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
+
+  // Quick Add Company state
+  const [showQuickAddCompany, setShowQuickAddCompany] = useState(false);
+  const [quickCompanyName, setQuickCompanyName] = useState("");
+  const [quickCompanyIndustry, setQuickCompanyIndustry] = useState("");
+  const [quickCompanyDomain, setQuickCompanyDomain] = useState("");
+  const [quickCompanyWebsite, setQuickCompanyWebsite] = useState("");
+  const [isCreatingCompany, setIsCreatingCompany] = useState(false);
+  const [quickCompanyError, setQuickCompanyError] = useState("");
+
+  // Quick Add Person state
+  const [showQuickAddPerson, setShowQuickAddPerson] = useState(false);
+  const [quickPersonFirstName, setQuickPersonFirstName] = useState("");
+  const [quickPersonLastName, setQuickPersonLastName] = useState("");
+  const [quickPersonEmail, setQuickPersonEmail] = useState("");
+  const [quickPersonPhone, setQuickPersonPhone] = useState("");
+  const [isCreatingPerson, setIsCreatingPerson] = useState(false);
+  const [quickPersonError, setQuickPersonError] = useState("");
+
   const [orderLocationId, setOrderLocationId] = useState<string>("");
   const [orderCurrency, setOrderCurrency] = useState<string>("USD");
   const [orderNotes, setOrderNotes] = useState<string>("");
@@ -140,6 +164,13 @@ export default function SalesOrdersPage() {
       return res.data.data;
     },
   });
+
+  const { data: contactsData } = useQuery({
+    queryKey: ["contacts-for-order-autofill"],
+    queryFn: () => listContacts({ limit: 150 }),
+  });
+
+  const contactList: ContactRecord[] = (contactsData as any)?.data || [];
 
   // Mutations
   const createOrderMutation = useMutation({
@@ -251,6 +282,78 @@ export default function SalesOrdersPage() {
   // Calculate live preview totals
   const previewSubtotal = orderLines.reduce((sum, l) => sum + l.quantity * l.unitPrice, 0);
   const previewGrandTotal = previewSubtotal;
+
+  const handleCreateQuickCompany = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setQuickCompanyError("");
+    if (!quickCompanyName.trim()) {
+      setQuickCompanyError("Company name is required");
+      return;
+    }
+
+    setIsCreatingCompany(true);
+    try {
+      const res = await apiClient.post<{ success: boolean; data: CrmCompany }>("/api/crm/companies", {
+        name: quickCompanyName.trim(),
+        industry: quickCompanyIndustry.trim() || undefined,
+        domain: quickCompanyDomain.trim() || undefined,
+        website: quickCompanyWebsite.trim() || undefined,
+      });
+      await queryClient.invalidateQueries({ queryKey: ["crm-companies"] });
+      if (res.data?.data?._id) {
+        setSelectedCustomerId(res.data.data._id);
+      }
+      setShowQuickAddCompany(false);
+      setQuickCompanyName("");
+      setQuickCompanyIndustry("");
+      setQuickCompanyDomain("");
+      setQuickCompanyWebsite("");
+    } catch (err: any) {
+      setQuickCompanyError(err.response?.data?.message || err.message || "Failed to create company");
+    } finally {
+      setIsCreatingCompany(false);
+    }
+  };
+
+  const handleCreateQuickPerson = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setQuickPersonError("");
+    const displayName = `${quickPersonFirstName} ${quickPersonLastName}`.trim();
+    if (!displayName) {
+      setQuickPersonError("First name or last name is required");
+      return;
+    }
+
+    setIsCreatingPerson(true);
+    try {
+      const payload: any = {
+        firstName: quickPersonFirstName.trim(),
+        lastName: quickPersonLastName.trim(),
+        displayName,
+      };
+      if (quickPersonEmail.trim()) {
+        payload.emails = [{ email: quickPersonEmail.trim(), primary: true, label: "work" }];
+      }
+      if (quickPersonPhone.trim()) {
+        payload.phones = [{ phone: quickPersonPhone.trim(), primary: true, label: "mobile" }];
+      }
+
+      const res = await apiClient.post<{ success: boolean; data: CrmPerson }>("/api/crm/people", payload);
+      await queryClient.invalidateQueries({ queryKey: ["crm-people"] });
+      if (res.data?.data?._id) {
+        setSelectedCustomerId(res.data.data._id);
+      }
+      setShowQuickAddPerson(false);
+      setQuickPersonFirstName("");
+      setQuickPersonLastName("");
+      setQuickPersonEmail("");
+      setQuickPersonPhone("");
+    } catch (err: any) {
+      setQuickPersonError(err.response?.data?.message || err.message || "Failed to create person");
+    } finally {
+      setIsCreatingPerson(false);
+    }
+  };
 
   function handleCreateSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -558,9 +661,55 @@ export default function SalesOrdersPage() {
 
               {/* Customer Selector */}
               <div className="space-y-3">
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
-                  1. Customer Information
-                </label>
+                <div className="flex items-center justify-between">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                    1. Customer Information
+                  </label>
+                  {customerType === "PERSON" ? (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setQuickPersonError("");
+                        setQuickPersonFirstName("");
+                        setQuickPersonLastName("");
+                        setQuickPersonEmail("");
+                        setQuickPersonPhone("");
+                        setShowQuickAddPerson(true);
+                      }}
+                      className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 flex items-center gap-1"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      Quick Add Person
+                    </button>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setQuickCompanyError("");
+                          setQuickCompanyName("");
+                          setQuickCompanyIndustry("");
+                          setQuickCompanyDomain("");
+                          setQuickCompanyWebsite("");
+                          setShowQuickAddCompany(true);
+                        }}
+                        className="text-xs font-semibold text-indigo-600 dark:text-indigo-400 hover:text-indigo-800 flex items-center gap-1"
+                      >
+                        <Plus className="w-3.5 h-3.5" />
+                        Quick Add Company
+                      </button>
+                      <span className="text-gray-300">|</span>
+                      <Link
+                        href="/companies"
+                        target="_blank"
+                        className="text-xs text-slate-500 hover:text-slate-700"
+                      >
+                        Directory
+                      </Link>
+                    </div>
+                  )}
+                </div>
+
                 <div className="flex gap-4">
                   <button
                     type="button"
@@ -593,33 +742,81 @@ export default function SalesOrdersPage() {
                 </div>
 
                 {customerType === "PERSON" ? (
-                  <select
-                    value={selectedCustomerId}
-                    onChange={(e) => setSelectedCustomerId(e.target.value)}
-                    required
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
-                  >
-                    <option value="">Select a Person...</option>
-                    {(peopleData || []).map((p) => (
-                      <option key={p._id} value={p._id}>
-                        {p.displayName} {p.emails?.[0]?.email ? `(${p.emails[0].email})` : ""}
-                      </option>
-                    ))}
-                  </select>
+                  <div>
+                    <select
+                      value={selectedCustomerId}
+                      onChange={(e) => setSelectedCustomerId(e.target.value)}
+                      required
+                      className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+                    >
+                      <option value="">Select a Person...</option>
+                      {(peopleData || []).map((p) => (
+                        <option key={p._id} value={p._id}>
+                          {p.displayName} {p.emails?.[0]?.email ? `(${p.emails[0].email})` : ""}
+                        </option>
+                      ))}
+                    </select>
+                    {(peopleData || []).length === 0 && (
+                      <div className="mt-2 p-2.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <p className="text-xs text-amber-800 dark:text-amber-300">
+                          No CRM persons found in this workspace yet.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setQuickPersonError("");
+                            setQuickPersonFirstName("");
+                            setQuickPersonLastName("");
+                            setQuickPersonEmail("");
+                            setQuickPersonPhone("");
+                            setShowQuickAddPerson(true);
+                          }}
+                          className="inline-flex items-center justify-center gap-1 px-2.5 py-1 text-xs font-semibold text-amber-900 bg-amber-200 hover:bg-amber-300 rounded-md transition"
+                        >
+                          <Plus className="w-3 h-3" />
+                          Add Person / From Contact
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 ) : (
-                  <select
-                    value={selectedCustomerId}
-                    onChange={(e) => setSelectedCustomerId(e.target.value)}
-                    required
-                    className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
-                  >
-                    <option value="">Select a Company...</option>
-                    {(companiesData || []).map((c) => (
-                      <option key={c._id} value={c._id}>
-                        {c.name}
-                      </option>
-                    ))}
-                  </select>
+                  <div>
+                    <select
+                      value={selectedCustomerId}
+                      onChange={(e) => setSelectedCustomerId(e.target.value)}
+                      required
+                      className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+                    >
+                      <option value="">Select a Company...</option>
+                      {(companiesData || []).map((c) => (
+                        <option key={c._id} value={c._id}>
+                          {c.name}
+                        </option>
+                      ))}
+                    </select>
+                    {(companiesData || []).length === 0 && (
+                      <div className="mt-2 p-2.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                        <p className="text-xs text-amber-800 dark:text-amber-300">
+                          No CRM companies found in this workspace yet.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setQuickCompanyError("");
+                            setQuickCompanyName("");
+                            setQuickCompanyIndustry("");
+                            setQuickCompanyDomain("");
+                            setQuickCompanyWebsite("");
+                            setShowQuickAddCompany(true);
+                          }}
+                          className="inline-flex items-center justify-center gap-1 px-2.5 py-1 text-xs font-semibold text-amber-900 bg-amber-200 hover:bg-amber-300 rounded-md transition"
+                        >
+                          <Plus className="w-3 h-3" />
+                          Add Company / From Contact
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -1077,6 +1274,275 @@ export default function SalesOrdersPage() {
                 </>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* QUICK ADD COMPANY MODAL */}
+      {showQuickAddCompany && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-md p-6 border border-slate-200 dark:border-slate-800 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2 text-base">
+                <Building2 className="w-5 h-5 text-indigo-600" />
+                Quick Add Company
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowQuickAddCompany(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {quickCompanyError && (
+              <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs rounded-lg flex items-center gap-1.5">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{quickCompanyError}</span>
+              </div>
+            )}
+
+            {/* Autofill from contact */}
+            {contactList.some((c) => c.company && c.company.trim()) && (
+              <div className="p-2.5 bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/40 rounded-lg">
+                <label className="block text-[11px] font-semibold text-indigo-900 dark:text-indigo-300 mb-1">
+                  Autofill from Contact's company name:
+                </label>
+                <select
+                  onChange={(e) => {
+                    if (e.target.value) {
+                      setQuickCompanyName(e.target.value);
+                    }
+                  }}
+                  className="w-full text-xs px-2.5 py-1.5 rounded border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200"
+                >
+                  <option value="">Select a contact company...</option>
+                  {Array.from(new Set(contactList.map((c) => c.company?.trim()).filter(Boolean) as string[])).map((comp: string) => (
+                    <option key={comp} value={comp}>
+                      {comp}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <form onSubmit={handleCreateQuickCompany} className="space-y-3 pt-1">
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Company Name <span className="text-red-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g., Acme Global Ltd."
+                  value={quickCompanyName}
+                  onChange={(e) => setQuickCompanyName(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Industry (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g., Retail, Manufacturing"
+                  value={quickCompanyIndustry}
+                  onChange={(e) => setQuickCompanyIndustry(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Domain
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="acme.com"
+                    value={quickCompanyDomain}
+                    onChange={(e) => setQuickCompanyDomain(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Website
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="https://acme.com"
+                    value={quickCompanyWebsite}
+                    onChange={(e) => setQuickCompanyWebsite(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setShowQuickAddCompany(false)}
+                  className="px-3.5 py-1.5 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreatingCompany}
+                  className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition disabled:opacity-50"
+                >
+                  {isCreatingCompany ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save & Select"
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* QUICK ADD PERSON MODAL */}
+      {showQuickAddPerson && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-150">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-md p-6 border border-slate-200 dark:border-slate-800 space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <h3 className="font-bold text-slate-900 dark:text-white flex items-center gap-2 text-base">
+                <User className="w-5 h-5 text-indigo-600" />
+                Quick Add Person
+              </h3>
+              <button
+                type="button"
+                onClick={() => setShowQuickAddPerson(false)}
+                className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {quickPersonError && (
+              <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs rounded-lg flex items-center gap-1.5">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{quickPersonError}</span>
+              </div>
+            )}
+
+            {/* Autofill from existing contacts */}
+            {contactList.length > 0 && (
+              <div className="p-2.5 bg-indigo-50/70 dark:bg-indigo-950/30 border border-indigo-100 dark:border-indigo-900/40 rounded-lg">
+                <label className="block text-[11px] font-semibold text-indigo-900 dark:text-indigo-300 mb-1">
+                  Autofill from WhatsApp Contact (optional):
+                </label>
+                <select
+                  onChange={(e) => {
+                    const found = contactList.find((c) => c._id === e.target.value);
+                    if (found) {
+                      const parts = (found.displayName || "").trim().split(" ");
+                      setQuickPersonFirstName(parts[0] || "");
+                      setQuickPersonLastName(parts.slice(1).join(" ") || "");
+                      setQuickPersonPhone(found.phoneNumberE164 || found.phoneNumber || "");
+                      setQuickPersonEmail(found.email || "");
+                    }
+                  }}
+                  className="w-full text-xs px-2.5 py-1.5 rounded border border-indigo-200 dark:border-indigo-800 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200"
+                >
+                  <option value="">Select a contact...</option>
+                  {contactList.map((c) => (
+                    <option key={c._id} value={c._id}>
+                      {c.displayName || c.phoneNumberE164} {c.company ? `(${c.company})` : ""}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
+            <form onSubmit={handleCreateQuickPerson} className="space-y-3 pt-1">
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    First Name <span className="text-red-500">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g., Rahul"
+                    value={quickPersonFirstName}
+                    onChange={(e) => setQuickPersonFirstName(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                    Last Name
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g., Sharma"
+                    value={quickPersonLastName}
+                    onChange={(e) => setQuickPersonLastName(e.target.value)}
+                    className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Email
+                </label>
+                <input
+                  type="email"
+                  placeholder="name@company.com"
+                  value={quickPersonEmail}
+                  onChange={(e) => setQuickPersonEmail(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                  Phone Number
+                </label>
+                <input
+                  type="text"
+                  placeholder="+919876543210"
+                  value={quickPersonPhone}
+                  onChange={(e) => setQuickPersonPhone(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg text-sm bg-white dark:bg-slate-800 text-slate-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setShowQuickAddPerson(false)}
+                  className="px-3.5 py-1.5 border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-medium rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isCreatingPerson}
+                  className="inline-flex items-center gap-1.5 px-4 py-1.5 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition disabled:opacity-50"
+                >
+                  {isCreatingPerson ? (
+                    <>
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    "Save & Select"
+                  )}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
