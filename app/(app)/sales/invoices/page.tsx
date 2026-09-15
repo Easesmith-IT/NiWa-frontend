@@ -274,18 +274,11 @@ export default function InvoicesPage() {
             Issued
           </span>
         );
-      case "PAID":
+      case "VOID":
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-800">
-            <DollarSign className="w-3 h-3 text-emerald-500" />
-            Paid
-          </span>
-        );
-      case "CANCELLED":
-        return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200 dark:bg-red-950/50 dark:text-red-300 dark:border-red-800">
-            <XCircle className="w-3 h-3 text-red-500" />
-            Cancelled
+          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium bg-neutral-100 text-neutral-600 border border-neutral-300 dark:bg-neutral-800 dark:text-neutral-400 dark:border-neutral-700">
+            <XCircle className="w-3 h-3 text-neutral-500" />
+            Void
           </span>
         );
     }
@@ -299,7 +292,7 @@ export default function InvoicesPage() {
             Unpaid
           </span>
         );
-      case "PARTIALLY_PAID":
+      case "PARTIAL":
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium bg-sky-50 text-sky-700 border border-sky-200 dark:bg-sky-950/40 dark:text-sky-300 dark:border-sky-800">
             Partial
@@ -390,8 +383,7 @@ export default function InvoicesPage() {
               <option value="ALL">All Statuses</option>
               <option value="DRAFT">Draft</option>
               <option value="ISSUED">Issued</option>
-              <option value="PAID">Paid</option>
-              <option value="CANCELLED">Cancelled</option>
+              <option value="VOID">Void</option>
             </select>
           </div>
 
@@ -407,7 +399,7 @@ export default function InvoicesPage() {
             >
               <option value="ALL">All Payments</option>
               <option value="UNPAID">Unpaid</option>
-              <option value="PARTIALLY_PAID">Partially Paid</option>
+              <option value="PARTIAL">Partially Paid</option>
               <option value="PAID">Fully Paid</option>
             </select>
           </div>
@@ -636,11 +628,15 @@ export default function InvoicesPage() {
                     </div>
                   </div>
 
-                  {/* Cancellation details if applicable */}
-                  {activeInvoice.status === "CANCELLED" && (
-                    <div className="p-4 rounded-xl bg-red-50 dark:bg-red-950/40 border border-red-200 dark:border-red-800 text-xs text-red-700 dark:text-red-300 space-y-1">
-                      <div className="font-semibold">Cancelled on {new Date(activeInvoice.cancelledAt!).toLocaleString()}</div>
-                      {activeInvoice.cancelledReason && <div>Reason: {activeInvoice.cancelledReason}</div>}
+                  {/* Void details if applicable */}
+                  {activeInvoice.status === "VOID" && (
+                    <div className="p-4 rounded-xl bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-xs text-neutral-700 dark:text-neutral-300 space-y-1">
+                      <div className="font-semibold">
+                        Voided on {new Date(activeInvoice.voidedAt || activeInvoice.cancelledAt!).toLocaleString()}
+                      </div>
+                      {(activeInvoice.voidReason || activeInvoice.cancelledReason) && (
+                        <div>Reason: {activeInvoice.voidReason || activeInvoice.cancelledReason}</div>
+                      )}
                     </div>
                   )}
                 </div>
@@ -648,7 +644,7 @@ export default function InvoicesPage() {
                 {/* Drawer Footer Actions */}
                 <div className="p-6 border-t border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-800/40 flex justify-between items-center gap-3">
                   <div>
-                    {activeInvoice.status !== "CANCELLED" && activeInvoice.paidAmount === 0 && (
+                    {activeInvoice.status !== "VOID" && activeInvoice.paidAmount === 0 && (
                       <button
                         onClick={() => {
                           setActionError(null);
@@ -656,7 +652,7 @@ export default function InvoicesPage() {
                         }}
                         className="px-4 py-2 text-sm font-medium rounded-lg text-red-600 hover:bg-red-50 dark:hover:bg-red-950/50 transition"
                       >
-                        Cancel Invoice
+                        Void Invoice
                       </button>
                     )}
                   </div>
@@ -1001,17 +997,17 @@ export default function InvoicesPage() {
         </div>
       )}
 
-      {/* Cancel Reason Modal */}
+      {/* Void Reason Modal */}
       {isCancelModalOpen && (
         <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-neutral-900 rounded-2xl max-w-md w-full p-6 shadow-xl border border-neutral-200 dark:border-neutral-800 space-y-4">
-            <h3 className="text-base font-bold text-neutral-900 dark:text-neutral-100">Cancel Invoice</h3>
+            <h3 className="text-base font-bold text-neutral-900 dark:text-neutral-100">Void Invoice</h3>
             <p className="text-xs text-neutral-500">
-              Are you sure you want to cancel this invoice? This will invalidate the billing document.
+              Are you sure you want to void this invoice? This will invalidate the billing document.
             </p>
             <div>
               <label className="text-xs font-semibold text-neutral-700 dark:text-neutral-300 block mb-1">
-                Cancellation Reason
+                Void Reason
               </label>
               <input
                 type="text"
@@ -1037,7 +1033,7 @@ export default function InvoicesPage() {
                 disabled={cancelInvoiceMutation.isPending}
                 className="px-3 py-1.5 text-xs font-medium rounded-lg bg-red-600 hover:bg-red-700 text-white disabled:opacity-50"
               >
-                {cancelInvoiceMutation.isPending ? "Cancelling..." : "Confirm Cancellation"}
+                {cancelInvoiceMutation.isPending ? "Voiding..." : "Confirm Void"}
               </button>
             </div>
           </div>

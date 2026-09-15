@@ -150,8 +150,8 @@ export async function convertQuoteToSalesOrder(quoteId: string, locationId?: str
 // INVOICE API & TYPES (PHASE E)
 // ==========================================
 
-export type InvoiceStatus = "DRAFT" | "ISSUED" | "PAID" | "CANCELLED";
-export type PaymentStatus = "UNPAID" | "PARTIALLY_PAID" | "PAID";
+export type InvoiceStatus = "DRAFT" | "ISSUED" | "VOID";
+export type PaymentStatus = "UNPAID" | "PARTIAL" | "PAID";
 
 export interface InvoiceItem {
   _id: string;
@@ -172,6 +172,8 @@ export interface InvoiceItem {
   dueDate?: string | null;
   notes?: string | null;
   issuedAt?: string | null;
+  voidedAt?: string | null;
+  voidReason?: string | null;
   cancelledAt?: string | null;
   cancelledReason?: string | null;
   createdAt: string;
@@ -250,9 +252,12 @@ export async function issueInvoice(id: string): Promise<InvoiceItem> {
   return res.data.data;
 }
 
-export async function cancelInvoice(id: string, reason?: string): Promise<InvoiceItem> {
-  const res = await apiClient.post<{ success: boolean; data: InvoiceItem }>(`/api/sales/invoices/${id}/cancel`, {
+export async function voidInvoice(id: string, reason?: string): Promise<InvoiceItem> {
+  const res = await apiClient.post<{ success: boolean; data: InvoiceItem }>(`/api/sales/invoices/${id}/void`, {
     reason,
   });
   return res.data.data;
 }
+
+export const cancelInvoice = voidInvoice;
+
