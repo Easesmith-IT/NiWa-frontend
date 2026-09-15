@@ -49,4 +49,6 @@ export const queryKeys = {
   salesOrders: ["sales-orders"] as const,
   salesOrder: (id: string) => ["sales-orders", id] as const,
   quotes: ["quotes"] as const,
+  invoices: ["invoices"] as const,
+  invoice: (id: string) => ["invoices", id] as const,
 };

@@ -145,3 +145,114 @@ export async function convertQuoteToSalesOrder(quoteId: string, locationId?: str
   );
   return res.data.data;
 }
+
+// ==========================================
+// INVOICE API & TYPES (PHASE E)
+// ==========================================
+
+export type InvoiceStatus = "DRAFT" | "ISSUED" | "PAID" | "CANCELLED";
+export type PaymentStatus = "UNPAID" | "PARTIALLY_PAID" | "PAID";
+
+export interface InvoiceItem {
+  _id: string;
+  invoiceId: string;
+  salesOrderId?: string | { _id: string; orderId: string } | null;
+  customer: CustomerSnapshot;
+  lines: SalesOrderLineItem[];
+  currency: string;
+  subtotal: number;
+  discountAmount: number;
+  netAmount: number;
+  taxAmount: number;
+  grandTotal: number;
+  paidAmount: number;
+  balanceDue: number;
+  status: InvoiceStatus;
+  paymentStatus: PaymentStatus;
+  dueDate?: string | null;
+  notes?: string | null;
+  issuedAt?: string | null;
+  cancelledAt?: string | null;
+  cancelledReason?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateInvoiceInput {
+  customerType: "PERSON" | "COMPANY";
+  customerId: string;
+  addresses?: {
+    billingAddress?: string | null;
+    shippingAddress?: string | null;
+  };
+  lines: CreateOrderLineInput[];
+  salesOrderId?: string | null;
+  currency?: string;
+  dueDate?: string | null;
+  notes?: string | null;
+}
+
+export interface InvoiceFilterParams {
+  status?: string;
+  paymentStatus?: string;
+  customerId?: string;
+  salesOrderId?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface PaginatedInvoicesResponse {
+  data: InvoiceItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+
+export async function getInvoices(params?: InvoiceFilterParams): Promise<PaginatedInvoicesResponse> {
+  const res = await apiClient.get<{ success: boolean; data: PaginatedInvoicesResponse }>("/api/sales/invoices", {
+    params,
+  });
+  return res.data.data;
+}
+
+export async function getInvoice(id: string): Promise<InvoiceItem> {
+  const res = await apiClient.get<{ success: boolean; data: InvoiceItem }>(`/api/sales/invoices/${id}`);
+  return res.data.data;
+}
+
+export async function createInvoice(data: CreateInvoiceInput): Promise<InvoiceItem> {
+  const res = await apiClient.post<{ success: boolean; data: InvoiceItem }>("/api/sales/invoices", data);
+  return res.data.data;
+}
+
+export async function updateInvoice(id: string, data: Partial<CreateInvoiceInput>): Promise<InvoiceItem> {
+  const res = await apiClient.patch<{ success: boolean; data: InvoiceItem }>(`/api/sales/invoices/${id}`, data);
+  return res.data.data;
+}
+
+export async function createInvoiceFromSalesOrder(
+  orderId: string,
+  options?: { dueDate?: string | null; notes?: string | null }
+): Promise<InvoiceItem> {
+  const res = await apiClient.post<{ success: boolean; data: InvoiceItem }>(
+    `/api/sales/invoices/convert-order/${orderId}`,
+    options || {}
+  );
+  return res.data.data;
+}
+
+export async function issueInvoice(id: string): Promise<InvoiceItem> {
+  const res = await apiClient.post<{ success: boolean; data: InvoiceItem }>(`/api/sales/invoices/${id}/issue`);
+  return res.data.data;
+}
+
+export async function cancelInvoice(id: string, reason?: string): Promise<InvoiceItem> {
+  const res = await apiClient.post<{ success: boolean; data: InvoiceItem }>(`/api/sales/invoices/${id}/cancel`, {
+    reason,
+  });
+  return res.data.data;
+}

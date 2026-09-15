@@ -26,6 +26,7 @@ import {
   MapPin,
   History,
   ShoppingBag,
+  FileText,
 } from "lucide-react";
 
 export interface NavigationItem {
@@ -132,6 +133,13 @@ export const navigationGroups: NavigationGroup[] = [
         icon: ShoppingBag,
         label: "Sales Orders",
         description: "Commercial orders, status tracking, and inventory fulfillment.",
+        moduleKey: "sales",
+      },
+      {
+        href: "/sales/invoices",
+        icon: FileText,
+        label: "Invoices",
+        description: "Billing documents, balance tracking, and financial records.",
         moduleKey: "sales",
       },
     ],
