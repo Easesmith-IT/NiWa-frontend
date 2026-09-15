@@ -261,3 +261,108 @@ export async function voidInvoice(id: string, reason?: string): Promise<InvoiceI
 
 export const cancelInvoice = voidInvoice;
 
+// ==========================================
+// PAYMENT API & TYPES (PHASE F)
+// ==========================================
+
+export type PaymentMethod = "CASH" | "BANK_TRANSFER" | "CREDIT_CARD" | "UPI" | "OTHER";
+export type PaymentRecordStatus = "COMPLETED" | "VOIDED";
+
+export interface PaymentItem {
+  _id: string;
+  paymentId: string;
+  invoiceId:
+    | string
+    | {
+        _id: string;
+        invoiceId: string;
+        grandTotal: number;
+        paidAmount: number;
+        balanceDue: number;
+        currency: string;
+        status: InvoiceStatus;
+        paymentStatus: PaymentStatus;
+      };
+  orderId?: string | null;
+  customerId: string;
+  customerType: "PERSON" | "COMPANY";
+  amount: number;
+  paymentMethod: PaymentMethod;
+  transactionReference?: string | null;
+  idempotencyKey?: string | null;
+  paymentDate: string;
+  status: PaymentRecordStatus;
+  notes?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface RecordPaymentInput {
+  invoiceId: string;
+  amount: number;
+  paymentMethod: PaymentMethod;
+  paymentDate?: string | null;
+  transactionReference?: string | null;
+  idempotencyKey?: string | null;
+  notes?: string | null;
+}
+
+export interface PaymentFilterParams {
+  invoiceId?: string;
+  customerId?: string;
+  orderId?: string;
+  paymentMethod?: string;
+  status?: string;
+  startDate?: string;
+  endDate?: string;
+  search?: string;
+  page?: number;
+  limit?: number;
+}
+
+export interface PaginatedPaymentsResponse {
+  data: PaymentItem[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    pages: number;
+  };
+}
+
+export async function getPayments(params?: PaymentFilterParams): Promise<PaginatedPaymentsResponse> {
+  const res = await apiClient.get<{ success: boolean; data: PaginatedPaymentsResponse }>("/api/sales/payments", {
+    params,
+  });
+  return res.data.data;
+}
+
+export async function getPayment(id: string): Promise<PaymentItem> {
+  const res = await apiClient.get<{ success: boolean; data: PaymentItem }>(`/api/sales/payments/${id}`);
+  return res.data.data;
+}
+
+export async function recordPayment(data: RecordPaymentInput): Promise<PaymentItem> {
+  const res = await apiClient.post<{ success: boolean; data: PaymentItem }>("/api/sales/payments", data);
+  return res.data.data;
+}
+
+export async function recordInvoicePayment(
+  invoiceId: string,
+  data: Omit<RecordPaymentInput, "invoiceId">
+): Promise<PaymentItem> {
+  const res = await apiClient.post<{ success: boolean; data: PaymentItem }>(
+    `/api/sales/invoices/${invoiceId}/payments`,
+    data
+  );
+  return res.data.data;
+}
+
+export async function getInvoicePayments(invoiceId: string): Promise<PaymentItem[]> {
+  const res = await apiClient.get<{ success: boolean; data: PaymentItem[] }>(
+    `/api/sales/invoices/${invoiceId}/payments`
+  );
+  return res.data.data;
+}
+
+

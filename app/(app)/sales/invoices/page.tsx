@@ -17,6 +17,7 @@ import {
   Receipt,
   DollarSign,
   Trash2,
+  CreditCard,
 } from "lucide-react";
 import {
   getInvoices,
@@ -25,11 +26,16 @@ import {
   createInvoiceFromSalesOrder,
   issueInvoice,
   cancelInvoice,
+  recordPayment,
+  getInvoicePayments,
   InvoiceItem,
   InvoiceStatus,
   PaymentStatus,
+  PaymentItem,
+  PaymentMethod,
   getSalesOrders,
 } from "lib/api/sales-api";
+
 import { productsApi, ProductItem } from "lib/api/products-api";
 import { apiClient } from "lib/api/api-client";
 import { queryKeys } from "lib/api/query-keys";
@@ -95,6 +101,16 @@ export default function InvoicesPage() {
     }>
   >([]);
 
+  // Payment form state
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [paymentTargetInvoice, setPaymentTargetInvoice] = useState<InvoiceItem | null>(null);
+  const [paymentAmount, setPaymentAmount] = useState<string>("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("CASH");
+  const [paymentRef, setPaymentRef] = useState<string>("");
+  const [paymentDate, setPaymentDate] = useState<string>("");
+  const [paymentNotes, setPaymentNotes] = useState<string>("");
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+
   // Queries
   const { data: invoicesData, isLoading: isLoadingInvoices } = useQuery({
     queryKey: [...queryKeys.invoices, { status: statusFilter, paymentStatus: paymentStatusFilter, search, page }],
@@ -113,6 +129,13 @@ export default function InvoicesPage() {
     queryFn: () => (selectedInvoiceId ? getInvoice(selectedInvoiceId) : null),
     enabled: !!selectedInvoiceId,
   });
+
+  const { data: invoicePayments = [], isLoading: isLoadingInvoicePayments } = useQuery({
+    queryKey: selectedInvoiceId ? queryKeys.invoicePayments(selectedInvoiceId) : ["null-invoice-payments"],
+    queryFn: () => (selectedInvoiceId ? getInvoicePayments(selectedInvoiceId) : []),
+    enabled: !!selectedInvoiceId,
+  });
+
 
   // Query CRM Customers for modal
   const { data: personsData } = useQuery({
@@ -212,6 +235,56 @@ export default function InvoicesPage() {
       setActionError(err.response?.data?.error?.message || err.message || "Failed to cancel invoice");
     },
   });
+
+  const recordPaymentMutation = useMutation({
+    mutationFn: async () => {
+      if (!paymentTargetInvoice) throw new Error("No invoice selected");
+      const numAmount = parseFloat(paymentAmount);
+      if (isNaN(numAmount) || numAmount <= 0) {
+        throw new Error("Payment amount must be greater than 0");
+      }
+      if (numAmount > paymentTargetInvoice.balanceDue) {
+        throw new Error(`Amount cannot exceed balance due ($${paymentTargetInvoice.balanceDue.toFixed(2)})`);
+      }
+      return recordPayment({
+        invoiceId: paymentTargetInvoice._id,
+        amount: numAmount,
+        paymentMethod,
+        paymentDate: paymentDate || undefined,
+        transactionReference: paymentRef.trim() || undefined,
+        notes: paymentNotes.trim() || undefined,
+      });
+    },
+    onSuccess: () => {
+      setIsPaymentModalOpen(false);
+      setPaymentTargetInvoice(null);
+      setPaymentAmount("");
+      setPaymentRef("");
+      setPaymentNotes("");
+      setPaymentError(null);
+      queryClient.invalidateQueries({ queryKey: queryKeys.invoices });
+      if (selectedInvoiceId) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.invoice(selectedInvoiceId) });
+        queryClient.invalidateQueries({ queryKey: queryKeys.invoicePayments(selectedInvoiceId) });
+      }
+      queryClient.invalidateQueries({ queryKey: queryKeys.payments });
+    },
+    onError: (err: any) => {
+      setPaymentError(err.response?.data?.error?.message || err.response?.data?.message || err.message || "Failed to record payment");
+    },
+  });
+
+  const openPaymentModal = (invoice: InvoiceItem) => {
+    setPaymentTargetInvoice(invoice);
+    setPaymentAmount(invoice.balanceDue.toString());
+    setPaymentMethod("CASH");
+    setPaymentRef("");
+    setPaymentDate(new Date().toISOString().split("T")[0]);
+    setPaymentNotes("");
+    setPaymentError(null);
+    setIsPaymentModalOpen(true);
+  };
+
 
   function resetCreateForm() {
     setCustomerType("PERSON");
@@ -472,15 +545,30 @@ export default function InvoicesPage() {
                       {inv.dueDate ? new Date(inv.dueDate).toLocaleDateString() : "—"}
                     </td>
                     <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedInvoiceId(inv._id);
-                        }}
-                        className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
+                      <div className="flex items-center justify-end gap-1.5">
+                        {inv.status === "ISSUED" && inv.paymentStatus !== "PAID" && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openPaymentModal(inv);
+                            }}
+                            title="Record Payment"
+                            className="px-2 py-1 rounded-md text-xs font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100 dark:bg-emerald-950/50 dark:text-emerald-400 dark:hover:bg-emerald-900/50 transition flex items-center gap-1"
+                          >
+                            <CreditCard className="w-3 h-3" />
+                            Pay
+                          </button>
+                        )}
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedInvoiceId(inv._id);
+                          }}
+                          className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-700 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -628,6 +716,60 @@ export default function InvoicesPage() {
                     </div>
                   </div>
 
+                  {/* Payment History Section */}
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <div className="text-xs font-semibold uppercase tracking-wider text-neutral-500">
+                        Payment History ({invoicePayments.length})
+                      </div>
+                      {activeInvoice.status === "ISSUED" && activeInvoice.paymentStatus !== "PAID" && (
+                        <button
+                          onClick={() => openPaymentModal(activeInvoice)}
+                          className="text-xs font-medium text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 flex items-center gap-1 cursor-pointer"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          Record Payment
+                        </button>
+                      )}
+                    </div>
+
+                    {isLoadingInvoicePayments ? (
+                      <div className="p-4 text-center text-xs text-neutral-400">Loading payments...</div>
+                    ) : invoicePayments.length === 0 ? (
+                      <div className="p-4 rounded-xl border border-dashed border-neutral-200 dark:border-neutral-800 text-center text-xs text-neutral-400">
+                        No payments recorded yet.
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {invoicePayments.map((pmt) => (
+                          <div
+                            key={pmt._id}
+                            className="p-3 rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-50 dark:bg-neutral-800/40 flex justify-between items-center text-xs"
+                          >
+                            <div>
+                              <div className="font-mono font-medium text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+                                <span>{pmt.paymentId}</span>
+                                <span className="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-neutral-200 dark:bg-neutral-700 text-neutral-700 dark:text-neutral-300">
+                                  {pmt.paymentMethod.replace("_", " ")}
+                                </span>
+                              </div>
+                              <div className="text-[11px] text-neutral-500 mt-0.5">
+                                {new Date(pmt.paymentDate).toLocaleDateString()}
+                                {pmt.transactionReference && ` • Ref: ${pmt.transactionReference}`}
+                              </div>
+                            </div>
+                            <div className="text-right">
+                              <div className="font-semibold text-emerald-600 dark:text-emerald-400">
+                                +${pmt.amount.toFixed(2)}
+                              </div>
+                              <span className="text-[10px] text-neutral-400 uppercase font-mono">{pmt.status}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
                   {/* Void details if applicable */}
                   {activeInvoice.status === "VOID" && (
                     <div className="p-4 rounded-xl bg-neutral-100 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 text-xs text-neutral-700 dark:text-neutral-300 space-y-1">
@@ -667,8 +809,18 @@ export default function InvoicesPage() {
                         {issueInvoiceMutation.isPending ? "Issuing..." : "Issue Invoice"}
                       </button>
                     )}
+                    {activeInvoice.status === "ISSUED" && activeInvoice.paymentStatus !== "PAID" && (
+                      <button
+                        onClick={() => openPaymentModal(activeInvoice)}
+                        className="px-4 py-2 text-sm font-medium rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition flex items-center gap-1.5 cursor-pointer"
+                      >
+                        <CreditCard className="w-4 h-4" />
+                        Record Payment
+                      </button>
+                    )}
                   </div>
                 </div>
+
               </>
             )}
           </div>
@@ -1039,6 +1191,173 @@ export default function InvoicesPage() {
           </div>
         </div>
       )}
+
+      {/* Record Payment Modal */}
+      {isPaymentModalOpen && paymentTargetInvoice && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-neutral-900 rounded-2xl max-w-md w-full p-6 shadow-xl border border-neutral-200 dark:border-neutral-800 space-y-4">
+            <div className="flex justify-between items-start">
+              <div>
+                <h3 className="text-base font-bold text-neutral-900 dark:text-neutral-100 flex items-center gap-2">
+                  <CreditCard className="w-5 h-5 text-emerald-600" />
+                  Record Payment
+                </h3>
+                <p className="text-xs text-neutral-500 mt-0.5 font-mono">
+                  Invoice: {paymentTargetInvoice.invoiceId} • Customer: {paymentTargetInvoice.customer.displayName}
+                </p>
+              </div>
+              <button
+                onClick={() => {
+                  setIsPaymentModalOpen(false);
+                  setPaymentError(null);
+                }}
+                className="p-1 rounded text-neutral-400 hover:text-neutral-600 cursor-pointer"
+              >
+                <XCircle className="w-4 h-4" />
+              </button>
+            </div>
+
+            {paymentError && (
+              <div className="p-3 rounded-lg bg-red-50 dark:bg-red-950/40 text-red-700 dark:text-red-400 text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{paymentError}</span>
+              </div>
+            )}
+
+            <div className="p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-xl space-y-1 text-xs">
+              <div className="flex justify-between text-neutral-500">
+                <span>Grand Total:</span>
+                <span>${paymentTargetInvoice.grandTotal.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between text-neutral-500">
+                <span>Paid So Far:</span>
+                <span>${paymentTargetInvoice.paidAmount.toFixed(2)}</span>
+              </div>
+              <div className="flex justify-between font-bold text-amber-600 dark:text-amber-400 pt-1 border-t border-neutral-200 dark:border-neutral-700">
+                <span>Balance Due:</span>
+                <span>${paymentTargetInvoice.balanceDue.toFixed(2)}</span>
+              </div>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="font-semibold text-neutral-700 dark:text-neutral-300 block mb-1">
+                  Payment Amount ($) *
+                </label>
+                <div className="relative">
+                  <span className="absolute left-3 top-2.5 text-neutral-400">$</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="0.01"
+                    max={paymentTargetInvoice.balanceDue}
+                    value={paymentAmount}
+                    onChange={(e) => setPaymentAmount(e.target.value)}
+                    className="w-full pl-7 pr-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold"
+                    placeholder="0.00"
+                  />
+                </div>
+                <div className="flex justify-between items-center mt-1 text-[11px] text-neutral-400">
+                  <span>Max payable: ${paymentTargetInvoice.balanceDue.toFixed(2)}</span>
+                  <button
+                    type="button"
+                    onClick={() => setPaymentAmount(paymentTargetInvoice.balanceDue.toString())}
+                    className="text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
+                  >
+                    Pay Full Balance
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="font-semibold text-neutral-700 dark:text-neutral-300 block mb-1">
+                  Payment Method *
+                </label>
+                <select
+                  value={paymentMethod}
+                  onChange={(e) => setPaymentMethod(e.target.value as PaymentMethod)}
+                  className="w-full text-sm px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  <option value="CASH">Cash</option>
+                  <option value="BANK_TRANSFER">Bank Transfer</option>
+                  <option value="CREDIT_CARD">Credit Card</option>
+                  <option value="UPI">UPI / Instant</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-semibold text-neutral-700 dark:text-neutral-300 block mb-1">
+                    Payment Date
+                  </label>
+                  <input
+                    type="date"
+                    value={paymentDate}
+                    onChange={(e) => setPaymentDate(e.target.value)}
+                    className="w-full text-sm px-3 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+                <div>
+                  <label className="font-semibold text-neutral-700 dark:text-neutral-300 block mb-1">
+                    Transaction Ref / Cheque #
+                  </label>
+                  <input
+                    type="text"
+                    placeholder="e.g. TXN-998812"
+                    value={paymentRef}
+                    onChange={(e) => setPaymentRef(e.target.value)}
+                    className="w-full text-sm px-3 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="font-semibold text-neutral-700 dark:text-neutral-300 block mb-1">
+                  Notes (Optional)
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Additional payment notes or settlement details"
+                  value={paymentNotes}
+                  onChange={(e) => setPaymentNotes(e.target.value)}
+                  className="w-full text-sm px-3 py-1.5 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-2 border-t border-neutral-200 dark:border-neutral-800">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsPaymentModalOpen(false);
+                  setPaymentError(null);
+                }}
+                className="px-4 py-2 text-xs font-medium rounded-lg text-neutral-600 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition cursor-pointer"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => recordPaymentMutation.mutate()}
+                disabled={
+                  !paymentAmount ||
+                  parseFloat(paymentAmount) <= 0 ||
+                  parseFloat(paymentAmount) > paymentTargetInvoice.balanceDue ||
+                  recordPaymentMutation.isPending
+                }
+                className="px-4 py-2 text-xs font-medium rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white shadow-sm transition disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                {recordPaymentMutation.isPending
+                  ? "Recording..."
+                  : `Record Payment ($${parseFloat(paymentAmount || "0").toFixed(2)})`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
+
 }

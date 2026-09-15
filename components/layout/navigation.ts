@@ -27,7 +27,9 @@ import {
   History,
   ShoppingBag,
   FileText,
+  CreditCard,
 } from "lucide-react";
+
 
 export interface NavigationItem {
   href: string;
@@ -142,8 +144,16 @@ export const navigationGroups: NavigationGroup[] = [
         description: "Billing documents, balance tracking, and financial records.",
         moduleKey: "sales",
       },
+      {
+        href: "/sales/payments",
+        icon: CreditCard,
+        label: "Payments",
+        description: "Payment collection, receipt records, and invoice settlements.",
+        moduleKey: "sales",
+      },
     ],
   },
+
   {
     label: "CRM",
     items: [
