@@ -472,68 +472,122 @@ export default function NewPurchaseOrderPage() {
                 <Package className="w-4 h-4 text-[#176B4D]" />
                 Order Line Items
               </h2>
-              <span className="text-xs text-muted-foreground">
-                {lineItems.length} {lineItems.length === 1 ? "item" : "items"} added
-              </span>
-            </div>
-
-            {/* Product Quick-Add Search */}
-            <div className="relative">
-              <div className="relative">
-                <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-                <input
-                  type="text"
-                  placeholder="Search products by name or SKU to add to order..."
-                  value={productSearch}
-                  onChange={(e) => setProductSearch(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 text-xs rounded-lg border border-[#E4E4E7] dark:border-[#24272A] bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-[#176B4D]"
-                />
+              <div className="flex items-center gap-3">
+                <span className="text-xs text-muted-foreground">
+                  {lineItems.length} {lineItems.length === 1 ? "item" : "items"} added
+                </span>
+                <Link
+                  href="/products/new"
+                  target="_blank"
+                  className="inline-flex items-center gap-1 text-xs text-[#176B4D] hover:underline font-medium"
+                >
+                  <Plus className="w-3.5 h-3.5" /> New Product
+                </Link>
               </div>
-
-              {/* Filtered search dropdown results */}
-              {productSearch.trim().length > 0 && (
-                <div className="absolute z-20 top-full left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-card border border-[#E4E4E7] dark:border-[#24272A] rounded-lg shadow-lg divide-y divide-zinc-100 dark:divide-zinc-800">
-                  {filteredVariants.length === 0 ? (
-                    <div className="p-3 text-center text-xs text-muted-foreground">
-                      No matching products found.
-                    </div>
-                  ) : (
-                    filteredVariants.map((item) => (
-                      <div
-                        key={item.variantId}
-                        onClick={() => handleAddVariant(item)}
-                        className="p-2.5 px-3 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-900 cursor-pointer transition-colors"
-                      >
-                        <div>
-                          <div className="text-xs font-semibold text-foreground">
-                            {item.productName}
-                          </div>
-                          <div className="text-[11px] text-muted-foreground">
-                            Variant: {item.variantName} {item.sku ? `• SKU: ${item.sku}` : ""}
-                          </div>
-                        </div>
-                        <div className="flex items-center gap-3">
-                          <span className="text-xs font-mono font-medium text-foreground">
-                            {formatCurrency(item.costPrice, currency)}
-                          </span>
-                          <span className="inline-flex items-center gap-1 text-[11px] text-[#176B4D] font-medium bg-[#176B4D]/10 px-2 py-0.5 rounded">
-                            <Plus className="w-3 h-3" /> Add
-                          </span>
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
             </div>
+
+            {/* If no products exist in workspace catalog */}
+            {catalogVariants.length === 0 && !isLoadingProducts && (
+              <div className="p-4 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <div className="text-xs font-semibold text-amber-800 dark:text-amber-300 flex items-center gap-1.5">
+                    <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                    No products found in your workspace catalog
+                  </div>
+                  <p className="text-[11px] text-amber-700 dark:text-amber-400 mt-0.5">
+                    Purchase orders require products from your catalog. Create products in the Products module first, then return here to purchase them.
+                  </p>
+                </div>
+                <Link
+                  href="/products/new"
+                  className="inline-flex items-center justify-center gap-1 px-3 py-1.5 rounded-lg bg-[#176B4D] hover:bg-[#13573E] text-white text-xs font-medium shrink-0 shadow-sm"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Create Product
+                </Link>
+              </div>
+            )}
+
+            {/* Product Quick-Add: Dropdown Selector + Search Bar */}
+            {catalogVariants.length > 0 && (
+              <div className="space-y-2">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+                  {/* Dropdown Quick Select */}
+                  <div>
+                    <select
+                      value=""
+                      onChange={(e) => {
+                        const item = catalogVariants.find((v) => v.variantId === e.target.value);
+                        if (item) handleAddVariant(item);
+                      }}
+                      className="w-full px-3 py-2 text-xs rounded-lg border border-[#E4E4E7] dark:border-[#24272A] bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-[#176B4D]"
+                    >
+                      <option value="">Quick Select: Choose a product to add...</option>
+                      {catalogVariants.map((item) => (
+                        <option key={item.variantId} value={item.variantId}>
+                          {item.productName} — {item.variantName} {item.sku ? `(${item.sku})` : ""}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Search Bar */}
+                  <div className="relative">
+                    <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                    <input
+                      type="text"
+                      placeholder="Or search by product name or SKU..."
+                      value={productSearch}
+                      onChange={(e) => setProductSearch(e.target.value)}
+                      className="w-full pl-9 pr-4 py-2 text-xs rounded-lg border border-[#E4E4E7] dark:border-[#24272A] bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-[#176B4D]"
+                    />
+
+                    {/* Filtered search dropdown results */}
+                    {productSearch.trim().length > 0 && (
+                      <div className="absolute z-20 top-full left-0 right-0 mt-1 max-h-56 overflow-y-auto bg-card border border-[#E4E4E7] dark:border-[#24272A] rounded-lg shadow-lg divide-y divide-zinc-100 dark:divide-zinc-800">
+                        {filteredVariants.length === 0 ? (
+                          <div className="p-3 text-center text-xs text-muted-foreground">
+                            No matching products found.
+                          </div>
+                        ) : (
+                          filteredVariants.map((item) => (
+                            <div
+                              key={item.variantId}
+                              onClick={() => handleAddVariant(item)}
+                              className="p-2.5 px-3 flex items-center justify-between hover:bg-zinc-50 dark:hover:bg-zinc-900 cursor-pointer transition-colors"
+                            >
+                              <div>
+                                <div className="text-xs font-semibold text-foreground">
+                                  {item.productName}
+                                </div>
+                                <div className="text-[11px] text-muted-foreground">
+                                  Variant: {item.variantName} {item.sku ? `• SKU: ${item.sku}` : ""}
+                                </div>
+                              </div>
+                              <div className="flex items-center gap-3">
+                                <span className="text-xs font-mono font-medium text-foreground">
+                                  {formatCurrency(item.costPrice, currency)}
+                                </span>
+                                <span className="inline-flex items-center gap-1 text-[11px] text-[#176B4D] font-medium bg-[#176B4D]/10 px-2 py-0.5 rounded">
+                                  <Plus className="w-3 h-3" /> Add
+                                </span>
+                              </div>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Line Items Table */}
             {lineItems.length === 0 ? (
               <div className="p-8 text-center border border-dashed border-[#E4E4E7] dark:border-[#24272A] rounded-xl">
                 <ShoppingCart className="w-8 h-8 text-muted-foreground/50 mx-auto mb-2" />
                 <h3 className="text-xs font-semibold text-foreground">No items in this order</h3>
-                <p className="text-[11px] text-muted-foreground mt-0.5">
-                  Use the product search bar above to select items to purchase.
+                <p className="text-[11px] text-muted-foreground mt-0.5 max-w-md mx-auto">
+                  Select a product from the dropdown above or search by name / SKU to add items to your purchase order.
                 </p>
               </div>
             ) : (
