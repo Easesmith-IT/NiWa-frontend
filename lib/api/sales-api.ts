@@ -287,6 +287,7 @@ export interface PaymentItem {
   customerId: string;
   customerType: "PERSON" | "COMPANY";
   amount: number;
+  currency: string;
   paymentMethod: PaymentMethod;
   transactionReference?: string | null;
   idempotencyKey?: string | null;
@@ -301,6 +302,7 @@ export interface RecordPaymentInput {
   invoiceId: string;
   amount: number;
   paymentMethod: PaymentMethod;
+  currency?: string;
   paymentDate?: string | null;
   transactionReference?: string | null;
   idempotencyKey?: string | null;
@@ -401,6 +403,7 @@ export interface SalesReturnItem {
   status: ReturnStatus;
   returnDate: string;
   refundAmount: number;
+  currency: string;
   confirmedAt?: string | null;
   cancelledAt?: string | null;
   cancelledReason?: string | null;
@@ -420,6 +423,7 @@ export interface CreateSalesReturnInput {
   lines: CreateReturnLineInput[];
   reason?: string | null;
   returnDate?: string | null;
+  currency?: string;
 }
 
 export interface ReturnFilterParams {
@@ -508,6 +512,7 @@ export async function getOrderReturns(orderId: string): Promise<PaginatedReturns
 
 export interface WorkspaceInvoiceSettings {
   workspaceId?: string;
+  defaultCurrency?: string | null;
   businessName?: string | null;
   address?: string | null;
   email?: string | null;

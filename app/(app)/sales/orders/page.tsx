@@ -32,6 +32,7 @@ import {
   fulfillSalesOrder,
   cancelSalesOrder,
   getOrderReturns,
+  getInvoiceSettings,
   SalesOrderItem,
   SalesReturnItem,
   OrderStatus,
@@ -43,6 +44,7 @@ import { apiClient } from "lib/api/api-client";
 import { queryKeys } from "lib/api/query-keys";
 import { listContacts } from "features/contacts/contact.api";
 import type { ContactRecord } from "features/contacts/contact.types";
+import { formatCurrency, getCurrencySymbol, COMMON_CURRENCIES } from "features/sales/utils/currency-formatter";
 
 interface CrmPerson {
   _id: string;
@@ -170,6 +172,11 @@ export default function SalesOrdersPage() {
     queryFn: () => listContacts({ limit: 150 }),
   });
 
+  const { data: invoiceSettings } = useQuery({
+    queryKey: queryKeys.invoiceSettings,
+    queryFn: getInvoiceSettings,
+  });
+
   const contactList: ContactRecord[] = (contactsData as any)?.data || [];
 
   // Mutations
@@ -234,6 +241,7 @@ export default function SalesOrdersPage() {
   function resetCreateForm() {
     setSelectedCustomerId("");
     setOrderLocationId("");
+    setOrderCurrency(invoiceSettings?.defaultCurrency || "USD");
     setOrderLines([]);
     setOrderNotes("");
     setActionError(null);
@@ -563,7 +571,7 @@ export default function SalesOrdersPage() {
                       </span>
                     </td>
                     <td className="py-3.5 px-4 font-semibold text-slate-900 dark:text-white">
-                      ${order.grandTotal.toFixed(2)}
+                      {formatCurrency(order.grandTotal, order.currency)}
                     </td>
                     <td className="py-3.5 px-4">{getStatusBadge(order.status)}</td>
                     <td className="py-3.5 px-4 text-xs text-slate-400">
@@ -820,23 +828,45 @@ export default function SalesOrdersPage() {
                 )}
               </div>
 
-              {/* Warehouse Location Selector */}
-              <div className="space-y-1.5">
-                <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
-                  2. Fulfillment Location
-                </label>
-                <select
-                  value={orderLocationId}
-                  onChange={(e) => setOrderLocationId(e.target.value)}
-                  className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
-                >
-                  <option value="">Select warehouse location (can set on confirmation)...</option>
-                  {(locationsData?.data || []).map((loc) => (
-                    <option key={loc._id} value={loc._id}>
-                      {loc.name} {loc.code ? `(${loc.code})` : ""}
-                    </option>
-                  ))}
-                </select>
+              {/* Location & Currency Selectors */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                    2. Fulfillment Location
+                  </label>
+                  <select
+                    value={orderLocationId}
+                    onChange={(e) => setOrderLocationId(e.target.value)}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+                  >
+                    <option value="">Select warehouse location (can set on confirmation)...</option>
+                    {(locationsData?.data || []).map((loc) => (
+                      <option key={loc._id} value={loc._id}>
+                        {loc.name} {loc.code ? `(${loc.code})` : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                    Currency
+                  </label>
+                  <select
+                    value={orderCurrency}
+                    onChange={(e) => setOrderCurrency(e.target.value)}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium"
+                  >
+                    {COMMON_CURRENCIES.map((c) => (
+                      <option key={c.code} value={c.code}>
+                        {c.code} ({c.symbol}) — {c.label}
+                      </option>
+                    ))}
+                    {!COMMON_CURRENCIES.some((c) => c.code === orderCurrency) && (
+                      <option value={orderCurrency}>{orderCurrency}</option>
+                    )}
+                  </select>
+                </div>
               </div>
 
               {/* Line Items Picker */}
@@ -860,7 +890,7 @@ export default function SalesOrdersPage() {
                           <div>
                             <span className="font-semibold text-slate-800 dark:text-slate-200">{p.name}</span>{" "}
                             <span className="text-slate-500">— {v.name}</span>{" "}
-                            <span className="text-primary font-mono">${v.sellingPrice.toFixed(2)}</span>
+                            <span className="text-primary font-mono">{formatCurrency(v.sellingPrice, orderCurrency)}</span>
                           </div>
                           <button
                             type="button"
@@ -887,7 +917,7 @@ export default function SalesOrdersPage() {
                         <tr>
                           <th className="p-2.5">Item</th>
                           <th className="p-2.5 w-20">Qty</th>
-                          <th className="p-2.5 w-24">Price</th>
+                          <th className="p-2.5 w-24">Price ({getCurrencySymbol(orderCurrency)})</th>
                           <th className="p-2.5 w-24">Total</th>
                           <th className="p-2.5 w-8"></th>
                         </tr>
@@ -916,7 +946,7 @@ export default function SalesOrdersPage() {
                               />
                             </td>
                             <td className="p-2.5 font-mono font-semibold">
-                              ${(line.quantity * line.unitPrice).toFixed(2)}
+                              {formatCurrency(line.quantity * line.unitPrice, orderCurrency)}
                             </td>
                             <td className="p-2.5 text-right">
                               <button
@@ -939,11 +969,11 @@ export default function SalesOrdersPage() {
               <div className="bg-slate-50 dark:bg-slate-800/40 p-4 rounded-xl space-y-1.5 text-sm">
                 <div className="flex justify-between text-slate-500 text-xs">
                   <span>Subtotal:</span>
-                  <span className="font-mono">${previewSubtotal.toFixed(2)}</span>
+                  <span className="font-mono">{formatCurrency(previewSubtotal, orderCurrency)}</span>
                 </div>
                 <div className="flex justify-between font-bold text-slate-900 dark:text-white pt-2 border-t border-slate-200 dark:border-slate-700">
                   <span>Estimated Total:</span>
-                  <span className="font-mono text-primary text-base">${previewGrandTotal.toFixed(2)}</span>
+                  <span className="font-mono text-primary text-base">{formatCurrency(previewGrandTotal, orderCurrency)}</span>
                 </div>
               </div>
 
@@ -1127,9 +1157,9 @@ export default function SalesOrdersPage() {
                                 {line.sku && <div className="text-[10px] text-slate-400">SKU: {line.sku}</div>}
                               </td>
                               <td className="p-2.5 text-center font-mono">{line.quantity}</td>
-                              <td className="p-2.5 text-right font-mono">${line.unitPrice.toFixed(2)}</td>
+                              <td className="p-2.5 text-right font-mono">{formatCurrency(line.unitPrice, activeOrder.currency)}</td>
                               <td className="p-2.5 text-right font-mono font-semibold">
-                                ${line.lineTotal.toFixed(2)}
+                                {formatCurrency(line.lineTotal, activeOrder.currency)}
                               </td>
                             </tr>
                           ))}
@@ -1142,23 +1172,23 @@ export default function SalesOrdersPage() {
                   <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl space-y-2 text-xs">
                     <div className="flex justify-between text-slate-500">
                       <span>Subtotal</span>
-                      <span className="font-mono">${activeOrder.subtotal.toFixed(2)}</span>
+                      <span className="font-mono">{formatCurrency(activeOrder.subtotal, activeOrder.currency)}</span>
                     </div>
                     {activeOrder.discountAmount > 0 && (
                       <div className="flex justify-between text-rose-500">
                         <span>Discount</span>
-                        <span className="font-mono">-${activeOrder.discountAmount.toFixed(2)}</span>
+                        <span className="font-mono">-{formatCurrency(activeOrder.discountAmount, activeOrder.currency)}</span>
                       </div>
                     )}
                     {activeOrder.taxAmount > 0 && (
                       <div className="flex justify-between text-slate-500">
                         <span>Tax</span>
-                        <span className="font-mono">+${activeOrder.taxAmount.toFixed(2)}</span>
+                        <span className="font-mono">+{formatCurrency(activeOrder.taxAmount, activeOrder.currency)}</span>
                       </div>
                     )}
                     <div className="flex justify-between text-sm font-bold text-slate-900 dark:text-white pt-2 border-t border-slate-200 dark:border-slate-700">
                       <span>Grand Total</span>
-                      <span className="font-mono text-primary">${activeOrder.grandTotal.toFixed(2)}</span>
+                      <span className="font-mono text-primary">{formatCurrency(activeOrder.grandTotal, activeOrder.currency)}</span>
                     </div>
                   </div>
 
@@ -1192,7 +1222,7 @@ export default function SalesOrdersPage() {
                                 {ret.returnId}
                               </div>
                               <div className="text-[11px] text-slate-500">
-                                {new Date(ret.createdAt).toLocaleDateString()} • {ret.lines.length} items • ${ret.refundAmount.toFixed(2)}
+                                {new Date(ret.createdAt).toLocaleDateString()} • {ret.lines.length} items • {formatCurrency(ret.refundAmount, ret.currency || activeOrder.currency)}
                               </div>
                             </div>
                             <div className="flex items-center gap-2">

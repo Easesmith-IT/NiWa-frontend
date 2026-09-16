@@ -23,11 +23,13 @@ import {
   getPayment,
   recordPayment,
   getInvoices,
+  getInvoiceSettings,
   PaymentItem,
   PaymentMethod,
   InvoiceItem,
 } from "lib/api/sales-api";
 import { queryKeys } from "lib/api/query-keys";
+import { formatCurrency, getCurrencySymbol } from "features/sales/utils/currency-formatter";
 
 export default function PaymentsPage() {
   const queryClient = useQueryClient();
@@ -84,6 +86,11 @@ export default function PaymentsPage() {
     enabled: !!selectedPaymentId,
   });
 
+  const { data: invoiceSettings } = useQuery({
+    queryKey: queryKeys.invoiceSettings,
+    queryFn: getInvoiceSettings,
+  });
+
   // Query eligible invoices (ISSUED, not fully paid) for the Record Payment modal
   const { data: payableInvoicesData } = useQuery({
     queryKey: [...queryKeys.invoices, { status: "ISSUED", payableOnly: true }],
@@ -109,13 +116,14 @@ export default function PaymentsPage() {
       }
       if (activeSelectedInvoice && numAmount > activeSelectedInvoice.balanceDue) {
         throw new Error(
-          `Amount cannot exceed invoice balance due ($${activeSelectedInvoice.balanceDue.toFixed(2)})`
+          `Amount cannot exceed invoice balance due (${formatCurrency(activeSelectedInvoice.balanceDue, activeSelectedInvoice.currency)})`
         );
       }
 
       return recordPayment({
         invoiceId: selectedInvoiceId,
         amount: numAmount,
+        currency: activeSelectedInvoice?.currency,
         paymentMethod,
         paymentDate: paymentDate || undefined,
         transactionReference: transactionReference.trim() || undefined,
@@ -221,7 +229,7 @@ export default function PaymentsPage() {
             Total Collected
           </div>
           <div className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
-            ${totalSettled.toFixed(2)}
+            {formatCurrency(totalSettled, invoiceSettings?.defaultCurrency || "USD")}
           </div>
           <div className="text-[11px] text-neutral-400">Recorded across visible settlements</div>
         </div>
@@ -370,7 +378,7 @@ export default function PaymentsPage() {
                         {pmt.transactionReference || "—"}
                       </td>
                       <td className="px-6 py-4 text-right font-bold text-emerald-600 dark:text-emerald-400">
-                        +${pmt.amount.toFixed(2)}
+                        +{formatCurrency(pmt.amount, pmt.currency || (typeof pmt.invoiceId === "object" && pmt.invoiceId ? pmt.invoiceId.currency : "USD"))}
                       </td>
                       <td className="px-6 py-4">
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
@@ -436,7 +444,10 @@ export default function PaymentsPage() {
                       Settled Amount
                     </div>
                     <div className="text-3xl font-extrabold text-emerald-700 dark:text-emerald-300">
-                      ${activePayment.amount.toFixed(2)}
+                      {formatCurrency(
+                        activePayment.amount,
+                        activePayment.currency || (typeof activePayment.invoiceId === "object" && activePayment.invoiceId ? activePayment.invoiceId.currency : "USD")
+                      )}
                     </div>
                     <div className="text-xs text-emerald-600/80 dark:text-emerald-400/80">
                       Payment Date: {new Date(activePayment.paymentDate).toLocaleDateString()}
@@ -458,15 +469,15 @@ export default function PaymentsPage() {
                         </div>
                         <div className="flex justify-between text-neutral-500 pt-1 border-t border-neutral-200 dark:border-neutral-700">
                           <span>Grand Total:</span>
-                          <span>${activePayment.invoiceId.grandTotal.toFixed(2)}</span>
+                          <span>{formatCurrency(activePayment.invoiceId.grandTotal, activePayment.invoiceId.currency)}</span>
                         </div>
                         <div className="flex justify-between text-neutral-500">
                           <span>Paid So Far:</span>
-                          <span>${activePayment.invoiceId.paidAmount.toFixed(2)}</span>
+                          <span>{formatCurrency(activePayment.invoiceId.paidAmount, activePayment.invoiceId.currency)}</span>
                         </div>
                         <div className="flex justify-between font-semibold text-amber-600 dark:text-amber-400">
                           <span>Remaining Balance:</span>
-                          <span>${activePayment.invoiceId.balanceDue.toFixed(2)}</span>
+                          <span>{formatCurrency(activePayment.invoiceId.balanceDue, activePayment.invoiceId.currency)}</span>
                         </div>
                       </div>
                     ) : (
@@ -573,7 +584,7 @@ export default function PaymentsPage() {
                   <option value="">-- Choose an unpaid issued invoice --</option>
                   {eligibleInvoices.map((inv) => (
                     <option key={inv._id} value={inv._id}>
-                      {inv.invoiceId} — {inv.customer.displayName} (Due: ${inv.balanceDue.toFixed(2)})
+                      {inv.invoiceId} — {inv.customer.displayName} (Due: {formatCurrency(inv.balanceDue, inv.currency)})
                     </option>
                   ))}
                 </select>
@@ -589,21 +600,23 @@ export default function PaymentsPage() {
                   </div>
                   <div className="flex justify-between text-neutral-500">
                     <span>Grand Total:</span>
-                    <span>${activeSelectedInvoice.grandTotal.toFixed(2)}</span>
+                    <span>{formatCurrency(activeSelectedInvoice.grandTotal, activeSelectedInvoice.currency)}</span>
                   </div>
                   <div className="flex justify-between font-bold text-amber-600 dark:text-amber-400 pt-1 border-t border-neutral-200 dark:border-neutral-700">
                     <span>Balance Due:</span>
-                    <span>${activeSelectedInvoice.balanceDue.toFixed(2)}</span>
+                    <span>{formatCurrency(activeSelectedInvoice.balanceDue, activeSelectedInvoice.currency)}</span>
                   </div>
                 </div>
               )}
 
               <div>
                 <label className="font-semibold text-neutral-700 dark:text-neutral-300 block mb-1">
-                  Payment Amount ($) *
+                  Payment Amount ({activeSelectedInvoice ? activeSelectedInvoice.currency : "USD"}) *
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-neutral-400">$</span>
+                  <span className="absolute left-3 top-2.5 text-neutral-400 font-mono">
+                    {getCurrencySymbol(activeSelectedInvoice ? activeSelectedInvoice.currency : "USD")}
+                  </span>
                   <input
                     type="number"
                     step="0.01"
@@ -611,13 +624,13 @@ export default function PaymentsPage() {
                     max={activeSelectedInvoice?.balanceDue}
                     value={amount}
                     onChange={(e) => setAmount(e.target.value)}
-                    className="w-full pl-7 pr-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold"
+                    className="w-full pl-8 pr-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold"
                     placeholder="0.00"
                   />
                 </div>
                 {activeSelectedInvoice && (
                   <div className="flex justify-between items-center mt-1 text-[11px] text-neutral-400">
-                    <span>Max payable: ${activeSelectedInvoice.balanceDue.toFixed(2)}</span>
+                    <span>Max payable: {formatCurrency(activeSelectedInvoice.balanceDue, activeSelectedInvoice.currency)}</span>
                     <button
                       type="button"
                       onClick={() => setAmount(activeSelectedInvoice.balanceDue.toString())}
@@ -712,7 +725,7 @@ export default function PaymentsPage() {
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 {recordPaymentMutation.isPending
                   ? "Recording..."
-                  : `Record Payment ($${parseFloat(amount || "0").toFixed(2)})`}
+                  : `Record Payment (${formatCurrency(parseFloat(amount || "0"), activeSelectedInvoice ? activeSelectedInvoice.currency : "USD")})`}
               </button>
             </div>
           </div>

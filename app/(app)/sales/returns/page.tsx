@@ -36,6 +36,7 @@ import {
   ReturnableLineQuantity,
 } from "lib/api/sales-api";
 import { queryKeys } from "lib/api/query-keys";
+import { formatCurrency } from "features/sales/utils/currency-formatter";
 
 export default function SalesReturnsPage() {
   const queryClient = useQueryClient();
@@ -107,6 +108,8 @@ export default function SalesReturnsPage() {
   const eligibleOrders = (ordersData?.data || []).filter(
     (order) => order.status === "CONFIRMED" || order.status === "FULFILLED"
   );
+
+  const selectedOrder = eligibleOrders.find((order) => order._id === selectedOrderId);
 
   // 4. Query Returnable Quantities for Selected Order
   const {
@@ -276,6 +279,7 @@ export default function SalesReturnsPage() {
       lines: linesToSubmit,
       reason: returnReason.trim() || undefined,
       returnDate: returnDate || undefined,
+      currency: selectedOrder?.currency,
     });
   };
 
@@ -426,7 +430,7 @@ export default function SalesReturnsPage() {
                       </div>
                     </td>
                     <td className="py-3.5 px-4 text-right font-mono font-semibold text-slate-900 dark:text-white">
-                      ${item.refundAmount.toFixed(2)}
+                      {formatCurrency(item.refundAmount, item.currency || "USD")}
                     </td>
                     <td className="py-3.5 px-4 text-center">
                       {getStatusBadge(item.status)}
@@ -582,13 +586,13 @@ export default function SalesReturnsPage() {
                               <span>SKU: {line.sku || "N/A"}</span>
                               <span>•</span>
                               <span>
-                                {line.quantity} {line.unitCode} @ ${line.unitPrice.toFixed(2)}
+                                {line.quantity} {line.unitCode} @ {formatCurrency(line.unitPrice, activeReturn.currency || "USD")}
                               </span>
                             </div>
                           </div>
                           <div className="text-right space-y-1">
                             <div className="font-mono font-bold text-slate-900 dark:text-white">
-                              ${line.lineTotal.toFixed(2)}
+                              {formatCurrency(line.lineTotal, activeReturn.currency || "USD")}
                             </div>
                             <span
                               className={`inline-block px-1.5 py-0.5 rounded text-[10px] font-semibold ${
@@ -611,7 +615,7 @@ export default function SalesReturnsPage() {
                       Total Refund Amount
                     </div>
                     <div className="font-mono text-xl font-bold text-blue-600 dark:text-blue-400">
-                      ${activeReturn.refundAmount.toFixed(2)}
+                      {formatCurrency(activeReturn.refundAmount, activeReturn.currency || "USD")}
                     </div>
                   </div>
 
@@ -705,7 +709,7 @@ export default function SalesReturnsPage() {
                   <option value="">-- Select an eligible order --</option>
                   {eligibleOrders.map((ord) => (
                     <option key={ord._id} value={ord._id}>
-                      {ord.orderId} — {ord.customer.displayName} (${ord.grandTotal.toFixed(2)}, {ord.status})
+                      {ord.orderId} — {ord.customer.displayName} ({formatCurrency(ord.grandTotal, ord.currency)}, {ord.status})
                     </option>
                   ))}
                 </select>
@@ -752,7 +756,7 @@ export default function SalesReturnsPage() {
                                 <span className="font-bold text-slate-700 dark:text-slate-300">
                                   {line.remainingReturnableQuantity}
                                 </span>{" "}
-                                @ ${line.unitPrice.toFixed(2)}
+                                @ {formatCurrency(line.unitPrice, selectedOrder?.currency || "USD")}
                               </div>
                             </div>
                           </div>
@@ -813,7 +817,7 @@ export default function SalesReturnsPage() {
                     Estimated Refund
                   </label>
                   <div className="px-3 py-2 text-sm bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 rounded-lg font-mono font-bold text-blue-600 dark:text-blue-400">
-                    ${previewRefundAmount.toFixed(2)}
+                    {formatCurrency(previewRefundAmount, selectedOrder?.currency || "USD")}
                   </div>
                 </div>
               </div>

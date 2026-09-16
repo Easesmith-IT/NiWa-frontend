@@ -44,6 +44,7 @@ import { queryKeys } from "lib/api/query-keys";
 import { InvoicePrintPreviewModal } from "components/sales/InvoicePrintPreviewModal";
 import { BusinessInfo, PaymentInstructions } from "components/sales/InvoiceDocumentView";
 import { getDueDateStatus } from "features/sales/utils/due-date-helper";
+import { formatCurrency, getCurrencySymbol, COMMON_CURRENCIES } from "features/sales/utils/currency-formatter";
 
 interface VariantOption {
   _id: string;
@@ -275,11 +276,12 @@ export default function InvoicesPage() {
         throw new Error("Payment amount must be greater than 0");
       }
       if (numAmount > paymentTargetInvoice.balanceDue) {
-        throw new Error(`Amount cannot exceed balance due ($${paymentTargetInvoice.balanceDue.toFixed(2)})`);
+        throw new Error(`Amount cannot exceed balance due (${formatCurrency(paymentTargetInvoice.balanceDue, paymentTargetInvoice.currency)})`);
       }
       return recordPayment({
         invoiceId: paymentTargetInvoice._id,
         amount: numAmount,
+        currency: paymentTargetInvoice.currency,
         paymentMethod,
         paymentDate: paymentDate || undefined,
         transactionReference: paymentRef.trim() || undefined,
@@ -322,7 +324,7 @@ export default function InvoicesPage() {
     setCustomerType("PERSON");
     setSelectedCustomerId("");
     setInvoiceDueDate("");
-    setInvoiceCurrency("USD");
+    setInvoiceCurrency(invoiceSettings?.defaultCurrency || "USD");
     setInvoiceNotes("");
     setInvoiceLines([]);
     setActionError(null);
@@ -588,10 +590,10 @@ export default function InvoicesPage() {
                     <td className="px-6 py-4">{renderStatusBadge(inv.status)}</td>
                     <td className="px-6 py-4">{renderPaymentStatusBadge(inv.paymentStatus)}</td>
                     <td className="px-6 py-4 text-right font-medium text-neutral-900 dark:text-neutral-100">
-                      ${inv.grandTotal.toFixed(2)}
+                      {formatCurrency(inv.grandTotal, inv.currency)}
                     </td>
                     <td className="px-6 py-4 text-right font-medium text-amber-600 dark:text-amber-400">
-                      ${inv.balanceDue.toFixed(2)}
+                      {formatCurrency(inv.balanceDue, inv.currency)}
                     </td>
                     <td className="px-6 py-4 text-neutral-500 text-xs">
                       <div className="flex flex-col gap-1">
@@ -758,7 +760,7 @@ export default function InvoicesPage() {
                                 <div className="text-[10px] text-neutral-400 font-mono">{line.sku}</div>
                               </td>
                               <td className="p-2.5 text-right">{line.quantity}</td>
-                              <td className="p-2.5 text-right">${line.unitPrice.toFixed(2)}</td>
+                              <td className="p-2.5 text-right">{formatCurrency(line.unitPrice, activeInvoice.currency)}</td>
                               <td className="p-2.5 text-right">
                                 {line.discountValue ? `${line.discountValue}%` : "—"}
                               </td>
@@ -766,7 +768,7 @@ export default function InvoicesPage() {
                                 {line.taxRatePercent ? `${line.taxRatePercent}%` : "—"}
                               </td>
                               <td className="p-2.5 text-right font-medium text-neutral-900 dark:text-neutral-100">
-                                ${line.lineTotal.toFixed(2)}
+                                {formatCurrency(line.lineTotal, activeInvoice.currency)}
                               </td>
                             </tr>
                           ))}
@@ -783,35 +785,35 @@ export default function InvoicesPage() {
                     <div className="space-y-1.5 text-sm">
                       <div className="flex justify-between text-neutral-600 dark:text-neutral-400">
                         <span>Subtotal</span>
-                        <span>${activeInvoice.subtotal.toFixed(2)}</span>
+                        <span>{formatCurrency(activeInvoice.subtotal, activeInvoice.currency)}</span>
                       </div>
                       {activeInvoice.discountAmount > 0 && (
                         <div className="flex justify-between text-emerald-600 dark:text-emerald-400">
                           <span>Discount</span>
-                          <span>-${activeInvoice.discountAmount.toFixed(2)}</span>
+                          <span>-{formatCurrency(activeInvoice.discountAmount, activeInvoice.currency)}</span>
                         </div>
                       )}
                       <div className="flex justify-between text-neutral-600 dark:text-neutral-400">
                         <span>Net Amount</span>
-                        <span>${activeInvoice.netAmount.toFixed(2)}</span>
+                        <span>{formatCurrency(activeInvoice.netAmount, activeInvoice.currency)}</span>
                       </div>
                       {activeInvoice.taxAmount > 0 && (
                         <div className="flex justify-between text-neutral-600 dark:text-neutral-400">
                           <span>Tax</span>
-                          <span>+${activeInvoice.taxAmount.toFixed(2)}</span>
+                          <span>+{formatCurrency(activeInvoice.taxAmount, activeInvoice.currency)}</span>
                         </div>
                       )}
                       <div className="flex justify-between text-base font-bold text-neutral-900 dark:text-neutral-100 pt-2 border-t border-neutral-200 dark:border-neutral-700">
                         <span>Grand Total</span>
-                        <span>${activeInvoice.grandTotal.toFixed(2)}</span>
+                        <span>{formatCurrency(activeInvoice.grandTotal, activeInvoice.currency)}</span>
                       </div>
                       <div className="flex justify-between text-xs text-neutral-500 pt-1">
                         <span>Paid Amount</span>
-                        <span>${activeInvoice.paidAmount.toFixed(2)}</span>
+                        <span>{formatCurrency(activeInvoice.paidAmount, activeInvoice.currency)}</span>
                       </div>
                       <div className="flex justify-between text-sm font-semibold text-amber-600 dark:text-amber-400">
                         <span>Balance Due</span>
-                        <span>${activeInvoice.balanceDue.toFixed(2)}</span>
+                        <span>{formatCurrency(activeInvoice.balanceDue, activeInvoice.currency)}</span>
                       </div>
                     </div>
                   </div>
@@ -860,7 +862,7 @@ export default function InvoicesPage() {
                             </div>
                             <div className="text-right">
                               <div className="font-semibold text-emerald-600 dark:text-emerald-400">
-                                +${pmt.amount.toFixed(2)}
+                                +{formatCurrency(pmt.amount, pmt.currency || activeInvoice.currency)}
                               </div>
                               <span className="text-[10px] text-neutral-400 uppercase font-mono">{pmt.status}</span>
                             </div>
@@ -952,7 +954,7 @@ export default function InvoicesPage() {
                   <option value="">-- Choose confirmed order --</option>
                   {convertableOrdersData?.map((order) => (
                     <option key={order._id} value={order.orderId}>
-                      {order.orderId} — {order.customer.displayName} (${order.grandTotal.toFixed(2)}) [{order.status}]
+                      {order.orderId} — {order.customer.displayName} ({formatCurrency(order.grandTotal, order.currency)}) [{order.status}]
                     </option>
                   ))}
                 </select>
@@ -1104,12 +1106,20 @@ export default function InvoicesPage() {
                 <label className="text-xs font-semibold text-neutral-700 dark:text-neutral-300 block mb-1">
                   Currency
                 </label>
-                <input
-                  type="text"
+                <select
                   value={invoiceCurrency}
-                  onChange={(e) => setInvoiceCurrency(e.target.value.toUpperCase())}
-                  className="w-full text-sm px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent font-mono"
-                />
+                  onChange={(e) => setInvoiceCurrency(e.target.value)}
+                  className="w-full text-sm px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                >
+                  {COMMON_CURRENCIES.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.code} ({c.symbol}) — {c.label}
+                    </option>
+                  ))}
+                  {!COMMON_CURRENCIES.some((c) => c.code === invoiceCurrency) && (
+                    <option value={invoiceCurrency}>{invoiceCurrency}</option>
+                  )}
+                </select>
               </div>
             </div>
 
@@ -1131,7 +1141,7 @@ export default function InvoicesPage() {
                           <span className="font-semibold text-neutral-800 dark:text-neutral-200">{p.name}</span>{" "}
                           <span className="text-neutral-500">— {v.name}</span>{" "}
                           <span className="font-mono text-emerald-600 dark:text-emerald-400">
-                            ${v.sellingPrice.toFixed(2)}
+                            {formatCurrency(v.sellingPrice, invoiceCurrency)}
                           </span>
                         </div>
                         <button
@@ -1159,7 +1169,7 @@ export default function InvoicesPage() {
                       <tr>
                         <th className="p-2">Item</th>
                         <th className="p-2 w-16">Qty</th>
-                        <th className="p-2 w-24 text-right">Price ($)</th>
+                        <th className="p-2 w-24 text-right">Price ({getCurrencySymbol(invoiceCurrency)})</th>
                         <th className="p-2 w-20 text-right">Disc %</th>
                         <th className="p-2 w-20 text-right">Tax %</th>
                         <th className="p-2 text-right">Line Total</th>
@@ -1219,7 +1229,7 @@ export default function InvoicesPage() {
                               />
                             </td>
                             <td className="p-2 text-right font-medium font-mono">
-                              ${lineTotal.toFixed(2)}
+                              {formatCurrency(lineTotal, invoiceCurrency)}
                             </td>
                             <td className="p-2 text-right">
                               <button
@@ -1244,23 +1254,23 @@ export default function InvoicesPage() {
               <div className="bg-neutral-50 dark:bg-neutral-800/40 p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 text-xs space-y-1.5">
                 <div className="flex justify-between text-neutral-600 dark:text-neutral-400">
                   <span>Subtotal:</span>
-                  <span className="font-mono">${previewSubtotal.toFixed(2)}</span>
+                  <span className="font-mono">{formatCurrency(previewSubtotal, invoiceCurrency)}</span>
                 </div>
                 {previewDiscount > 0 && (
                   <div className="flex justify-between text-amber-600 dark:text-amber-400">
                     <span>Discount:</span>
-                    <span className="font-mono">-${previewDiscount.toFixed(2)}</span>
+                    <span className="font-mono">-{formatCurrency(previewDiscount, invoiceCurrency)}</span>
                   </div>
                 )}
                 {previewTax > 0 && (
                   <div className="flex justify-between text-neutral-500 dark:text-neutral-400">
                     <span>Tax:</span>
-                    <span className="font-mono">+${previewTax.toFixed(2)}</span>
+                    <span className="font-mono">+{formatCurrency(previewTax, invoiceCurrency)}</span>
                   </div>
                 )}
                 <div className="flex justify-between text-sm font-bold pt-1.5 border-t border-neutral-200 dark:border-neutral-700 text-neutral-900 dark:text-neutral-100">
                   <span>Grand Total:</span>
-                  <span className="font-mono text-emerald-600 dark:text-emerald-400">${previewGrandTotal.toFixed(2)}</span>
+                  <span className="font-mono text-emerald-600 dark:text-emerald-400">{formatCurrency(previewGrandTotal, invoiceCurrency)}</span>
                 </div>
               </div>
             )}
@@ -1380,25 +1390,27 @@ export default function InvoicesPage() {
             <div className="p-3 bg-neutral-50 dark:bg-neutral-800/50 rounded-xl space-y-1 text-xs">
               <div className="flex justify-between text-neutral-500">
                 <span>Grand Total:</span>
-                <span>${paymentTargetInvoice.grandTotal.toFixed(2)}</span>
+                <span>{formatCurrency(paymentTargetInvoice.grandTotal, paymentTargetInvoice.currency)}</span>
               </div>
               <div className="flex justify-between text-neutral-500">
                 <span>Paid So Far:</span>
-                <span>${paymentTargetInvoice.paidAmount.toFixed(2)}</span>
+                <span>{formatCurrency(paymentTargetInvoice.paidAmount, paymentTargetInvoice.currency)}</span>
               </div>
               <div className="flex justify-between font-bold text-amber-600 dark:text-amber-400 pt-1 border-t border-neutral-200 dark:border-neutral-700">
                 <span>Balance Due:</span>
-                <span>${paymentTargetInvoice.balanceDue.toFixed(2)}</span>
+                <span>{formatCurrency(paymentTargetInvoice.balanceDue, paymentTargetInvoice.currency)}</span>
               </div>
             </div>
 
             <div className="space-y-3 text-xs">
               <div>
                 <label className="font-semibold text-neutral-700 dark:text-neutral-300 block mb-1">
-                  Payment Amount ($) *
+                  Payment Amount ({paymentTargetInvoice.currency}) *
                 </label>
                 <div className="relative">
-                  <span className="absolute left-3 top-2.5 text-neutral-400">$</span>
+                  <span className="absolute left-3 top-2.5 text-neutral-400 font-mono">
+                    {getCurrencySymbol(paymentTargetInvoice.currency)}
+                  </span>
                   <input
                     type="number"
                     step="0.01"
@@ -1406,12 +1418,12 @@ export default function InvoicesPage() {
                     max={paymentTargetInvoice.balanceDue}
                     value={paymentAmount}
                     onChange={(e) => setPaymentAmount(e.target.value)}
-                    className="w-full pl-7 pr-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold"
+                    className="w-full pl-8 pr-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-transparent text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 font-semibold"
                     placeholder="0.00"
                   />
                 </div>
                 <div className="flex justify-between items-center mt-1 text-[11px] text-neutral-400">
-                  <span>Max payable: ${paymentTargetInvoice.balanceDue.toFixed(2)}</span>
+                  <span>Max payable: {formatCurrency(paymentTargetInvoice.balanceDue, paymentTargetInvoice.currency)}</span>
                   <button
                     type="button"
                     onClick={() => setPaymentAmount(paymentTargetInvoice.balanceDue.toString())}
@@ -1504,7 +1516,7 @@ export default function InvoicesPage() {
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 {recordPaymentMutation.isPending
                   ? "Recording..."
-                  : `Record Payment ($${parseFloat(paymentAmount || "0").toFixed(2)})`}
+                  : `Record Payment (${formatCurrency(parseFloat(paymentAmount || "0"), paymentTargetInvoice.currency)})`}
               </button>
             </div>
           </div>

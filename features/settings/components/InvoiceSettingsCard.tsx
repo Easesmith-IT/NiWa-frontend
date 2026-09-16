@@ -12,7 +12,8 @@ import {
   updateInvoiceSettings,
   WorkspaceInvoiceSettings,
 } from "lib/api/sales-api";
-import { Building2, CreditCard, FileText, CheckCircle2, AlertCircle } from "lucide-react";
+import { Building2, CreditCard, FileText, CheckCircle2, AlertCircle, Coins } from "lucide-react";
+import { COMMON_CURRENCIES } from "lib/utils/format-currency";
 
 export const InvoiceSettingsCard: React.FC = () => {
   const queryClient = useQueryClient();
@@ -29,6 +30,7 @@ export const InvoiceSettingsCard: React.FC = () => {
   useEffect(() => {
     if (settings) {
       setFormData({
+        defaultCurrency: settings.defaultCurrency || "USD",
         businessName: settings.businessName || "",
         address: settings.address || "",
         email: settings.email || "",
@@ -90,6 +92,31 @@ export const InvoiceSettingsCard: React.FC = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Section 0: Default Commercial Currency */}
+        <div className="space-y-3 p-4 rounded-xl border border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/50">
+          <div className="flex items-center gap-2 text-xs font-semibold text-neutral-800 dark:text-neutral-200">
+            <Coins className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+            <span>Default Commercial Currency</span>
+          </div>
+          <p className="text-[11px] text-muted-foreground">
+            Used automatically for newly created Quotes, Sales Orders, and Invoices. Existing documents retain their original currency permanently.
+          </p>
+          <div className="max-w-xs">
+            <select
+              aria-label="Default Commercial Currency"
+              value={formData.defaultCurrency || "USD"}
+              onChange={(e) => setFormData((prev) => ({ ...prev, defaultCurrency: e.target.value }))}
+              className="w-full text-xs h-9 px-3 rounded-md border border-input bg-background font-mono text-foreground focus:outline-hidden focus:ring-2 focus:ring-ring"
+            >
+              {COMMON_CURRENCIES.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+
         {/* Section 1: Business Identity */}
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-xs font-semibold text-neutral-800 dark:text-neutral-200">

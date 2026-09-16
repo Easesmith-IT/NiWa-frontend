@@ -27,6 +27,7 @@
 
 import React from "react";
 import { InvoiceItem } from "lib/api/sales-api";
+import { formatCurrency } from "lib/utils/format-currency";
 import { Building2, User, CheckCircle2, AlertCircle, ShieldAlert } from "lucide-react";
 
 export interface BusinessInfo {
@@ -302,11 +303,11 @@ export function InvoiceDocumentView({
                   {line.quantity} {line.unitCode || ""}
                 </td>
                 <td className="py-3 px-3 text-right font-mono text-neutral-700">
-                  ${line.unitPrice.toFixed(2)}
+                  {formatCurrency(line.unitPrice, invoice.currency)}
                 </td>
                 <td className="py-3 px-2 text-right text-neutral-600">
                   {line.discountAmount && line.discountAmount > 0
-                    ? `-$${line.discountAmount.toFixed(2)}`
+                    ? `-${formatCurrency(line.discountAmount, invoice.currency)}`
                     : line.discountValue
                     ? `${line.discountValue}%`
                     : "—"}
@@ -315,7 +316,7 @@ export function InvoiceDocumentView({
                   {line.taxRatePercent ? `${line.taxRatePercent}%` : "—"}
                 </td>
                 <td className="py-3 px-3 text-right font-mono font-semibold text-neutral-900">
-                  ${line.lineTotal.toFixed(2)}
+                  {formatCurrency(line.lineTotal, invoice.currency)}
                 </td>
               </tr>
             ))}
@@ -387,38 +388,38 @@ export function InvoiceDocumentView({
         <div className="w-full sm:w-5/12 space-y-2 text-xs">
           <div className="flex justify-between py-1 text-neutral-600">
             <span>Subtotal:</span>
-            <span className="font-mono font-medium">${invoice.subtotal.toFixed(2)}</span>
+            <span className="font-mono font-medium">{formatCurrency(invoice.subtotal, invoice.currency)}</span>
           </div>
 
           {invoice.discountAmount > 0 && (
             <div className="flex justify-between py-1 text-emerald-600">
               <span>Total Discount:</span>
-              <span className="font-mono font-medium">-${invoice.discountAmount.toFixed(2)}</span>
+              <span className="font-mono font-medium">-{formatCurrency(invoice.discountAmount, invoice.currency)}</span>
             </div>
           )}
 
           <div className="flex justify-between py-1 text-neutral-600">
             <span>Net Taxable:</span>
-            <span className="font-mono font-medium">${invoice.netAmount.toFixed(2)}</span>
+            <span className="font-mono font-medium">{formatCurrency(invoice.netAmount, invoice.currency)}</span>
           </div>
 
           {invoice.taxAmount > 0 && (
             <div className="flex justify-between py-1 text-neutral-600">
               <span>Tax Total:</span>
-              <span className="font-mono font-medium">+${invoice.taxAmount.toFixed(2)}</span>
+              <span className="font-mono font-medium">+{formatCurrency(invoice.taxAmount, invoice.currency)}</span>
             </div>
           )}
 
           <div className="flex justify-between py-2 border-t-2 border-neutral-300 text-sm font-bold text-neutral-900">
             <span>Grand Total:</span>
             <span className="font-mono text-base text-neutral-900">
-              ${invoice.grandTotal.toFixed(2)}
+              {formatCurrency(invoice.grandTotal, invoice.currency)}
             </span>
           </div>
 
           <div className="flex justify-between py-1 text-neutral-500 text-[11px]">
             <span>Amount Paid:</span>
-            <span className="font-mono">${invoice.paidAmount.toFixed(2)}</span>
+            <span className="font-mono">{formatCurrency(invoice.paidAmount, invoice.currency)}</span>
           </div>
 
           <div
@@ -429,7 +430,7 @@ export function InvoiceDocumentView({
             }`}
           >
             <span>Balance Due:</span>
-            <span className="font-mono text-base">${invoice.balanceDue.toFixed(2)}</span>
+            <span className="font-mono text-base">{formatCurrency(invoice.balanceDue, invoice.currency)}</span>
           </div>
         </div>
       </div>
