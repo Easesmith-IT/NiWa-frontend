@@ -60,6 +60,50 @@ export const removeContactLabel = async (contactId: string, labelId: string) => 
   return response.data;
 };
 
+export const linkContactPerson = async (contactId: string, personId: string) => {
+  const response = await apiClient.post<{ data: ContactRecord }>(`/contacts/${contactId}/link-person`, {
+    personId,
+  });
+  return response.data;
+};
+
+export const unlinkContactPerson = async (contactId: string) => {
+  const response = await apiClient.post<{ data: ContactRecord }>(`/contacts/${contactId}/unlink-person`);
+  return response.data;
+};
+
+export const linkContactCompany = async (contactId: string, companyId: string) => {
+  const response = await apiClient.post<{ data: ContactRecord }>(`/contacts/${contactId}/link-company`, {
+    companyId,
+  });
+  return response.data;
+};
+
+export const unlinkContactCompany = async (contactId: string) => {
+  const response = await apiClient.post<{ data: ContactRecord }>(`/contacts/${contactId}/unlink-company`);
+  return response.data;
+};
+
+export const createPersonFromContact = async (
+  contactId: string,
+  payload: {
+    firstName?: string;
+    lastName?: string;
+    displayName?: string;
+    jobTitle?: string;
+    department?: string;
+    companyId?: string | null;
+    createCompany?: boolean;
+    companyName?: string;
+  },
+) => {
+  const response = await apiClient.post<{ data: { person: any; contact: ContactRecord } }>(
+    `/contacts/${contactId}/create-person`,
+    payload,
+  );
+  return response.data;
+};
+
 
 
 export const exportContacts = async (params?: { format?: "csv" | "json"; search?: string }) => {

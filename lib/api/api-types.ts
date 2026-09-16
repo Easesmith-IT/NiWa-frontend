@@ -43,16 +43,78 @@ export interface ContactCustomFieldRecord {
 
 export interface ContactRecord extends RecordBase {
   avatarUrl?: string | null;
+  channel?: "WHATSAPP" | "PHONE" | "EMAIL" | "OTHER";
   company?: string | null;
+  companyId?: string | CrmCompany | null;
   customFields?: ContactCustomFieldRecord[];
   displayName: string;
   email?: string | null;
   isArchived?: boolean;
   labels?: string[];
+  personId?: string | CrmPerson | null;
   phoneNumber: string;
   phoneNumberE164?: string;
   profileName?: string | null;
   waId: string;
+}
+
+export interface CrmEmail {
+  email: string;
+  label?: string;
+  primary?: boolean;
+}
+
+export interface CrmPhone {
+  phone: string;
+  label?: string;
+  primary?: boolean;
+}
+
+export interface CrmPerson extends RecordBase {
+  firstName?: string;
+  lastName?: string;
+  displayName: string;
+  emails?: CrmEmail[];
+  phones?: CrmPhone[];
+  companyIds?: Array<string | CrmCompany>;
+  companies?: CrmCompany[];
+  contacts?: ContactRecord[];
+  jobTitle?: string;
+  department?: string;
+  avatarUrl?: string;
+  notes?: string;
+  tags?: string[];
+  status?: "ACTIVE" | "INACTIVE" | "LEAD";
+  source?: string;
+  isArchived?: boolean;
+}
+
+export interface CrmCompany extends RecordBase {
+  name: string;
+  normalizedName?: string;
+  legalName?: string | null;
+  gstin?: string | null;
+  pan?: string | null;
+  cin?: string | null;
+  website?: string;
+  domain?: string;
+  industry?: string;
+  employeeCount?: number | null;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  postalCode?: string | null;
+  country?: string | null;
+  billingAddress?: string | null;
+  shippingAddress?: string | null;
+  primaryEmail?: string | null;
+  primaryPhone?: string | null;
+  notes?: string | null;
+  tags?: string[];
+  status?: string;
+  people?: CrmPerson[];
+  contacts?: ContactRecord[];
+  isArchived?: boolean;
 }
 
 export interface ConversationRecord extends RecordBase {

@@ -30,6 +30,7 @@ import {
   FileText,
   CreditCard,
   RotateCcw,
+  Users,
 } from "lucide-react";
 
 
@@ -167,10 +168,16 @@ export const navigationGroups: NavigationGroup[] = [
     label: "CRM",
     items: [
       {
+        href: "/people",
+        icon: Users,
+        label: "People",
+        description: "Customer individuals, personal identities, and job titles.",
+      },
+      {
         href: "/contacts",
         icon: ContactRound,
         label: "Contacts",
-        description: "Customer directory, import, and labels.",
+        description: "Communication channels and WhatsApp endpoints.",
       },
       {
         href: "/companies",

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { MessageSquare, Pin, Tags, Trash2, X } from "lucide-react";
+import { MessageSquare, Pin, Tags, Trash2, X, UserCheck, Building2, UserPlus, Link2, Unlink, Loader2, Sparkles } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
@@ -11,6 +12,16 @@ import {
   useRemoveContactLabelMutation,
 } from "../contact.queries";
 import type { ContactRecord } from "../contact.types";
+import {
+  linkContactPerson,
+  unlinkContactPerson,
+  linkContactCompany,
+  unlinkContactCompany,
+  createPersonFromContact,
+} from "../contact.api";
+import { listPeople } from "../../people/people.api";
+import { apiClient } from "../../../lib/api/api-client";
+import type { CrmPerson, CrmCompany } from "../../../lib/api/api-types";
 import { withDisplayPhoneNumber } from "../../shared/mappers";
 import {
   useContactNotesQuery,
@@ -62,6 +73,72 @@ export function ContactDetailDrawer({
   const patchNoteMutation = usePatchNoteMutation();
   const deleteNoteMutation = useDeleteNoteMutation();
   const setNotePinnedMutation = useSetNotePinnedMutation();
+
+  const queryClient = useQueryClient();
+  const [selectedPersonLink, setSelectedPersonLink] = useState("");
+  const [selectedCompanyLink, setSelectedCompanyLink] = useState("");
+  const [showPersonCreateForm, setShowPersonCreateForm] = useState(false);
+  const [personJobTitle, setPersonJobTitle] = useState("");
+  const [personDept, setPersonDept] = useState("");
+
+  const { data: peopleList = [] } = useQuery({
+    queryKey: ["crm-people"],
+    queryFn: () => listPeople(),
+  });
+
+  const { data: companiesList = [] } = useQuery({
+    queryKey: ["crm-companies"],
+    queryFn: async () => {
+      const res = await apiClient.get<{ success: boolean; data: CrmCompany[] }>("/api/crm/companies");
+      return res.data.data;
+    },
+  });
+
+  const linkPersonMut = useMutation({
+    mutationFn: (personId: string) => linkContactPerson(contact._id, personId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      setSelectedPersonLink("");
+    },
+  });
+
+  const unlinkPersonMut = useMutation({
+    mutationFn: () => unlinkContactPerson(contact._id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+    },
+  });
+
+  const linkCompanyMut = useMutation({
+    mutationFn: (companyId: string) => linkContactCompany(contact._id, companyId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      setSelectedCompanyLink("");
+    },
+  });
+
+  const unlinkCompanyMut = useMutation({
+    mutationFn: () => unlinkContactCompany(contact._id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+    },
+  });
+
+  const createPersonMut = useMutation({
+    mutationFn: (payload: { jobTitle?: string; department?: string }) =>
+      createPersonFromContact(contact._id, {
+        displayName: contact.displayName,
+        jobTitle: payload.jobTitle,
+        department: payload.department,
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      queryClient.invalidateQueries({ queryKey: ["crm-people"] });
+      setShowPersonCreateForm(false);
+      setPersonJobTitle("");
+      setPersonDept("");
+    },
+  });
 
   useEffect(() => {
     setDisplayName(contact.displayName);
@@ -251,6 +328,207 @@ export function ContactDetailDrawer({
               </div>
             </div>
           )}
+        </div>
+
+        {/* CRM Customer Identity & Account Card */}
+        <div className="rounded-2xl border border-[#E4E4E7] bg-white p-5 shadow-subtle space-y-4 dark:border-[#292C2F] dark:bg-[#17191B]">
+          <div className="flex items-center justify-between border-b border-gray-100 dark:border-gray-800 pb-2.5">
+            <h4 className="text-xs font-semibold uppercase tracking-[0.14em] text-muted-foreground flex items-center gap-1.5">
+              <UserCheck className="h-3.5 w-3.5 text-emerald-600" />
+              CRM Customer Identity
+            </h4>
+            <span className="text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded">
+              Channel: {contact.channel || "WHATSAPP"}
+            </span>
+          </div>
+
+          {/* Linked Person Profile */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-muted-foreground">Linked Person Profile:</span>
+              {contact.personId && (
+                <button
+                  type="button"
+                  onClick={() => unlinkPersonMut.mutate()}
+                  disabled={unlinkPersonMut.isPending}
+                  className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1 font-medium"
+                >
+                  <Unlink className="h-3 w-3" />
+                  Unlink
+                </button>
+              )}
+            </div>
+
+            {contact.personId ? (
+              <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 flex items-center justify-center font-bold text-xs">
+                    {(typeof contact.personId === "object" ? contact.personId.displayName : "P").slice(0, 2).toUpperCase()}
+                  </div>
+                  <div>
+                    <div className="text-xs font-semibold text-gray-900 dark:text-white">
+                      {typeof contact.personId === "object" ? contact.personId.displayName : "Linked Person"}
+                    </div>
+                    {typeof contact.personId === "object" && contact.personId.jobTitle && (
+                      <div className="text-[11px] text-gray-500">
+                        {contact.personId.jobTitle}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <span className="text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
+                  LINKED
+                </span>
+              </div>
+            ) : (
+              <div className="space-y-2.5">
+                <p className="text-xs text-muted-foreground italic">
+                  This contact endpoint is not yet associated with a customer Person.
+                </p>
+
+                {showPersonCreateForm ? (
+                  <div className="p-3 bg-gray-50 dark:bg-gray-800/40 rounded-xl border border-gray-200 dark:border-gray-700 space-y-2.5">
+                    <div className="text-xs font-semibold text-gray-800 dark:text-gray-200">
+                      Create Person from "{contact.displayName}"
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Input
+                        placeholder="Job Title (e.g. Director)"
+                        value={personJobTitle}
+                        onChange={(e) => setPersonJobTitle(e.target.value)}
+                        className="text-xs h-8"
+                      />
+                      <Input
+                        placeholder="Department"
+                        value={personDept}
+                        onChange={(e) => setPersonDept(e.target.value)}
+                        className="text-xs h-8"
+                      />
+                    </div>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        disabled={createPersonMut.isPending}
+                        onClick={() => createPersonMut.mutate({ jobTitle: personJobTitle, department: personDept })}
+                        className="flex-1 text-xs h-7 bg-emerald-600 hover:bg-emerald-700"
+                      >
+                        {createPersonMut.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Save & Link Person"}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        onClick={() => setShowPersonCreateForm(false)}
+                        className="text-xs h-7"
+                      >
+                        Cancel
+                      </Button>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      onClick={() => setShowPersonCreateForm(true)}
+                      className="flex-1 text-xs flex items-center justify-center gap-1.5"
+                    >
+                      <UserPlus className="h-3.5 w-3.5 text-emerald-600" />
+                      Create Person
+                    </Button>
+                    <div className="flex-1 flex gap-1">
+                      <select
+                        value={selectedPersonLink}
+                        onChange={(e) => setSelectedPersonLink(e.target.value)}
+                        className="flex-1 text-xs px-2 py-1 rounded border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
+                      >
+                        <option value="">Link existing...</option>
+                        {peopleList.map((p) => (
+                          <option key={p._id} value={p._id}>
+                            {p.displayName}
+                          </option>
+                        ))}
+                      </select>
+                      <Button
+                        size="sm"
+                        disabled={!selectedPersonLink || linkPersonMut.isPending}
+                        onClick={() => linkPersonMut.mutate(selectedPersonLink)}
+                        className="text-xs px-2.5 h-8 bg-emerald-600"
+                      >
+                        Link
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Linked Company Account */}
+          <div className="space-y-2 pt-2 border-t border-gray-100 dark:border-gray-800">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-medium text-muted-foreground">Linked Company Account:</span>
+              {contact.companyId && (
+                <button
+                  type="button"
+                  onClick={() => unlinkCompanyMut.mutate()}
+                  disabled={unlinkCompanyMut.isPending}
+                  className="text-xs text-red-500 hover:text-red-700 flex items-center gap-1 font-medium"
+                >
+                  <Unlink className="h-3 w-3" />
+                  Unlink
+                </button>
+              )}
+            </div>
+
+            {contact.companyId ? (
+              <div className="flex items-center justify-between p-3 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/40">
+                <div className="flex items-center gap-2.5">
+                  <Building2 className="w-5 h-5 text-indigo-500" />
+                  <div>
+                    <div className="text-xs font-semibold text-gray-900 dark:text-white">
+                      {typeof contact.companyId === "object" ? contact.companyId.name : contact.company || "Company Account"}
+                    </div>
+                    {typeof contact.companyId === "object" && contact.companyId.gstin && (
+                      <div className="text-[11px] text-gray-500">
+                        GSTIN: {contact.companyId.gstin}
+                      </div>
+                    )}
+                  </div>
+                </div>
+                <span className="text-[10px] font-semibold bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">
+                  LINKED
+                </span>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground italic">
+                  No company account associated.
+                </p>
+                <div className="flex gap-2">
+                  <select
+                    value={selectedCompanyLink}
+                    onChange={(e) => setSelectedCompanyLink(e.target.value)}
+                    className="flex-1 text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
+                  >
+                    <option value="">Select company to link...</option>
+                    {companiesList.map((comp) => (
+                      <option key={comp._id} value={comp._id}>
+                        {comp.name}
+                      </option>
+                    ))}
+                  </select>
+                  <Button
+                    size="sm"
+                    disabled={!selectedCompanyLink || linkCompanyMut.isPending}
+                    onClick={() => linkCompanyMut.mutate(selectedCompanyLink)}
+                    className="text-xs bg-indigo-600 hover:bg-indigo-700"
+                  >
+                    Link Company
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
 
         {/* Labels Section */}
