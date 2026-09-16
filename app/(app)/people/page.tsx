@@ -17,10 +17,12 @@ import {
   AlertCircle,
   Eye,
   UserPlus,
+  Unlink,
 } from "lucide-react";
 import { apiClient } from "lib/api/api-client";
 import type { CrmPerson, CrmCompany, ContactRecord } from "lib/api/api-types";
 import { listPeople, createPerson, updatePerson, archivePerson, getPerson, linkPersonCompany, unlinkPersonCompany } from "features/people/people.api";
+import { listContacts, linkContactPerson, unlinkContactPerson } from "features/contacts/contact.api";
 
 export default function PeoplePage() {
   const queryClient = useQueryClient();
@@ -568,6 +570,34 @@ function PersonDetailDrawer({
     },
   });
 
+  const [selectedContactToLink, setSelectedContactToLink] = useState("");
+
+  const { data: contactsData } = useQuery({
+    queryKey: ["contacts-for-linking"],
+    queryFn: () => listContacts({ limit: 100 }),
+  });
+  const allContacts: ContactRecord[] = (contactsData as any)?.data || [];
+
+  const linkContactMutation = useMutation({
+    mutationFn: (contactId: string) => linkContactPerson(contactId, personId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["crm-person-detail", personId] });
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      setSelectedContactToLink("");
+    },
+    onError: (err: any) => {
+      alert(err.response?.data?.message || err.message || "Failed to link contact endpoint");
+    },
+  });
+
+  const unlinkContactMutation = useMutation({
+    mutationFn: (contactId: string) => unlinkContactPerson(contactId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["crm-person-detail", personId] });
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+    },
+  });
+
   if (isLoading || !person) {
     return (
       <div className="fixed inset-y-0 right-0 z-50 w-full max-w-lg bg-white dark:bg-gray-900 shadow-2xl border-l border-gray-200 dark:border-gray-800 p-6 flex items-center justify-center">
@@ -744,10 +774,12 @@ function PersonDetailDrawer({
 
         {/* Linked Communication Contacts */}
         <div className="space-y-3">
-          <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
-            <Users className="w-3.5 h-3.5" />
-            Linked Communication Endpoints ({linkedContacts.length})
-          </h4>
+          <div className="flex items-center justify-between">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 dark:text-gray-400 flex items-center gap-1.5">
+              <Users className="w-3.5 h-3.5" />
+              Linked Communication Endpoints ({linkedContacts.length})
+            </h4>
+          </div>
 
           <div className="space-y-2">
             {linkedContacts.map((contact) => (
@@ -768,15 +800,52 @@ function PersonDetailDrawer({
                     </div>
                   </div>
                 </div>
-                <span className="text-[10px] bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded">
-                  {contact.channel || "WHATSAPP"}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded">
+                    {contact.channel || "WHATSAPP"}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => unlinkContactMutation.mutate(contact._id)}
+                    disabled={unlinkContactMutation.isPending}
+                    className="text-xs text-red-500 hover:text-red-700 p-1 rounded"
+                    title="Unlink endpoint from Person"
+                  >
+                    <Unlink className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
             ))}
 
             {linkedContacts.length === 0 && (
               <p className="text-xs text-gray-400 italic">No communication channels linked directly to this Person.</p>
             )}
+          </div>
+
+          {/* Link Existing Contact Endpoint */}
+          <div className="flex items-center gap-2 pt-1">
+            <select
+              value={selectedContactToLink}
+              onChange={(e) => setSelectedContactToLink(e.target.value)}
+              className="flex-1 text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
+            >
+              <option value="">Link communication endpoint...</option>
+              {allContacts
+                .filter((c) => !linkedContacts.some((lc) => lc._id === c._id))
+                .map((c) => (
+                  <option key={c._id} value={c._id}>
+                    {c.displayName} ({c.phoneNumber})
+                  </option>
+                ))}
+            </select>
+            <button
+              type="button"
+              disabled={!selectedContactToLink || linkContactMutation.isPending}
+              onClick={() => linkContactMutation.mutate(selectedContactToLink)}
+              className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium rounded-lg disabled:opacity-50"
+            >
+              Link Endpoint
+            </button>
           </div>
         </div>
 

@@ -23,9 +23,10 @@ import {
   UserPlus,
   MessageSquare,
   Eye,
+  Unlink,
 } from "lucide-react";
 import { apiClient } from "lib/api/api-client";
-import { listContacts } from "features/contacts/contact.api";
+import { listContacts, linkContactCompany, unlinkContactCompany } from "features/contacts/contact.api";
 import { listPeople, createPerson, linkPersonCompany, unlinkPersonCompany } from "features/people/people.api";
 import { updateCompany } from "features/companies/company.api";
 import type { ContactRecord, CrmCompany, CrmPerson } from "lib/api/api-types";
@@ -70,7 +71,7 @@ export default function CompaniesPage() {
   // 2. Fetch Contacts for extraction
   const { data: contactsData } = useQuery({
     queryKey: ["contacts-for-companies"],
-    queryFn: () => listContacts({ limit: 200 }),
+    queryFn: () => listContacts({ limit: 100 }),
   });
 
   const contactList: ContactRecord[] = (contactsData as any)?.data || [];
@@ -690,6 +691,37 @@ function CompanyDetailDrawer({
     },
   });
 
+  const [selectedContactToLink, setSelectedContactToLink] = useState("");
+
+  const { data: allContactsData } = useQuery({
+    queryKey: ["contacts-for-company-linking"],
+    queryFn: () => listContacts({ limit: 100 }),
+  });
+  const allContactsList: ContactRecord[] = (allContactsData as any)?.data || [];
+
+  const linkContactCompanyMut = useMutation({
+    mutationFn: (contactId: string) => linkContactCompany(contactId, companyId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["crm-company-detail", companyId] });
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+      setSelectedContactToLink("");
+    },
+    onError: (err: any) => {
+      alert(err.response?.data?.message || err.message || "Failed to link contact to company");
+    },
+  });
+
+  const unlinkContactCompanyMut = useMutation({
+    mutationFn: (contactId: string) => unlinkContactCompany(contactId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["crm-company-detail", companyId] });
+      queryClient.invalidateQueries({ queryKey: ["contacts"] });
+    },
+    onError: (err: any) => {
+      alert(err.response?.data?.message || err.message || "Failed to unlink contact");
+    },
+  });
+
   if (isLoading || !company) {
     return (
       <div className="fixed inset-y-0 right-0 z-50 w-full max-w-xl bg-white dark:bg-gray-900 shadow-2xl border-l border-gray-200 dark:border-gray-800 p-6 flex items-center justify-center">
@@ -977,39 +1009,105 @@ function CompanyDetailDrawer({
 
         {activeTab === "contacts" && (
           <div className="space-y-3">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 flex items-center gap-1.5">
-              <MessageSquare className="w-3.5 h-3.5" />
-              Communication Endpoints ({contacts.length})
-            </h4>
+            <div className="flex items-center justify-between">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-500 flex items-center gap-1.5">
+                <MessageSquare className="w-3.5 h-3.5" />
+                Communication Endpoints ({contacts.length})
+              </h4>
+            </div>
 
             <div className="space-y-2">
-              {contacts.map((contact) => (
-                <div
-                  key={contact._id}
-                  className="flex items-center justify-between p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-7 h-7 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs font-bold">
-                      WA
+              {contacts.map((contact) => {
+                const isPersonOwned = Boolean(contact.personId);
+                const personName =
+                  typeof contact.personId === "object" && contact.personId
+                    ? (contact.personId as any).displayName
+                    : null;
+
+                return (
+                  <div
+                    key={contact._id}
+                    className="flex items-center justify-between p-3 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold ${
+                          isPersonOwned
+                            ? "bg-emerald-50 text-emerald-600 dark:bg-emerald-950 dark:text-emerald-400"
+                            : "bg-indigo-50 text-indigo-600 dark:bg-indigo-950 dark:text-indigo-400"
+                        }`}
+                      >
+                        WA
+                      </div>
+                      <div>
+                        <div className="text-xs font-semibold text-gray-900 dark:text-white flex items-center gap-1.5">
+                          <span>{contact.displayName}</span>
+                        </div>
+                        <div className="text-[11px] text-gray-500 dark:text-gray-400">
+                          {contact.phoneNumber} · {isPersonOwned ? `via ${personName || "Person"}` : "Direct Company Endpoint"}
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <div className="text-xs font-semibold text-gray-900 dark:text-white">
-                        {contact.displayName}
-                      </div>
-                      <div className="text-[11px] text-emerald-600 font-medium">
-                        {contact.phoneNumber}
-                      </div>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`text-[10px] font-medium px-2 py-0.5 rounded ${
+                          isPersonOwned
+                            ? "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-300"
+                            : "bg-indigo-50 text-indigo-700 dark:bg-indigo-950/60 dark:text-indigo-300"
+                        }`}
+                      >
+                        {isPersonOwned ? "Person Endpoint" : "Direct Company Endpoint"}
+                      </span>
+                      {!isPersonOwned && (
+                        <button
+                          type="button"
+                          onClick={() => unlinkContactCompanyMut.mutate(contact._id)}
+                          disabled={unlinkContactCompanyMut.isPending}
+                          className="text-xs text-red-500 hover:text-red-700 p-1 rounded"
+                          title="Unlink direct endpoint from Company"
+                        >
+                          <Unlink className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   </div>
-                  <span className="text-[10px] bg-gray-100 dark:bg-gray-800 text-gray-600 px-2 py-0.5 rounded">
-                    {contact.channel || "WHATSAPP"}
-                  </span>
-                </div>
-              ))}
+                );
+              })}
 
               {contacts.length === 0 && (
-                <p className="text-xs text-gray-400 italic">No communication endpoints linked directly to this Company.</p>
+                <p className="text-xs text-gray-400 italic">No communication endpoints linked to this Company.</p>
               )}
+            </div>
+
+            {/* Link Direct Company Endpoint */}
+            <div className="pt-2 border-t border-gray-100 dark:border-gray-800">
+              <label className="block text-[11px] font-semibold text-gray-500 mb-1">
+                Link Direct Company Endpoint:
+              </label>
+              <div className="flex gap-2">
+                <select
+                  value={selectedContactToLink}
+                  onChange={(e) => setSelectedContactToLink(e.target.value)}
+                  className="flex-1 text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
+                >
+                  <option value="">Select unlinked contact endpoint...</option>
+                  {allContactsList
+                    .filter((c) => !contacts.some((compContact) => compContact._id === c._id) && !c.personId)
+                    .map((c) => (
+                      <option key={c._id} value={c._id}>
+                        {c.displayName} ({c.phoneNumber})
+                      </option>
+                    ))}
+                </select>
+                <button
+                  type="button"
+                  disabled={!selectedContactToLink || linkContactCompanyMut.isPending}
+                  onClick={() => linkContactCompanyMut.mutate(selectedContactToLink)}
+                  className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-medium rounded-lg disabled:opacity-50"
+                >
+                  Link
+                </button>
+              </div>
             </div>
           </div>
         )}

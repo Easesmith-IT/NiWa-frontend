@@ -337,8 +337,12 @@ export function ContactDetailDrawer({
               <UserCheck className="h-3.5 w-3.5 text-emerald-600" />
               CRM Customer Identity
             </h4>
-            <span className="text-[10px] font-semibold bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 px-2 py-0.5 rounded">
-              Channel: {contact.channel || "WHATSAPP"}
+            <span className={`text-[10px] font-semibold px-2 py-0.5 rounded ${
+              contact.personId 
+                ? "bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300"
+                : "bg-amber-50 dark:bg-amber-950 text-amber-700 dark:text-amber-300"
+            }`}>
+              {contact.personId ? "IDENTIFIED PERSON" : "UNIDENTIFIED ENDPOINT"}
             </span>
           </div>
 
@@ -376,7 +380,7 @@ export function ContactDetailDrawer({
                     )}
                   </div>
                 </div>
-                <span className="text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
+                <span className="text-[10px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 px-2 py-0.5 rounded-full">
                   LINKED
                 </span>
               </div>
@@ -452,7 +456,7 @@ export function ContactDetailDrawer({
                         size="sm"
                         disabled={!selectedPersonLink || linkPersonMut.isPending}
                         onClick={() => linkPersonMut.mutate(selectedPersonLink)}
-                        className="text-xs px-2.5 h-8 bg-emerald-600"
+                        className="text-xs px-2.5 h-8 bg-emerald-600 hover:bg-emerald-700"
                       >
                         Link
                       </Button>
@@ -463,11 +467,13 @@ export function ContactDetailDrawer({
             )}
           </div>
 
-          {/* Linked Company Account */}
+          {/* Company Account Context */}
           <div className="space-y-2 pt-2 border-t border-gray-100 dark:border-gray-800">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-muted-foreground">Linked Company Account:</span>
-              {contact.companyId && (
+              <span className="text-xs font-medium text-muted-foreground">
+                {contact.personId ? "Organization / Company:" : "Company Account:"}
+              </span>
+              {!contact.personId && contact.companyId && (
                 <button
                   type="button"
                   onClick={() => unlinkCompanyMut.mutate()}
@@ -480,53 +486,95 @@ export function ContactDetailDrawer({
               )}
             </div>
 
-            {contact.companyId ? (
-              <div className="flex items-center justify-between p-3 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/40">
-                <div className="flex items-center gap-2.5">
-                  <Building2 className="w-5 h-5 text-indigo-500" />
-                  <div>
-                    <div className="text-xs font-semibold text-gray-900 dark:text-white">
-                      {typeof contact.companyId === "object" ? contact.companyId.name : contact.company || "Company Account"}
-                    </div>
-                    {typeof contact.companyId === "object" && contact.companyId.gstin && (
-                      <div className="text-[11px] text-gray-500">
-                        GSTIN: {contact.companyId.gstin}
+            {contact.personId ? (
+              // Person is linked: company is derived via Person
+              contact.companyId ? (
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/40">
+                    <div className="flex items-center gap-2.5">
+                      <Building2 className="w-5 h-5 text-indigo-500" />
+                      <div>
+                        <div className="text-xs font-semibold text-gray-900 dark:text-white">
+                          {typeof contact.companyId === "object" ? contact.companyId.name : contact.company || "Company Account"}
+                        </div>
+                        {typeof contact.companyId === "object" && contact.companyId.gstin && (
+                          <div className="text-[11px] text-gray-500">
+                            GSTIN: {contact.companyId.gstin}
+                          </div>
+                        )}
                       </div>
-                    )}
+                    </div>
+                    <span className="text-[10px] font-semibold bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 px-2 py-0.5 rounded-full">
+                      DERIVED VIA PERSON
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground italic px-1">
+                    Organizational affiliation is governed by the linked Person profile.
+                  </p>
+                </div>
+              ) : (
+                <div className="p-3 bg-gray-50 dark:bg-gray-800/40 rounded-xl border border-gray-200 dark:border-gray-800 text-xs text-muted-foreground">
+                  <p className="italic">No company associated with this Person.</p>
+                  <p className="text-[11px] mt-1 text-gray-500">
+                    To link a company, associate it directly with the Person profile in CRM.
+                  </p>
+                </div>
+              )
+            ) : (
+              // Person is not linked: Direct company endpoint
+              contact.companyId ? (
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between p-3 rounded-xl bg-indigo-50/50 dark:bg-indigo-950/20 border border-indigo-100 dark:border-indigo-900/40">
+                    <div className="flex items-center gap-2.5">
+                      <Building2 className="w-5 h-5 text-indigo-500" />
+                      <div>
+                        <div className="text-xs font-semibold text-gray-900 dark:text-white">
+                          {typeof contact.companyId === "object" ? contact.companyId.name : contact.company || "Company Account"}
+                        </div>
+                        {typeof contact.companyId === "object" && contact.companyId.gstin && (
+                          <div className="text-[11px] text-gray-500">
+                            GSTIN: {contact.companyId.gstin}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    <span className="text-[10px] font-semibold bg-indigo-100 text-indigo-800 dark:bg-indigo-900 dark:text-indigo-200 px-2 py-0.5 rounded-full">
+                      DIRECT ENDPOINT
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-muted-foreground italic px-1">
+                    Unidentified company endpoint. Creating or linking a Person will inherit this company association.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  <p className="text-xs text-muted-foreground italic">
+                    No company account associated.
+                  </p>
+                  <div className="flex gap-2">
+                    <select
+                      value={selectedCompanyLink}
+                      onChange={(e) => setSelectedCompanyLink(e.target.value)}
+                      className="flex-1 text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
+                    >
+                      <option value="">Select company to link...</option>
+                      {companiesList.map((comp) => (
+                        <option key={comp._id} value={comp._id}>
+                          {comp.name}
+                        </option>
+                      ))}
+                    </select>
+                    <Button
+                      size="sm"
+                      disabled={!selectedCompanyLink || linkCompanyMut.isPending}
+                      onClick={() => linkCompanyMut.mutate(selectedCompanyLink)}
+                      className="text-xs bg-indigo-600 hover:bg-indigo-700"
+                    >
+                      Link Company
+                    </Button>
                   </div>
                 </div>
-                <span className="text-[10px] font-semibold bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">
-                  LINKED
-                </span>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                <p className="text-xs text-muted-foreground italic">
-                  No company account associated.
-                </p>
-                <div className="flex gap-2">
-                  <select
-                    value={selectedCompanyLink}
-                    onChange={(e) => setSelectedCompanyLink(e.target.value)}
-                    className="flex-1 text-xs px-2.5 py-1.5 rounded-lg border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-900 text-gray-800 dark:text-gray-200"
-                  >
-                    <option value="">Select company to link...</option>
-                    {companiesList.map((comp) => (
-                      <option key={comp._id} value={comp._id}>
-                        {comp.name}
-                      </option>
-                    ))}
-                  </select>
-                  <Button
-                    size="sm"
-                    disabled={!selectedCompanyLink || linkCompanyMut.isPending}
-                    onClick={() => linkCompanyMut.mutate(selectedCompanyLink)}
-                    className="text-xs bg-indigo-600 hover:bg-indigo-700"
-                  >
-                    Link Company
-                  </Button>
-                </div>
-              </div>
+              )
             )}
           </div>
         </div>
