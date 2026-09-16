@@ -7,10 +7,12 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ChevronDown, ChevronUp, Package, Save, Plus, Sparkles, X, Loader2 } from "lucide-react";
 import { productsApi, UnitItem, CategoryItem, BrandItem, ProductItem, STANDARD_UNITS } from "lib/api/products-api";
 import { queryKeys } from "lib/api/query-keys";
+import { useWorkspaceDefaultCurrency } from "lib/workspace/use-workspace-currency";
 
 export default function NewProductPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { currency, symbol } = useWorkspaceDefaultCurrency();
 
   // Simple form defaults
   const [name, setName] = useState("");
@@ -226,7 +228,7 @@ export default function NewProductPage() {
 
             <div>
               <label className="block text-xs font-semibold text-gray-700 mb-1">
-                Selling Price (₹) <span className="text-red-500">*</span>
+                Selling Price ({symbol}) <span className="text-red-500">*</span>
               </label>
               <input
                 type="number"
@@ -363,7 +365,7 @@ export default function NewProductPage() {
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1">Cost Price (₹)</label>
+                <label className="block text-xs font-semibold text-gray-700 mb-1">Cost Price ({symbol})</label>
                 <input
                   type="number"
                   min="0"

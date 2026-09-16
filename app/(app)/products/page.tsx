@@ -8,9 +8,12 @@ import { Plus, Search, Filter, Package, Tag, Layers, Truck, Boxes, Scale } from 
 import { productsApi, ProductItem } from "lib/api/products-api";
 import { getInventoryLevels, InventoryLevelItem } from "lib/api/inventory-api";
 import { queryKeys } from "lib/api/query-keys";
+import { useWorkspaceDefaultCurrency } from "lib/workspace/use-workspace-currency";
+import { formatCurrency } from "lib/utils/format-currency";
 
 function ProductsContent() {
   const searchParams = useSearchParams();
+  const { currency } = useWorkspaceDefaultCurrency();
   const [search, setSearch] = useState(searchParams.get("q") || searchParams.get("search") || "");
   const [statusFilter, setStatusFilter] = useState(searchParams.get("status") || "");
   const [page, setPage] = useState(1);
@@ -238,7 +241,7 @@ function ProductsContent() {
                         </span>
                       </td>
                       <td className="px-6 py-4 font-semibold text-gray-900">
-                        ₹{product.sellingPrice ? product.sellingPrice.toLocaleString() : "0"}
+                        {formatCurrency(product.sellingPrice, currency)}
                       </td>
                       <td className="px-6 py-4">
                         {!stock || stock.count === 0 ? (

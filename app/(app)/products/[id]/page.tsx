@@ -34,12 +34,15 @@ import {
 } from "lib/api/inventory-api";
 import { queryKeys } from "lib/api/query-keys";
 import { useDialogA11y } from "lib/hooks/use-dialog-a11y";
+import { useWorkspaceDefaultCurrency } from "lib/workspace/use-workspace-currency";
+import { formatCurrency } from "lib/utils/format-currency";
 
 export default function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const resolvedParams = use(params);
   const productId = resolvedParams.id;
   const router = useRouter();
   const queryClient = useQueryClient();
+  const { currency, symbol } = useWorkspaceDefaultCurrency();
 
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState("");
@@ -792,7 +795,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">Selling Price (₹) *</label>
+                      <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">Selling Price ({symbol}) *</label>
                       <input
                         type="number"
                         min="0"
@@ -825,7 +828,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">Cost Price (₹)</label>
+                      <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">Cost Price ({symbol})</label>
                       <input
                         type="number"
                         min="0"
@@ -879,7 +882,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">Selling Price (₹)</label>
+                      <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">Selling Price ({symbol})</label>
                       <input
                         type="number"
                         min="0"
@@ -908,7 +911,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                       />
                     </div>
                     <div>
-                      <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">Cost Price (₹)</label>
+                      <label className="block text-[11px] font-semibold text-gray-700 mb-0.5">Cost Price ({symbol})</label>
                       <input
                         type="number"
                         min="0"
@@ -960,9 +963,9 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
                       <div className="flex items-center gap-4">
                         <div className="text-right">
-                          <div className="font-bold text-gray-900">₹{variant.sellingPrice}</div>
+                          <div className="font-bold text-gray-900">{formatCurrency(variant.sellingPrice, currency)}</div>
                           {variant.costPrice > 0 && (
-                            <div className="text-xs text-gray-400">Cost: ₹{variant.costPrice}</div>
+                            <div className="text-xs text-gray-400">Cost: {formatCurrency(variant.costPrice, currency)}</div>
                           )}
                         </div>
 
@@ -1069,7 +1072,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                             />
                           </div>
                           <div>
-                            <label className="block font-semibold text-gray-700 mb-0.5">Purchase Price (₹)</label>
+                            <label className="block font-semibold text-gray-700 mb-0.5">Purchase Price ({symbol})</label>
                             <input
                               type="number"
                               min="0"
@@ -1198,7 +1201,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                                     </div>
                                     <div>
                                       <label className="block text-[10px] font-semibold text-gray-600 mb-0.5">
-                                        Purchase Price (₹)
+                                        Purchase Price ({symbol})
                                       </label>
                                       <input
                                         type="number"
@@ -1286,7 +1289,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
 
                                     {ps.purchasePrice != null ? (
                                       <span>
-                                        Purchase Price: <strong className="text-emerald-700">₹{ps.purchasePrice}</strong>
+                                        Purchase Price: <strong className="text-emerald-700">{formatCurrency(ps.purchasePrice, currency)}</strong>
                                       </span>
                                     ) : null}
 
@@ -1527,12 +1530,12 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
               </h3>
               <div className="flex justify-between items-center text-sm">
                 <span className="text-gray-500">Selling Price</span>
-                <span className="font-bold text-gray-900 text-base">₹{product.sellingPrice}</span>
+                <span className="font-bold text-gray-900 text-base">{formatCurrency(product.sellingPrice, currency)}</span>
               </div>
               {product.costPrice > 0 && (
                 <div className="flex justify-between items-center text-sm">
                   <span className="text-gray-500">Cost Price</span>
-                  <span className="font-medium text-gray-700">₹{product.costPrice}</span>
+                  <span className="font-medium text-gray-700">{formatCurrency(product.costPrice, currency)}</span>
                 </div>
               )}
             </div>

@@ -106,6 +106,9 @@ export default function PaymentsPage() {
     (inv) => inv._id === selectedInvoiceId
   );
 
+  const workspaceDefaultCurrency = invoiceSettings?.defaultCurrency || "USD";
+  const modalCurrency = activeSelectedInvoice?.currency || workspaceDefaultCurrency;
+
   // Mutation to record payment
   const recordPaymentMutation = useMutation({
     mutationFn: async () => {
@@ -378,7 +381,7 @@ export default function PaymentsPage() {
                         {pmt.transactionReference || "—"}
                       </td>
                       <td className="px-6 py-4 text-right font-bold text-emerald-600 dark:text-emerald-400">
-                        +{formatCurrency(pmt.amount, pmt.currency || (typeof pmt.invoiceId === "object" && pmt.invoiceId ? pmt.invoiceId.currency : "USD"))}
+                        +{formatCurrency(pmt.amount, pmt.currency || (typeof pmt.invoiceId === "object" && pmt.invoiceId ? pmt.invoiceId.currency : workspaceDefaultCurrency))}
                       </td>
                       <td className="px-6 py-4">
                         <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 uppercase tracking-wider">
@@ -446,7 +449,7 @@ export default function PaymentsPage() {
                     <div className="text-3xl font-extrabold text-emerald-700 dark:text-emerald-300">
                       {formatCurrency(
                         activePayment.amount,
-                        activePayment.currency || (typeof activePayment.invoiceId === "object" && activePayment.invoiceId ? activePayment.invoiceId.currency : "USD")
+                        activePayment.currency || (typeof activePayment.invoiceId === "object" && activePayment.invoiceId ? activePayment.invoiceId.currency : workspaceDefaultCurrency)
                       )}
                     </div>
                     <div className="text-xs text-emerald-600/80 dark:text-emerald-400/80">
@@ -611,11 +614,11 @@ export default function PaymentsPage() {
 
               <div>
                 <label className="font-semibold text-neutral-700 dark:text-neutral-300 block mb-1">
-                  Payment Amount ({activeSelectedInvoice ? activeSelectedInvoice.currency : "USD"}) *
+                  Payment Amount ({modalCurrency}) *
                 </label>
                 <div className="relative">
                   <span className="absolute left-3 top-2.5 text-neutral-400 font-mono">
-                    {getCurrencySymbol(activeSelectedInvoice ? activeSelectedInvoice.currency : "USD")}
+                    {getCurrencySymbol(modalCurrency)}
                   </span>
                   <input
                     type="number"
@@ -725,7 +728,7 @@ export default function PaymentsPage() {
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 {recordPaymentMutation.isPending
                   ? "Recording..."
-                  : `Record Payment (${formatCurrency(parseFloat(amount || "0"), activeSelectedInvoice ? activeSelectedInvoice.currency : "USD")})`}
+                  : `Record Payment (${formatCurrency(parseFloat(amount || "0"), modalCurrency)})`}
               </button>
             </div>
           </div>

@@ -7,6 +7,7 @@ import { usePathname } from "next/navigation";
 
 import { cn } from "../../lib/utils";
 import { useWorkspace } from "../../lib/workspace/workspace-context";
+import { useWorkspaceDefaultCurrency } from "../../lib/workspace/use-workspace-currency";
 import { Button } from "../ui/button";
 import { navigationGroups, secondaryActions } from "./navigation";
 
@@ -18,6 +19,7 @@ interface SidebarProps {
 export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
   const pathname = usePathname();
   const { activeWorkspaceId } = useWorkspace();
+  const { currency, symbol } = useWorkspaceDefaultCurrency();
 
   return (
     <aside
@@ -118,9 +120,16 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
         </div>
         {!collapsed ? (
           <div className="mt-3 rounded-md border border-[#E4E4E7] bg-[#FAFAFA] px-2.5 py-2 dark:border-[#24272A] dark:bg-[#17191B]">
-            <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
-              Workspace Context
-            </p>
+            <div className="flex items-center justify-between gap-1">
+              <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
+                Workspace Context
+              </p>
+              {currency ? (
+                <span className="inline-flex items-center gap-1 rounded bg-[#EDF8F3] px-1.5 py-0.5 font-mono text-[10px] font-semibold text-emerald-700 dark:bg-[#15271F] dark:text-emerald-400">
+                  {currency} ({symbol})
+                </span>
+              ) : null}
+            </div>
             <p className="mt-0.5 truncate text-xs font-medium text-foreground">
               {activeWorkspaceId ? activeWorkspaceId : "No Active Workspace"}
             </p>
