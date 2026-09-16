@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Building2,
@@ -1112,6 +1112,18 @@ function CompanyDetailDrawer({
           </div>
         )}
       </div>
+
+      {/* EDIT COMPANY MODAL */}
+      {showEditCompany && (
+        <EditCompanyModal
+          company={company}
+          onClose={() => setShowEditCompany(false)}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ["crm-company-detail", companyId] });
+            queryClient.invalidateQueries({ queryKey: ["crm-companies"] });
+          }}
+        />
+      )}
     </div>
   );
 }
@@ -1143,6 +1155,26 @@ function EditCompanyModal({
   const [status, setStatus] = useState(company.status || "ACTIVE");
   const [notes, setNotes] = useState(company.notes || "");
   const [formError, setFormError] = useState("");
+
+  useEffect(() => {
+    setName(company.name || "");
+    setLegalName(company.legalName || "");
+    setGstin(company.gstin || "");
+    setPan(company.pan || "");
+    setCin(company.cin || "");
+    setWebsite(company.website || "");
+    setDomain(company.domain || "");
+    setIndustry(company.industry || "");
+    setPrimaryEmail(company.primaryEmail || "");
+    setPrimaryPhone(company.primaryPhone || "");
+    setAddress(company.address || "");
+    setCity(company.city || "");
+    setState(company.state || "");
+    setPostalCode(company.postalCode || "");
+    setCountry(company.country || "IN");
+    setStatus(company.status || "ACTIVE");
+    setNotes(company.notes || "");
+  }, [company]);
 
   const updateMutation = useMutation({
     mutationFn: async (payload: Partial<CrmCompany>) => {
