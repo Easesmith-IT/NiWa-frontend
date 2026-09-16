@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -87,7 +87,7 @@ export default function NewPurchaseOrderPage() {
   const products: ProductItem[] = productsResponse?.data || [];
 
   // Automatically select first location if available and not yet selected
-  useMemo(() => {
+  useEffect(() => {
     if (!locationId && locations.length > 0) {
       setLocationId(locations[0]._id);
     }

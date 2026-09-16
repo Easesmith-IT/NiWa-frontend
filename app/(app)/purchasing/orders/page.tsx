@@ -409,7 +409,7 @@ export default function PurchaseOrdersPage() {
                                 (po.status === "ORDERED" ||
                                   po.status === "PARTIALLY_RECEIVED") && (
                                   <Link
-                                    href={`/purchasing/orders/${po._id}?action=receive`}
+                                    href={`/purchasing/orders/${po._id}`}
                                     className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-emerald-700 bg-emerald-50 dark:bg-emerald-950/60 dark:text-emerald-300 hover:bg-emerald-100 rounded-md transition-colors"
                                   >
                                     <Truck className="w-3.5 h-3.5" />

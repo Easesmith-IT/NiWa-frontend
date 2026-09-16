@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -137,6 +137,8 @@ export default function PurchaseOrderDetailPage() {
       queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrder(orderIdParam) });
       queryClient.invalidateQueries({ queryKey: queryKeys.purchasingSummary });
       queryClient.invalidateQueries({ queryKey: queryKeys.locations });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventoryLevels });
+      queryClient.invalidateQueries({ queryKey: queryKeys.stockMovements });
       setIsReceiveModalOpen(false);
       setReceiveQuantities({});
       setActionSuccess("Stock received and warehouse inventory updated successfully!");
@@ -157,6 +159,8 @@ export default function PurchaseOrderDetailPage() {
       queryClient.invalidateQueries({ queryKey: queryKeys.purchasingSummary });
       queryClient.invalidateQueries({ queryKey: queryKeys.purchaseReturns });
       queryClient.invalidateQueries({ queryKey: queryKeys.locations });
+      queryClient.invalidateQueries({ queryKey: queryKeys.inventoryLevels });
+      queryClient.invalidateQueries({ queryKey: queryKeys.stockMovements });
       setIsReturnModalOpen(false);
       setReturnQuantities({});
       setReturnReasons({});
