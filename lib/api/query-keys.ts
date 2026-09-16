@@ -65,5 +65,6 @@ export const queryKeys = {
   purchasingSummary: ["purchasing-summary"] as const,
   purchaseReturns: ["purchase-returns"] as const,
   purchaseReturn: (id: string) => ["purchase-returns", id] as const,
+  workspaceModules: ["workspace-modules"] as const,
 };
 

@@ -53,6 +53,17 @@ export interface SettingsQueryOptions {
   includeSecrets?: boolean;
 }
 
+export interface WorkspaceModuleItem {
+  key: string;
+  name: string;
+  description: string;
+  isCore: boolean;
+  dependencies: string[];
+  status: "ENABLED" | "DISABLED";
+  enabledAt?: string;
+  enabledBy?: string;
+}
+
 export type { ProfileResponse };
 export type { OperatorProfileCardProps } from "./components/OperatorProfileCard";
 export type { SecurityCredentialsCardProps } from "./components/SecurityCredentialsCard";
