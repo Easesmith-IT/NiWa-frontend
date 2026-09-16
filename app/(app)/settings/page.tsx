@@ -6,7 +6,6 @@ import {
   SecurityCredentialsCard,
   SettingsHeader,
   InvoiceSettingsCard,
-  WorkspaceModulesCard,
   useSettingsOrchestration,
 } from "../../../features/settings";
 import { WhatsAppSettingsModule } from "../../../features/whatsapp-connections/WhatsAppSettingsModule";
@@ -19,9 +18,6 @@ export default function SettingsPage() {
     <div className="space-y-4">
       {/* Header Banner */}
       <SettingsHeader />
-
-      {/* Workspace Modules & Features Management Card */}
-      <WorkspaceModulesCard />
 
       {/* Workspace Team Member Management Card */}
       <WorkspaceMembersCard />

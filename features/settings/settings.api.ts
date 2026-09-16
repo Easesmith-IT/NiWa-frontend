@@ -7,7 +7,6 @@ import type {
   ProfileUpdatePayload,
   SettingsPayload,
   SettingsResponse,
-  WorkspaceModuleItem,
 } from "./settings.types";
 
 export * from "./settings.types";
@@ -44,14 +43,4 @@ export const updateProfile = async (values: ProfileUpdatePayload) => {
 export const changePassword = async (values: PasswordChangePayload) => {
   const response = await apiClient.post<BasicMessageResponse>("/auth/change-password", values);
   return response.data;
-};
-
-export const getWorkspaceModules = async () => {
-  const response = await apiClient.get<{ success: boolean; data: WorkspaceModuleItem[] }>("/modules");
-  return response.data.data;
-};
-
-export const updateWorkspaceModuleStatus = async (moduleKey: string, status: "ENABLED" | "DISABLED") => {
-  const response = await apiClient.patch<{ success: boolean; data: any }>(`/modules/${moduleKey}`, { status });
-  return response.data.data;
 };

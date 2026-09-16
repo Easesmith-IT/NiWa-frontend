@@ -7,4 +7,3 @@ export * from "./components/OperatorProfileCard";
 export * from "./components/SecurityCredentialsCard";
 export * from "./components/MetaCredentialsCard";
 export * from "./components/InvoiceSettingsCard";
-export * from "./components/WorkspaceModulesCard";
