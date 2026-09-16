@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Users,
+  Pencil,
   Plus,
   Search,
   Mail,
@@ -19,7 +20,7 @@ import {
 } from "lucide-react";
 import { apiClient } from "lib/api/api-client";
 import type { CrmPerson, CrmCompany, ContactRecord } from "lib/api/api-types";
-import { listPeople, createPerson, archivePerson, getPerson, linkPersonCompany, unlinkPersonCompany } from "features/people/people.api";
+import { listPeople, createPerson, updatePerson, archivePerson, getPerson, linkPersonCompany, unlinkPersonCompany } from "features/people/people.api";
 
 export default function PeoplePage() {
   const queryClient = useQueryClient();
@@ -543,6 +544,7 @@ function PersonDetailDrawer({
 }) {
   const queryClient = useQueryClient();
   const [newCompanyId, setNewCompanyId] = useState("");
+  const [showEditPerson, setShowEditPerson] = useState(false);
 
   const { data: person, isLoading } = useQuery({
     queryKey: ["crm-person-detail", personId],
@@ -597,13 +599,35 @@ function PersonDetailDrawer({
             </p>
           </div>
         </div>
-        <button
-          onClick={onClose}
-          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowEditPerson(true)}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm transition"
+            title="Edit Person Details"
+          >
+            <Pencil className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+            <span>Edit Person</span>
+          </button>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
       </div>
+
+      {/* EDIT PERSON MODAL */}
+      {showEditPerson && (
+        <EditPersonModal
+          person={person}
+          onClose={() => setShowEditPerson(false)}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: ["crm-person-detail", personId] });
+            queryClient.invalidateQueries({ queryKey: ["crm-people"] });
+          }}
+        />
+      )}
 
       {/* Drawer Body */}
       <div className="flex-1 overflow-y-auto p-6 space-y-6">
@@ -763,6 +787,236 @@ function PersonDetailDrawer({
             <p className="text-xs text-gray-700 dark:text-gray-300">{person.notes}</p>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function EditPersonModal({
+  person,
+  onClose,
+  onSuccess,
+}: {
+  person: CrmPerson;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [firstName, setFirstName] = useState(person.firstName || "");
+  const [lastName, setLastName] = useState(person.lastName || "");
+  const [jobTitle, setJobTitle] = useState(person.jobTitle || "");
+  const [department, setDepartment] = useState(person.department || "");
+  const [email, setEmail] = useState(person.emails?.[0]?.email || "");
+  const [phone, setPhone] = useState(person.phones?.[0]?.phone || "");
+  const [status, setStatus] = useState<"ACTIVE" | "INACTIVE" | "LEAD">(person.status || "ACTIVE");
+  const [notes, setNotes] = useState(person.notes || "");
+  const [formError, setFormError] = useState("");
+
+  const updateMutation = useMutation({
+    mutationFn: async (payload: Partial<CrmPerson>) => {
+      return updatePerson(person._id, payload);
+    },
+    onSuccess: () => {
+      onSuccess();
+      onClose();
+    },
+    onError: (err: any) => {
+      setFormError(err.response?.data?.message || err.message || "Failed to update person");
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError("");
+
+    if (!firstName.trim() && !lastName.trim() && !person.displayName) {
+      setFormError("At least first name or last name is required");
+      return;
+    }
+
+    if (email.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email.trim())) {
+        setFormError("Invalid email address format");
+        return;
+      }
+    }
+
+    const emails = email.trim()
+      ? [{ email: email.trim().toLowerCase(), label: "work", primary: true }]
+      : [];
+
+    const phones = phone.trim()
+      ? [{ phone: phone.trim(), label: "mobile", primary: true }]
+      : [];
+
+    updateMutation.mutate({
+      firstName: firstName.trim(),
+      lastName: lastName.trim(),
+      jobTitle: jobTitle.trim(),
+      department: department.trim(),
+      emails,
+      phones,
+      status,
+      notes: notes.trim(),
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-emerald-50 dark:bg-emerald-950 flex items-center justify-center text-emerald-600">
+              <Pencil className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white">Edit Person</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Update individual profile, organizational title, and contact details</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4 flex-1">
+          {formError && (
+            <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-lg flex items-center gap-2 text-rose-700 dark:text-rose-300 text-xs font-medium">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{formError}</span>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                First Name
+              </label>
+              <input
+                type="text"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                Last Name
+              </label>
+              <input
+                type="text"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                Job Title
+              </label>
+              <input
+                type="text"
+                value={jobTitle}
+                onChange={(e) => setJobTitle(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                Department
+              </label>
+              <input
+                type="text"
+                value={department}
+                onChange={(e) => setDepartment(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                Primary Email
+              </label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                Primary Phone
+              </label>
+              <input
+                type="text"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                Status
+              </label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value as any)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              >
+                <option value="ACTIVE">Active</option>
+                <option value="LEAD">Lead</option>
+                <option value="INACTIVE">Inactive</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                Internal Notes
+              </label>
+              <input
+                type="text"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-4 border-t border-gray-100 dark:border-gray-800">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={updateMutation.isPending}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-emerald-600 text-white text-xs font-medium rounded-lg hover:bg-emerald-700 transition disabled:opacity-50"
+            >
+              {updateMutation.isPending ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );

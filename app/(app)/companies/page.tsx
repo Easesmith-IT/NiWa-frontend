@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Building2,
+  Pencil,
   Plus,
   Search,
   Globe,
@@ -26,6 +27,7 @@ import {
 import { apiClient } from "lib/api/api-client";
 import { listContacts } from "features/contacts/contact.api";
 import { listPeople, createPerson, linkPersonCompany, unlinkPersonCompany } from "features/people/people.api";
+import { updateCompany } from "features/companies/company.api";
 import type { ContactRecord, CrmCompany, CrmPerson } from "lib/api/api-types";
 
 export default function CompaniesPage() {
@@ -635,6 +637,7 @@ function CompanyDetailDrawer({
 }) {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState<"overview" | "people" | "contacts">("overview");
+  const [showEditCompany, setShowEditCompany] = useState(false);
   const [selectedPersonIdToLink, setSelectedPersonIdToLink] = useState("");
   const [showCreatePerson, setShowCreatePerson] = useState(false);
   const [newPersonFirst, setNewPersonFirst] = useState("");
@@ -715,12 +718,22 @@ function CompanyDetailDrawer({
             </p>
           </div>
         </div>
-        <button
-          onClick={onClose}
-          className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
-        >
-          <X className="w-5 h-5" />
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => setShowEditCompany(true)}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm transition"
+            title="Edit Company Details"
+          >
+            <Pencil className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+            <span>Edit Company</span>
+          </button>
+          <button
+            onClick={onClose}
+            className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
       </div>
 
       {/* Tabs */}
@@ -1000,6 +1013,399 @@ function CompanyDetailDrawer({
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+function EditCompanyModal({
+  company,
+  onClose,
+  onSuccess,
+}: {
+  company: CrmCompany;
+  onClose: () => void;
+  onSuccess: () => void;
+}) {
+  const [name, setName] = useState(company.name || "");
+  const [legalName, setLegalName] = useState(company.legalName || "");
+  const [gstin, setGstin] = useState(company.gstin || "");
+  const [pan, setPan] = useState(company.pan || "");
+  const [cin, setCin] = useState(company.cin || "");
+  const [website, setWebsite] = useState(company.website || "");
+  const [domain, setDomain] = useState(company.domain || "");
+  const [industry, setIndustry] = useState(company.industry || "");
+  const [primaryEmail, setPrimaryEmail] = useState(company.primaryEmail || "");
+  const [primaryPhone, setPrimaryPhone] = useState(company.primaryPhone || "");
+  const [address, setAddress] = useState(company.address || "");
+  const [city, setCity] = useState(company.city || "");
+  const [state, setState] = useState(company.state || "");
+  const [postalCode, setPostalCode] = useState(company.postalCode || "");
+  const [country, setCountry] = useState(company.country || "IN");
+  const [status, setStatus] = useState(company.status || "ACTIVE");
+  const [notes, setNotes] = useState(company.notes || "");
+  const [formError, setFormError] = useState("");
+
+  const updateMutation = useMutation({
+    mutationFn: async (payload: Partial<CrmCompany>) => {
+      return updateCompany(company._id, payload);
+    },
+    onSuccess: () => {
+      onSuccess();
+      onClose();
+    },
+    onError: (err: any) => {
+      setFormError(err.response?.data?.message || err.message || "Failed to update company");
+    },
+  });
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setFormError("");
+
+    if (!name.trim()) {
+      setFormError("Company name is required");
+      return;
+    }
+
+    if (gstin.trim()) {
+      const gstinRegex = /^[0-9]{2}[A-Za-z]{5}[0-9]{4}[A-Za-z]{1}[1-9A-Za-z]{1}[zZ]{1}[0-9A-Za-z]{1}$/;
+      if (!gstinRegex.test(gstin.trim())) {
+        setFormError("Invalid GSTIN format (must be 15 characters, e.g. 27AAACR5055K1ZX)");
+        return;
+      }
+    }
+
+    if (pan.trim()) {
+      const panRegex = /^[A-Za-z]{5}[0-9]{4}[A-Za-z]{1}$/;
+      if (!panRegex.test(pan.trim())) {
+        setFormError("Invalid PAN format (must be 10 characters, e.g. AAACR5055K)");
+        return;
+      }
+    }
+
+    if (cin.trim()) {
+      const cinRegex = /^[A-Za-z]{1}[0-9]{5}[A-Za-z]{2}[0-9]{4}[A-Za-z]{3}[0-9]{6}$/;
+      if (!cinRegex.test(cin.trim())) {
+        setFormError("Invalid CIN format (must be 21 characters, e.g. L01631KA2010PTC096843)");
+        return;
+      }
+    }
+
+    if (primaryEmail.trim()) {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(primaryEmail.trim())) {
+        setFormError("Invalid primary email format");
+        return;
+      }
+    }
+
+    updateMutation.mutate({
+      name: name.trim(),
+      legalName: legalName.trim() || undefined,
+      gstin: gstin.trim().toUpperCase() || undefined,
+      pan: pan.trim().toUpperCase() || undefined,
+      cin: cin.trim().toUpperCase() || undefined,
+      website: website.trim() || undefined,
+      domain: domain.trim() || undefined,
+      industry: industry.trim() || undefined,
+      primaryEmail: primaryEmail.trim() || undefined,
+      primaryPhone: primaryPhone.trim() || undefined,
+      address: address.trim() || undefined,
+      city: city.trim() || undefined,
+      state: state.trim() || undefined,
+      postalCode: postalCode.trim() || undefined,
+      country: country.trim() || "IN",
+      status,
+      notes: notes.trim() || undefined,
+    });
+  };
+
+  return (
+    <div className="fixed inset-0 z-[60] bg-black/50 backdrop-blur-xs flex items-center justify-center p-4 animate-in fade-in duration-150">
+      <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 w-full max-w-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div className="p-5 border-b border-gray-100 dark:border-gray-800 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-lg bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center text-indigo-600">
+              <Pencil className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-base font-semibold text-gray-900 dark:text-white">Edit Company</h3>
+              <p className="text-xs text-gray-500 dark:text-gray-400">Update company details, Indian tax identifiers, and addresses</p>
+            </div>
+          </div>
+          <button
+            onClick={onClose}
+            className="p-1 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+
+        <form onSubmit={handleSubmit} className="p-6 overflow-y-auto space-y-4 flex-1">
+          {formError && (
+            <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 rounded-lg flex items-center gap-2 text-rose-700 dark:text-rose-300 text-xs font-medium">
+              <AlertCircle className="w-4 h-4 shrink-0" />
+              <span>{formError}</span>
+            </div>
+          )}
+
+          <div className="space-y-3">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+              Basic Information
+            </h4>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  Company Name <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  Legal / Registered Name
+                </label>
+                <input
+                  type="text"
+                  value={legalName}
+                  onChange={(e) => setLegalName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  Industry
+                </label>
+                <input
+                  type="text"
+                  value={industry}
+                  onChange={(e) => setIndustry(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  Website
+                </label>
+                <input
+                  type="text"
+                  value={website}
+                  onChange={(e) => setWebsite(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  Domain
+                </label>
+                <input
+                  type="text"
+                  value={domain}
+                  onChange={(e) => setDomain(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3 pt-2 border-t border-gray-100 dark:border-gray-800">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+              Indian Business & Tax Identifiers
+            </h4>
+            <div className="grid grid-cols-3 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  GSTIN (15 chars)
+                </label>
+                <input
+                  type="text"
+                  maxLength={15}
+                  value={gstin}
+                  onChange={(e) => setGstin(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm font-mono uppercase bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  PAN (10 chars)
+                </label>
+                <input
+                  type="text"
+                  maxLength={10}
+                  value={pan}
+                  onChange={(e) => setPan(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm font-mono uppercase bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  CIN (21 chars)
+                </label>
+                <input
+                  type="text"
+                  maxLength={21}
+                  value={cin}
+                  onChange={(e) => setCin(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm font-mono uppercase bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3 pt-2 border-t border-gray-100 dark:border-gray-800">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+              Contact Channels
+            </h4>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  Primary Email
+                </label>
+                <input
+                  type="email"
+                  value={primaryEmail}
+                  onChange={(e) => setPrimaryEmail(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  Primary Phone
+                </label>
+                <input
+                  type="text"
+                  value={primaryPhone}
+                  onChange={(e) => setPrimaryPhone(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="space-y-3 pt-2 border-t border-gray-100 dark:border-gray-800">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500">
+              Structured Address
+            </h4>
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                Street Address / Line 1
+              </label>
+              <input
+                type="text"
+                value={address}
+                onChange={(e) => setAddress(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+            <div className="grid grid-cols-4 gap-3">
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  City
+                </label>
+                <input
+                  type="text"
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  State
+                </label>
+                <input
+                  type="text"
+                  value={state}
+                  onChange={(e) => setState(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  Postal Code
+                </label>
+                <input
+                  type="text"
+                  value={postalCode}
+                  onChange={(e) => setPostalCode(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                  Country
+                </label>
+                <input
+                  type="text"
+                  value={country}
+                  onChange={(e) => setCountry(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-3 pt-2 border-t border-gray-100 dark:border-gray-800">
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                Account Status
+              </label>
+              <select
+                value={status}
+                onChange={(e) => setStatus(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              >
+                <option value="ACTIVE">Active</option>
+                <option value="PROSPECT">Prospect</option>
+                <option value="INACTIVE">Inactive</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">
+                Notes
+              </label>
+              <input
+                type="text"
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-700 rounded-lg text-sm bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center justify-end gap-2 pt-4 border-t border-gray-100 dark:border-gray-800">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 border border-gray-300 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-xs font-medium rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={updateMutation.isPending}
+              className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 text-white text-xs font-medium rounded-lg hover:bg-indigo-700 transition disabled:opacity-50"
+            >
+              {updateMutation.isPending ? (
+                <>
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  Saving...
+                </>
+              ) : (
+                "Save Changes"
+              )}
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   );
