@@ -31,6 +31,7 @@ import {
   CreditCard,
   RotateCcw,
   Users,
+  ShoppingCart,
 } from "lucide-react";
 
 
@@ -126,6 +127,19 @@ export const navigationGroups: NavigationGroup[] = [
         label: "Movements",
         description: "Stock movement ledger and audit history.",
         moduleKey: "inventory",
+      },
+    ],
+  },
+  {
+    label: "Purchasing",
+    moduleKey: "purchasing",
+    items: [
+      {
+        href: "/purchasing/orders",
+        icon: ShoppingCart,
+        label: "Purchase Orders",
+        description: "Replenish stock, supplier orders, and receiving.",
+        moduleKey: "purchasing",
       },
     ],
   },

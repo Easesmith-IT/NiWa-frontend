@@ -60,5 +60,10 @@ export const queryKeys = {
   orderReturns: (orderId: string) => ["sales-orders", orderId, "returns"] as const,
   orderReturnableQuantities: (orderId: string) => ["sales-orders", orderId, "returnable-quantities"] as const,
   currencies: ["sales", "currencies"] as const,
+  purchaseOrders: ["purchase-orders"] as const,
+  purchaseOrder: (id: string) => ["purchase-orders", id] as const,
+  purchasingSummary: ["purchasing-summary"] as const,
+  purchaseReturns: ["purchase-returns"] as const,
+  purchaseReturn: (id: string) => ["purchase-returns", id] as const,
 };
 
