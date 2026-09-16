@@ -32,15 +32,17 @@ export const COMMON_CURRENCIES = [
   { code: "NOK", symbol: "kr", label: "Norwegian Krone", name: "NOK — Norwegian Krone (kr)" },
 ];
 
+export const DEFAULT_CURRENCY = "INR";
+
 /**
- * Normalizes a currency code to uppercase 3-letter ISO code or defaults to "USD".
+ * Normalizes a currency code to uppercase 3-letter ISO code or defaults to "INR".
  */
 export function normalizeCurrencyCode(currency?: string | null): string {
   if (!currency || typeof currency !== "string") {
-    return "USD";
+    return DEFAULT_CURRENCY;
   }
   const clean = currency.trim().toUpperCase();
-  return /^[A-Z]{3}$/.test(clean) ? clean : "USD";
+  return /^[A-Z]{3}$/.test(clean) ? clean : DEFAULT_CURRENCY;
 }
 
 /**

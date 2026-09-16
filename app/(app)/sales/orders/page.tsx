@@ -33,6 +33,7 @@ import {
   cancelSalesOrder,
   getOrderReturns,
   getInvoiceSettings,
+  getCurrencies,
   SalesOrderItem,
   SalesReturnItem,
   OrderStatus,
@@ -99,7 +100,7 @@ export default function SalesOrdersPage() {
   const [quickPersonError, setQuickPersonError] = useState("");
 
   const [orderLocationId, setOrderLocationId] = useState<string>("");
-  const [orderCurrency, setOrderCurrency] = useState<string>("USD");
+  const [orderCurrency, setOrderCurrency] = useState<string>("INR");
   const [orderNotes, setOrderNotes] = useState<string>("");
   const [orderLines, setOrderLines] = useState<
     Array<{
@@ -177,6 +178,11 @@ export default function SalesOrdersPage() {
     queryFn: getInvoiceSettings,
   });
 
+  const { data: currenciesData } = useQuery({
+    queryKey: queryKeys.currencies,
+    queryFn: getCurrencies,
+  });
+
   const contactList: ContactRecord[] = (contactsData as any)?.data || [];
 
   // Mutations
@@ -241,7 +247,7 @@ export default function SalesOrdersPage() {
   function resetCreateForm() {
     setSelectedCustomerId("");
     setOrderLocationId("");
-    setOrderCurrency(invoiceSettings?.defaultCurrency || "USD");
+    setOrderCurrency(invoiceSettings?.defaultCurrency || "INR");
     setOrderLines([]);
     setOrderNotes("");
     setActionError(null);
@@ -857,12 +863,23 @@ export default function SalesOrdersPage() {
                     onChange={(e) => setOrderCurrency(e.target.value)}
                     className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-medium"
                   >
-                    {COMMON_CURRENCIES.map((c) => (
+                    {(currenciesData && currenciesData.length > 0
+                      ? currenciesData.map((c) => ({
+                          code: c.code,
+                          label: `${c.code} — ${c.name}`,
+                        }))
+                      : COMMON_CURRENCIES.map((c) => ({
+                          code: c.code,
+                          label: `${c.code} (${c.symbol}) — ${c.label}`,
+                        }))
+                    ).map((c) => (
                       <option key={c.code} value={c.code}>
-                        {c.code} ({c.symbol}) — {c.label}
+                        {c.label}
                       </option>
                     ))}
-                    {!COMMON_CURRENCIES.some((c) => c.code === orderCurrency) && (
+                    {!(currenciesData && currenciesData.length > 0
+                      ? currenciesData.some((c) => c.code === orderCurrency)
+                      : COMMON_CURRENCIES.some((c) => c.code === orderCurrency)) && (
                       <option value={orderCurrency}>{orderCurrency}</option>
                     )}
                   </select>

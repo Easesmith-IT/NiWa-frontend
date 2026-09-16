@@ -547,3 +547,23 @@ export async function updateInvoiceSettings(
   );
   return res.data.data;
 }
+
+// ==========================================
+// CURRENCY REGISTRY
+// ==========================================
+
+export interface IsoCurrencyItem {
+  code: string;
+  name: string;
+  digits: number;
+  number: string;
+  countries: string[];
+}
+
+export async function getCurrencies(): Promise<IsoCurrencyItem[]> {
+  const res = await apiClient.get<{ success: boolean; data: IsoCurrencyItem[] }>(
+    "/api/sales/currencies"
+  );
+  return res.data?.data || [];
+}
+

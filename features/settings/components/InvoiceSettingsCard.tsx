@@ -10,6 +10,7 @@ import { queryKeys } from "lib/api/query-keys";
 import {
   getInvoiceSettings,
   updateInvoiceSettings,
+  getCurrencies,
   WorkspaceInvoiceSettings,
 } from "lib/api/sales-api";
 import { Building2, CreditCard, FileText, CheckCircle2, AlertCircle, Coins } from "lucide-react";
@@ -23,6 +24,11 @@ export const InvoiceSettingsCard: React.FC = () => {
     queryFn: getInvoiceSettings,
   });
 
+  const { data: currenciesData } = useQuery({
+    queryKey: queryKeys.currencies,
+    queryFn: getCurrencies,
+  });
+
   const [formData, setFormData] = useState<Partial<WorkspaceInvoiceSettings>>({});
   const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
@@ -30,7 +36,7 @@ export const InvoiceSettingsCard: React.FC = () => {
   useEffect(() => {
     if (settings) {
       setFormData({
-        defaultCurrency: settings.defaultCurrency || "USD",
+        defaultCurrency: settings.defaultCurrency || "INR",
         businessName: settings.businessName || "",
         address: settings.address || "",
         email: settings.email || "",
@@ -102,18 +108,40 @@ export const InvoiceSettingsCard: React.FC = () => {
             Used automatically for newly created Quotes, Sales Orders, and Invoices. Existing documents retain their original currency permanently.
           </p>
           <div className="max-w-xs">
-            <select
-              aria-label="Default Commercial Currency"
-              value={formData.defaultCurrency || "USD"}
-              onChange={(e) => setFormData((prev) => ({ ...prev, defaultCurrency: e.target.value }))}
-              className="w-full text-xs h-9 px-3 rounded-md border border-input bg-background font-mono text-foreground focus:outline-hidden focus:ring-2 focus:ring-ring"
-            >
-              {COMMON_CURRENCIES.map((c) => (
-                <option key={c.code} value={c.code}>
-                  {c.name}
-                </option>
-              ))}
-            </select>
+            {(() => {
+              const list =
+                currenciesData && currenciesData.length > 0
+                  ? currenciesData.map((c) => ({
+                      code: c.code,
+                      name: `${c.code} — ${c.name}`,
+                    }))
+                  : COMMON_CURRENCIES.map((c) => ({
+                      code: c.code,
+                      name: c.name,
+                    }));
+
+              const current = formData.defaultCurrency || "INR";
+              const options = list.some((c) => c.code === current)
+                ? list
+                : [{ code: current, name: current }, ...list];
+
+              return (
+                <select
+                  aria-label="Default Commercial Currency"
+                  value={current}
+                  onChange={(e) =>
+                    setFormData((prev) => ({ ...prev, defaultCurrency: e.target.value }))
+                  }
+                  className="w-full text-xs h-9 px-3 rounded-md border border-input bg-background font-mono text-foreground focus:outline-hidden focus:ring-2 focus:ring-ring"
+                >
+                  {options.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              );
+            })()}
           </div>
         </div>
 

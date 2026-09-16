@@ -106,7 +106,7 @@ export default function PaymentsPage() {
     (inv) => inv._id === selectedInvoiceId
   );
 
-  const workspaceDefaultCurrency = invoiceSettings?.defaultCurrency || "USD";
+  const workspaceDefaultCurrency = invoiceSettings?.defaultCurrency || "INR";
   const modalCurrency = activeSelectedInvoice?.currency || workspaceDefaultCurrency;
 
   // Mutation to record payment
@@ -232,7 +232,7 @@ export default function PaymentsPage() {
             Total Collected
           </div>
           <div className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
-            {formatCurrency(totalSettled, invoiceSettings?.defaultCurrency || "USD")}
+            {formatCurrency(totalSettled, invoiceSettings?.defaultCurrency || "INR")}
           </div>
           <div className="text-[11px] text-neutral-400">Recorded across visible settlements</div>
         </div>

@@ -43,10 +43,10 @@ describe("Sales Currency Formatter Tests", () => {
       expect(formatted).toMatch(/AED/);
     });
 
-    it("falls back to USD when currency is omitted or undefined", () => {
+    it("falls back to INR when currency is omitted or undefined", () => {
       const formatted = formatCurrency(100);
       expect(formatted).toContain("100.00");
-      expect(formatted).toContain("$");
+      expect(formatted).toMatch(/₹|INR/);
     });
 
     it("handles zero amounts gracefully", () => {
@@ -68,6 +68,7 @@ describe("Sales Currency Formatter Tests", () => {
     it("falls back gracefully if an invalid ISO currency code is provided", () => {
       const formatted = formatCurrency(100, "INVALID_CODE", "en-US");
       expect(formatted).toContain("100.00");
+      expect(formatted).toMatch(/₹|INR/);
     });
   });
 

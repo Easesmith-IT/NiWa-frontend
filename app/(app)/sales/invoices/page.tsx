@@ -30,6 +30,7 @@ import {
   recordPayment,
   getInvoicePayments,
   getInvoiceSettings,
+  getCurrencies,
   InvoiceItem,
   InvoiceStatus,
   PaymentStatus,
@@ -95,7 +96,7 @@ export default function InvoicesPage() {
   const [customerType, setCustomerType] = useState<"PERSON" | "COMPANY">("PERSON");
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>("");
   const [invoiceDueDate, setInvoiceDueDate] = useState<string>("");
-  const [invoiceCurrency, setInvoiceCurrency] = useState<string>("USD");
+  const [invoiceCurrency, setInvoiceCurrency] = useState<string>("INR");
   const [invoiceNotes, setInvoiceNotes] = useState<string>("");
   const [invoiceLines, setInvoiceLines] = useState<
     Array<{
@@ -189,6 +190,11 @@ export default function InvoicesPage() {
   const { data: invoiceSettings } = useQuery({
     queryKey: queryKeys.invoiceSettings,
     queryFn: getInvoiceSettings,
+  });
+
+  const { data: currenciesData } = useQuery({
+    queryKey: queryKeys.currencies,
+    queryFn: getCurrencies,
   });
 
   const businessInfo: BusinessInfo | undefined = invoiceSettings ? {
@@ -324,7 +330,7 @@ export default function InvoicesPage() {
     setCustomerType("PERSON");
     setSelectedCustomerId("");
     setInvoiceDueDate("");
-    setInvoiceCurrency(invoiceSettings?.defaultCurrency || "USD");
+    setInvoiceCurrency(invoiceSettings?.defaultCurrency || "INR");
     setInvoiceNotes("");
     setInvoiceLines([]);
     setActionError(null);
@@ -1111,12 +1117,23 @@ export default function InvoicesPage() {
                   onChange={(e) => setInvoiceCurrency(e.target.value)}
                   className="w-full text-sm px-3 py-2 rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 font-medium focus:outline-none focus:ring-2 focus:ring-emerald-500"
                 >
-                  {COMMON_CURRENCIES.map((c) => (
+                  {(currenciesData && currenciesData.length > 0
+                    ? currenciesData.map((c) => ({
+                        code: c.code,
+                        label: `${c.code} — ${c.name}`,
+                      }))
+                    : COMMON_CURRENCIES.map((c) => ({
+                        code: c.code,
+                        label: `${c.code} (${c.symbol}) — ${c.label}`,
+                      }))
+                  ).map((c) => (
                     <option key={c.code} value={c.code}>
-                      {c.code} ({c.symbol}) — {c.label}
+                      {c.label}
                     </option>
                   ))}
-                  {!COMMON_CURRENCIES.some((c) => c.code === invoiceCurrency) && (
+                  {!(currenciesData && currenciesData.length > 0
+                    ? currenciesData.some((c) => c.code === invoiceCurrency)
+                    : COMMON_CURRENCIES.some((c) => c.code === invoiceCurrency)) && (
                     <option value={invoiceCurrency}>{invoiceCurrency}</option>
                   )}
                 </select>

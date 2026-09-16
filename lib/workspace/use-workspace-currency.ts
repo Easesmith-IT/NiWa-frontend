@@ -18,7 +18,7 @@ export function useWorkspaceDefaultCurrency(): WorkspaceCurrencyInfo {
     staleTime: 5 * 60 * 1000,
   });
 
-  const currency = normalizeCurrencyCode(invoiceSettings?.defaultCurrency || "USD");
+  const currency = normalizeCurrencyCode(invoiceSettings?.defaultCurrency || "INR");
   const symbol = getCurrencySymbol(currency);
 
   return {
