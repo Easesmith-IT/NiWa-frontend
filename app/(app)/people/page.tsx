@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Users,
@@ -870,8 +870,12 @@ function EditPersonModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
-  const [firstName, setFirstName] = useState(person.firstName || "");
-  const [lastName, setLastName] = useState(person.lastName || "");
+  const nameParts = (person.displayName || "").trim().split(/\s+/);
+  const fallbackFirst = person.firstName || (nameParts.length > 0 && nameParts[0] ? nameParts[0] : "");
+  const fallbackLast = person.lastName || (nameParts.length > 1 ? nameParts.slice(1).join(" ") : "");
+
+  const [firstName, setFirstName] = useState(fallbackFirst);
+  const [lastName, setLastName] = useState(fallbackLast);
   const [jobTitle, setJobTitle] = useState(person.jobTitle || "");
   const [department, setDepartment] = useState(person.department || "");
   const [email, setEmail] = useState(person.emails?.[0]?.email || "");
@@ -879,6 +883,18 @@ function EditPersonModal({
   const [status, setStatus] = useState<"ACTIVE" | "INACTIVE" | "LEAD">(person.status || "ACTIVE");
   const [notes, setNotes] = useState(person.notes || "");
   const [formError, setFormError] = useState("");
+
+  useEffect(() => {
+    const parts = (person.displayName || "").trim().split(/\s+/);
+    setFirstName(person.firstName || (parts.length > 0 && parts[0] ? parts[0] : ""));
+    setLastName(person.lastName || (parts.length > 1 ? parts.slice(1).join(" ") : ""));
+    setJobTitle(person.jobTitle || "");
+    setDepartment(person.department || "");
+    setEmail(person.emails?.[0]?.email || "");
+    setPhone(person.phones?.[0]?.phone || "");
+    setStatus(person.status || "ACTIVE");
+    setNotes(person.notes || "");
+  }, [person]);
 
   const updateMutation = useMutation({
     mutationFn: async (payload: Partial<CrmPerson>) => {
@@ -897,7 +913,10 @@ function EditPersonModal({
     e.preventDefault();
     setFormError("");
 
-    if (!firstName.trim() && !lastName.trim() && !person.displayName) {
+    const trimmedFirst = firstName.trim();
+    const trimmedLast = lastName.trim();
+
+    if (!trimmedFirst && !trimmedLast && !person.displayName) {
       setFormError("At least first name or last name is required");
       return;
     }
@@ -918,9 +937,12 @@ function EditPersonModal({
       ? [{ phone: phone.trim(), label: "mobile", primary: true }]
       : [];
 
+    const computedDisplayName = `${trimmedFirst} ${trimmedLast}`.trim() || person.displayName || "Unnamed Person";
+
     updateMutation.mutate({
-      firstName: firstName.trim(),
-      lastName: lastName.trim(),
+      firstName: trimmedFirst,
+      lastName: trimmedLast,
+      displayName: computedDisplayName,
       jobTitle: jobTitle.trim(),
       department: department.trim(),
       emails,
