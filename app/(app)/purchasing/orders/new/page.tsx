@@ -38,6 +38,7 @@ interface FormLineItem {
   productName: string;
   variantName: string;
   sku: string;
+  supplierSku?: string;
   unitCode: string;
   orderedQuantity: number;
   purchasePrice: number;
@@ -82,6 +83,27 @@ export default function NewPurchaseOrderPage() {
     queryFn: () => productsApi.getProducts({ limit: 200 }),
   });
 
+  // Supplier-specific variant mappings (purchase price, MOQ, supplier SKU)
+  const { data: supplierVariantsResponse } = useQuery({
+    queryKey: ["supplier-variants", supplierId],
+    queryFn: () => productsApi.getSupplierVariants(supplierId),
+    enabled: !!supplierId,
+  });
+
+  const supplierVariantsMap = useMemo(() => {
+    const map = new Map<string, any>();
+    if (supplierVariantsResponse?.data) {
+      for (const link of supplierVariantsResponse.data) {
+        const v = link.productVariantId;
+        const vId = v?._id || v?.variantId || link.productVariantId;
+        if (vId) {
+          map.set(vId.toString(), link);
+        }
+      }
+    }
+    return map;
+  }, [supplierVariantsResponse]);
+
   const suppliers: SupplierItem[] = suppliersResponse?.data || [];
   const locations: LocationItem[] = locationsResponse?.data || [];
   const products: ProductItem[] = productsResponse?.data || [];
@@ -101,6 +123,7 @@ export default function NewPurchaseOrderPage() {
       variantId: string;
       variantName: string;
       sku: string;
+      unitCode: string;
       costPrice: number;
     }> = [];
 
@@ -116,6 +139,7 @@ export default function NewPurchaseOrderPage() {
             variantId: v._id,
             variantName: v.name || "Default",
             sku: v.sku || "",
+            unitCode: v.unitId?.code || prod.defaultUnitId?.code || "PCS",
             costPrice: typeof v.costPrice === "number" ? v.costPrice : (prod.costPrice || 0),
           });
         }
@@ -126,6 +150,7 @@ export default function NewPurchaseOrderPage() {
           variantId: prod.defaultVariant._id,
           variantName: prod.defaultVariant.name || "Default",
           sku: prod.defaultVariant.sku || "",
+          unitCode: prod.defaultVariant.unitId?.code || prod.defaultUnitId?.code || "PCS",
           costPrice: prod.costPrice || 0,
         });
       }
@@ -149,21 +174,35 @@ export default function NewPurchaseOrderPage() {
 
   // Line item actions
   function handleAddVariant(item: typeof catalogVariants[0]) {
+    const supplierLink = supplierVariantsMap.get(item.variantId);
     const existingIndex = lineItems.findIndex((l) => l.productVariantId === item.variantId);
     if (existingIndex >= 0) {
       const updated = [...lineItems];
       updated[existingIndex].orderedQuantity += 1;
       setLineItems(updated);
     } else {
+      const purchasePrice =
+        supplierLink?.purchasePrice !== null && supplierLink?.purchasePrice !== undefined
+          ? supplierLink.purchasePrice
+          : item.costPrice >= 0
+          ? item.costPrice
+          : 0;
+      const supplierSku = supplierLink?.supplierSku || undefined;
+      const initialQty =
+        supplierLink?.minimumOrderQuantity && supplierLink.minimumOrderQuantity > 1
+          ? supplierLink.minimumOrderQuantity
+          : 1;
+
       const newLine: FormLineItem = {
         id: `${item.variantId}-${Date.now()}`,
         productVariantId: item.variantId,
         productName: item.productName,
         variantName: item.variantName,
         sku: item.sku,
-        unitCode: "PCS",
-        orderedQuantity: 1,
-        purchasePrice: item.costPrice >= 0 ? item.costPrice : 0,
+        supplierSku,
+        unitCode: item.unitCode || "PCS",
+        orderedQuantity: initialQty,
+        purchasePrice,
         taxRatePercent: 0,
         discountAmount: 0,
       };
@@ -618,6 +657,11 @@ export default function NewPurchaseOrderPage() {
                             <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
                               <span>{line.variantName}</span>
                               {line.sku && <span className="font-mono">({line.sku})</span>}
+                              {line.supplierSku && (
+                                <span className="font-mono text-[10px] bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-600 dark:text-zinc-300">
+                                  Sup: {line.supplierSku}
+                                </span>
+                              )}
                             </div>
                           </td>
 

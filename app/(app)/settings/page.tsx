@@ -6,6 +6,7 @@ import {
   SecurityCredentialsCard,
   SettingsHeader,
   InvoiceSettingsCard,
+  CustomFieldsSettingsCard,
   useSettingsOrchestration,
 } from "../../../features/settings";
 import { WhatsAppSettingsModule } from "../../../features/whatsapp-connections/WhatsAppSettingsModule";
@@ -36,6 +37,9 @@ export default function SettingsPage() {
 
       {/* Workspace Invoice & Payment Presentation Settings Card */}
       <InvoiceSettingsCard />
+
+      {/* Extensible Custom Fields Settings Card */}
+      <CustomFieldsSettingsCard />
     </div>
   );
 }

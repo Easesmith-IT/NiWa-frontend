@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ChevronDown, ChevronUp, Package, Save, Plus, Sparkles, X, Loader2 } from "lucide-react";
 import { productsApi, UnitItem, CategoryItem, BrandItem, ProductItem, STANDARD_UNITS } from "lib/api/products-api";
+import { crmFieldsApi, CrmFieldDefinition } from "lib/api/crm-fields-api";
 import { queryKeys } from "lib/api/query-keys";
 import { useWorkspaceDefaultCurrency } from "lib/workspace/use-workspace-currency";
 
@@ -40,27 +41,37 @@ export default function NewProductPage() {
   const [barcode, setBarcode] = useState("");
   const [status, setStatus] = useState<"ACTIVE" | "DRAFT" | "INACTIVE">("ACTIVE");
 
+  // Custom Fields state
+  const [customFields, setCustomFields] = useState<Record<string, any>>({});
+
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Queries for categories, brands, units
+  // Queries for categories, brands, units (strictly filtered to ACTIVE status)
   const { data: categoriesData } = useQuery({
     queryKey: queryKeys.categories,
-    queryFn: () => productsApi.getCategories(),
+    queryFn: () => productsApi.getCategories({ status: "ACTIVE" }),
   });
 
   const { data: brandsData } = useQuery({
     queryKey: queryKeys.brands,
-    queryFn: () => productsApi.getBrands(),
+    queryFn: () => productsApi.getBrands({ status: "ACTIVE" }),
   });
 
   const { data: unitsData } = useQuery({
     queryKey: queryKeys.units,
-    queryFn: () => productsApi.getUnits(),
+    queryFn: () => productsApi.getUnits({ status: "ACTIVE" }),
   });
 
-  const categories: CategoryItem[] = categoriesData?.data || [];
-  const brands: BrandItem[] = brandsData?.data || [];
-  const units: UnitItem[] = unitsData?.data || [];
+  // Query custom field definitions for Product
+  const { data: fieldDefsData } = useQuery({
+    queryKey: ["crm-field-definitions", "Product"],
+    queryFn: () => crmFieldsApi.getFieldDefinitions("Product"),
+  });
+
+  const categories: CategoryItem[] = (categoriesData?.data || []).filter((c) => c.status === "ACTIVE");
+  const brands: BrandItem[] = (brandsData?.data || []).filter((b) => b.status === "ACTIVE");
+  const units: UnitItem[] = (unitsData?.data || []).filter((u) => u.status === "ACTIVE");
+  const fieldDefinitions: CrmFieldDefinition[] = fieldDefsData?.data || [];
 
   const createMutation = useMutation({
     mutationFn: (payload: any) => productsApi.createProduct(payload),
@@ -172,6 +183,9 @@ export default function NewProductPage() {
     if (costPrice !== "") payload.costPrice = Number(costPrice);
     if (sku.trim()) payload.sku = sku.trim();
     if (barcode.trim()) payload.barcode = barcode.trim();
+    if (Object.keys(customFields).length > 0) {
+      payload.customFields = customFields;
+    }
 
     createMutation.mutate(payload);
   };
@@ -430,6 +444,127 @@ export default function NewProductPage() {
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                 />
               </div>
+
+              {/* Dynamic CRM Custom Fields */}
+              {fieldDefinitions.length > 0 && (
+                <div className="md:col-span-2 pt-3 border-t border-gray-100">
+                  <h3 className="text-xs font-semibold text-gray-800 uppercase tracking-wider mb-3">
+                    Custom Fields
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {fieldDefinitions.map((def) => {
+                      const val = customFields[def.key] ?? "";
+
+                      if (def.type === "BOOLEAN") {
+                        return (
+                          <div key={def.key} className="flex items-center gap-2 pt-2">
+                            <input
+                              type="checkbox"
+                              id={`custom-field-${def.key}`}
+                              checked={!!customFields[def.key]}
+                              onChange={(e) =>
+                                setCustomFields((prev) => ({
+                                  ...prev,
+                                  [def.key]: e.target.checked,
+                                }))
+                              }
+                              className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                            />
+                            <label
+                              htmlFor={`custom-field-${def.key}`}
+                              className="text-xs font-medium text-gray-700 cursor-pointer"
+                            >
+                              {def.label} {def.required && <span className="text-red-500">*</span>}
+                            </label>
+                          </div>
+                        );
+                      }
+
+                      if (def.type === "LONG_TEXT") {
+                        return (
+                          <div key={def.key} className="md:col-span-2">
+                            <label className="block text-xs font-semibold text-gray-700 mb-1">
+                              {def.label} {def.required && <span className="text-red-500">*</span>}
+                            </label>
+                            <textarea
+                              rows={2}
+                              value={val}
+                              onChange={(e) =>
+                                setCustomFields((prev) => ({
+                                  ...prev,
+                                  [def.key]: e.target.value,
+                                }))
+                              }
+                              placeholder={def.description || `Enter ${def.label}...`}
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                            />
+                          </div>
+                        );
+                      }
+
+                      if (def.type === "OPTION" && def.options && def.options.length > 0) {
+                        return (
+                          <div key={def.key}>
+                            <label className="block text-xs font-semibold text-gray-700 mb-1">
+                              {def.label} {def.required && <span className="text-red-500">*</span>}
+                            </label>
+                            <select
+                              value={val}
+                              onChange={(e) =>
+                                setCustomFields((prev) => ({
+                                  ...prev,
+                                  [def.key]: e.target.value,
+                                }))
+                              }
+                              className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                            >
+                              <option value="">Select {def.label}...</option>
+                              {def.options.map((opt) => (
+                                <option key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div key={def.key}>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">
+                            {def.label} {def.required && <span className="text-red-500">*</span>}
+                          </label>
+                          <input
+                            type={
+                              def.type === "NUMBER" || def.type === "CURRENCY"
+                                ? "number"
+                                : def.type === "DATE"
+                                ? "date"
+                                : def.type === "DATE_TIME"
+                                ? "datetime-local"
+                                : "text"
+                            }
+                            value={val}
+                            onChange={(e) =>
+                              setCustomFields((prev) => ({
+                                ...prev,
+                                [def.key]:
+                                  def.type === "NUMBER" || def.type === "CURRENCY"
+                                    ? e.target.value === ""
+                                      ? ""
+                                      : Number(e.target.value)
+                                    : e.target.value,
+                              }))
+                            }
+                            placeholder={def.description || `Enter ${def.label}...`}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         )}

@@ -178,6 +178,16 @@ export const productsApi = {
     return res.data;
   },
 
+  getSupplierById: async (id: string): Promise<{ success: boolean; data: SupplierItem & { customFields?: Record<string, any> } }> => {
+    const res = await apiClient.get(`/api/products/suppliers/${id}`);
+    return res.data;
+  },
+
+  getSupplierVariants: async (supplierId: string): Promise<{ success: boolean; data: any[] }> => {
+    const res = await apiClient.get(`/api/products/suppliers/${supplierId}/variants`);
+    return res.data;
+  },
+
   createSupplier: async (data: Record<string, any>): Promise<{ success: boolean; data: SupplierItem }> => {
     const res = await apiClient.post("/api/products/suppliers", data);
     return res.data;

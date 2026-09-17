@@ -603,6 +603,11 @@ export default function PurchaseOrderDetailPage() {
                           <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 mt-0.5">
                             <span>{item.variantName}</span>
                             {item.sku && <span className="font-mono">({item.sku})</span>}
+                            {item.supplierSku && (
+                              <span className="font-mono text-[10px] bg-zinc-100 dark:bg-zinc-800 px-1.5 py-0.5 rounded text-zinc-600 dark:text-zinc-300">
+                                Sup: {item.supplierSku}
+                              </span>
+                            )}
                           </div>
                         </td>
                         <td className="px-3 py-3 text-center font-mono text-muted-foreground">

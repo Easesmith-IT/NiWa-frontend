@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Truck, Plus, Save, ArrowLeft, Edit3, Trash2, Package, Layers, Tag, Scale } from "lucide-react";
 import { productsApi, SupplierItem } from "lib/api/products-api";
+import { crmFieldsApi, CrmFieldDefinition } from "lib/api/crm-fields-api";
 import { queryKeys } from "lib/api/query-keys";
 
 export default function SuppliersPage() {
@@ -16,6 +17,7 @@ export default function SuppliersPage() {
   const [email, setEmail] = useState("");
   const [address, setAddress] = useState("");
   const [notes, setNotes] = useState("");
+  const [customFields, setCustomFields] = useState<Record<string, any>>({});
   const [errorMsg, setErrorMsg] = useState("");
   const [showForm, setShowForm] = useState(false);
 
@@ -26,13 +28,21 @@ export default function SuppliersPage() {
   const [editEmail, setEditEmail] = useState("");
   const [editAddress, setEditAddress] = useState("");
   const [editNotes, setEditNotes] = useState("");
+  const [editCustomFields, setEditCustomFields] = useState<Record<string, any>>({});
 
   const { data: suppliersData, isLoading } = useQuery({
     queryKey: queryKeys.suppliers,
     queryFn: () => productsApi.getSuppliers(),
   });
 
+  // Query custom field definitions for Supplier
+  const { data: fieldDefsData } = useQuery({
+    queryKey: ["crm-field-definitions", "Supplier"],
+    queryFn: () => crmFieldsApi.getFieldDefinitions("Supplier"),
+  });
+
   const suppliers: SupplierItem[] = suppliersData?.data || [];
+  const fieldDefinitions: CrmFieldDefinition[] = fieldDefsData?.data || [];
 
   const createMutation = useMutation({
     mutationFn: (data: any) => productsApi.createSupplier(data),
@@ -43,6 +53,7 @@ export default function SuppliersPage() {
       setEmail("");
       setAddress("");
       setNotes("");
+      setCustomFields({});
       setShowForm(false);
     },
     onError: (err: any) => {
@@ -55,6 +66,7 @@ export default function SuppliersPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.suppliers });
       setEditingSupplier(null);
+      setEditCustomFields({});
     },
     onError: (err: any) => {
       setErrorMsg(err.response?.data?.message || err.message || "Failed to update supplier");
@@ -84,16 +96,27 @@ export default function SuppliersPage() {
       email: email.trim() || undefined,
       address: address.trim() || undefined,
       notes: notes.trim() || undefined,
+      customFields: Object.keys(customFields).length > 0 ? customFields : undefined,
     });
   };
 
-  const handleStartEdit = (sup: SupplierItem) => {
+  const handleStartEdit = async (sup: SupplierItem) => {
     setEditingSupplier(sup);
     setEditName(sup.name);
     setEditPhone(sup.phone || "");
     setEditEmail(sup.email || "");
     setEditAddress(sup.address || "");
     setEditNotes(sup.notes || "");
+    setEditCustomFields({});
+
+    try {
+      const res = await productsApi.getSupplierById(sup._id);
+      if (res?.data?.customFields) {
+        setEditCustomFields(res.data.customFields);
+      }
+    } catch {
+      // Non-blocking if fetch fails
+    }
   };
 
   const handleUpdate = (e: React.FormEvent) => {
@@ -112,6 +135,7 @@ export default function SuppliersPage() {
         email: editEmail.trim() || undefined,
         address: editAddress.trim() || undefined,
         notes: editNotes.trim() || undefined,
+        customFields: Object.keys(editCustomFields).length > 0 ? editCustomFields : undefined,
       },
     });
   };
@@ -250,6 +274,55 @@ export default function SuppliersPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
               />
             </div>
+            {fieldDefinitions.length > 0 && (
+              <div className="md:col-span-2 pt-2 border-t border-gray-100">
+                <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
+                  Custom Fields
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {fieldDefinitions.map((def) => {
+                    const val = customFields[def.key] ?? "";
+                    if (def.type === "BOOLEAN") {
+                      return (
+                        <div key={def.key} className="flex items-center gap-2 pt-2">
+                          <input
+                            type="checkbox"
+                            id={`sup-cf-${def.key}`}
+                            checked={!!customFields[def.key]}
+                            onChange={(e) =>
+                              setCustomFields((prev) => ({ ...prev, [def.key]: e.target.checked }))
+                            }
+                            className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                          />
+                          <label htmlFor={`sup-cf-${def.key}`} className="text-xs font-medium text-gray-700 cursor-pointer">
+                            {def.label} {def.required && <span className="text-red-500">*</span>}
+                          </label>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div key={def.key}>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">
+                          {def.label} {def.required && <span className="text-red-500">*</span>}
+                        </label>
+                        <input
+                          type={def.type === "NUMBER" || def.type === "CURRENCY" ? "number" : "text"}
+                          value={val}
+                          onChange={(e) =>
+                            setCustomFields((prev) => ({
+                              ...prev,
+                              [def.key]: def.type === "NUMBER" || def.type === "CURRENCY" ? (e.target.value === "" ? "" : Number(e.target.value)) : e.target.value,
+                            }))
+                          }
+                          placeholder={def.description || `Enter ${def.label}...`}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button
@@ -316,6 +389,55 @@ export default function SuppliersPage() {
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
               />
             </div>
+            {fieldDefinitions.length > 0 && (
+              <div className="md:col-span-2 pt-2 border-t border-indigo-100">
+                <h3 className="text-xs font-semibold text-gray-700 uppercase tracking-wider mb-2">
+                  Custom Fields
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {fieldDefinitions.map((def) => {
+                    const val = editCustomFields[def.key] ?? "";
+                    if (def.type === "BOOLEAN") {
+                      return (
+                        <div key={def.key} className="flex items-center gap-2 pt-2">
+                          <input
+                            type="checkbox"
+                            id={`edit-sup-cf-${def.key}`}
+                            checked={!!editCustomFields[def.key]}
+                            onChange={(e) =>
+                              setEditCustomFields((prev) => ({ ...prev, [def.key]: e.target.checked }))
+                            }
+                            className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                          />
+                          <label htmlFor={`edit-sup-cf-${def.key}`} className="text-xs font-medium text-gray-700 cursor-pointer">
+                            {def.label} {def.required && <span className="text-red-500">*</span>}
+                          </label>
+                        </div>
+                      );
+                    }
+                    return (
+                      <div key={def.key}>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">
+                          {def.label} {def.required && <span className="text-red-500">*</span>}
+                        </label>
+                        <input
+                          type={def.type === "NUMBER" || def.type === "CURRENCY" ? "number" : "text"}
+                          value={val}
+                          onChange={(e) =>
+                            setEditCustomFields((prev) => ({
+                              ...prev,
+                              [def.key]: def.type === "NUMBER" || def.type === "CURRENCY" ? (e.target.value === "" ? "" : Number(e.target.value)) : e.target.value,
+                            }))
+                          }
+                          placeholder={def.description || `Enter ${def.label}...`}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button
