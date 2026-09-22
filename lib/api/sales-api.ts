@@ -55,6 +55,7 @@ export interface SalesOrderItem {
   cancelledReason?: string | null;
   createdAt: string;
   updatedAt: string;
+  customFields?: Record<string, any>;
 }
 
 export interface CreateOrderLineInput {
@@ -76,6 +77,7 @@ export interface CreateSalesOrderInput {
   locationId?: string | null;
   currency?: string;
   notes?: string | null;
+  customFields?: Record<string, any>;
 }
 
 export interface OrderFilterParams {

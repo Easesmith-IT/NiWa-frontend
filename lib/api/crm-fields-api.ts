@@ -6,7 +6,8 @@ export type CrmFieldRecordType =
   | "Lead"
   | "Deal"
   | "Product"
-  | "Supplier";
+  | "Supplier"
+  | "SalesOrder";
 
 export type CrmFieldType =
   | "TEXT"

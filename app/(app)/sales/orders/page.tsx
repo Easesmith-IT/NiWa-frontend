@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ShoppingBag,
@@ -22,12 +22,16 @@ import {
   Sparkles,
   Loader2,
   X,
+  Save,
+  Tag,
+  Sliders,
 } from "lucide-react";
 import Link from "next/link";
 import {
   getSalesOrders,
   getSalesOrder,
   createSalesOrder,
+  updateSalesOrder,
   confirmSalesOrder,
   fulfillSalesOrder,
   cancelSalesOrder,
@@ -39,6 +43,7 @@ import {
   OrderStatus,
   CreateOrderLineInput,
 } from "lib/api/sales-api";
+import { crmFieldsApi, CrmFieldDefinition } from "lib/api/crm-fields-api";
 import { productsApi, ProductItem } from "lib/api/products-api";
 import { getLocations, LocationItem } from "lib/api/inventory-api";
 import { apiClient } from "lib/api/api-client";
@@ -113,6 +118,12 @@ export default function SalesOrdersPage() {
     }>
   >([]);
 
+  // Operational / Custom fields state
+  const [orderCustomFields, setOrderCustomFields] = useState<Record<string, any>>({});
+  const [drawerCustomFields, setDrawerCustomFields] = useState<Record<string, any>>({});
+  const [isSavingCustomFields, setIsSavingCustomFields] = useState(false);
+  const [customFieldsSuccess, setCustomFieldsSuccess] = useState(false);
+
   // Queries
   const { data: ordersData, isLoading: isLoadingOrders } = useQuery({
     queryKey: [...queryKeys.salesOrders, { status: statusFilter, search, page }],
@@ -183,6 +194,19 @@ export default function SalesOrdersPage() {
     queryFn: getCurrencies,
   });
 
+  const { data: fieldDefsData } = useQuery({
+    queryKey: ["crm-fields", "SalesOrder"],
+    queryFn: () => crmFieldsApi.getFieldDefinitions("SalesOrder"),
+  });
+  const salesOrderFieldDefs: CrmFieldDefinition[] = (fieldDefsData?.data || []).filter((d) => d.active !== false);
+
+  useEffect(() => {
+    if (activeOrder) {
+      setDrawerCustomFields(activeOrder.customFields || {});
+      setCustomFieldsSuccess(false);
+    }
+  }, [activeOrder]);
+
   const contactList: ContactRecord[] = (contactsData as any)?.data || [];
 
   // Mutations
@@ -250,6 +274,7 @@ export default function SalesOrdersPage() {
     setOrderCurrency(invoiceSettings?.defaultCurrency || "INR");
     setOrderLines([]);
     setOrderNotes("");
+    setOrderCustomFields({});
     setActionError(null);
   }
 
@@ -395,8 +420,29 @@ export default function SalesOrdersPage() {
       currency: orderCurrency,
       notes: orderNotes || null,
       lines: payloadLines,
+      customFields: Object.keys(orderCustomFields).length > 0 ? orderCustomFields : undefined,
     });
   }
+
+  const handleSaveCustomFields = async () => {
+    if (!activeOrder) return;
+    setIsSavingCustomFields(true);
+    setActionError(null);
+    setCustomFieldsSuccess(false);
+    try {
+      await updateSalesOrder(activeOrder.orderId, {
+        customFields: drawerCustomFields,
+      });
+      queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders });
+      queryClient.invalidateQueries({ queryKey: queryKeys.salesOrder(activeOrder.orderId) });
+      setCustomFieldsSuccess(true);
+      setTimeout(() => setCustomFieldsSuccess(false), 3000);
+    } catch (err: any) {
+      setActionError(err.response?.data?.message || err.message || "Failed to update custom fields");
+    } finally {
+      setIsSavingCustomFields(false);
+    }
+  };
 
   function handleOpenConfirmDialog(order: SalesOrderItem) {
     setConfirmOrderTarget(order);
@@ -455,6 +501,33 @@ export default function SalesOrdersPage() {
     }
   }
 
+  function getFulfilmentBadge(status: OrderStatus) {
+    switch (status) {
+      case "CONFIRMED":
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/40">
+            <Clock className="w-3 h-3 mr-1 text-amber-600 dark:text-amber-400" />
+            Not fulfilled
+          </span>
+        );
+      case "FULFILLED":
+        return (
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-50 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/40">
+            <Truck className="w-3 h-3 mr-1 text-emerald-600 dark:text-emerald-400" />
+            Fulfilled
+          </span>
+        );
+      case "DRAFT":
+      case "CANCELLED":
+      default:
+        return (
+          <span className="text-xs text-slate-400 dark:text-slate-500">
+            Not applicable
+          </span>
+        );
+    }
+  }
+
   const orders = ordersData?.data || [];
   const pagination = ordersData?.pagination;
 
@@ -501,20 +574,26 @@ export default function SalesOrdersPage() {
 
         {/* Status Filter Tabs */}
         <div className="flex items-center space-x-1 bg-slate-100 dark:bg-slate-800 p-1 rounded-lg text-xs font-medium">
-          {["ALL", "DRAFT", "CONFIRMED", "FULFILLED", "CANCELLED"].map((st) => (
+          {[
+            { id: "ALL", label: "All" },
+            { id: "CONFIRMED", label: "Pending fulfilment" },
+            { id: "FULFILLED", label: "Fulfilled" },
+            { id: "DRAFT", label: "Draft" },
+            { id: "CANCELLED", label: "Cancelled" },
+          ].map((tab) => (
             <button
-              key={st}
+              key={tab.id}
               onClick={() => {
-                setStatusFilter(st);
+                setStatusFilter(tab.id);
                 setPage(1);
               }}
               className={`px-3 py-1.5 rounded-md transition-all ${
-                statusFilter === st
+                statusFilter === tab.id
                   ? "bg-white dark:bg-slate-900 text-slate-900 dark:text-white shadow-sm font-semibold"
                   : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
               }`}
             >
-              {st}
+              {tab.label}
             </button>
           ))}
         </div>
@@ -544,6 +623,7 @@ export default function SalesOrdersPage() {
                   <th className="py-3.5 px-4">Lines</th>
                   <th className="py-3.5 px-4">Total</th>
                   <th className="py-3.5 px-4">Status</th>
+                  <th className="py-3.5 px-4">Fulfilment</th>
                   <th className="py-3.5 px-4">Date</th>
                   <th className="py-3.5 px-4 text-right">Actions</th>
                 </tr>
@@ -580,6 +660,7 @@ export default function SalesOrdersPage() {
                       {formatCurrency(order.grandTotal, order.currency)}
                     </td>
                     <td className="py-3.5 px-4">{getStatusBadge(order.status)}</td>
+                    <td className="py-3.5 px-4">{getFulfilmentBadge(order.status)}</td>
                     <td className="py-3.5 px-4 text-xs text-slate-400">
                       {new Date(order.createdAt).toLocaleDateString()}
                     </td>
@@ -1008,6 +1089,103 @@ export default function SalesOrdersPage() {
                 />
               </div>
 
+              {/* 5. Custom Operational Fields */}
+              {salesOrderFieldDefs.length > 0 && (
+                <div className="space-y-3 pt-3 border-t border-slate-200 dark:border-slate-800">
+                  <label className="block text-xs font-semibold uppercase tracking-wider text-slate-600 dark:text-slate-400">
+                    5. Operational & Shipping Custom Fields
+                  </label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    {salesOrderFieldDefs.map((def) => {
+                      const val = orderCustomFields[def.key] ?? "";
+
+                      if (def.type === "BOOLEAN") {
+                        return (
+                          <div key={def.key} className="flex items-center gap-2 pt-2 sm:col-span-2">
+                            <input
+                              type="checkbox"
+                              id={`create-field-${def.key}`}
+                              checked={!!orderCustomFields[def.key]}
+                              onChange={(e) =>
+                                setOrderCustomFields((prev) => ({
+                                  ...prev,
+                                  [def.key]: e.target.checked,
+                                }))
+                              }
+                              className="w-4 h-4 rounded text-primary focus:ring-primary border-slate-300"
+                            />
+                            <label
+                              htmlFor={`create-field-${def.key}`}
+                              className="text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer"
+                            >
+                              {def.label} {def.required && <span className="text-rose-500">*</span>}
+                            </label>
+                          </div>
+                        );
+                      }
+
+                      if (def.type === "OPTION" && def.options && def.options.length > 0) {
+                        return (
+                          <div key={def.key}>
+                            <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                              {def.label} {def.required && <span className="text-rose-500">*</span>}
+                            </label>
+                            <select
+                              value={val}
+                              onChange={(e) =>
+                                setOrderCustomFields((prev) => ({
+                                  ...prev,
+                                  [def.key]: e.target.value,
+                                }))
+                              }
+                              className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+                            >
+                              <option value="">Select {def.label}...</option>
+                              {def.options.map((opt) => (
+                                <option key={opt.value} value={opt.value}>
+                                  {opt.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                        );
+                      }
+
+                      return (
+                        <div key={def.key}>
+                          <label className="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1">
+                            {def.label} {def.required && <span className="text-rose-500">*</span>}
+                          </label>
+                          <input
+                            type={
+                              def.type === "NUMBER" || def.type === "CURRENCY"
+                                ? "number"
+                                : def.type === "DATE"
+                                ? "date"
+                                : def.type === "DATE_TIME"
+                                ? "datetime-local"
+                                : "text"
+                            }
+                            value={val}
+                            placeholder={def.description || `Enter ${def.label}...`}
+                            onChange={(e) =>
+                              setOrderCustomFields((prev) => ({
+                                ...prev,
+                                [def.key]:
+                                  def.type === "NUMBER" || def.type === "CURRENCY"
+                                    ? e.target.value === "" ? "" : Number(e.target.value)
+                                    : e.target.value,
+                              }))
+                            }
+                            className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
               {/* Modal Actions */}
               <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3">
                 <button
@@ -1207,6 +1385,177 @@ export default function SalesOrdersPage() {
                       <span>Grand Total</span>
                       <span className="font-mono text-primary">{formatCurrency(activeOrder.grandTotal, activeOrder.currency)}</span>
                     </div>
+                  </div>
+
+                  {/* Fulfilment Status Card */}
+                  <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl space-y-3 border border-slate-200 dark:border-slate-800">
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <Truck className="w-3.5 h-3.5 text-slate-500" />
+                        Fulfilment Status
+                      </div>
+                      <div>{getFulfilmentBadge(activeOrder.status)}</div>
+                    </div>
+                    {activeOrder.fulfilledAt ? (
+                      <div className="text-xs text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5 bg-emerald-50/50 dark:bg-emerald-950/30 p-2.5 rounded-lg border border-emerald-100 dark:border-emerald-900/40">
+                        <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
+                        <span>Fulfilled on {new Date(activeOrder.fulfilledAt).toLocaleString()}</span>
+                      </div>
+                    ) : activeOrder.status === "CONFIRMED" ? (
+                      <div className="text-xs text-amber-800 dark:text-amber-300 flex items-center justify-between bg-amber-50/60 dark:bg-amber-950/30 p-2.5 rounded-lg border border-amber-200/60 dark:border-amber-900/40">
+                        <div className="flex items-center gap-1.5">
+                          <Clock className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                          <span>Ready for fulfilment (Stock deducted upon confirmation).</span>
+                        </div>
+                        <button
+                          onClick={() => fulfillOrderMutation.mutate(activeOrder.orderId)}
+                          disabled={fulfillOrderMutation.isPending}
+                          className="px-2.5 py-1 text-xs font-semibold rounded-md bg-emerald-600 text-white hover:bg-emerald-700 transition-colors shadow-xs ml-2 shrink-0"
+                        >
+                          {fulfillOrderMutation.isPending ? "Fulfilling..." : "Mark Fulfilled"}
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="text-xs text-slate-500 dark:text-slate-400">
+                        {activeOrder.status === "DRAFT"
+                          ? "Order is currently in DRAFT status. Fulfilment is unlocked once order is confirmed."
+                          : "Order is CANCELLED."}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Operational & Shipping Metadata (Field Engine Custom Fields) */}
+                  <div className="p-4 bg-slate-50 dark:bg-slate-800/40 rounded-xl space-y-3 border border-slate-200 dark:border-slate-800">
+                    <div className="flex items-center justify-between">
+                      <div className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                        <Tag className="w-3.5 h-3.5 text-slate-500" />
+                        Operational & Shipping Fields
+                      </div>
+                      {salesOrderFieldDefs.length > 0 && activeOrder.status !== "CANCELLED" && (
+                        <button
+                          type="button"
+                          onClick={handleSaveCustomFields}
+                          disabled={isSavingCustomFields}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium text-white bg-primary hover:bg-primary/90 rounded-md transition-colors shadow-xs"
+                        >
+                          {isSavingCustomFields ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <Save className="w-3 h-3" />
+                          )}
+                          Save Fields
+                        </button>
+                      )}
+                    </div>
+
+                    {customFieldsSuccess && (
+                      <div className="p-2 bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-900 rounded-lg text-xs text-emerald-700 dark:text-emerald-300 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                        <span>Custom operational fields updated successfully!</span>
+                      </div>
+                    )}
+
+                    {salesOrderFieldDefs.length === 0 ? (
+                      <div className="text-xs text-slate-500 py-1">
+                        No custom fields configured for Sales Orders yet. You can configure fields like Tracking Number, Courier, Shipping Status, or Dispatch Date in{" "}
+                        <Link href="/settings" className="text-primary underline font-medium">
+                          Settings &gt; Custom Fields
+                        </Link>.
+                      </div>
+                    ) : (
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                        {salesOrderFieldDefs.map((def) => {
+                          const val = drawerCustomFields[def.key] ?? "";
+                          const isLocked = activeOrder.status === "CANCELLED";
+
+                          if (def.type === "BOOLEAN") {
+                            return (
+                              <div key={def.key} className="flex items-center gap-2 pt-2 sm:col-span-2">
+                                <input
+                                  type="checkbox"
+                                  id={`drawer-field-${def.key}`}
+                                  disabled={isLocked}
+                                  checked={!!drawerCustomFields[def.key]}
+                                  onChange={(e) =>
+                                    setDrawerCustomFields((prev) => ({
+                                      ...prev,
+                                      [def.key]: e.target.checked,
+                                    }))
+                                  }
+                                  className="w-4 h-4 rounded text-primary focus:ring-primary border-slate-300 disabled:opacity-50"
+                                />
+                                <label
+                                  htmlFor={`drawer-field-${def.key}`}
+                                  className="text-xs font-medium text-slate-700 dark:text-slate-300 cursor-pointer"
+                                >
+                                  {def.label} {def.required && <span className="text-rose-500">*</span>}
+                                </label>
+                              </div>
+                            );
+                          }
+
+                          if (def.type === "OPTION" && def.options && def.options.length > 0) {
+                            return (
+                              <div key={def.key}>
+                                <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                  {def.label} {def.required && <span className="text-rose-500">*</span>}
+                                </label>
+                                <select
+                                  disabled={isLocked}
+                                  value={val}
+                                  onChange={(e) =>
+                                    setDrawerCustomFields((prev) => ({
+                                      ...prev,
+                                      [def.key]: e.target.value,
+                                    }))
+                                  }
+                                  className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 disabled:opacity-50"
+                                >
+                                  <option value="">Select {def.label}...</option>
+                                  {def.options.map((opt) => (
+                                    <option key={opt.value} value={opt.value}>
+                                      {opt.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                            );
+                          }
+
+                          return (
+                            <div key={def.key}>
+                              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                                {def.label} {def.required && <span className="text-rose-500">*</span>}
+                              </label>
+                              <input
+                                type={
+                                  def.type === "NUMBER" || def.type === "CURRENCY"
+                                    ? "number"
+                                    : def.type === "DATE"
+                                    ? "date"
+                                    : def.type === "DATE_TIME"
+                                    ? "datetime-local"
+                                    : "text"
+                                }
+                                disabled={isLocked}
+                                value={val}
+                                placeholder={def.description || `Enter ${def.label}...`}
+                                onChange={(e) =>
+                                  setDrawerCustomFields((prev) => ({
+                                    ...prev,
+                                    [def.key]:
+                                      def.type === "NUMBER" || def.type === "CURRENCY"
+                                        ? e.target.value === "" ? "" : Number(e.target.value)
+                                        : e.target.value,
+                                  }))
+                                }
+                                className="w-full px-2.5 py-1.5 text-xs rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 disabled:opacity-50"
+                              />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
 
                   {/* Order Metadata */}

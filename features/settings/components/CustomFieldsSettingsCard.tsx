@@ -29,6 +29,7 @@ const ENTITY_OPTIONS: Array<{ value: CrmFieldRecordType; label: string; descript
   { value: "Company", label: "Companies", description: "B2B organizations and client accounts" },
   { value: "Lead", label: "Leads", description: "Inbound and sales prospect records" },
   { value: "Deal", label: "Deals / Opportunities", description: "Commercial sales pipeline items" },
+  { value: "SalesOrder", label: "Sales Orders", description: "Fulfilment, shipping details, and operational order metadata" },
 ];
 
 const FIELD_TYPE_OPTIONS: Array<{ value: CrmFieldType; label: string }> = [
