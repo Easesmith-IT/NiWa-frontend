@@ -24,6 +24,7 @@ import {
   Scale,
 } from "lucide-react";
 import { productsApi, SupplierItem, UnitItem, BrandItem, CategoryItem } from "lib/api/products-api";
+import { crmFieldsApi, CrmFieldDefinition } from "lib/api/crm-fields-api";
 import {
   getInventoryLevels,
   getLocations,
@@ -51,6 +52,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const [brandId, setBrandId] = useState("");
   const [categoryId, setCategoryId] = useState("");
   const [defaultUnitId, setDefaultUnitId] = useState("");
+  const [customFields, setCustomFields] = useState<Record<string, any>>({});
   const [errorMsg, setErrorMsg] = useState("");
 
   // Variant Modal State
@@ -114,6 +116,11 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
     queryFn: () => getLocations({ status: "ACTIVE", limit: 100 }),
   });
 
+  const { data: fieldDefsData } = useQuery({
+    queryKey: ["crm-field-definitions", "Product"],
+    queryFn: () => crmFieldsApi.getFieldDefinitions("Product"),
+  });
+
   const product = productData?.data;
   const brands: BrandItem[] = brandsData?.data || [];
   const categories: CategoryItem[] = categoriesData?.data || [];
@@ -121,6 +128,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
   const suppliers: SupplierItem[] = suppliersData?.data || [];
   const inventoryLevels: InventoryLevelItem[] = inventoryData?.data || [];
   const locations: LocationItem[] = locationsData?.data || [];
+  const fieldDefinitions: CrmFieldDefinition[] = fieldDefsData?.data || [];
 
   // Contextual Stock Action Modal State
   const [isStockModalOpen, setIsStockModalOpen] = useState(false);
@@ -393,6 +401,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       setBrandId(product.brandId?._id || product.brandId || "");
       setCategoryId(product.categoryId?._id || product.categoryId || "");
       setDefaultUnitId(product.defaultUnitId?._id || product.defaultUnitId || "");
+      setCustomFields(product.customFields ? { ...product.customFields } : {});
       setIsEditing(true);
     }
   };
@@ -407,6 +416,7 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
       brandId: brandId || null,
       categoryId: categoryId || null,
       defaultUnitId: defaultUnitId || null,
+      customFields: Object.keys(customFields).length > 0 ? customFields : undefined,
     });
   };
 
@@ -702,6 +712,127 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
               />
             </div>
+
+            {/* Dynamic CRM Custom Fields in Edit Form */}
+            {fieldDefinitions.length > 0 && (
+              <div className="md:col-span-2 pt-3 border-t border-gray-100">
+                <h3 className="text-xs font-semibold text-gray-800 uppercase tracking-wider mb-3">
+                  Custom Fields
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {fieldDefinitions.map((def) => {
+                    const val = customFields[def.key] ?? "";
+
+                    if (def.type === "BOOLEAN") {
+                      return (
+                        <div key={def.key} className="flex items-center gap-2 pt-2">
+                          <input
+                            type="checkbox"
+                            id={`edit-custom-field-${def.key}`}
+                            checked={!!customFields[def.key]}
+                            onChange={(e) =>
+                              setCustomFields((prev) => ({
+                                ...prev,
+                                [def.key]: e.target.checked,
+                              }))
+                            }
+                            className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                          />
+                          <label
+                            htmlFor={`edit-custom-field-${def.key}`}
+                            className="text-xs font-medium text-gray-700 cursor-pointer"
+                          >
+                            {def.label} {def.required && <span className="text-red-500">*</span>}
+                          </label>
+                        </div>
+                      );
+                    }
+
+                    if (def.type === "LONG_TEXT") {
+                      return (
+                        <div key={def.key} className="md:col-span-2">
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">
+                            {def.label} {def.required && <span className="text-red-500">*</span>}
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={val}
+                            onChange={(e) =>
+                              setCustomFields((prev) => ({
+                                ...prev,
+                                [def.key]: e.target.value,
+                              }))
+                            }
+                            placeholder={def.description || `Enter ${def.label}...`}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                          />
+                        </div>
+                      );
+                    }
+
+                    if (def.type === "OPTION" && def.options && def.options.length > 0) {
+                      return (
+                        <div key={def.key}>
+                          <label className="block text-xs font-semibold text-gray-700 mb-1">
+                            {def.label} {def.required && <span className="text-red-500">*</span>}
+                          </label>
+                          <select
+                            value={val}
+                            onChange={(e) =>
+                              setCustomFields((prev) => ({
+                                ...prev,
+                                [def.key]: e.target.value,
+                              }))
+                            }
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                          >
+                            <option value="">Select {def.label}...</option>
+                            {def.options.map((opt) => (
+                              <option key={opt.value} value={opt.value}>
+                                {opt.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div key={def.key}>
+                        <label className="block text-xs font-semibold text-gray-700 mb-1">
+                          {def.label} {def.required && <span className="text-red-500">*</span>}
+                        </label>
+                        <input
+                          type={
+                            def.type === "NUMBER" || def.type === "CURRENCY"
+                              ? "number"
+                              : def.type === "DATE"
+                              ? "date"
+                              : def.type === "DATE_TIME"
+                              ? "datetime-local"
+                              : "text"
+                          }
+                          value={val}
+                          onChange={(e) =>
+                            setCustomFields((prev) => ({
+                              ...prev,
+                              [def.key]:
+                                def.type === "NUMBER" || def.type === "CURRENCY"
+                                  ? e.target.value === ""
+                                    ? ""
+                                    : Number(e.target.value)
+                                  : e.target.value,
+                            }))
+                          }
+                          placeholder={def.description || `Enter ${def.label}...`}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end gap-2 pt-3 border-t border-gray-100">
@@ -755,6 +886,36 @@ export default function ProductDetailPage({ params }: { params: Promise<{ id: st
                 <div className="pt-3 border-t border-gray-100">
                   <span className="block text-xs text-gray-500 mb-1">Description</span>
                   <p className="text-sm text-gray-700 whitespace-pre-wrap">{product.description}</p>
+                </div>
+              )}
+
+              {/* Custom Fields in Product Details View */}
+              {product.customFields && Object.keys(product.customFields).length > 0 && (
+                <div className="pt-3 border-t border-gray-100">
+                  <span className="block text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">
+                    Custom Fields
+                  </span>
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    {Object.entries(product.customFields).map(([k, v]) => {
+                      const def = fieldDefinitions.find((d) => d.key === k);
+                      const displayLabel = def?.label || k;
+                      const displayValue =
+                        typeof v === "boolean"
+                          ? v
+                            ? "Yes"
+                            : "No"
+                          : def?.options?.find((o) => o.value === v)?.label || String(v ?? "");
+
+                      return (
+                        <div key={k} className="bg-gray-50 p-2.5 rounded-lg border border-gray-100">
+                          <span className="block text-[11px] text-gray-500">{displayLabel}</span>
+                          <span className="font-semibold text-gray-800 text-xs truncate block mt-0.5">
+                            {displayValue}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>

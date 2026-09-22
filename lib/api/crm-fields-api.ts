@@ -38,13 +38,25 @@ export interface CrmFieldDefinition {
   description?: string;
   defaultValue?: any;
   position: number;
-  options?: Array<{ id: string; label: string; value: string; color?: string }>;
+  options?: Array<{ _id?: string; id?: string; label: string; value: string; position?: number; active?: boolean; color?: string }>;
   relationshipConfig?: {
     targetEntityTypes: string[];
     allowMultiple: boolean;
   };
   createdAt: string;
   updatedAt: string;
+}
+
+export interface CrmFieldOption {
+  _id: string;
+  fieldDefinitionId: string;
+  workspaceId: string;
+  value: string;
+  label: string;
+  position?: number;
+  active?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export const crmFieldsApi = {
@@ -54,7 +66,7 @@ export const crmFieldsApi = {
   ): Promise<{ data: CrmFieldDefinition[] }> => {
     const params: Record<string, any> = {};
     if (recordType) params.recordType = recordType;
-    if (includeInactive) params.includeInactive = "true";
+    if (!includeInactive) params.includeInactive = "true";
     const res = await apiClient.get("/api/crm/fields/definitions", { params });
     return res.data;
   },
@@ -84,6 +96,32 @@ export const crmFieldsApi = {
 
   deleteFieldDefinition: async (id: string): Promise<{ message: string }> => {
     const res = await apiClient.delete(`/api/crm/fields/definitions/${id}`);
+    return res.data;
+  },
+
+  getFieldOptions: async (
+    fieldDefinitionId: string,
+    includeInactive: boolean = false
+  ): Promise<{ data: CrmFieldOption[] }> => {
+    const res = await apiClient.get(`/api/crm/fields/definitions/${fieldDefinitionId}/options`, {
+      params: includeInactive ? { includeInactive: "true" } : {},
+    });
+    return res.data;
+  },
+
+  createFieldOption: async (
+    fieldDefinitionId: string,
+    data: { value: string; label: string; position?: number; active?: boolean }
+  ): Promise<{ message: string; data: CrmFieldOption }> => {
+    const res = await apiClient.post(`/api/crm/fields/definitions/${fieldDefinitionId}/options`, data);
+    return res.data;
+  },
+
+  deleteFieldOption: async (
+    fieldDefinitionId: string,
+    optionId: string
+  ): Promise<{ message: string }> => {
+    const res = await apiClient.delete(`/api/crm/fields/definitions/${fieldDefinitionId}/options/${optionId}`);
     return res.data;
   },
 
