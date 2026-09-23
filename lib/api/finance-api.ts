@@ -312,7 +312,68 @@ export interface OverviewReconciliation {
   payables: ReconciliationResult;
 }
 
+export interface TaxConfiguration {
+  _id: string;
+  workspaceId: string;
+  taxCode: string;
+  taxType: "CGST" | "SGST" | "IGST" | "CESS";
+  rate: number;
+  inputAccountId?: { _id: string; code: string; name: string } | string | null;
+  outputAccountId?: { _id: string; code: string; name: string } | string | null;
+  description?: string | null;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateTaxConfigurationPayload {
+  taxCode: string;
+  taxType: "CGST" | "SGST" | "IGST" | "CESS";
+  rate: number;
+  inputAccountId?: string | null;
+  outputAccountId?: string | null;
+  description?: string | null;
+}
+
+export interface UpdateTaxConfigurationPayload {
+  rate?: number;
+  inputAccountId?: string | null;
+  outputAccountId?: string | null;
+  description?: string | null;
+}
+
 export const financeApi = {
+  // Tax Configurations
+  getTaxConfigurations: async (params?: { isActive?: boolean }): Promise<{ success: boolean; data: TaxConfiguration[] }> => {
+    const res = await apiClient.get("/finance/taxes", { params });
+    return res.data;
+  },
+
+  getTaxConfigurationById: async (id: string): Promise<{ success: boolean; data: TaxConfiguration }> => {
+    const res = await apiClient.get(`/finance/taxes/${id}`);
+    return res.data;
+  },
+
+  createTaxConfiguration: async (data: CreateTaxConfigurationPayload): Promise<{ success: boolean; data: TaxConfiguration }> => {
+    const res = await apiClient.post("/finance/taxes", data);
+    return res.data;
+  },
+
+  updateTaxConfiguration: async (id: string, data: UpdateTaxConfigurationPayload): Promise<{ success: boolean; data: TaxConfiguration }> => {
+    const res = await apiClient.put(`/finance/taxes/${id}`, data);
+    return res.data;
+  },
+
+  deactivateTaxConfiguration: async (id: string): Promise<{ success: boolean; data: TaxConfiguration }> => {
+    const res = await apiClient.patch(`/finance/taxes/${id}/deactivate`);
+    return res.data;
+  },
+
+  deleteTaxConfiguration: async (id: string): Promise<{ success: boolean; message: string }> => {
+    const res = await apiClient.delete(`/finance/taxes/${id}`);
+    return res.data;
+  },
+
   // Overview
   getOverview: async (): Promise<{ success: boolean; data: FinanceOverviewKpis }> => {
     const res = await apiClient.get("/finance/overview");

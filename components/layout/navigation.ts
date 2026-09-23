@@ -39,6 +39,7 @@ import {
   TrendingUp,
   Wallet,
   FileSpreadsheet,
+  Percent,
 } from "lucide-react";
 
 
@@ -249,6 +250,13 @@ export const navigationGroups: NavigationGroup[] = [
         icon: Scale,
         label: "Reconciliation",
         description: "AR, AP, and Bank statement reconciliation.",
+        moduleKey: "finance",
+      },
+      {
+        href: "/finance/taxes",
+        icon: Percent,
+        label: "Tax Codes",
+        description: "Tax rates, GST codes, and default account mappings.",
         moduleKey: "finance",
       },
       {
