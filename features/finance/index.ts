@@ -1,6 +1,7 @@
 export * from "./finance.types";
 export * from "./finance.api";
 export * from "./finance.queries";
+export * from "./finance.permissions";
 export * from "./hooks/use-finance-permissions";
 export * from "./components/TaxConfigurationModal";
 export * from "./components/TaxConfigurationView";
