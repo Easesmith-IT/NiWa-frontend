@@ -654,14 +654,14 @@ export function ReportsView() {
                 <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
                   <span className="text-xs font-medium text-slate-500">Output Tax Collected (Sales)</span>
                   <div className="mt-2 text-xl font-bold text-emerald-600">
-                    {formatCurrency(taxSummary.outputTaxTotal || 0, "INR")}
+                    {formatCurrency(taxSummary.outputTax?.total ?? taxSummary.outputTaxTotal ?? 0, taxSummary.currency)}
                   </div>
-                  <span className="text-xs text-slate-400">Output CGST + SGST</span>
+                  <span className="text-xs text-slate-400">Output CGST, SGST, IGST & CESS</span>
                 </div>
                 <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
                   <span className="text-xs font-medium text-slate-500">Input Tax Credit (Expenses/Bills)</span>
                   <div className="mt-2 text-xl font-bold text-blue-600">
-                    {formatCurrency(taxSummary.inputTaxTotal || 0, "INR")}
+                    {formatCurrency(taxSummary.inputTax?.total ?? taxSummary.inputTaxTotal ?? 0, taxSummary.currency)}
                   </div>
                   <span className="text-xs text-slate-400">Input tax eligible for set-off</span>
                 </div>
@@ -669,30 +669,110 @@ export function ReportsView() {
                   <span className="text-xs font-medium text-slate-500">Net Tax Payable / (Credit)</span>
                   <div className="mt-2 text-xl font-bold text-slate-900">
                     {formatCurrency(
-                      (taxSummary.outputTaxTotal || 0) - (taxSummary.inputTaxTotal || 0),
-                      "INR"
+                      taxSummary.netLiability ??
+                        ((taxSummary.outputTax?.total ?? taxSummary.outputTaxTotal ?? 0) -
+                          (taxSummary.inputTax?.total ?? taxSummary.inputTaxTotal ?? 0)),
+                      taxSummary.currency
                     )}
                   </div>
                   <span className="text-xs text-slate-400">Net remittance liability</span>
                 </div>
               </div>
 
-              {/* Tax Details */}
-              <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs p-4">
-                <h4 className="text-sm font-semibold text-slate-800 mb-3">GST Tax Accounts Ledger Balances</h4>
-                <div className="divide-y divide-slate-100 text-xs">
-                  {taxSummary.taxAccounts?.map((acc: any) => (
-                    <div key={acc.code} className="flex justify-between py-2">
-                      <span className="font-medium text-slate-800">
-                        {acc.code} - {acc.name}
-                      </span>
+              {/* Tax Details Breakdown */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                {/* Output Tax Breakdown */}
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs p-4">
+                  <h4 className="text-sm font-semibold text-slate-800 mb-3">Output Tax Breakdown (Liability)</h4>
+                  <div className="divide-y divide-slate-100 text-xs">
+                    <div className="flex justify-between py-2">
+                      <span className="font-medium text-slate-700">Output CGST</span>
                       <span className="font-mono font-semibold text-slate-900">
-                        {formatCurrency(acc.balance, "INR")}
+                        {formatCurrency(taxSummary.outputTax?.cgst || 0, taxSummary.currency)}
                       </span>
                     </div>
-                  ))}
+                    <div className="flex justify-between py-2">
+                      <span className="font-medium text-slate-700">Output SGST</span>
+                      <span className="font-mono font-semibold text-slate-900">
+                        {formatCurrency(taxSummary.outputTax?.sgst || 0, taxSummary.currency)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-2">
+                      <span className="font-medium text-slate-700">Output IGST</span>
+                      <span className="font-mono font-semibold text-slate-900">
+                        {formatCurrency(taxSummary.outputTax?.igst || 0, taxSummary.currency)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-2">
+                      <span className="font-medium text-slate-700">Output CESS</span>
+                      <span className="font-mono font-semibold text-slate-900">
+                        {formatCurrency(taxSummary.outputTax?.cess || 0, taxSummary.currency)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-2 font-bold bg-slate-50/80 px-2 rounded">
+                      <span className="text-slate-900">Total Output Tax</span>
+                      <span className="font-mono text-emerald-700">
+                        {formatCurrency(taxSummary.outputTax?.total || 0, taxSummary.currency)}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Input Tax Breakdown */}
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs p-4">
+                  <h4 className="text-sm font-semibold text-slate-800 mb-3">Input Tax Credit Breakdown (Asset)</h4>
+                  <div className="divide-y divide-slate-100 text-xs">
+                    <div className="flex justify-between py-2">
+                      <span className="font-medium text-slate-700">Input CGST</span>
+                      <span className="font-mono font-semibold text-slate-900">
+                        {formatCurrency(taxSummary.inputTax?.cgst || 0, taxSummary.currency)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-2">
+                      <span className="font-medium text-slate-700">Input SGST</span>
+                      <span className="font-mono font-semibold text-slate-900">
+                        {formatCurrency(taxSummary.inputTax?.sgst || 0, taxSummary.currency)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-2">
+                      <span className="font-medium text-slate-700">Input IGST</span>
+                      <span className="font-mono font-semibold text-slate-900">
+                        {formatCurrency(taxSummary.inputTax?.igst || 0, taxSummary.currency)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-2">
+                      <span className="font-medium text-slate-700">Input CESS</span>
+                      <span className="font-mono font-semibold text-slate-900">
+                        {formatCurrency(taxSummary.inputTax?.cess || 0, taxSummary.currency)}
+                      </span>
+                    </div>
+                    <div className="flex justify-between py-2 font-bold bg-slate-50/80 px-2 rounded">
+                      <span className="text-slate-900">Total Input Tax Credit</span>
+                      <span className="font-mono text-blue-700">
+                        {formatCurrency(taxSummary.inputTax?.total || 0, taxSummary.currency)}
+                      </span>
+                    </div>
+                  </div>
                 </div>
               </div>
+
+              {taxSummary.taxAccounts && taxSummary.taxAccounts.length > 0 && (
+                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs p-4">
+                  <h4 className="text-sm font-semibold text-slate-800 mb-3">GST Tax Accounts Ledger Balances</h4>
+                  <div className="divide-y divide-slate-100 text-xs">
+                    {taxSummary.taxAccounts.map((acc: any) => (
+                      <div key={acc.code} className="flex justify-between py-2">
+                        <span className="font-medium text-slate-800">
+                          {acc.code} - {acc.name}
+                        </span>
+                        <span className="font-mono font-semibold text-slate-900">
+                          {formatCurrency(acc.balance, taxSummary.currency)}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           ) : null}
         </div>

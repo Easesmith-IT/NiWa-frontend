@@ -155,10 +155,10 @@ export function FinanceOverview() {
             </div>
           </div>
           <div className="mt-3 text-2xl font-bold text-slate-900">
-            {formatCurrency(overview?.receivables.totalOutstanding || 0)}
+            {formatCurrency(overview?.receivables.totalOutstanding || 0, overview?.currency || "INR")}
           </div>
           <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
-            <span>Overdue: {formatCurrency(overview?.receivables.overdueAmount || 0)}</span>
+            <span>Overdue: {formatCurrency(overview?.receivables.overdueAmount || 0, overview?.currency || "INR")}</span>
             <Link href="/finance/receivables" className="font-medium text-blue-600 hover:underline">
               View AR
             </Link>
@@ -174,10 +174,10 @@ export function FinanceOverview() {
             </div>
           </div>
           <div className="mt-3 text-2xl font-bold text-slate-900">
-            {formatCurrency(overview?.payables.totalOutstanding || 0)}
+            {formatCurrency(overview?.payables.totalOutstanding || 0, overview?.currency || "INR")}
           </div>
           <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
-            <span>Overdue: {formatCurrency(overview?.payables.overdueAmount || 0)}</span>
+            <span>Overdue: {formatCurrency(overview?.payables.overdueAmount || 0, overview?.currency || "INR")}</span>
             <Link href="/finance/payables" className="font-medium text-purple-600 hover:underline">
               View AP
             </Link>
@@ -193,7 +193,7 @@ export function FinanceOverview() {
             </div>
           </div>
           <div className="mt-3 text-2xl font-bold text-slate-900">
-            {formatCurrency(overview?.cashAndBank.totalBalance || 0)}
+            {formatCurrency(overview?.cashAndBank.totalBalance || 0, overview?.currency || "INR")}
           </div>
           <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
             <span>{overview?.cashAndBank.accounts.length || 0} liquid accounts</span>
@@ -212,10 +212,10 @@ export function FinanceOverview() {
             </div>
           </div>
           <div className="mt-3 text-2xl font-bold text-slate-900">
-            {formatCurrency(overview?.monthToDate.netProfit || 0)}
+            {formatCurrency(overview?.monthToDate.netProfit || 0, overview?.currency || "INR")}
           </div>
           <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
-            <span>Rev: {formatCurrency(overview?.monthToDate.revenue || 0)}</span>
+            <span>Rev: {formatCurrency(overview?.monthToDate.revenue || 0, overview?.currency || "INR")}</span>
             <Link href="/finance/reports" className="font-medium text-amber-600 hover:underline">
               P&L
             </Link>
@@ -243,19 +243,55 @@ export function FinanceOverview() {
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-slate-900">Accounts Receivable (1030)</span>
-                  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${reconciliations?.receivables.status === "MATCHED" ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"}`}>
-                    {reconciliations?.receivables.status === "MATCHED" ? <CheckCircle2 className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
-                    {reconciliations?.receivables.status === "MATCHED" ? "Matched" : "Mismatch"}
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                      reconciliations?.receivables.status === "MATCHED"
+                        ? "bg-emerald-100 text-emerald-800"
+                        : reconciliations?.receivables.status === "WARNING"
+                        ? "bg-amber-100 text-amber-800"
+                        : "bg-red-100 text-red-800"
+                    }`}
+                  >
+                    {reconciliations?.receivables.status === "MATCHED" ? (
+                      <CheckCircle2 className="h-3 w-3" />
+                    ) : (
+                      <AlertCircle className="h-3 w-3" />
+                    )}
+                    {reconciliations?.receivables.status === "MATCHED"
+                      ? "Matched"
+                      : reconciliations?.receivables.status === "WARNING"
+                      ? "Minor Diff"
+                      : "Mismatch"}
                   </span>
                 </div>
                 <div className="text-xs text-slate-500">
-                  Ledger: {formatCurrency(reconciliations?.receivables.ledgerBalance || 0)} &bull; Invoices: {formatCurrency(reconciliations?.receivables.operationalBalance || 0)}
+                  Ledger:{" "}
+                  {formatCurrency(
+                    reconciliations?.receivables.accountingBalance ?? reconciliations?.receivables.ledgerBalance ?? 0,
+                    reconciliations?.currency || overview?.currency || "INR"
+                  )}{" "}
+                  &bull; Invoices:{" "}
+                  {formatCurrency(
+                    reconciliations?.receivables.operationalBalance || 0,
+                    reconciliations?.currency || overview?.currency || "INR"
+                  )}
                 </div>
               </div>
               <div className="text-right text-xs">
                 <div className="font-semibold text-slate-700">Diff</div>
-                <div className={reconciliations?.receivables.difference === 0 ? "text-slate-500" : "font-semibold text-red-600"}>
-                  {formatCurrency(reconciliations?.receivables.difference || 0)}
+                <div
+                  className={
+                    reconciliations?.receivables.difference === 0
+                      ? "text-slate-500"
+                      : reconciliations?.receivables.status === "WARNING"
+                      ? "font-semibold text-amber-600"
+                      : "font-semibold text-red-600"
+                  }
+                >
+                  {formatCurrency(
+                    reconciliations?.receivables.difference || 0,
+                    reconciliations?.currency || overview?.currency || "INR"
+                  )}
                 </div>
               </div>
             </div>
@@ -265,19 +301,55 @@ export function FinanceOverview() {
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-slate-900">Accounts Payable (2010)</span>
-                  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${reconciliations?.payables.status === "MATCHED" ? "bg-emerald-100 text-emerald-800" : "bg-red-100 text-red-800"}`}>
-                    {reconciliations?.payables.status === "MATCHED" ? <CheckCircle2 className="h-3 w-3" /> : <AlertCircle className="h-3 w-3" />}
-                    {reconciliations?.payables.status === "MATCHED" ? "Matched" : "Mismatch"}
+                  <span
+                    className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${
+                      reconciliations?.payables.status === "MATCHED"
+                        ? "bg-emerald-100 text-emerald-800"
+                        : reconciliations?.payables.status === "WARNING"
+                        ? "bg-amber-100 text-amber-800"
+                        : "bg-red-100 text-red-800"
+                    }`}
+                  >
+                    {reconciliations?.payables.status === "MATCHED" ? (
+                      <CheckCircle2 className="h-3 w-3" />
+                    ) : (
+                      <AlertCircle className="h-3 w-3" />
+                    )}
+                    {reconciliations?.payables.status === "MATCHED"
+                      ? "Matched"
+                      : reconciliations?.payables.status === "WARNING"
+                      ? "Minor Diff"
+                      : "Mismatch"}
                   </span>
                 </div>
                 <div className="text-xs text-slate-500">
-                  Ledger: {formatCurrency(reconciliations?.payables.ledgerBalance || 0)} &bull; Bills: {formatCurrency(reconciliations?.payables.operationalBalance || 0)}
+                  Ledger:{" "}
+                  {formatCurrency(
+                    reconciliations?.payables.accountingBalance ?? reconciliations?.payables.ledgerBalance ?? 0,
+                    reconciliations?.currency || overview?.currency || "INR"
+                  )}{" "}
+                  &bull; Bills:{" "}
+                  {formatCurrency(
+                    reconciliations?.payables.operationalBalance || 0,
+                    reconciliations?.currency || overview?.currency || "INR"
+                  )}
                 </div>
               </div>
               <div className="text-right text-xs">
                 <div className="font-semibold text-slate-700">Diff</div>
-                <div className={reconciliations?.payables.difference === 0 ? "text-slate-500" : "font-semibold text-red-600"}>
-                  {formatCurrency(reconciliations?.payables.difference || 0)}
+                <div
+                  className={
+                    reconciliations?.payables.difference === 0
+                      ? "text-slate-500"
+                      : reconciliations?.payables.status === "WARNING"
+                      ? "font-semibold text-amber-600"
+                      : "font-semibold text-red-600"
+                  }
+                >
+                  {formatCurrency(
+                    reconciliations?.payables.difference || 0,
+                    reconciliations?.currency || overview?.currency || "INR"
+                  )}
                 </div>
               </div>
             </div>

@@ -90,6 +90,8 @@ export function ReceivablesView() {
           className={`rounded-xl border p-4 shadow-xs ${
             reconciliation.status === "MATCHED"
               ? "border-emerald-200 bg-emerald-50/60 text-emerald-900"
+              : reconciliation.status === "WARNING"
+              ? "border-amber-200 bg-amber-50/60 text-amber-900"
               : "border-red-200 bg-red-50/60 text-red-900"
           }`}
         >
@@ -97,6 +99,8 @@ export function ReceivablesView() {
             <div className="flex items-center gap-3">
               {reconciliation.status === "MATCHED" ? (
                 <ShieldCheck className="h-6 w-6 text-emerald-600 shrink-0" />
+              ) : reconciliation.status === "WARNING" ? (
+                <AlertCircle className="h-6 w-6 text-amber-600 shrink-0" />
               ) : (
                 <AlertCircle className="h-6 w-6 text-red-600 shrink-0" />
               )}
@@ -104,6 +108,8 @@ export function ReceivablesView() {
                 <h4 className="text-sm font-bold">
                   {reconciliation.status === "MATCHED"
                     ? "Sub-ledger & General Ledger Reconciled"
+                    : reconciliation.status === "WARNING"
+                    ? "Sub-ledger & General Ledger: Minor Variance"
                     : "Ledger Discrepancy Detected"}
                 </h4>
                 <p className="text-xs opacity-90 mt-0.5">
@@ -116,19 +122,36 @@ export function ReceivablesView() {
               <div>
                 <span className="block text-slate-500">GL Account (1030):</span>
                 <span className="font-mono font-bold text-sm">
-                  {formatCurrency(reconciliation.ledgerBalance, "INR")}
+                  {formatCurrency(
+                    reconciliation.accountingBalance ?? reconciliation.ledgerBalance ?? 0,
+                    reconciliation.currency || aging?.currency || "INR"
+                  )}
                 </span>
               </div>
               <div>
                 <span className="block text-slate-500">Open Invoices:</span>
                 <span className="font-mono font-bold text-sm">
-                  {formatCurrency(reconciliation.operationalBalance, "INR")}
+                  {formatCurrency(
+                    reconciliation.operationalBalance ?? 0,
+                    reconciliation.currency || aging?.currency || "INR"
+                  )}
                 </span>
               </div>
               <div>
                 <span className="block text-slate-500">Variance:</span>
-                <span className={`font-mono font-bold text-sm ${reconciliation.difference === 0 ? "text-emerald-700" : "text-red-700"}`}>
-                  {formatCurrency(reconciliation.difference, "INR")}
+                <span
+                  className={`font-mono font-bold text-sm ${
+                    reconciliation.difference === 0
+                      ? "text-emerald-700"
+                      : reconciliation.status === "WARNING"
+                      ? "text-amber-700"
+                      : "text-red-700"
+                  }`}
+                >
+                  {formatCurrency(
+                    reconciliation.difference ?? 0,
+                    reconciliation.currency || aging?.currency || "INR"
+                  )}
                 </span>
               </div>
             </div>
@@ -143,7 +166,7 @@ export function ReceivablesView() {
           <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
             <span className="text-[11px] font-medium text-slate-500">Total Outstanding</span>
             <div className="mt-1.5 text-base font-bold text-slate-900">
-              {formatCurrency(aging?.totalOutstanding || 0, "INR")}
+              {formatCurrency(aging?.totalOutstanding || 0, aging?.currency || "INR")}
             </div>
           </div>
 
@@ -153,7 +176,7 @@ export function ReceivablesView() {
               <span>{aging?.buckets?.current?.count || 0}</span>
             </div>
             <div className="mt-1.5 text-base font-bold text-emerald-600">
-              {formatCurrency(aging?.buckets?.current?.amount || 0, "INR")}
+              {formatCurrency(aging?.buckets?.current?.amount || 0, aging?.currency || "INR")}
             </div>
             <span className="text-[10px] text-slate-400">Not yet due</span>
           </div>
@@ -164,7 +187,7 @@ export function ReceivablesView() {
               <span>{aging?.buckets?.days1To30?.count || 0}</span>
             </div>
             <div className="mt-1.5 text-base font-bold text-amber-600">
-              {formatCurrency(aging?.buckets?.days1To30?.amount || 0, "INR")}
+              {formatCurrency(aging?.buckets?.days1To30?.amount || 0, aging?.currency || "INR")}
             </div>
             <span className="text-[10px] text-slate-400">Past due</span>
           </div>
@@ -175,7 +198,7 @@ export function ReceivablesView() {
               <span>{aging?.buckets?.days31To60?.count || 0}</span>
             </div>
             <div className="mt-1.5 text-base font-bold text-orange-600">
-              {formatCurrency(aging?.buckets?.days31To60?.amount || 0, "INR")}
+              {formatCurrency(aging?.buckets?.days31To60?.amount || 0, aging?.currency || "INR")}
             </div>
             <span className="text-[10px] text-slate-400">Overdue</span>
           </div>
@@ -186,7 +209,7 @@ export function ReceivablesView() {
               <span>{aging?.buckets?.days61To90?.count || 0}</span>
             </div>
             <div className="mt-1.5 text-base font-bold text-rose-600">
-              {formatCurrency(aging?.buckets?.days61To90?.amount || 0, "INR")}
+              {formatCurrency(aging?.buckets?.days61To90?.amount || 0, aging?.currency || "INR")}
             </div>
             <span className="text-[10px] text-slate-400">Critical</span>
           </div>
@@ -197,7 +220,7 @@ export function ReceivablesView() {
               <span>{aging?.buckets?.days90Plus?.count || 0}</span>
             </div>
             <div className="mt-1.5 text-base font-bold text-purple-600">
-              {formatCurrency(aging?.buckets?.days90Plus?.amount || 0, "INR")}
+              {formatCurrency(aging?.buckets?.days90Plus?.amount || 0, aging?.currency || "INR")}
             </div>
             <span className="text-[10px] text-slate-400">Severely overdue</span>
           </div>

@@ -306,8 +306,8 @@ export function SettingsView() {
                     <thead className="bg-slate-50 text-slate-500">
                       <tr>
                         <th className="p-2.5">Account *</th>
-                        <th className="p-2.5 w-36 text-right">Debit Balance (INR)</th>
-                        <th className="p-2.5 w-36 text-right">Credit Balance (INR)</th>
+                        <th className="p-2.5 w-36 text-right">Debit Balance ({baseCurrency})</th>
+                        <th className="p-2.5 w-36 text-right">Credit Balance ({baseCurrency})</th>
                         <th className="p-2.5 w-10"></th>
                       </tr>
                     </thead>
@@ -364,8 +364,8 @@ export function SettingsView() {
                     <tfoot className="border-t border-slate-200 bg-slate-50/70 font-semibold text-slate-800">
                       <tr>
                         <td className="p-2.5 text-right">Totals:</td>
-                        <td className="p-2.5 text-right font-mono">{formatCurrency(totalObDebits, "INR")}</td>
-                        <td className="p-2.5 text-right font-mono">{formatCurrency(totalObCredits, "INR")}</td>
+                        <td className="p-2.5 text-right font-mono">{formatCurrency(totalObDebits, baseCurrency)}</td>
+                        <td className="p-2.5 text-right font-mono">{formatCurrency(totalObCredits, baseCurrency)}</td>
                         <td></td>
                       </tr>
                     </tfoot>
@@ -390,11 +390,11 @@ export function SettingsView() {
                         ? "Opening balances are in equilibrium (Debits = Credits)."
                         : `Opening balances out of balance! Difference: ${formatCurrency(
                             obDifference,
-                            "INR"
+                            baseCurrency
                           )}. Balance against Opening Equity (3030).`}
                     </span>
                   </div>
-                  <span className="font-mono font-bold">Diff: {formatCurrency(obDifference, "INR")}</span>
+                  <span className="font-mono font-bold">Diff: {formatCurrency(obDifference, baseCurrency)}</span>
                 </div>
 
                 {canManage && (

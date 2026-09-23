@@ -195,6 +195,25 @@ export interface FinanceSettings {
 }
 
 export interface FinanceOverviewKpis {
+  currency: string;
+  isActivated: boolean;
+  activationDate?: string | null;
+  lockedUntilDate?: string | null;
+  cashAndBank: {
+    cashBalance: number;
+    bankBalance: number;
+    totalBalance: number;
+    accounts: Array<{
+      _id: string;
+      code: string;
+      name: string;
+      type?: string;
+      subtype?: string;
+      currency?: string;
+      currentBalance?: number;
+      balance?: number;
+    }>;
+  };
   receivables: {
     totalOutstanding: number;
     overdueAmount: number;
@@ -205,18 +224,11 @@ export interface FinanceOverviewKpis {
     overdueAmount: number;
     openBillsCount: number;
   };
-  cashAndBank: {
-    totalBalance: number;
-    accounts: Array<{ _id: string; code: string; name: string; balance: number }>;
-  };
   monthToDate: {
     revenue: number;
     expenses: number;
     netProfit: number;
   };
-  isActivated: boolean;
-  activationDate?: string | null;
-  lockedUntilDate?: string | null;
 }
 
 export interface TrialBalanceRow {
@@ -303,10 +315,39 @@ export interface AgingReport {
 
 export interface ReconciliationResult {
   asOfDate: string;
-  ledgerBalance: number;
   operationalBalance: number;
+  accountingBalance: number;
   difference: number;
-  status: "MATCHED" | "MISMATCH";
+  status: "MATCHED" | "WARNING" | "MISMATCH";
+  checkedAt?: string;
+  currency?: string;
+  details?: any;
+  reason?: string;
+  ledgerBalance?: number;
+}
+
+export interface TaxSummaryReport {
+  startDate?: string | null;
+  endDate: string;
+  currency: string;
+  inputTax: {
+    cgst: number;
+    sgst: number;
+    igst: number;
+    cess: number;
+    total: number;
+  };
+  outputTax: {
+    cgst: number;
+    sgst: number;
+    igst: number;
+    cess: number;
+    total: number;
+  };
+  inputTaxTotal?: number;
+  outputTaxTotal?: number;
+  netLiability: number;
+  taxAccounts?: Array<{ code: string; name: string; balance: number }>;
 }
 
 export interface OverviewReconciliation {
@@ -567,7 +608,7 @@ export const financeApi = {
   },
 
   reconcileReceivables: async (asOfDate?: string): Promise<{ success: boolean; data: ReconciliationResult }> => {
-    const res = await apiClient.get("/finance/receivables/reconcile", { params: { asOfDate } });
+    const res = await apiClient.get("/finance/receivables/reconciliation", { params: { asOfDate } });
     return res.data;
   },
 
@@ -578,7 +619,7 @@ export const financeApi = {
   },
 
   reconcilePayables: async (asOfDate?: string): Promise<{ success: boolean; data: ReconciliationResult }> => {
-    const res = await apiClient.get("/finance/payables/reconcile", { params: { asOfDate } });
+    const res = await apiClient.get("/finance/payables/reconciliation", { params: { asOfDate } });
     return res.data;
   },
 
@@ -608,7 +649,7 @@ export const financeApi = {
     return res.data;
   },
 
-  getTaxSummary: async (params?: Record<string, any>): Promise<{ success: boolean; data: any }> => {
+  getTaxSummary: async (params?: Record<string, any>): Promise<{ success: boolean; data: TaxSummaryReport }> => {
     const res = await apiClient.get("/finance/reports/tax-summary", { params });
     return res.data;
   },
@@ -619,8 +660,20 @@ export const financeApi = {
     return res.data;
   },
 
-  reconcileBank: async (data: { bankAccountId: string; statementClosingDate: string; statementClosingBalance: number }): Promise<{ success: boolean; data: any }> => {
-    const res = await apiClient.post("/finance/reconciliation/bank", data);
+  reconcileBank: async (data: {
+    accountId?: string;
+    bankAccountId?: string;
+    asOfDate?: string;
+    statementClosingDate?: string;
+    statementBalance?: number;
+    statementClosingBalance?: number;
+  }): Promise<{ success: boolean; data: ReconciliationResult }> => {
+    const payload = {
+      accountId: data.accountId || data.bankAccountId,
+      asOfDate: data.asOfDate || data.statementClosingDate,
+      statementBalance: data.statementBalance ?? data.statementClosingBalance ?? 0,
+    };
+    const res = await apiClient.post("/finance/reconciliation/bank", payload);
     return res.data;
   },
 
@@ -631,7 +684,7 @@ export const financeApi = {
   },
 
   updateSettings: async (data: any): Promise<{ success: boolean; data: FinanceSettings }> => {
-    const res = await apiClient.put("/finance/settings", data);
+    const res = await apiClient.patch("/finance/settings", data);
     return res.data;
   },
 

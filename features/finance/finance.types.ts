@@ -21,4 +21,5 @@ export type {
   TaxConfiguration,
   CreateTaxConfigurationPayload,
   UpdateTaxConfigurationPayload,
+  TaxSummaryReport,
 } from "../../lib/api/finance-api";

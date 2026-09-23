@@ -45,7 +45,7 @@ export function ReconciliationView() {
   );
 
   const bankReconMutation = useMutation({
-    mutationFn: (payload: { bankAccountId: string; statementClosingDate: string; statementClosingBalance: number }) =>
+    mutationFn: (payload: { accountId: string; asOfDate: string; statementBalance: number }) =>
       financeApi.reconcileBank(payload),
     onSuccess: (res) => {
       setBankReconResult(res.data);
@@ -99,12 +99,18 @@ export function ReconciliationView() {
                 className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                   recon.receivables.status === "MATCHED"
                     ? "bg-emerald-50 text-emerald-700"
+                    : recon.receivables.status === "WARNING"
+                    ? "bg-amber-50 text-amber-700"
                     : "bg-red-50 text-red-700"
                 }`}
               >
                 {recon.receivables.status === "MATCHED" ? (
                   <>
                     <CheckCircle2 className="h-3.5 w-3.5" /> Reconciled
+                  </>
+                ) : recon.receivables.status === "WARNING" ? (
+                  <>
+                    <AlertCircle className="h-3.5 w-3.5" /> Minor Variance
                   </>
                 ) : (
                   <>
@@ -122,7 +128,7 @@ export function ReconciliationView() {
               <div className="flex justify-between">
                 <span className="text-slate-600">GL Account Balance (1030):</span>
                 <span className="font-mono font-bold text-slate-900">
-                  {formatCurrency(recon.receivables.ledgerBalance, recon.currency)}
+                  {formatCurrency(recon.receivables.accountingBalance ?? recon.receivables.ledgerBalance ?? 0, recon.currency)}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -135,7 +141,7 @@ export function ReconciliationView() {
                 <span className="text-slate-700">Variance:</span>
                 <span
                   className={`font-mono ${
-                    recon.receivables.difference === 0 ? "text-emerald-700" : "text-red-700"
+                    recon.receivables.difference === 0 ? "text-emerald-700" : recon.receivables.status === "WARNING" ? "text-amber-700" : "text-red-700"
                   }`}
                 >
                   {formatCurrency(recon.receivables.difference, recon.currency)}
@@ -155,12 +161,18 @@ export function ReconciliationView() {
                 className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
                   recon.payables.status === "MATCHED"
                     ? "bg-emerald-50 text-emerald-700"
+                    : recon.payables.status === "WARNING"
+                    ? "bg-amber-50 text-amber-700"
                     : "bg-red-50 text-red-700"
                 }`}
               >
                 {recon.payables.status === "MATCHED" ? (
                   <>
                     <CheckCircle2 className="h-3.5 w-3.5" /> Reconciled
+                  </>
+                ) : recon.payables.status === "WARNING" ? (
+                  <>
+                    <AlertCircle className="h-3.5 w-3.5" /> Minor Variance
                   </>
                 ) : (
                   <>
@@ -178,7 +190,7 @@ export function ReconciliationView() {
               <div className="flex justify-between">
                 <span className="text-slate-600">GL Account Balance (2010):</span>
                 <span className="font-mono font-bold text-slate-900">
-                  {formatCurrency(recon.payables.ledgerBalance, recon.currency)}
+                  {formatCurrency(recon.payables.accountingBalance ?? recon.payables.ledgerBalance ?? 0, recon.currency)}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -191,7 +203,7 @@ export function ReconciliationView() {
                 <span className="text-slate-700">Variance:</span>
                 <span
                   className={`font-mono ${
-                    recon.payables.difference === 0 ? "text-emerald-700" : "text-red-700"
+                    recon.payables.difference === 0 ? "text-emerald-700" : recon.payables.status === "WARNING" ? "text-amber-700" : "text-red-700"
                   }`}
                 >
                   {formatCurrency(recon.payables.difference, recon.currency)}
@@ -218,9 +230,9 @@ export function ReconciliationView() {
           onSubmit={(e) => {
             e.preventDefault();
             bankReconMutation.mutate({
-              bankAccountId: selectedBankAccountId,
-              statementClosingDate,
-              statementClosingBalance: Number(statementClosingBalance),
+              accountId: selectedBankAccountId,
+              asOfDate: statementClosingDate,
+              statementBalance: Number(statementClosingBalance),
             });
           }}
           className="space-y-4"
@@ -255,7 +267,9 @@ export function ReconciliationView() {
             </div>
 
             <div>
-              <label className="text-xs font-medium text-slate-700">Statement Closing Balance (INR) *</label>
+              <label className="text-xs font-medium text-slate-700">
+                Statement Closing Balance ({bankAccounts.find((a) => a._id === selectedBankAccountId)?.currency || recon?.currency || "INR"}) *
+              </label>
               <input
                 type="number"
                 step="0.01"
@@ -285,18 +299,24 @@ export function ReconciliationView() {
             className={`mt-4 rounded-xl border p-4 text-xs ${
               bankReconResult.status === "MATCHED"
                 ? "border-emerald-200 bg-emerald-50 text-emerald-900"
+                : bankReconResult.status === "WARNING"
+                ? "border-amber-200 bg-amber-50 text-amber-900"
                 : "border-red-200 bg-red-50 text-red-900"
             }`}
           >
             <div className="flex items-center gap-2 font-bold text-sm">
               {bankReconResult.status === "MATCHED" ? (
                 <ShieldCheck className="h-5 w-5 text-emerald-600" />
+              ) : bankReconResult.status === "WARNING" ? (
+                <AlertCircle className="h-5 w-5 text-amber-600" />
               ) : (
                 <AlertCircle className="h-5 w-5 text-red-600" />
               )}
               <span>
                 {bankReconResult.status === "MATCHED"
                   ? "Bank Statement Fully Reconciled with General Ledger"
+                  : bankReconResult.status === "WARNING"
+                  ? "Bank Reconciliation: Minor Immaterial Variance Detected"
                   : "Bank Reconciliation Variance Detected"}
               </span>
             </div>
@@ -305,23 +325,36 @@ export function ReconciliationView() {
               <div>
                 <span className="text-slate-500 block">General Ledger Balance:</span>
                 <span className="font-mono font-bold text-sm">
-                  {formatCurrency(bankReconResult.ledgerBalance, "INR")}
+                  {formatCurrency(
+                    bankReconResult.accountingBalance ?? bankReconResult.ledgerBalance ?? 0,
+                    bankReconResult.currency || bankAccounts.find((a) => a._id === selectedBankAccountId)?.currency || recon?.currency || "INR"
+                  )}
                 </span>
               </div>
               <div>
                 <span className="text-slate-500 block">Statement Closing Balance:</span>
                 <span className="font-mono font-bold text-sm">
-                  {formatCurrency(bankReconResult.statementClosingBalance, "INR")}
+                  {formatCurrency(
+                    bankReconResult.operationalBalance ?? bankReconResult.statementClosingBalance ?? 0,
+                    bankReconResult.currency || bankAccounts.find((a) => a._id === selectedBankAccountId)?.currency || recon?.currency || "INR"
+                  )}
                 </span>
               </div>
               <div>
                 <span className="text-slate-500 block">Discrepancy / Variance:</span>
                 <span
                   className={`font-mono font-bold text-sm ${
-                    bankReconResult.difference === 0 ? "text-emerald-700" : "text-red-700"
+                    bankReconResult.difference === 0
+                      ? "text-emerald-700"
+                      : bankReconResult.status === "WARNING"
+                      ? "text-amber-700"
+                      : "text-red-700"
                   }`}
                 >
-                  {formatCurrency(bankReconResult.difference, "INR")}
+                  {formatCurrency(
+                    bankReconResult.difference ?? 0,
+                    bankReconResult.currency || bankAccounts.find((a) => a._id === selectedBankAccountId)?.currency || recon?.currency || "INR"
+                  )}
                 </span>
               </div>
             </div>

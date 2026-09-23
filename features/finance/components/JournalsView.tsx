@@ -70,7 +70,13 @@ export function JournalsView() {
     queryFn: () => financeApi.getAccounts({ isActive: true }),
   });
 
+  const { data: settingsRes } = useQuery({
+    queryKey: ["finance", "settings"],
+    queryFn: () => financeApi.getSettings(),
+  });
+
   const accounts = accountsRes?.data || [];
+  const baseCurrency = settingsRes?.data?.baseCurrency || accounts[0]?.currency || "INR";
 
   // Mutations
   const createMutation = useMutation({
@@ -414,8 +420,8 @@ export function JournalsView() {
                       <tr>
                         <th className="p-2.5 w-1/3">Account *</th>
                         <th className="p-2.5">Line Description</th>
-                        <th className="p-2.5 w-28 text-right">Debit (INR)</th>
-                        <th className="p-2.5 w-28 text-right">Credit (INR)</th>
+                        <th className="p-2.5 w-28 text-right">Debit ({baseCurrency})</th>
+                        <th className="p-2.5 w-28 text-right">Credit ({baseCurrency})</th>
                         <th className="p-2.5 w-10"></th>
                       </tr>
                     </thead>
@@ -486,8 +492,8 @@ export function JournalsView() {
                         <td colSpan={2} className="p-2.5 text-right">
                           Totals & Balance:
                         </td>
-                        <td className="p-2.5 text-right font-mono">{formatCurrency(totalDebits, "INR")}</td>
-                        <td className="p-2.5 text-right font-mono">{formatCurrency(totalCredits, "INR")}</td>
+                        <td className="p-2.5 text-right font-mono">{formatCurrency(totalDebits, baseCurrency)}</td>
+                        <td className="p-2.5 text-right font-mono">{formatCurrency(totalCredits, baseCurrency)}</td>
                         <td></td>
                       </tr>
                     </tfoot>
@@ -511,11 +517,11 @@ export function JournalsView() {
                     <span>
                       {isBalanced
                         ? "Journal is perfectly balanced (Total Debits = Total Credits)."
-                        : `Journal is out of balance! Difference: ${formatCurrency(difference, "INR")}. Debits must equal Credits.`}
+                        : `Journal is out of balance! Difference: ${formatCurrency(difference, baseCurrency)}. Debits must equal Credits.`}
                     </span>
                   </div>
                   <span className="font-mono font-bold">
-                    Diff: {formatCurrency(difference, "INR")}
+                    Diff: {formatCurrency(difference, baseCurrency)}
                   </span>
                 </div>
               </div>
