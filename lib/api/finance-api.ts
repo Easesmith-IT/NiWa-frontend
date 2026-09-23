@@ -68,6 +68,8 @@ export interface Expense {
   amount: number;
   taxRatePercent: number;
   taxAmount: number;
+  taxConfigurationId?: string | null;
+  taxCode?: string | null;
   grandTotal: number;
   currency: string;
   expenseDate: string;
@@ -94,6 +96,8 @@ export interface SupplierBillLine {
   unitPrice: number;
   taxRatePercent?: number;
   taxAmount?: number;
+  taxConfigurationId?: string | null;
+  taxCode?: string | null;
   lineTotal: number;
 }
 
