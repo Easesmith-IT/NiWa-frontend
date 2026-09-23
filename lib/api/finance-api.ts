@@ -357,27 +357,27 @@ export const financeApi = {
 
   // Journals
   getJournals: async (params?: Record<string, any>): Promise<{ success: boolean; items: JournalEntry[]; total: number }> => {
-    const res = await apiClient.get("/finance/journals", { params });
+    const res = await apiClient.get("/finance/journal", { params });
     return res.data;
   },
 
   getJournalById: async (id: string): Promise<{ success: boolean; data: JournalEntry }> => {
-    const res = await apiClient.get(`/finance/journals/${id}`);
+    const res = await apiClient.get(`/finance/journal/${id}`);
     return res.data;
   },
 
   createJournal: async (data: any): Promise<{ success: boolean; data: JournalEntry }> => {
-    const res = await apiClient.post("/finance/journals", data);
+    const res = await apiClient.post("/finance/journal", data);
     return res.data;
   },
 
   postDraftJournal: async (id: string): Promise<{ success: boolean; data: JournalEntry }> => {
-    const res = await apiClient.post(`/finance/journals/${id}/post`);
+    const res = await apiClient.post(`/finance/journal/${id}/post`);
     return res.data;
   },
 
   reverseJournal: async (id: string, data: { reversalReason: string; accountingDate?: string }): Promise<{ success: boolean; data: JournalEntry }> => {
-    const res = await apiClient.post(`/finance/journals/${id}/reverse`, data);
+    const res = await apiClient.post(`/finance/journal/${id}/reverse`, data);
     return res.data;
   },
 
@@ -524,7 +524,7 @@ export const financeApi = {
   },
 
   getProfitAndLoss: async (params?: Record<string, any>): Promise<{ success: boolean; data: ProfitAndLossReport }> => {
-    const res = await apiClient.get("/finance/reports/profit-and-loss", { params });
+    const res = await apiClient.get("/finance/reports/profit-loss", { params });
     return res.data;
   },
 
@@ -539,7 +539,7 @@ export const financeApi = {
   },
 
   getGeneralLedger: async (accountId: string, params?: Record<string, any>): Promise<{ success: boolean; data: any }> => {
-    const res = await apiClient.get(`/finance/reports/general-ledger/${accountId}`, { params });
+    const res = await apiClient.get(`/finance/reports/ledger/${accountId}`, { params });
     return res.data;
   },
 
