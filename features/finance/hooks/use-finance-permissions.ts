@@ -19,15 +19,15 @@ export function useFinancePermissions() {
   const canManage = hasPermissionLevel(permissionLevel, "WRITE");
   const canPost = canManage;
   const canReconcile = canManage;
-  const canConfigure = role === "owner" || role === "admin";
 
-  // Granular capability flags
+  // Granular capability flags derived directly from backend authorization model
   const canReadOverview = hasFinancePermission(role, FINANCE_PERMISSIONS.OVERVIEW, "READ");
   const canManageAccounts = hasFinancePermission(role, FINANCE_PERMISSIONS.ACCOUNTS, "WRITE");
   const canManageExpenses = hasFinancePermission(role, FINANCE_PERMISSIONS.EXPENSES, "WRITE");
   const canPostJournal = hasFinancePermission(role, FINANCE_PERMISSIONS.JOURNAL_POST, "WRITE");
   const canManageReceivables = hasFinancePermission(role, FINANCE_PERMISSIONS.RECEIVABLES, "WRITE");
   const canManagePayables = hasFinancePermission(role, FINANCE_PERMISSIONS.PAYABLES, "WRITE");
+  const canConfigure = hasFinancePermission(role, FINANCE_PERMISSIONS.SETTINGS, "WRITE");
 
   const hasPermission = (
     permission: FinancePermissionKey | string,
