@@ -47,6 +47,9 @@ export interface ChatComposerProps {
   isScheduling: boolean;
   quickReplies: QuickReplyItem[];
   contactId?: string;
+  aiDraft?: { text: string; generatedAt?: string | Date; model?: string } | null;
+  onUseAiDraft?: (text: string) => void;
+  onDismissAiDraft?: () => void;
 }
 
 export function ChatComposer({
@@ -82,6 +85,9 @@ export function ChatComposer({
   isScheduling,
   quickReplies,
   contactId,
+  aiDraft,
+  onUseAiDraft,
+  onDismissAiDraft,
 }: ChatComposerProps) {
   const handleComposerKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
@@ -132,6 +138,42 @@ export function ChatComposer({
           <div className="mt-2 rounded-md bg-[#F4F4F5] px-2.5 py-1.5 text-xs text-[#52525B]">
             {quickReplyPreview || "Resolved quick reply preview appears here."}
           </div>
+        </div>
+      ) : null}
+
+      {aiDraft?.text ? (
+        <div className="mb-2.5 rounded-lg border border-purple-200 bg-purple-50/90 p-3 text-xs text-purple-950 dark:border-purple-900/60 dark:bg-purple-950/30 dark:text-purple-200 shadow-sm">
+          <div className="flex items-center justify-between gap-2 mb-1.5">
+            <span className="flex items-center gap-1.5 font-semibold text-purple-700 dark:text-purple-300">
+              <Sparkles className="h-3.5 w-3.5" />
+              Suggested AI Reply Draft
+            </span>
+            <div className="flex items-center gap-1.5">
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-6 px-2.5 text-[11px] border-purple-300 bg-white hover:bg-purple-100 text-purple-800 dark:bg-purple-900/40 dark:text-purple-200 font-medium"
+                onClick={() =>
+                  onUseAiDraft ? onUseAiDraft(aiDraft.text) : onComposerBodyChange(aiDraft.text)
+                }
+              >
+                Use Draft
+              </Button>
+              {onDismissAiDraft ? (
+                <button
+                  type="button"
+                  onClick={onDismissAiDraft}
+                  className="rounded p-1 text-purple-500 hover:text-purple-800 transition-colors"
+                  title="Dismiss AI Draft"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              ) : null}
+            </div>
+          </div>
+          <p className="line-clamp-3 text-purple-900/90 dark:text-purple-300/90 whitespace-pre-wrap font-normal">
+            {aiDraft.text}
+          </p>
         </div>
       ) : null}
 

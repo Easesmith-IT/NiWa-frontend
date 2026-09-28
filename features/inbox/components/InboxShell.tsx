@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { ChatComposer } from "./ChatComposer";
 import { ChatMessageList } from "./ChatMessageList";
 import { ImageLightboxModal } from "./ImageLightboxModal";
@@ -129,6 +129,13 @@ export const InboxShell: React.FC<InboxShellProps> = ({ orchestration }) => {
     handleScheduleMessage,
   } = composer;
 
+  const [dismissedDrafts, setDismissedDrafts] = useState<Record<string, boolean>>({});
+  const activeConvId = detail?.conversation?._id ? String(detail.conversation._id) : "";
+  const conversationAiDraft =
+    activeConvId && !dismissedDrafts[activeConvId]
+      ? (detail?.conversation as any)?.aiDraft
+      : null;
+
   const performThreadAction = (
     action: "archive" | "pin" | "read" | "star" | "unarchive" | "unpin" | "unstar",
   ) => {
@@ -203,6 +210,18 @@ export const InboxShell: React.FC<InboxShellProps> = ({ orchestration }) => {
               selectedQuickReply={selectedQuickReply}
               selectedQuickReplyId={selectedQuickReplyId}
               selectedQuickReplyVariables={selectedQuickReplyVariables}
+              aiDraft={conversationAiDraft}
+              onUseAiDraft={(text) => {
+                setComposerBody(text);
+                if (activeConvId) {
+                  setDismissedDrafts((prev: Record<string, boolean>) => ({ ...prev, [activeConvId]: true }));
+                }
+              }}
+              onDismissAiDraft={() => {
+                if (activeConvId) {
+                  setDismissedDrafts((prev: Record<string, boolean>) => ({ ...prev, [activeConvId]: true }));
+                }
+              }}
             />
           }
           detail={detail}

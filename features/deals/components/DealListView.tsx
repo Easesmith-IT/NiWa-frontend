@@ -5,7 +5,7 @@ import type { PipelineRecord, StageRecord } from "../../pipelines/pipeline.types
 import type { DealRecord } from "../deal.types";
 import type { CrmViewRecord } from "../../crm/views.types";
 import { useCrmViewFieldsQuery } from "../../crm/views.queries";
-import { resolveDealListColumns, resolveDealFieldValue } from "../deal.utils";
+import { resolveDealListColumns, resolveDealFieldValue, isDealOverdue, isDealStalled } from "../deal.utils";
 
 interface DealListViewProps {
   deals: DealRecord[];
@@ -70,7 +70,23 @@ export const DealListView: React.FC<DealListViewProps> = ({
 
     // Special handling for key domain fields first
     if (fieldKey === "title") {
-      return <span className="font-semibold text-slate-900">{String(value)}</span>;
+      const overdue = isDealOverdue(deal);
+      const stalled = isDealStalled(deal);
+      return (
+        <span className="flex items-center gap-1.5 flex-wrap">
+          <span className="font-semibold text-slate-900">{String(value)}</span>
+          {overdue && (
+            <span className="text-[9px] bg-red-100 text-red-700 px-1 py-0.5 rounded font-bold">
+              Overdue
+            </span>
+          )}
+          {stalled && (
+            <span className="text-[9px] bg-amber-100 text-amber-700 px-1 py-0.5 rounded font-bold">
+              Stalled
+            </span>
+          )}
+        </span>
+      );
     }
 
     if (fieldKey === "pipelineId") {

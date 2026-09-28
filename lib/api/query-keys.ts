@@ -31,6 +31,7 @@ export const queryKeys = {
   pipelines: ["pipelines"] as const,
   stages: ["stages"] as const,
   deals: ["deals"] as const,
+  leads: ["leads"] as const,
   views: ["views"] as const,
   products: ["products"] as const,
   product: (id: string) => ["products", id] as const,

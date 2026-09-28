@@ -1,11 +1,14 @@
 import React, { useState } from "react";
-import { DollarSign, Plus } from "lucide-react";
+import { DollarSign, Plus, UserCheck } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { PanelSection } from "./PanelSection";
 import { useDealsQuery } from "../../deals/deal.queries";
 import { isDealOverdue, isDealStalled } from "../../deals/deal.utils";
 import type { DealRecord } from "../../deals/deal.types";
 import { DealFormModal } from "../../deals/components/DealFormModal";
+import { useLeadsQuery } from "../../leads/lead.queries";
+import type { LeadRecord } from "../../leads/lead.types";
+import { LeadFormModal } from "../../leads/components/LeadFormModal";
 
 export interface ContactDealsSectionProps {
   personId?: string | null;
@@ -18,10 +21,24 @@ export function ContactDealsSection({
   companyId,
   contactDisplayName,
 }: ContactDealsSectionProps) {
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const { data: deals = [], isLoading } = useDealsQuery();
+  const [isCreateDealModalOpen, setIsCreateDealModalOpen] = useState(false);
+  const [isCreateLeadModalOpen, setIsCreateLeadModalOpen] = useState(false);
 
-  // Filter deals related to this contact's personId or companyId
+  // Scoped query passing personId and companyId
+  const { data: deals = [], isLoading: isLoadingDeals } = useDealsQuery(
+    personId || companyId
+      ? { personId: personId || undefined, companyId: companyId || undefined }
+      : undefined
+  );
+
+  const { data: leads = [], isLoading: isLoadingLeads } = useLeadsQuery(
+    personId || companyId
+      ? { personId: personId || undefined, companyId: companyId || undefined }
+      : undefined,
+    { enabled: Boolean(personId || companyId) }
+  );
+
+  // Filter deals related to this contact's personId or companyId as client fallback
   const relatedDeals = deals.filter((d: DealRecord) => {
     if (personId && (d.primaryPersonId === personId || d.participants?.some((p) => p.personId === personId))) {
       return true;
@@ -29,27 +46,41 @@ export function ContactDealsSection({
     if (companyId && d.companyId === companyId) {
       return true;
     }
-    return false;
+    return !personId && !companyId;
   });
 
+  const activeLeads = leads.filter((l: LeadRecord) => l.status !== "CONVERTED" && l.status !== "LOST");
+
   return (
-    <PanelSection title="Deals">
-      <div className="space-y-2">
+    <PanelSection title="Deals & Leads">
+      <div className="space-y-3">
+        {/* Deals Subsection Header */}
         <div className="flex items-center justify-between">
           <span className="text-[11px] text-muted-foreground font-medium">
-            {relatedDeals.length} active deal{relatedDeals.length === 1 ? "" : "s"}
+            {relatedDeals.length} deal{relatedDeals.length === 1 ? "" : "s"}
           </span>
-          <Button
-            size="sm"
-            variant="ghost"
-            onClick={() => setIsCreateModalOpen(true)}
-            className="h-6 px-1.5 text-xs text-primary hover:text-primary/80"
-          >
-            <Plus className="h-3 w-3 mr-1" /> New Deal
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setIsCreateLeadModalOpen(true)}
+              className="h-6 px-1.5 text-[11px] text-muted-foreground hover:text-foreground"
+            >
+              <Plus className="h-3 w-3 mr-0.5" /> Lead
+            </Button>
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={() => setIsCreateDealModalOpen(true)}
+              className="h-6 px-1.5 text-[11px] text-primary hover:text-primary/80"
+            >
+              <Plus className="h-3 w-3 mr-0.5" /> Deal
+            </Button>
+          </div>
         </div>
 
-        {isLoading ? (
+        {/* Deals Listing */}
+        {isLoadingDeals ? (
           <p className="text-xs text-muted-foreground italic">Loading deals...</p>
         ) : relatedDeals.length === 0 ? (
           <p className="text-xs text-muted-foreground italic">No deals linked</p>
@@ -71,10 +102,10 @@ export function ContactDealsSection({
                     <span
                       className={`text-[9px] font-bold px-1 py-0.5 rounded ${
                         deal.status === "WON"
-                          ? "bg-green-100 text-green-700"
+                          ? "bg-green-100 text-green-700 dark:bg-green-950/40 dark:text-green-400"
                           : deal.status === "LOST"
-                          ? "bg-red-100 text-red-700"
-                          : "bg-blue-100 text-blue-700"
+                          ? "bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400"
+                          : "bg-blue-100 text-blue-700 dark:bg-blue-950/40 dark:text-blue-400"
                       }`}
                     >
                       {deal.status}
@@ -82,18 +113,18 @@ export function ContactDealsSection({
                   </div>
 
                   <div className="flex items-center justify-between text-[11px] text-muted-foreground">
-                    <span className="font-medium text-blue-600 flex items-center">
+                    <span className="font-medium text-blue-600 dark:text-blue-400 flex items-center">
                       <DollarSign className="h-3 w-3 mr-0.5" />
                       {deal.value ? deal.value.toLocaleString() : "0"} {deal.currency || "USD"}
                     </span>
                     <div className="flex items-center space-x-1">
                       {overdue && (
-                        <span className="text-[9px] bg-red-100 text-red-700 px-1 rounded font-bold">
+                        <span className="text-[9px] bg-red-100 text-red-700 dark:bg-red-950/40 dark:text-red-400 px-1 rounded font-bold">
                           Overdue
                         </span>
                       )}
                       {stalled && (
-                        <span className="text-[9px] bg-amber-100 text-amber-700 px-1 rounded font-bold">
+                        <span className="text-[9px] bg-amber-100 text-amber-700 dark:bg-amber-950/40 dark:text-amber-400 px-1 rounded font-bold">
                           Stalled
                         </span>
                       )}
@@ -105,10 +136,54 @@ export function ContactDealsSection({
           </div>
         )}
 
-        {isCreateModalOpen && (
+        {/* Leads Subsection (if leads exist or loading) */}
+        {(isLoadingLeads || activeLeads.length > 0) && (
+          <div className="pt-1 border-t border-border/50 space-y-1.5">
+            <span className="text-[11px] text-muted-foreground font-medium flex items-center gap-1">
+              <UserCheck className="h-3 w-3" />
+              {activeLeads.length} active lead{activeLeads.length === 1 ? "" : "s"}
+            </span>
+            {activeLeads.map((lead) => (
+              <div
+                key={lead._id}
+                className="rounded-md border border-border/80 bg-card/60 p-2 text-xs space-y-1"
+              >
+                <div className="flex items-start justify-between">
+                  <span className="font-medium text-foreground truncate max-w-[170px]">
+                    {lead.title}
+                  </span>
+                  <span className="text-[9px] font-bold px-1 py-0.5 rounded bg-zinc-100 text-zinc-700 dark:bg-zinc-800 dark:text-zinc-300">
+                    {lead.status}
+                  </span>
+                </div>
+                {lead.value ? (
+                  <span className="text-[11px] text-muted-foreground">
+                    {lead.value.toLocaleString()} {lead.currency || "USD"}
+                  </span>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Modals */}
+        {isCreateDealModalOpen && (
           <DealFormModal
-            isOpen={isCreateModalOpen}
-            onClose={() => setIsCreateModalOpen(false)}
+            isOpen={isCreateDealModalOpen}
+            onClose={() => setIsCreateDealModalOpen(false)}
+            defaultPrimaryPersonId={personId}
+            defaultCompanyId={companyId}
+            defaultTitle={contactDisplayName ? `Deal - ${contactDisplayName}` : ""}
+          />
+        )}
+
+        {isCreateLeadModalOpen && (
+          <LeadFormModal
+            isOpen={isCreateLeadModalOpen}
+            onClose={() => setIsCreateLeadModalOpen(false)}
+            defaultPrimaryPersonId={personId}
+            defaultCompanyId={companyId}
+            defaultTitle={contactDisplayName ? `Lead - ${contactDisplayName}` : ""}
           />
         )}
       </div>

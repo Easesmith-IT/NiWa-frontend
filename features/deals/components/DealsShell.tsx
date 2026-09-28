@@ -13,8 +13,10 @@ import { SavedViewsManager } from "../../crm/components/SavedViewsManager";
 import type { CrmViewRecord } from "../../crm/views.types";
 import { useExecuteCrmViewQuery } from "../../crm/views.queries";
 import { CrmPageShell } from "../../crm/components/CrmPageShell";
+import { useDealsRealtime } from "../deal.realtime";
 
 export const DealsShell: React.FC = () => {
+  useDealsRealtime();
   const { data: pipelines = [], isLoading: isLoadingPipelines } = usePipelinesQuery();
   const [selectedPipelineId, setSelectedPipelineId] = useState<string>("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");

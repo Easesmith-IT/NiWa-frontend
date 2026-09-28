@@ -59,6 +59,7 @@ export interface UpdateDealPayload extends Partial<CreateDealPayload> {}
 export interface DealFilterInput {
   status?: DealStatus;
   companyId?: string;
+  personId?: string;
   isArchived?: boolean;
   search?: string;
 }

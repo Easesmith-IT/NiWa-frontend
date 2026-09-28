@@ -13,6 +13,9 @@ interface DealFormModalProps {
   deal?: DealRecord | null;
   defaultPipelineId?: string;
   defaultStageId?: string;
+  defaultPrimaryPersonId?: string | null;
+  defaultCompanyId?: string | null;
+  defaultTitle?: string;
 }
 
 export const DealFormModal: React.FC<DealFormModalProps> = ({
@@ -21,6 +24,9 @@ export const DealFormModal: React.FC<DealFormModalProps> = ({
   deal,
   defaultPipelineId,
   defaultStageId,
+  defaultPrimaryPersonId,
+  defaultCompanyId,
+  defaultTitle,
 }) => {
   const { data: pipelines = [] } = usePipelinesQuery();
   const [pipelineId, setPipelineId] = useState("");
@@ -52,7 +58,7 @@ export const DealFormModal: React.FC<DealFormModalProps> = ({
       setExpectedCloseDate(deal.expectedCloseDate || "");
       setDescription(deal.description || "");
     } else {
-      setTitle("");
+      setTitle(defaultTitle || "");
       const initialPipeline = defaultPipelineId || (pipelines.length > 0 ? pipelines[0]._id : "");
       setPipelineId(initialPipeline);
       setStageId(defaultStageId || "");
@@ -63,7 +69,7 @@ export const DealFormModal: React.FC<DealFormModalProps> = ({
       setDescription("");
     }
     setErrorMsg("");
-  }, [deal, isOpen, pipelines, defaultPipelineId, defaultStageId]);
+  }, [deal, isOpen, defaultPipelineId, defaultStageId, defaultTitle, pipelines]);
 
   // When pipeline changes during form editing, clear stale stage if it does not belong to new pipeline
   const handlePipelineChange = (newPipelineId: string) => {
@@ -113,6 +119,8 @@ export const DealFormModal: React.FC<DealFormModalProps> = ({
           currency,
           expectedCloseDate: expectedCloseDate || null,
           description: description.trim(),
+          primaryPersonId: defaultPrimaryPersonId || null,
+          companyId: defaultCompanyId || null,
         });
       }
       onClose();
