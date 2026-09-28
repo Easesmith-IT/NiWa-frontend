@@ -3,7 +3,7 @@ import { apiClient } from "../../lib/api/api-client";
 import type { InboxThreadDetail, InboxThreadRecord } from "./inbox.types";
 
 export const listInboxThreads = async (params?: {
-  filter?: "all" | "archived" | "awaiting_reply" | "starred" | "unread";
+  filter?: "all" | "archived" | "awaiting_reply" | "starred" | "unread" | "mine" | "unassigned";
   search?: string;
 }) => {
   const response = await apiClient.get<ListResponse<InboxThreadRecord>>("/inbox", {

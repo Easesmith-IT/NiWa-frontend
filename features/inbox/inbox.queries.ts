@@ -10,7 +10,7 @@ import {
 import { mapInboxThreadDetail, mapInboxThreadRecord } from "./inbox.mappers";
 
 export const useInboxThreadsQuery = (params: {
-  filter: "all" | "archived" | "awaiting_reply" | "starred" | "unread";
+  filter: "all" | "archived" | "awaiting_reply" | "starred" | "unread" | "mine" | "unassigned";
   search: string;
 }) =>
   useQuery({

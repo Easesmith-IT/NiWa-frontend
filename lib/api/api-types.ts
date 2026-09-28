@@ -131,6 +131,14 @@ export interface ConversationRecord extends RecordBase {
   waId: string;
   aiMode?: "AI_ACTIVE" | "AI_PAUSED" | "HUMAN_ONLY" | "co-pilot" | "off" | "on" | string;
   assignedAgentId?: string | { _id: string } | null;
+  assignedUserId?: string | null;
+  assignedAt?: string | null;
+  aiDraft?: {
+    text: string;
+    generatedAt: string;
+    model?: string;
+    agentId?: string | null;
+  } | null;
   metadata?: {
     aiMode?: string;
     [key: string]: unknown;

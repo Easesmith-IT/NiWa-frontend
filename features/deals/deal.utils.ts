@@ -119,3 +119,22 @@ export const resolveDealFieldValue = (
     fieldType: fieldMeta?.type,
   };
 };
+
+export const isDealOverdue = (deal: DealRecord): boolean => {
+  if (deal.status !== "OPEN" || !deal.expectedCloseDate) return false;
+  const closeDate = new Date(deal.expectedCloseDate);
+  if (Number.isNaN(closeDate.getTime())) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return closeDate < today;
+};
+
+export const isDealStalled = (deal: DealRecord, thresholdDays: number = 14): boolean => {
+  if (deal.status !== "OPEN") return false;
+  const thresholdMs = thresholdDays * 24 * 60 * 60 * 1000;
+  const refDateStr = deal.lastActivityAt || deal.updatedAt;
+  if (!refDateStr) return false;
+  const refDate = new Date(refDateStr);
+  if (Number.isNaN(refDate.getTime())) return false;
+  return Date.now() - refDate.getTime() > thresholdMs;
+};

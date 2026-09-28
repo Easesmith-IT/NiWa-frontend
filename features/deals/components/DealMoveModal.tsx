@@ -15,6 +15,7 @@ export const DealMoveModal: React.FC<DealMoveModalProps> = ({ isOpen, onClose, d
   const { data: pipelines = [] } = usePipelinesQuery();
   const [pipelineId, setPipelineId] = useState("");
   const [stageId, setStageId] = useState("");
+  const [lostReason, setLostReason] = useState("");
   const [errorMsg, setErrorMsg] = useState("");
 
   const { data: stages = [] } = useStagesQuery(
@@ -23,13 +24,17 @@ export const DealMoveModal: React.FC<DealMoveModalProps> = ({ isOpen, onClose, d
 
   const updateMutation = useUpdateDealMutation();
 
+  const selectedStage = stages.find((s) => s._id === stageId);
+
   useEffect(() => {
     if (deal) {
       setPipelineId(deal.pipelineId || "");
       setStageId(deal.stageId || "");
+      setLostReason(deal.lostReason || "");
     } else {
       setPipelineId("");
       setStageId("");
+      setLostReason("");
     }
     setErrorMsg("");
   }, [deal, isOpen]);
@@ -37,6 +42,7 @@ export const DealMoveModal: React.FC<DealMoveModalProps> = ({ isOpen, onClose, d
   const handlePipelineChange = (newPipelineId: string) => {
     setPipelineId(newPipelineId);
     setStageId(""); // reset stage on pipeline change
+    setLostReason("");
   };
 
   const handleMove = async () => {
@@ -50,12 +56,18 @@ export const DealMoveModal: React.FC<DealMoveModalProps> = ({ isOpen, onClose, d
       return;
     }
 
+    if (selectedStage?.isLost && !lostReason.trim()) {
+      setErrorMsg("A lost reason is required when moving a deal to a lost stage");
+      return;
+    }
+
     try {
       await updateMutation.mutateAsync({
         id: deal._id,
         payload: {
           pipelineId,
           stageId,
+          lostReason: selectedStage?.isLost ? lostReason.trim() : undefined,
         },
       });
       onClose();
@@ -112,6 +124,22 @@ export const DealMoveModal: React.FC<DealMoveModalProps> = ({ isOpen, onClose, d
               ))}
             </select>
           </div>
+
+          {selectedStage?.isLost && (
+            <div>
+              <label className="mb-1 block text-xs font-medium text-red-700">
+                Lost Reason <span className="text-red-500">*</span>
+              </label>
+              <textarea
+                rows={2}
+                value={lostReason}
+                onChange={(e) => setLostReason(e.target.value)}
+                disabled={updateMutation.isPending}
+                placeholder="Why was this deal lost? (required)"
+                className="w-full rounded-md border border-red-300 bg-white p-2 text-xs text-slate-900 focus:border-red-500 focus:ring-red-500"
+              />
+            </div>
+          )}
 
           <div className="flex justify-end space-x-2 pt-4">
             <Button type="button" variant="outline" onClick={onClose} disabled={updateMutation.isPending}>

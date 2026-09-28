@@ -8,6 +8,8 @@ import { ThreadListItem } from "./ThreadListItem";
 
 const filterOptions = [
   { key: "all", label: "All" },
+  { key: "mine", label: "Mine" },
+  { key: "unassigned", label: "Unassigned" },
   { key: "unread", label: "Unread" },
   { key: "awaiting_reply", label: "Awaiting" },
   { key: "starred", label: "Starred" },

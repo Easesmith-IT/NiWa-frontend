@@ -9,7 +9,7 @@ export interface OptimisticInboxMessage {
   status: "failed" | "queued" | "sent";
 }
 
-export type InboxFilterType = "all" | "unread" | "awaiting_reply" | "starred";
+export type InboxFilterType = "all" | "mine" | "unassigned" | "unread" | "awaiting_reply" | "starred";
 
 export function useInboxState() {
   // Filters & Thread Selection

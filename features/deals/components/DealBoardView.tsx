@@ -5,6 +5,7 @@ import { Card } from "../../../components/ui/card";
 import { useUpdateDealMutation } from "../deal.queries";
 import type { StageRecord } from "../../pipelines/pipeline.types";
 import type { DealRecord } from "../deal.types";
+import { isDealOverdue, isDealStalled } from "../deal.utils";
 
 interface DealBoardViewProps {
   stages: StageRecord[];
@@ -48,7 +49,9 @@ export const DealBoardView: React.FC<DealBoardViewProps> = ({
     <div className="flex gap-4 overflow-x-auto pb-6 pt-2">
       {sortedStages.map((stage, stageIdx) => {
         const safeDeals = Array.isArray(deals) ? deals : [];
-        const stageDeals = safeDeals.filter((d) => d && d.stageId === stage._id);
+        const stageDeals = safeDeals
+          .filter((d) => d && d.stageId === stage._id)
+          .sort((a, b) => (a.positionInStage ?? 1000) - (b.positionInStage ?? 1000));
         const stageTotalValue = stageDeals.reduce((sum, d) => sum + (d?.value || 0), 0);
 
         return (
@@ -116,18 +119,36 @@ export const DealBoardView: React.FC<DealBoardViewProps> = ({
                       </div>
                     )}
 
+                    {deal.lostReason && (
+                      <p className="text-[10px] text-red-600 italic">
+                        Lost: {deal.lostReason}
+                      </p>
+                    )}
+
                     <div className="flex items-center justify-between pt-2 border-t border-slate-100 text-[10px]">
-                      <span
-                        className={`font-semibold px-1.5 py-0.5 rounded ${
-                          deal.status === "WON"
-                            ? "bg-green-50 text-green-700"
-                            : deal.status === "LOST"
-                            ? "bg-red-50 text-red-700"
-                            : "bg-blue-50 text-blue-700"
-                        }`}
-                      >
-                        {deal.status}
-                      </span>
+                      <div className="flex items-center space-x-1">
+                        <span
+                          className={`font-semibold px-1.5 py-0.5 rounded ${
+                            deal.status === "WON"
+                              ? "bg-green-50 text-green-700"
+                              : deal.status === "LOST"
+                              ? "bg-red-50 text-red-700"
+                              : "bg-blue-50 text-blue-700"
+                          }`}
+                        >
+                          {deal.status}
+                        </span>
+                        {isDealOverdue(deal) && (
+                          <span className="text-[9px] font-bold text-red-700 bg-red-100 px-1 py-0.5 rounded">
+                            Overdue
+                          </span>
+                        )}
+                        {isDealStalled(deal) && (
+                          <span className="text-[9px] font-bold text-amber-700 bg-amber-100 px-1 py-0.5 rounded">
+                            Stalled
+                          </span>
+                        )}
+                      </div>
 
                       <div className="flex items-center space-x-1">
                         <Button

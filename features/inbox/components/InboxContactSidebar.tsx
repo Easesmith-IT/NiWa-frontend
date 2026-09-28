@@ -5,6 +5,7 @@ import { ContactLabelsSection, LabelItem } from "./ContactLabelsSection";
 import { ContactNotesSection, NoteItem } from "./ContactNotesSection";
 import { ContactProfileSection } from "./ContactProfileSection";
 import { ContactTasksSection, TaskItem } from "./ContactTasksSection";
+import { ContactDealsSection } from "./ContactDealsSection";
 import { ScheduledMessagesSection, ScheduledSendItem } from "./ScheduledMessagesSection";
 
 export interface InboxContactSidebarProps {
@@ -199,6 +200,12 @@ export function InboxContactSidebar({
         taskPriority={taskPriority}
         tasks={tasks}
         taskTitle={taskTitle}
+      />
+
+      <ContactDealsSection
+        personId={(detail?.contact as any)?.personId}
+        companyId={(detail?.contact as any)?.companyId}
+        contactDisplayName={detail?.contact?.displayName || detail?.contact?.phoneNumber}
       />
 
       <ScheduledMessagesSection scheduledItems={scheduledItems} />

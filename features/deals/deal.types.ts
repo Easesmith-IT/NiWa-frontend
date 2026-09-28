@@ -1,4 +1,4 @@
-﻿export type DealStatus = "OPEN" | "WON" | "LOST";
+export type DealStatus = "OPEN" | "WON" | "LOST";
 
 export interface DealParticipant {
   personId: string;
@@ -26,6 +26,9 @@ export interface DealRecord {
   createdBy: string;
   updatedBy: string;
   closedAt?: string | null;
+  lostReason?: string | null;
+  positionInStage?: number;
+  lastActivityAt?: string | null;
   isArchived?: boolean;
   archivedAt?: string | null;
   archivedBy?: string | null;
@@ -47,6 +50,8 @@ export interface CreateDealPayload {
   expectedCloseDate?: string | null;
   ownerUserId?: string | null;
   description?: string;
+  lostReason?: string | null;
+  positionInStage?: number;
 }
 
 export interface UpdateDealPayload extends Partial<CreateDealPayload> {}
