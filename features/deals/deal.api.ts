@@ -33,6 +33,14 @@ export const updateDeal = async (id: string, payload: UpdateDealPayload): Promis
   return unwrapData(response.data);
 };
 
+export const reorderDeal = async (
+  id: string,
+  payload: { targetStageId: string; positionInStage?: number; targetIndex?: number; lostReason?: string }
+): Promise<DealRecord> => {
+  const response = await apiClient.post<ApiResponse<DealRecord> | DealRecord>(`/crm/deals/${id}/reorder`, payload);
+  return unwrapData(response.data);
+};
+
 export const archiveDeal = async (id: string): Promise<DealRecord> => {
   const response = await apiClient.delete<ApiResponse<DealRecord> | DealRecord>(`/crm/deals/${id}`);
   return unwrapData(response.data);

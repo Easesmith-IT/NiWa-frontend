@@ -69,15 +69,8 @@ export const DealBoardView: React.FC<DealBoardViewProps> = ({
     const prevPos = remaining[dropIndex - 1].positionInStage ?? dropIndex * 1000;
     const nextPos = remaining[dropIndex].positionInStage ?? (dropIndex + 1) * 1000;
 
-    // Fractional midpoint position
-    const midpoint = (prevPos + nextPos) / 2;
-
-    // Precision safeguard if difference is minuscule
-    if (Math.abs(nextPos - prevPos) < 0.0001) {
-      return (dropIndex + 0.5) * 1000;
-    }
-
-    return midpoint;
+    // Fractional midpoint position — backend rebalances stage automatically if gap collapses
+    return (prevPos + nextPos) / 2;
   };
 
   const handleDrop = async (targetStageId: string, targetIndex: number) => {
