@@ -267,7 +267,7 @@ export function FinanceOverview() {
                 <div className="text-xs text-slate-500">
                   Ledger:{" "}
                   {formatCurrency(
-                    reconciliations?.receivables.accountingBalance ?? reconciliations?.receivables.ledgerBalance ?? 0,
+                    reconciliations?.receivables.accountingBalance ?? 0,
                     reconciliations?.currency || overview?.currency || "INR"
                   )}{" "}
                   &bull; Invoices:{" "}
@@ -325,7 +325,7 @@ export function FinanceOverview() {
                 <div className="text-xs text-slate-500">
                   Ledger:{" "}
                   {formatCurrency(
-                    reconciliations?.payables.accountingBalance ?? reconciliations?.payables.ledgerBalance ?? 0,
+                    reconciliations?.payables.accountingBalance ?? 0,
                     reconciliations?.currency || overview?.currency || "INR"
                   )}{" "}
                   &bull; Bills:{" "}

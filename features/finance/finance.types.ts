@@ -21,5 +21,13 @@ export type {
   TaxConfiguration,
   CreateTaxConfigurationPayload,
   UpdateTaxConfigurationPayload,
+  AgingBucketKey,
+  AgingBucket,
+  AgingReportItem,
+  AgingReport,
+  BalanceSheetAccountRow,
+  CashFlowItem,
+  FinanceOverviewAccount,
+  TaxSummaryBreakdown,
   TaxSummaryReport,
 } from "../../lib/api/finance-api";

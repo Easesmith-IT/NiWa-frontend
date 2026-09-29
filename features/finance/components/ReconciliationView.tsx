@@ -128,7 +128,7 @@ export function ReconciliationView() {
               <div className="flex justify-between">
                 <span className="text-slate-600">GL Account Balance (1030):</span>
                 <span className="font-mono font-bold text-slate-900">
-                  {formatCurrency(recon.receivables.accountingBalance ?? recon.receivables.ledgerBalance ?? 0, recon.currency)}
+                  {formatCurrency(recon.receivables.accountingBalance ?? 0, recon.currency)}
                 </span>
               </div>
               <div className="flex justify-between">
@@ -190,7 +190,7 @@ export function ReconciliationView() {
               <div className="flex justify-between">
                 <span className="text-slate-600">GL Account Balance (2010):</span>
                 <span className="font-mono font-bold text-slate-900">
-                  {formatCurrency(recon.payables.accountingBalance ?? recon.payables.ledgerBalance ?? 0, recon.currency)}
+                  {formatCurrency(recon.payables.accountingBalance ?? 0, recon.currency)}
                 </span>
               </div>
               <div className="flex justify-between">

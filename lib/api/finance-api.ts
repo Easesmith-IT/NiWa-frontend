@@ -194,25 +194,23 @@ export interface FinanceSettings {
   updatedAt?: string;
 }
 
+export interface FinanceOverviewAccount {
+  _id: string;
+  code: string;
+  name: string;
+  balance: number;
+}
+
 export interface FinanceOverviewKpis {
   currency: string;
   isActivated: boolean;
-  activationDate?: string | null;
-  lockedUntilDate?: string | null;
+  activationDate: string | null;
+  lockedUntilDate: string | null;
   cashAndBank: {
     cashBalance: number;
     bankBalance: number;
     totalBalance: number;
-    accounts: Array<{
-      _id: string;
-      code: string;
-      name: string;
-      type?: string;
-      subtype?: string;
-      currency?: string;
-      currentBalance?: number;
-      balance?: number;
-    }>;
+    accounts: FinanceOverviewAccount[];
   };
   receivables: {
     totalOutstanding: number;
@@ -264,90 +262,117 @@ export interface ProfitAndLossReport {
   expenseRows: Array<{ id: string; code: string; name: string; balance: number }>;
 }
 
+export interface BalanceSheetAccountRow {
+  id: string;
+  code: string;
+  name: string;
+  type: AccountType;
+  subtype: string;
+  normalBalance: NormalBalance;
+  balance: number;
+}
+
 export interface BalanceSheetReport {
   asOfDate: string;
   currency: string;
   isBalanced: boolean;
   totalAssets: number;
   totalLiabilities: number;
+  totalEquityExcludingNetProfit: number;
+  derivedNetProfit: number;
   totalEquity: number;
-  retainedEarnings: number;
   totalLiabilitiesAndEquity: number;
   difference: number;
-  assetRows: Array<{ id: string; code: string; name: string; balance: number }>;
-  liabilityRows: Array<{ id: string; code: string; name: string; balance: number }>;
-  equityRows: Array<{ id: string; code: string; name: string; balance: number }>;
+  assets: BalanceSheetAccountRow[];
+  liabilities: BalanceSheetAccountRow[];
+  equity: BalanceSheetAccountRow[];
+}
+
+export interface CashFlowItem {
+  date: string;
+  entryNumber: string;
+  description: string;
+  amount: number;
 }
 
 export interface CashFlowReport {
-  startDate: string;
+  startDate: string | null;
   endDate: string;
   currency: string;
   operatingCashFlow: number;
   investingCashFlow: number;
   financingCashFlow: number;
   netCashFlow: number;
-  beginningCash: number;
-  endingCash: number;
-  operatingItems: Array<{ date: string; entryNumber: string; description: string; amount: number }>;
-  investingItems: Array<{ date: string; entryNumber: string; description: string; amount: number }>;
-  financingItems: Array<{ date: string; entryNumber: string; description: string; amount: number }>;
+  operatingItems: CashFlowItem[];
+  investingItems: CashFlowItem[];
+  financingItems: CashFlowItem[];
 }
 
+export type AgingBucketKey = "CURRENT" | "DAYS_1_30" | "DAYS_31_60" | "DAYS_61_90" | "DAYS_90_PLUS";
+
 export interface AgingBucket {
-  count: number;
+  bucket: AgingBucketKey;
+  label: string;
   amount: number;
+  count: number;
+}
+
+export interface AgingReportItem {
+  id: string;
+  documentNumber: string;
+  entityId: string;
+  entityName: string;
+  issueDate: string;
+  dueDate: string;
+  daysOverdue: number;
+  grandTotal: number;
+  paidAmount: number;
+  balanceDue: number;
 }
 
 export interface AgingReport {
   asOfDate: string;
   currency: string;
   totalOutstanding: number;
-  buckets: {
-    current: AgingBucket;
-    days1To30: AgingBucket;
-    days31To60: AgingBucket;
-    days61To90: AgingBucket;
-    days90Plus: AgingBucket;
-  };
-  details: any[];
+  buckets: AgingBucket[];
+  items: AgingReportItem[];
 }
 
 export interface ReconciliationResult {
-  asOfDate: string;
+  status: "MATCHED" | "WARNING" | "MISMATCH";
   operationalBalance: number;
   accountingBalance: number;
   difference: number;
-  status: "MATCHED" | "WARNING" | "MISMATCH";
-  checkedAt?: string;
-  currency?: string;
-  details?: any;
+  asOfDate: string;
+  checkedAt: string;
+  currency: string;
+  details?: {
+    accountCode?: string;
+    accountName?: string;
+    operationalIdsCount?: number;
+    unsettledCount?: number;
+    [key: string]: any;
+  };
   reason?: string;
-  ledgerBalance?: number;
+}
+
+export interface TaxSummaryBreakdown {
+  cgst: number;
+  sgst: number;
+  igst: number;
+  cess: number;
+  total: number;
 }
 
 export interface TaxSummaryReport {
-  startDate?: string | null;
+  startDate: string | null;
   endDate: string;
   currency: string;
-  inputTax: {
-    cgst: number;
-    sgst: number;
-    igst: number;
-    cess: number;
-    total: number;
-  };
-  outputTax: {
-    cgst: number;
-    sgst: number;
-    igst: number;
-    cess: number;
-    total: number;
-  };
-  inputTaxTotal?: number;
-  outputTaxTotal?: number;
+  inputTax: TaxSummaryBreakdown;
+  outputTax: TaxSummaryBreakdown;
+  inputTaxTotal: number;
+  outputTaxTotal: number;
   netLiability: number;
-  taxAccounts?: Array<{ code: string; name: string; balance: number }>;
 }
 
 export interface OverviewReconciliation {

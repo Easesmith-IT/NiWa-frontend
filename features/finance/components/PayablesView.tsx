@@ -144,6 +144,7 @@ export function PayablesView() {
 
   const aging = agingRes?.data;
   const reconciliation = reconRes?.data;
+  const agingBucketMap = new Map((aging?.buckets || []).map((b) => [b.bucket, b]));
   const bills = billsRes?.items || [];
   const totalBills = billsRes?.total || 0;
   const payments = paymentsRes?.items || [];
@@ -333,7 +334,7 @@ export function PayablesView() {
                 <span className="block text-slate-500">AP GL Account (2010):</span>
                 <span className="font-mono font-bold text-sm">
                   {formatCurrency(
-                    reconciliation.accountingBalance ?? reconciliation.ledgerBalance ?? 0,
+                    reconciliation.accountingBalance ?? 0,
                     reconciliation.currency || aging?.currency || "INR"
                   )}
                 </span>
@@ -709,10 +710,10 @@ export function PayablesView() {
             <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
               <div className="flex items-center justify-between text-[11px] font-medium text-emerald-700">
                 <span>Current</span>
-                <span>{aging?.buckets?.current?.count || 0}</span>
+                <span>{agingBucketMap.get("CURRENT")?.count || 0}</span>
               </div>
               <div className="mt-1.5 text-base font-bold text-emerald-600">
-                {formatCurrency(aging?.buckets?.current?.amount || 0, aging?.currency || "INR")}
+                {formatCurrency(agingBucketMap.get("CURRENT")?.amount || 0, aging?.currency || "INR")}
               </div>
               <span className="text-[10px] text-slate-400">Within terms</span>
             </div>
@@ -720,10 +721,10 @@ export function PayablesView() {
             <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
               <div className="flex items-center justify-between text-[11px] font-medium text-amber-700">
                 <span>1 - 30 Days</span>
-                <span>{aging?.buckets?.days1To30?.count || 0}</span>
+                <span>{agingBucketMap.get("DAYS_1_30")?.count || 0}</span>
               </div>
               <div className="mt-1.5 text-base font-bold text-amber-600">
-                {formatCurrency(aging?.buckets?.days1To30?.amount || 0, aging?.currency || "INR")}
+                {formatCurrency(agingBucketMap.get("DAYS_1_30")?.amount || 0, aging?.currency || "INR")}
               </div>
               <span className="text-[10px] text-slate-400">Past due</span>
             </div>
@@ -731,10 +732,10 @@ export function PayablesView() {
             <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
               <div className="flex items-center justify-between text-[11px] font-medium text-orange-700">
                 <span>31 - 60 Days</span>
-                <span>{aging?.buckets?.days31To60?.count || 0}</span>
+                <span>{agingBucketMap.get("DAYS_31_60")?.count || 0}</span>
               </div>
               <div className="mt-1.5 text-base font-bold text-orange-600">
-                {formatCurrency(aging?.buckets?.days31To60?.amount || 0, aging?.currency || "INR")}
+                {formatCurrency(agingBucketMap.get("DAYS_31_60")?.amount || 0, aging?.currency || "INR")}
               </div>
               <span className="text-[10px] text-slate-400">Overdue</span>
             </div>
@@ -742,10 +743,10 @@ export function PayablesView() {
             <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
               <div className="flex items-center justify-between text-[11px] font-medium text-rose-700">
                 <span>61 - 90 Days</span>
-                <span>{aging?.buckets?.days61To90?.count || 0}</span>
+                <span>{agingBucketMap.get("DAYS_61_90")?.count || 0}</span>
               </div>
               <div className="mt-1.5 text-base font-bold text-rose-600">
-                {formatCurrency(aging?.buckets?.days61To90?.amount || 0, aging?.currency || "INR")}
+                {formatCurrency(agingBucketMap.get("DAYS_61_90")?.amount || 0, aging?.currency || "INR")}
               </div>
               <span className="text-[10px] text-slate-400">Critical</span>
             </div>
@@ -753,10 +754,10 @@ export function PayablesView() {
             <div className="rounded-xl border border-slate-200 bg-white p-3 shadow-xs">
               <div className="flex items-center justify-between text-[11px] font-medium text-purple-700">
                 <span>90+ Days</span>
-                <span>{aging?.buckets?.days90Plus?.count || 0}</span>
+                <span>{agingBucketMap.get("DAYS_90_PLUS")?.count || 0}</span>
               </div>
               <div className="mt-1.5 text-base font-bold text-purple-600">
-                {formatCurrency(aging?.buckets?.days90Plus?.amount || 0, aging?.currency || "INR")}
+                {formatCurrency(agingBucketMap.get("DAYS_90_PLUS")?.amount || 0, aging?.currency || "INR")}
               </div>
               <span className="text-[10px] text-slate-400">Severely overdue</span>
             </div>

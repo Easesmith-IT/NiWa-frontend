@@ -501,7 +501,7 @@ export function ReportsView() {
                     </span>
                   </div>
                   <div className="divide-y divide-slate-100 text-xs">
-                    {balanceSheet.assetRows.map((r) => (
+                    {balanceSheet.assets.map((r) => (
                       <div key={r.id} className="flex justify-between px-4 py-2.5">
                         <span className="font-medium text-slate-800">
                           {r.code} - {r.name}
@@ -525,7 +525,7 @@ export function ReportsView() {
                       </span>
                     </div>
                     <div className="divide-y divide-slate-100 text-xs">
-                      {balanceSheet.liabilityRows.map((r) => (
+                      {balanceSheet.liabilities.map((r) => (
                         <div key={r.id} className="flex justify-between px-4 py-2.5">
                           <span className="font-medium text-slate-800">
                             {r.code} - {r.name}
@@ -544,13 +544,13 @@ export function ReportsView() {
                       <span>Equity</span>
                       <span className="font-mono font-bold text-purple-700">
                         {formatCurrency(
-                          balanceSheet.totalEquity + balanceSheet.retainedEarnings,
+                          balanceSheet.totalEquity,
                           balanceSheet.currency
                         )}
                       </span>
                     </div>
                     <div className="divide-y divide-slate-100 text-xs">
-                      {balanceSheet.equityRows.map((r) => (
+                      {balanceSheet.equity.map((r) => (
                         <div key={r.id} className="flex justify-between px-4 py-2.5">
                           <span className="font-medium text-slate-800">
                             {r.code} - {r.name}
@@ -565,7 +565,7 @@ export function ReportsView() {
                           Current Retained Earnings (From P&L)
                         </span>
                         <span className="font-mono font-bold text-purple-700">
-                          {formatCurrency(balanceSheet.retainedEarnings, balanceSheet.currency)}
+                          {formatCurrency(balanceSheet.derivedNetProfit, balanceSheet.currency)}
                         </span>
                       </div>
                     </div>
@@ -586,7 +586,7 @@ export function ReportsView() {
             </div>
           ) : cashFlow ? (
             <div className="space-y-4">
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-4">
                 <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
                   <span className="text-xs font-medium text-slate-500">Operating Cash Flow</span>
                   <div className="mt-2 text-xl font-bold text-slate-900">
@@ -594,15 +594,21 @@ export function ReportsView() {
                   </div>
                 </div>
                 <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
-                  <span className="text-xs font-medium text-slate-500">Net Cash Movement</span>
-                  <div className="mt-2 text-xl font-bold text-emerald-600">
-                    {formatCurrency(cashFlow.netCashFlow, cashFlow.currency)}
+                  <span className="text-xs font-medium text-slate-500">Investing Cash Flow</span>
+                  <div className="mt-2 text-xl font-bold text-slate-900">
+                    {formatCurrency(cashFlow.investingCashFlow, cashFlow.currency)}
                   </div>
                 </div>
                 <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
-                  <span className="text-xs font-medium text-slate-500">Ending Cash & Bank</span>
+                  <span className="text-xs font-medium text-slate-500">Financing Cash Flow</span>
                   <div className="mt-2 text-xl font-bold text-slate-900">
-                    {formatCurrency(cashFlow.endingCash, cashFlow.currency)}
+                    {formatCurrency(cashFlow.financingCashFlow, cashFlow.currency)}
+                  </div>
+                </div>
+                <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
+                  <span className="text-xs font-medium text-slate-500">Net Cash Movement</span>
+                  <div className="mt-2 text-xl font-bold text-emerald-600">
+                    {formatCurrency(cashFlow.netCashFlow, cashFlow.currency)}
                   </div>
                 </div>
               </div>
@@ -654,26 +660,21 @@ export function ReportsView() {
                 <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
                   <span className="text-xs font-medium text-slate-500">Output Tax Collected (Sales)</span>
                   <div className="mt-2 text-xl font-bold text-emerald-600">
-                    {formatCurrency(taxSummary.outputTax?.total ?? taxSummary.outputTaxTotal ?? 0, taxSummary.currency)}
+                    {formatCurrency(taxSummary.outputTaxTotal, taxSummary.currency)}
                   </div>
                   <span className="text-xs text-slate-400">Output CGST, SGST, IGST & CESS</span>
                 </div>
                 <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
                   <span className="text-xs font-medium text-slate-500">Input Tax Credit (Expenses/Bills)</span>
                   <div className="mt-2 text-xl font-bold text-blue-600">
-                    {formatCurrency(taxSummary.inputTax?.total ?? taxSummary.inputTaxTotal ?? 0, taxSummary.currency)}
+                    {formatCurrency(taxSummary.inputTaxTotal, taxSummary.currency)}
                   </div>
                   <span className="text-xs text-slate-400">Input tax eligible for set-off</span>
                 </div>
                 <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-xs">
                   <span className="text-xs font-medium text-slate-500">Net Tax Payable / (Credit)</span>
                   <div className="mt-2 text-xl font-bold text-slate-900">
-                    {formatCurrency(
-                      taxSummary.netLiability ??
-                        ((taxSummary.outputTax?.total ?? taxSummary.outputTaxTotal ?? 0) -
-                          (taxSummary.inputTax?.total ?? taxSummary.inputTaxTotal ?? 0)),
-                      taxSummary.currency
-                    )}
+                    {formatCurrency(taxSummary.netLiability, taxSummary.currency)}
                   </div>
                   <span className="text-xs text-slate-400">Net remittance liability</span>
                 </div>
@@ -712,7 +713,7 @@ export function ReportsView() {
                     <div className="flex justify-between py-2 font-bold bg-slate-50/80 px-2 rounded">
                       <span className="text-slate-900">Total Output Tax</span>
                       <span className="font-mono text-emerald-700">
-                        {formatCurrency(taxSummary.outputTax?.total || 0, taxSummary.currency)}
+                        {formatCurrency(taxSummary.outputTaxTotal, taxSummary.currency)}
                       </span>
                     </div>
                   </div>
@@ -749,30 +750,12 @@ export function ReportsView() {
                     <div className="flex justify-between py-2 font-bold bg-slate-50/80 px-2 rounded">
                       <span className="text-slate-900">Total Input Tax Credit</span>
                       <span className="font-mono text-blue-700">
-                        {formatCurrency(taxSummary.inputTax?.total || 0, taxSummary.currency)}
+                        {formatCurrency(taxSummary.inputTaxTotal, taxSummary.currency)}
                       </span>
                     </div>
                   </div>
                 </div>
               </div>
-
-              {taxSummary.taxAccounts && taxSummary.taxAccounts.length > 0 && (
-                <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xs p-4">
-                  <h4 className="text-sm font-semibold text-slate-800 mb-3">GST Tax Accounts Ledger Balances</h4>
-                  <div className="divide-y divide-slate-100 text-xs">
-                    {taxSummary.taxAccounts.map((acc: any) => (
-                      <div key={acc.code} className="flex justify-between py-2">
-                        <span className="font-medium text-slate-800">
-                          {acc.code} - {acc.name}
-                        </span>
-                        <span className="font-mono font-semibold text-slate-900">
-                          {formatCurrency(acc.balance, taxSummary.currency)}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </div>
           ) : null}
         </div>
