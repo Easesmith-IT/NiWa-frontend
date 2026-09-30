@@ -299,7 +299,13 @@ export function ReconciliationView() {
                   </span>
                 </div>
                 <div className="flex justify-between border-t border-dashed border-slate-200 pt-2">
-                  <span className="text-slate-600">Subledger / On-Hand Qty:</span>
+                  <span className="text-slate-600">
+                    Subledger / On-Hand Qty
+                    {asOfDate && invRecon.operationalQuantityIsHistorical === false ? (
+                      <span className="ml-1 text-[10px] text-slate-400 font-normal">(Live On-Hand)</span>
+                    ) : null}
+                    :
+                  </span>
                   <span className="font-mono font-medium text-slate-800">
                     {invRecon.subledgerQuantity.toLocaleString()} / {invRecon.operationalQuantity.toLocaleString()}
                   </span>

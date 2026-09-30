@@ -430,6 +430,10 @@ export interface InventoryReconciliationResult {
   operationalQuantity: number;
   quantityDifference: number;
   discrepancies: InventoryDiscrepancy[];
+  valuationAsOf?: string | Date | null;
+  glBalanceAsOf?: string | Date | null;
+  operationalQuantityAsOf?: string | Date | null;
+  operationalQuantityIsHistorical?: boolean;
 }
 
 export interface TaxConfiguration {
