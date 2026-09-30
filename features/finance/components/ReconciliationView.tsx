@@ -41,8 +41,8 @@ export function ReconciliationView() {
     isLoading: isInvLoading,
     refetch: refetchInv,
   } = useQuery({
-    queryKey: ["finance", "inventory-reconciliation"],
-    queryFn: () => financeApi.reconcileInventoryValuation(),
+    queryKey: ["finance", "inventory-reconciliation", asOfDate],
+    queryFn: () => financeApi.reconcileInventoryValuation({ asOfDate: asOfDate || undefined }),
   });
 
   const invRecon = invReconRes?.data;

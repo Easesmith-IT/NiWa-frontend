@@ -29,6 +29,7 @@ export function InventoryValuationView() {
   const { canManage } = useFinancePermissions();
 
   const [selectedLocationId, setSelectedLocationId] = useState<string>("");
+  const [asOfDate, setAsOfDate] = useState<string>("");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [expandedItems, setExpandedItems] = useState<Record<string, boolean>>({});
 
@@ -38,10 +39,11 @@ export function InventoryValuationView() {
     refetch,
     isRefetching,
   } = useQuery({
-    queryKey: ["finance", "inventory-valuation", selectedLocationId],
+    queryKey: ["finance", "inventory-valuation", selectedLocationId, asOfDate],
     queryFn: () =>
       financeApi.getInventoryValuationReport({
         locationId: selectedLocationId || undefined,
+        asOfDate: asOfDate || undefined,
       }),
   });
 
@@ -99,6 +101,27 @@ export function InventoryValuationView() {
                 </option>
               ))}
             </select>
+          </div>
+
+          {/* As of date filter */}
+          <div className="relative flex items-center">
+            <input
+              type="date"
+              value={asOfDate}
+              onChange={(e) => setAsOfDate(e.target.value)}
+              className="rounded-lg border border-slate-200 bg-white py-1.5 px-2.5 text-xs font-medium text-slate-700 shadow-xs focus:border-emerald-500 focus:outline-none"
+              title="Valuation as of date"
+            />
+            {asOfDate && (
+              <button
+                type="button"
+                onClick={() => setAsOfDate("")}
+                className="ml-1 text-[11px] text-slate-400 hover:text-slate-600"
+                title="Reset to current date"
+              >
+                Clear
+              </button>
+            )}
           </div>
 
           <button

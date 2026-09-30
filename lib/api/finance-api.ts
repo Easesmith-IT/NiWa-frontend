@@ -756,13 +756,16 @@ export const financeApi = {
   getInventoryValuationReport: async (params?: {
     locationId?: string;
     productVariantId?: string;
+    asOfDate?: string;
   }): Promise<{ success: boolean; data: InventoryValuationReport }> => {
     const res = await apiClient.get("/finance/inventory-valuation", { params });
     return res.data;
   },
 
-  reconcileInventoryValuation: async (): Promise<{ success: boolean; data: InventoryReconciliationResult }> => {
-    const res = await apiClient.get("/finance/inventory-valuation/reconcile");
+  reconcileInventoryValuation: async (params?: {
+    asOfDate?: string;
+  }): Promise<{ success: boolean; data: InventoryReconciliationResult }> => {
+    const res = await apiClient.get("/finance/inventory-valuation/reconcile", { params });
     return res.data;
   },
 
