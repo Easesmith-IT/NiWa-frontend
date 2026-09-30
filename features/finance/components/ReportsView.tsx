@@ -17,6 +17,7 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   ShieldCheck,
+  Boxes,
 } from "lucide-react";
 import {
   financeApi,
@@ -27,13 +28,14 @@ import {
 } from "lib/api/finance-api";
 import { formatCurrency } from "features/sales/utils/currency-formatter";
 import { useFinancePermissions } from "../hooks/use-finance-permissions";
+import { InventoryValuationView } from "./InventoryValuationView";
 
 export function ReportsView() {
   const { canManage } = useFinancePermissions();
 
-  // Active Report Tab: "TRIAL_BALANCE" | "PROFIT_LOSS" | "BALANCE_SHEET" | "CASH_FLOW" | "TAX"
+  // Active Report Tab: "TRIAL_BALANCE" | "PROFIT_LOSS" | "BALANCE_SHEET" | "CASH_FLOW" | "TAX" | "INVENTORY"
   const [activeReport, setActiveReport] = useState<
-    "TRIAL_BALANCE" | "PROFIT_LOSS" | "BALANCE_SHEET" | "CASH_FLOW" | "TAX"
+    "TRIAL_BALANCE" | "PROFIT_LOSS" | "BALANCE_SHEET" | "CASH_FLOW" | "TAX" | "INVENTORY"
   >("TRIAL_BALANCE");
 
   // Date States
@@ -170,6 +172,7 @@ export function ReportsView() {
             { id: "BALANCE_SHEET", label: "Balance Sheet", icon: Landmark },
             { id: "CASH_FLOW", label: "Cash Flow Statement", icon: Receipt },
             { id: "TAX", label: "Tax / GST Summary", icon: FileSpreadsheet },
+            { id: "INVENTORY", label: "Inventory Valuation (FIFO)", icon: Boxes },
           ].map((tab) => {
             const Icon = tab.icon;
             return (
@@ -760,6 +763,9 @@ export function ReportsView() {
           ) : null}
         </div>
       )}
+
+      {/* REPORT 6: INVENTORY VALUATION (FIFO) */}
+      {activeReport === "INVENTORY" && <InventoryValuationView />}
     </div>
   );
 }

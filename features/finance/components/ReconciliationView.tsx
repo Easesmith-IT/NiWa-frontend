@@ -11,6 +11,8 @@ import {
   FileCheck2,
   CheckCircle2,
   Loader2,
+  Boxes,
+  Package,
 } from "lucide-react";
 import { financeApi } from "lib/api/finance-api";
 import { formatCurrency } from "features/sales/utils/currency-formatter";
@@ -33,6 +35,17 @@ export function ReconciliationView() {
     queryKey: ["finance", "reconciliation-overview", asOfDate],
     queryFn: () => financeApi.getOverviewReconciliations(asOfDate),
   });
+
+  const {
+    data: invReconRes,
+    isLoading: isInvLoading,
+    refetch: refetchInv,
+  } = useQuery({
+    queryKey: ["finance", "inventory-reconciliation"],
+    queryFn: () => financeApi.reconcileInventoryValuation(),
+  });
+
+  const invRecon = invReconRes?.data;
 
   const { data: accountsRes } = useQuery({
     queryKey: ["finance", "accounts"],
@@ -73,7 +86,10 @@ export function ReconciliationView() {
             className="rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 shadow-xs focus:border-emerald-500 focus:outline-none"
           />
           <button
-            onClick={() => refetch()}
+            onClick={() => {
+              refetch();
+              refetchInv();
+            }}
             className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700 shadow-xs hover:bg-slate-50"
           >
             <RefreshCw className="h-3.5 w-3.5" />
@@ -87,7 +103,7 @@ export function ReconciliationView() {
           <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
         </div>
       ) : recon ? (
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           {/* AR RECONCILIATION CARD */}
           <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
@@ -211,8 +227,142 @@ export function ReconciliationView() {
               </div>
             </div>
           </div>
+
+          {/* INVENTORY VALUATION & SUBLEDGER RECONCILIATION CARD */}
+          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+              <div className="flex items-center gap-2.5">
+                <Boxes className="h-5 w-5 text-indigo-600" />
+                <h3 className="text-base font-bold text-slate-900">Inventory Subledger (1040)</h3>
+              </div>
+              {invRecon ? (
+                <span
+                  className={`inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold ${
+                    invRecon.status === "MATCHED"
+                      ? "bg-emerald-50 text-emerald-700"
+                      : invRecon.status === "WARNING"
+                      ? "bg-amber-50 text-amber-700"
+                      : "bg-red-50 text-red-700"
+                  }`}
+                >
+                  {invRecon.status === "MATCHED" ? (
+                    <>
+                      <CheckCircle2 className="h-3.5 w-3.5" /> Reconciled
+                    </>
+                  ) : invRecon.status === "WARNING" ? (
+                    <>
+                      <AlertCircle className="h-3.5 w-3.5" /> Minor Variance
+                    </>
+                  ) : (
+                    <>
+                      <AlertCircle className="h-3.5 w-3.5" /> Mismatch
+                    </>
+                  )}
+                </span>
+              ) : null}
+            </div>
+
+            <p className="text-xs text-slate-500 leading-relaxed">
+              Compares General Ledger Account (1040 - Inventory Asset) with active FIFO cost layers, and checks stock counts against operational inventory.
+            </p>
+
+            {isInvLoading ? (
+              <div className="flex h-32 items-center justify-center">
+                <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+              </div>
+            ) : invRecon ? (
+              <div className="rounded-lg bg-slate-50 p-4 space-y-2.5 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-600">GL Account Balance (1040):</span>
+                  <span className="font-mono font-bold text-slate-900">
+                    {formatCurrency(invRecon.generalLedgerBalance, recon?.currency || "INR")}
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-600">FIFO Subledger Valuation:</span>
+                  <span className="font-mono font-bold text-slate-900">
+                    {formatCurrency(invRecon.subledgerValuation, recon?.currency || "INR")}
+                  </span>
+                </div>
+                <div className="flex justify-between border-t border-slate-200 pt-1 font-semibold">
+                  <span className="text-slate-700">Valuation Variance:</span>
+                  <span
+                    className={`font-mono ${
+                      invRecon.valuationDifference === 0
+                        ? "text-emerald-700"
+                        : invRecon.status === "WARNING"
+                        ? "text-amber-700"
+                        : "text-red-700"
+                    }`}
+                  >
+                    {formatCurrency(invRecon.valuationDifference, recon?.currency || "INR")}
+                  </span>
+                </div>
+                <div className="flex justify-between border-t border-dashed border-slate-200 pt-2">
+                  <span className="text-slate-600">Subledger / On-Hand Qty:</span>
+                  <span className="font-mono font-medium text-slate-800">
+                    {invRecon.subledgerQuantity.toLocaleString()} / {invRecon.operationalQuantity.toLocaleString()}
+                  </span>
+                </div>
+                <div className="flex justify-between font-semibold">
+                  <span className="text-slate-700">Quantity Variance:</span>
+                  <span
+                    className={`font-mono ${
+                      invRecon.quantityDifference === 0
+                        ? "text-emerald-700"
+                        : "text-amber-700"
+                    }`}
+                  >
+                    {invRecon.quantityDifference.toLocaleString()} units
+                  </span>
+                </div>
+              </div>
+            ) : null}
+          </div>
         </div>
       ) : null}
+
+      {/* INVENTORY DISCREPANCIES TABLE IF ANY */}
+      {invRecon && invRecon.discrepancies && invRecon.discrepancies.length > 0 && (
+        <div className="rounded-xl border border-amber-200 bg-amber-50/50 p-6 shadow-xs space-y-3">
+          <div className="flex items-center gap-2">
+            <AlertCircle className="h-5 w-5 text-amber-600" />
+            <h3 className="text-sm font-bold text-amber-900">
+              Inventory Subledger vs. Operational Stock Discrepancies ({invRecon.discrepancies.length})
+            </h3>
+          </div>
+          <p className="text-xs text-amber-700">
+            The following variants exhibit differences between financial FIFO cost layer quantities and warehouse on-hand levels.
+          </p>
+
+          <div className="overflow-hidden rounded-lg border border-amber-200 bg-white">
+            <table className="min-w-full divide-y divide-amber-100 text-left text-xs">
+              <thead className="bg-amber-50/80 font-semibold text-amber-900">
+                <tr>
+                  <th className="py-2.5 pl-4 pr-3">Product Variant</th>
+                  <th className="px-3 py-2.5">Location</th>
+                  <th className="px-3 py-2.5 text-right">Subledger Qty</th>
+                  <th className="px-3 py-2.5 text-right">Operational On-Hand</th>
+                  <th className="px-3 py-2.5 text-right">Difference</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-100">
+                {invRecon.discrepancies.map((d) => (
+                  <tr key={`${d.productVariantId}__${d.locationId}`} className="hover:bg-amber-50/30">
+                    <td className="py-2.5 pl-4 pr-3 font-medium text-slate-900">{d.variantName}</td>
+                    <td className="px-3 py-2.5 text-slate-600">{d.locationId}</td>
+                    <td className="px-3 py-2.5 text-right font-mono text-slate-800">{d.subledgerQuantity}</td>
+                    <td className="px-3 py-2.5 text-right font-mono text-slate-800">{d.operationalQuantity}</td>
+                    <td className="px-3 py-2.5 text-right font-mono font-bold text-amber-700">
+                      {d.difference > 0 ? `+${d.difference}` : d.difference}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* BANK STATEMENT RECONCILIATION TOOL */}
       <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">

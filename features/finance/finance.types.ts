@@ -30,4 +30,9 @@ export type {
   FinanceOverviewAccount,
   TaxSummaryBreakdown,
   TaxSummaryReport,
+  InventoryCostLayerItem,
+  InventoryValuationItem,
+  InventoryValuationReport,
+  InventoryDiscrepancy,
+  InventoryReconciliationResult,
 } from "../../lib/api/finance-api";

@@ -14,4 +14,5 @@ export * from "./components/ReceivablesView";
 export * from "./components/PayablesView";
 export * from "./components/ReconciliationView";
 export * from "./components/ReportsView";
+export * from "./components/InventoryValuationView";
 export * from "./components/SettingsView";

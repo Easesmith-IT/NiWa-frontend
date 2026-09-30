@@ -382,6 +382,56 @@ export interface OverviewReconciliation {
   payables: ReconciliationResult;
 }
 
+export interface InventoryCostLayerItem {
+  layerId: string;
+  sourceType: string;
+  sourceId: string;
+  unitCost: number;
+  remainingQuantity: number;
+  layerTotal: number;
+  transactionDate: string;
+}
+
+export interface InventoryValuationItem {
+  productVariantId: string;
+  variantName: string;
+  sku: string | null;
+  locationId: string;
+  locationName: string;
+  totalQuantity: number;
+  totalValuation: number;
+  averageUnitCost: number;
+  layers: InventoryCostLayerItem[];
+}
+
+export interface InventoryValuationReport {
+  asOfDate: string;
+  totalValuation: number;
+  totalQuantity: number;
+  currency: string;
+  items: InventoryValuationItem[];
+}
+
+export interface InventoryDiscrepancy {
+  productVariantId: string;
+  variantName: string;
+  locationId: string;
+  subledgerQuantity: number;
+  operationalQuantity: number;
+  difference: number;
+}
+
+export interface InventoryReconciliationResult {
+  status: "MATCHED" | "WARNING" | "MISMATCH";
+  subledgerValuation: number;
+  generalLedgerBalance: number;
+  valuationDifference: number;
+  subledgerQuantity: number;
+  operationalQuantity: number;
+  quantityDifference: number;
+  discrepancies: InventoryDiscrepancy[];
+}
+
 export interface TaxConfiguration {
   _id: string;
   workspaceId: string;
@@ -699,6 +749,28 @@ export const financeApi = {
       statementBalance: data.statementBalance ?? data.statementClosingBalance ?? 0,
     };
     const res = await apiClient.post("/finance/reconciliation/bank", payload);
+    return res.data;
+  },
+
+  // Inventory Valuation & Subledger Reconciliation
+  getInventoryValuationReport: async (params?: {
+    locationId?: string;
+    productVariantId?: string;
+  }): Promise<{ success: boolean; data: InventoryValuationReport }> => {
+    const res = await apiClient.get("/finance/inventory-valuation", { params });
+    return res.data;
+  },
+
+  reconcileInventoryValuation: async (): Promise<{ success: boolean; data: InventoryReconciliationResult }> => {
+    const res = await apiClient.get("/finance/inventory-valuation/reconcile");
+    return res.data;
+  },
+
+  postOpeningInventoryValuation: async (data: {
+    items: any[];
+    valuationDate?: string;
+  }): Promise<{ success: boolean; data: any }> => {
+    const res = await apiClient.post("/finance/inventory-valuation/opening", data);
     return res.data;
   },
 
