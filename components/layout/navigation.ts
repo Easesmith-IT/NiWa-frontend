@@ -40,6 +40,7 @@ import {
   Wallet,
   FileSpreadsheet,
   Percent,
+  PhoneCall,
 } from "lucide-react";
 
 
@@ -318,6 +319,12 @@ export const navigationGroups: NavigationGroup[] = [
         icon: Sparkles,
         label: "AI Agent",
         description: "AI auto-reply settings, testing playground, and activity logs.",
+      },
+      {
+        href: "/ai-calling",
+        icon: PhoneCall,
+        label: "AI Calling",
+        description: "AI-powered inbound and outbound business calls.",
       },
       {
         href: "/automations",
