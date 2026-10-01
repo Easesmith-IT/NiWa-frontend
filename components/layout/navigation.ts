@@ -325,6 +325,7 @@ export const navigationGroups: NavigationGroup[] = [
         icon: PhoneCall,
         label: "AI Calling",
         description: "AI-powered inbound and outbound business calls.",
+        moduleKey: "ai_calling",
       },
       {
         href: "/automations",
