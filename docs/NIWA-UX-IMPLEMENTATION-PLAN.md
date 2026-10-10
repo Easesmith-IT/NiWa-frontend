@@ -3,8 +3,8 @@
 **Status:** Authoritative Engineering Implementation Plan  
 **Target Branch:** `main` (Implementation to occur on feature branches after audit approval)  
 **Documentation Branch:** `docs/unified-ux-navigation-spec`  
-**Frontend Commit Baseline:** `8d13907650f934ead0b0b6c9c63d5418eaa2a8e7`  
-**Backend Commit Baseline:** `9252386`  
+**Frontend Commit Baseline:** [`a08a3eefe7ff726e0f10314486d42bf465fbe4c6`](https://github.com/Easesmith-IT/NiWa-frontend/commit/a08a3eefe7ff726e0f10314486d42bf465fbe4c6)  
+**Backend Commit Baseline:** [`925238622f676b7db010373ab25114dc7448ebf5`](https://github.com/Easesmith-IT/NiWa-backend/commit/925238622f676b7db010373ab25114dc7448ebf5)  
 **Specification Reference:** `docs/NIWA-UNIFIED-UX-NAVIGATION-SPEC.md`  
 
 ---
@@ -16,6 +16,7 @@
 3. **No Unbacked Claims:** Frontend surfaces are created only against verified backend API contracts and database schemas. Missing backend capabilities identified in the audit (such as PO-to-bill bridging or multi-entity search) must be implemented with integration tests before frontend wiring.
 4. **Communication / WhatsApp Guardrail:** The existing WhatsApp conversation and real-time messaging pipeline must remain intact. Changes in the communication domain are strictly limited to the right-hand context drawer (`InboxContactSidebar`) for CRM linking and deal creation.
 5. **No Visual Novelty for its Own Sake:** All UI changes must directly solve identified usability defects, missing workflows, or context-loss issues identified in the audit.
+6. **Explicit Scope Exclusion (Email Automation):** Email automation is formally classified as **UNIMPLEMENTED / FUTURE ARCHITECTURE DEPENDENCY** and is excluded from all active implementation commitments.
 
 ---
 
@@ -23,7 +24,7 @@
 
 ```mermaid
 flowchart TD
-    P0["Phase 0: Security & Tenant Boundary Hardening (Search Workspace Scoping)"] --> P1["Phase 1: Global Application Shell & Responsive Foundation"]
+    P0["Phase 0: Security & Tenancy Boundary Hardening (Note Schema & Search Isolation)"] --> P1["Phase 1: Global Application Shell & Responsive Foundation"]
     P1 --> P2["Phase 2: Universal Search & Universal Create"]
     P1 --> P3["Phase 3: Standardized Record Detail Drawers & Shared Layouts"]
     P3 --> P4["Phase 4: CRM Foundations & Customer 360 Unification"]
@@ -46,16 +47,19 @@ flowchart TD
 Eliminate cross-workspace data leakage in global search and verify strict tenant isolation across all backend query pipelines.
 
 #### Tasks:
-1. **Backend Search Scoping:**
-   - Update `search.controller.ts`: Pass `req.workspaceId!` to `runGlobalSearch`.
-   - Update `search.service.ts`: Update `runGlobalSearch(workspaceId: string, params: ...)` to include `{ workspaceId }` in every `$or` query filter across `ContactModel`, `ConversationModel`, `MessageModel`, and `NoteModel`.
-   - Ensure `searchInboxThreads` enforces `{ workspaceId }` on all conversation aggregation stages.
-2. **Backend Automated Isolation Tests:**
-   - Create `src/modules/search/search-isolation.test.ts` with two isolated in-memory workspaces. Verify that query strings matching records in Workspace A yield zero results when executed from Workspace B.
+1. **Note Model Tenancy Partitioning:**
+   - In [`NiWa-backend/src/models/note.model.ts`](https://github.com/Easesmith-IT/NiWa-backend/blob/925238622f676b7db010373ab25114dc7448ebf5/src/models/note.model.ts): Add `workspaceId: { required: true, type: String, index: true }` to `noteSchema`.
+   - In [`NiWa-backend/src/modules/notes/notes.service.ts`](https://github.com/Easesmith-IT/NiWa-backend/blob/925238622f676b7db010373ab25114dc7448ebf5/src/modules/notes/notes.service.ts): Update `createNote` to assign `workspaceId` from the active context or contact.
+   - This automatically enables `workspaceIsolationPlugin` pre-hooks on all `NoteModel` operations (`find`, `findOne`, `countDocuments`).
+2. **Backend Search Scoping Hardening:**
+   - In [`NiWa-backend/src/modules/search/search.controller.ts`](https://github.com/Easesmith-IT/NiWa-backend/blob/925238622f676b7db010373ab25114dc7448ebf5/src/modules/search/search.controller.ts): Explicitly pass `req.workspaceId!` to `runGlobalSearch`.
+   - In [`NiWa-backend/src/modules/search/search.service.ts`](https://github.com/Easesmith-IT/NiWa-backend/blob/925238622f676b7db010373ab25114dc7448ebf5/src/modules/search/search.service.ts): Ensure queries against `ContactModel`, `ConversationModel`, `MessageModel`, and `NoteModel` explicitly incorporate `{ workspaceId }`.
+3. **Backend Automated Isolation Regression Tests:**
+   - Add automated test in `src/tests/workspace-isolation.test.ts` verifying that `NoteModel.find` throws when context is missing, and isolates notes strictly between Tenant A and Tenant B during search.
 
 #### Deliverables & Verification:
-- Modified files: `NiWa-backend/src/modules/search/search.controller.ts`, `NiWa-backend/src/modules/search/search.service.ts`.
-- Test command: `node --import tsx --test src/modules/search/search-isolation.test.ts` (100% pass).
+- Modified files: `NiWa-backend/src/models/note.model.ts`, `src/modules/notes/notes.service.ts`, `src/modules/search/search.controller.ts`, `src/modules/search/search.service.ts`.
+- Test command: `node --import tsx --test src/tests/workspace-isolation.test.ts` (100% pass).
 
 ---
 
@@ -65,15 +69,15 @@ Eliminate cross-workspace data leakage in global search and verify strict tenant
 Deliver a responsive, mobile-accessible application shell, dynamic module entitlement filtering in navigation, hierarchical breadcrumbs, and standardized error/module-disabled boundaries.
 
 #### Tasks:
-1. **Responsive Mobile Navigation (P0):**
+1. **Responsive Mobile Navigation (P0 Defect Resolution):**
    - In `components/layout/`, create `mobile-nav.tsx` using a Radix UI Sheet / Dialog primitive.
-   - Update `app-shell.tsx`: Manage `mobileNavOpen` state separately from desktop `sidebarCollapsed`.
-   - Update `topbar.tsx`: The hamburger button (`Menu`) triggers `mobileNavOpen`.
+   - Update [`components/layout/app-shell.tsx`](https://github.com/Easesmith-IT/NiWa-frontend/blob/a08a3eefe7ff726e0f10314486d42bf465fbe4c6/components/layout/app-shell.tsx): Manage `mobileNavOpen` state distinctly from desktop `sidebarCollapsed`.
+   - Update [`components/layout/topbar.tsx`](https://github.com/Easesmith-IT/NiWa-frontend/blob/a08a3eefe7ff726e0f10314486d42bf465fbe4c6/components/layout/topbar.tsx): The hamburger button (`Menu`) toggles `mobileNavOpen`, with proper `aria-expanded` and `aria-controls`.
    - In `mobile-nav.tsx`: Render `navigationGroups` filtered by enabled modules. Auto-close sheet when Next.js `pathname` changes. Trap focus and support Escape to close.
 2. **Dynamic Sidebar Entitlement Filtering (P1):**
-   - Update `lib/workspace/workspace-context.tsx`: Add `enabledModules: string[]` to `WorkspaceContext`. Query `/api/modules` on session load.
-   - Update `sidebar.tsx`: Replace direct `navigationGroups.map(...)` with `filterNavigationByModules(navigationGroups, enabledModules).map(...)`.
-   - Update `navigation.ts`: Add `moduleKey: "crm"` to the CRM navigation group.
+   - Update [`lib/workspace/workspace-context.tsx`](https://github.com/Easesmith-IT/NiWa-frontend/blob/a08a3eefe7ff726e0f10314486d42bf465fbe4c6/lib/workspace/workspace-context.tsx): Add `enabledModules: string[]` to `WorkspaceContext`. Query `/api/modules` on session load.
+   - Update [`components/layout/sidebar.tsx`](https://github.com/Easesmith-IT/NiWa-frontend/blob/a08a3eefe7ff726e0f10314486d42bf465fbe4c6/components/layout/sidebar.tsx): Replace direct `navigationGroups.map(...)` with `filterNavigationByModules(navigationGroups, enabledModules).map(...)`.
+   - Update [`components/layout/navigation.ts`](https://github.com/Easesmith-IT/NiWa-frontend/blob/a08a3eefe7ff726e0f10314486d42bf465fbe4c6/components/layout/navigation.ts): Add `moduleKey: "crm"` to the CRM navigation group.
 3. **Breadcrumbs & Contextual Headers:**
    - Create `components/layout/breadcrumbs.tsx` parsing route segments with human-readable labels (e.g. `/products/66d1...` -> `Products > Widget Pro`).
    - Remove hardcoded static "API Live" wifi pill from `topbar.tsx`. Replace with real WebSocket connection indicator or remove.
@@ -95,11 +99,11 @@ Transform the Command Palette into a comprehensive discovery and quick-creation 
 
 #### Tasks:
 1. **Universal Search Backend Expansion:**
-   - Extend `search.service.ts` to query `PersonModel`, `CompanyModel`, `DealModel`, `ProductModel`, `SalesOrderModel`, and `PurchaseOrderModel` (with limit 5 per entity and indexed regex matching on title, SKU, orderId, name).
+   - Extend [`src/modules/search/search.service.ts`](https://github.com/Easesmith-IT/NiWa-backend/blob/925238622f676b7db010373ab25114dc7448ebf5/src/modules/search/search.service.ts) to query `PersonModel`, `CompanyModel`, `DealModel`, `ProductModel`, `SalesOrderModel`, and `PurchaseOrderModel` (with limit 5 per entity and indexed regex matching on title, SKU, orderId, name).
    - Format response with grouped arrays: `contacts`, `conversations`, `people`, `companies`, `deals`, `products`, `salesOrders`, `purchaseOrders`.
 2. **Universal Search Frontend Wiring:**
-   - Update `features/search/search.types.ts` to mirror the extended backend response.
-   - Update `CommandPalette.tsx`: Render categorized search result groups with entity-specific icons and contextual subtitles (e.g., Order status, Product price, Deal value).
+   - Update [`features/search/search.types.ts`](https://github.com/Easesmith-IT/NiWa-frontend/blob/a08a3eefe7ff726e0f10314486d42bf465fbe4c6/features/search/search.types.ts) to mirror the extended backend response.
+   - Update [`CommandPalette.tsx`](https://github.com/Easesmith-IT/NiWa-frontend/blob/a08a3eefe7ff726e0f10314486d42bf465fbe4c6/components/layout/command-palette.tsx): Render categorized search result groups with entity-specific icons and contextual subtitles.
    - Fix navigation destinations:
      - Contact -> `/inbox?conversationId=${c.conversationId}` or `/contacts?id=${c._id}`
      - Person -> `/people?id=${p._id}`
@@ -110,7 +114,7 @@ Transform the Command Palette into a comprehensive discovery and quick-creation 
    - Create `components/layout/universal-create-modal.tsx` with clear, searchable action tiles:
      - *New Customer / Person* (opens Person quick form)
      - *New Deal* (opens Deal form)
-     - *New Sale / Order* (navigates to `/sales/orders` with create drawer open)
+     - *New Sale / Order* (navigates to `/sales/orders` with create modal open)
      - *New Product* (opens product quick creation)
      - *New Task* (opens Task quick creation with combobox linked records)
      - *New Purchase Order* (opens PO form)
@@ -169,9 +173,9 @@ Connect frontend record drawers to the verified backend Customer 360 engine, del
    - Wire the "Convert to Deal" button to backend `POST /api/crm/leads/:id/convert`.
    - Add "Leads" under the "CRM" group in `navigation.ts`.
 4. **Task Linked Record Combobox:**
-   - In `features/tasks/components/LinkedRecordSelector.tsx`: Replace raw text input with a searchable Combobox querying `/api/crm/people`, `/api/crm/companies`, and `/api/crm/deals`. Display name/title instead of hexadecimal IDs.
+   - In [`features/tasks/components/LinkedRecordSelector.tsx`](https://github.com/Easesmith-IT/NiWa-frontend/blob/a08a3eefe7ff726e0f10314486d42bf465fbe4c6/features/tasks/components/LinkedRecordSelector.tsx): Replace raw text input with a searchable Combobox querying `/api/crm/people`, `/api/crm/companies`, and `/api/crm/deals`. Display name/title instead of hexadecimal IDs.
 5. **Inbox ↔ CRM Contact Linking:**
-   - In `features/inbox/components/ContactProfileSection.tsx`: Add "Link to CRM Person" typeahead and "+ Create Person from Contact" button.
+   - In [`features/inbox/components/ContactProfileSection.tsx`](https://github.com/Easesmith-IT/NiWa-frontend/blob/a08a3eefe7ff726e0f10314486d42bf465fbe4c6/features/inbox/components/ContactProfileSection.tsx): Add "Link to CRM Person" typeahead and "+ Create Person from Contact" button.
    - When linked, store `contact.personId` via `POST /api/contacts/:id/link-person`, immediately unlocking Deals and Tasks inside `InboxContactSidebar`.
 
 #### Deliverables & Verification:
@@ -193,7 +197,7 @@ Surface the existing backend Quotations engine in the UI, enable quote-to-order 
    - Implement "Send Quote", "Accept Quote", and "Convert to Sales Order" (`POST /api/orders/convert-quote/:quoteId`).
    - Add "Quotations" under Sales in `navigation.ts`.
 2. **Customer Refunds UI:**
-   - In `app/(app)/sales/returns/page.tsx`: For any Return in `RECEIVED` status, add an "Issue Customer Refund" action button.
+   - In [`app/(app)/sales/returns/page.tsx`](https://github.com/Easesmith-IT/NiWa-frontend/blob/a08a3eefe7ff726e0f10314486d42bf465fbe4c6/app/%28app%29/sales/returns/page.tsx): For any Return in `RECEIVED` status, add an "Issue Customer Refund" action button.
    - Build `RefundModal.tsx` capturing refund amount, payment method (Bank, Cash, Credit Note), refund account, and reason. Submits to backend `POST /api/refunds`.
 
 #### Deliverables & Verification:
@@ -206,15 +210,18 @@ Surface the existing backend Quotations engine in the UI, enable quote-to-order 
 ### Phase 6: Purchasing & Procurement Lifecycle Completeness (P1 & P2)
 
 #### Objective
-Bridge goods receipt directly into Supplier Bill creation in Finance, and deliver the Purchase Returns UI.
+Bridge goods receipt directly into Supplier Bill creation in Finance with 3-way matching and duplicate prevention, and deliver the Purchase Returns UI.
 
 #### Tasks:
-1. **Goods Receipt → Supplier Bill Bridge:**
-   - Add a backend endpoint: `POST /api/purchasing/orders/:id/create-bill` in `purchasing.service.ts` that maps received items, supplier, currency, and quantities directly to a new `SupplierBill` in status `DRAFT`.
-   - In `app/(app)/purchasing/orders/[id]/page.tsx`: For any PO in `RECEIVED` status, show a primary action: *"Generate Supplier Bill"*.
-   - On click, create the draft bill and provide a direct link to review and approve it in `/finance/payables`.
+1. **Goods Receipt → Draft Supplier Bill Bridge:**
+   - In [`NiWa-backend/src/modules/purchasing/purchasing.service.ts`](https://github.com/Easesmith-IT/NiWa-backend/blob/925238622f676b7db010373ab25114dc7448ebf5/src/modules/purchasing/purchasing.service.ts): Add `createDraftBillFromPurchaseOrder(workspaceId, poId, input)`:
+     - Pre-fills supplier, received line items, and ordered unit prices.
+     - Creates a `SupplierBill` in status `DRAFT`.
+     - Tracks `billedQuantity` against PO lines to prevent duplicate billing beyond received amounts.
+   - In [`app/(app)/purchasing/orders/[id]/page.tsx`](https://github.com/Easesmith-IT/NiWa-frontend/blob/a08a3eefe7ff726e0f10314486d42bf465fbe4c6/app/%28app%29/purchasing/orders/%5Bid%5D/page.tsx): For any PO in `RECEIVED` or `PARTIALLY_RECEIVED` status with unbilled quantities, render a primary action: *"Create Draft Supplier Bill"*.
+   - On click, navigate to `/finance/payables` with the draft bill open for variance review and confirmation.
 2. **Purchase Returns UI:**
-   - Create `app/(app)/purchasing/returns/page.tsx` displaying purchase return history, items returned, and supplier credit status.
+   - Create `app/(app)/purchasing/returns/page.tsx` displaying purchase return history, items returned, and supplier debit note status.
    - Build `CreatePurchaseReturnModal.tsx` allowing users to select a received PO, choose return lines and quantities, and record the return via `POST /api/purchasing/returns`.
    - Add "Purchase Returns" under Purchasing in `navigation.ts`.
 
@@ -241,7 +248,7 @@ Expose the verified backend AI Calling capability in the frontend, refine the Au
 2. **Plain-Language Automation Builder Copy:**
    - Update `app/(app)/automations/page.tsx`: Replace raw technical strings (`incoming_message`, `create_task`) with plain language labels: *"When an incoming message arrives"*, *"Check these conditions"*, *"Then create a follow-up task"*.
 3. **Email Automation Specification Correction:**
-   - Update `NIWA-UNIFIED-UX-NAVIGATION-SPEC.md` to classify Email Automation as "UNIMPLEMENTED / FUTURE ARCHITECTURE DEPENDENCY". Ensure no phantom email options are rendered in the UI.
+   - Verify `NIWA-UNIFIED-UX-NAVIGATION-SPEC.md` classifies Email Automation as "UNIMPLEMENTED / FUTURE ARCHITECTURE DEPENDENCY". Ensure zero phantom email options are rendered in the UI.
 
 #### Deliverables & Verification:
 - New: `app/(app)/ai-calling/page.tsx`, `features/ai-calling/`.

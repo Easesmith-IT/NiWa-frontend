@@ -415,32 +415,33 @@ Run frontend typecheck, lint, unit tests, build, and relevant E2E tests. Run bac
 
 ## 30. Verified reality & closed audit findings
 
-The comprehensive code audit conducted against latest `main` (Frontend commit `a08a3ee`, Backend commit `9252386`) has formally verified each item. Detailed evidence and line references are recorded in `docs/NIWA-UX-CURRENT-STATE-AUDIT.md` and `docs/NIWA-UX-GAP-MATRIX.md`.
+The comprehensive code audit conducted against latest `main` (Frontend commit [`a08a3eefe7ff726e0f10314486d42bf465fbe4c6`](https://github.com/Easesmith-IT/NiWa-frontend/commit/a08a3eefe7ff726e0f10314486d42bf465fbe4c6), Backend commit [`925238622f676b7db010373ab25114dc7448ebf5`](https://github.com/Easesmith-IT/NiWa-backend/commit/925238622f676b7db010373ab25114dc7448ebf5)) has formally verified each item. Detailed evidence and line references are recorded in `docs/NIWA-UX-CURRENT-STATE-AUDIT.md` and `docs/NIWA-UX-GAP-MATRIX.md`.
 
 1. **Route Inventory & Route Guards:**
    - 45+ frontend routes exist across `app/(app)/`.
    - Client-side route guards for disabled modules or viewer roles do **not** exist.
    - Backend enforces `requireModuleEnabled` for `products`, `inventory`, `sales`, `purchasing`, `finance`, and `ai_calling`. Rejection returns HTTP 403 `MODULE_DISABLED`.
-2. **Command Palette & Search Sources:**
+2. **Command Palette & Search Security Revalidation:**
    - Command palette searches only Contacts and Conversations in the UI (messages and notes exist in API payload but are unrendered).
    - Global search queries only `ContactModel`, `ConversationModel`, `MessageModel`, `NoteModel`. Companies, Deals, Leads, Products, Orders, Invoices, and Tasks are **not** searchable.
-   - **P0 Defect:** Backend `runGlobalSearch` ([search.service.ts#L27-L78](file:///e:/easesmith/niwa/NiWa-backend/src/modules/search/search.service.ts#L27-L78)) does not scope queries by `workspaceId`.
+   - **CONFIRMED VULNERABILITY (Search Isolation):** Empirical execution of cross-workspace queries proved that while `ContactModel`, `ConversationModel`, and `MessageModel` are protected by `workspaceIsolationPlugin` via `AsyncLocalStorage` (`runWithWorkspace`), `NoteModel`'s schema ([src/models/note.model.ts](https://github.com/Easesmith-IT/NiWa-backend/blob/925238622f676b7db010373ab25114dc7448ebf5/src/models/note.model.ts)) lacks a `workspaceId` property. Because `workspaceIsolationPlugin` checks `if (!schema.path("workspaceId")) return;`, `NoteModel` completely bypasses tenant isolation. Unscoped `NoteModel.find({ content: regex })` in `runGlobalSearch` ([search.service.ts](https://github.com/Easesmith-IT/NiWa-backend/blob/925238622f676b7db010373ab25114dc7448ebf5/src/modules/search/search.service.ts#L69-L77)) leaks confidential notes across tenant boundaries. Smallest safe remediation: add `workspaceId: { required: true, type: String, index: true }` to `noteSchema`, populate on note creation, and add regression tests.
 3. **Universal Create:**
-   - **Missing.** No universal creation modal or drawer exists. Command palette "Create Contact" / "Create Automation" actions merely navigate to listing pages.
-4. **Email Automation:**
-   - **Unimplemented.** Zero email libraries (`nodemailer`, `@sendgrid/mail`, `resend`) in `package.json`. No email models, triggers, or workers exist anywhere in frontend or backend.
+   - **Missing.** No universal creation modal or drawer exists. Command palette "Create Contact" / "Create Automation" actions merely navigate to listing pages (`/contacts`, `/automations`).
+4. **Email Automation Scope Clarification:**
+   - **UNIMPLEMENTED / FUTURE ARCHITECTURE DEPENDENCY.** Zero email libraries (`nodemailer`, `@sendgrid/mail`, `resend`) in `package.json`. No email models, triggers, or workers exist anywhere in frontend or backend. Removed from active implementation commitments.
 5. **AI Calling:**
    - **Backend Verified / Frontend Missing.** Complete backend implementation exists on `main` (`src/modules/ai-calling/`, Plivo telephony, and Python `voice-runtime/`). Frontend has zero UI pages or components.
 6. **Customer 360 Aggregation:**
-   - **Backend Verified / Frontend Missing.** Full service exists at `GET /api/crm/customer-360/:recordType/:recordId` ([customer-360.service.ts](file:///e:/easesmith/niwa/NiWa-backend/src/modules/crm-core/customer-360.service.ts)), but frontend never queries it.
+   - **Backend Verified / Frontend Missing.** Full service exists at `GET /api/crm/customer-360/:recordType/:recordId` ([customer-360.service.ts](https://github.com/Easesmith-IT/NiWa-backend/blob/925238622f676b7db010373ab25114dc7448ebf5/src/modules/crm-core/customer-360.service.ts)), but frontend never queries it.
 7. **Mobile Navigation & Dynamic Entitlements:**
-   - **Mobile Broken:** Sidebar has `hidden lg:flex` and lacks a mobile drawer component.
+   - **Mobile Confirmed Broken:** [components/layout/sidebar.tsx](https://github.com/Easesmith-IT/NiWa-frontend/blob/a08a3eefe7ff726e0f10314486d42bf465fbe4c6/components/layout/sidebar.tsx#L27) has `hidden lg:flex`. The hamburger button toggles `sidebarCollapsed`, but on viewports `< 1024px` the sidebar remains display `none`. No mobile drawer/sheet exists.
    - **Entitlements Unwired:** `filterNavigationByModules` exists in `navigation.ts` but is never called by `sidebar.tsx`.
 8. **Commercial & Procurement Lifecycles:**
    - **Quotations:** Backend complete (`quotes.service.ts`, `/quotes`), frontend UI missing.
    - **Refunds:** Backend complete (`refunds.service.ts`, `/refunds`), frontend UI missing on returns page.
    - **Purchase Returns:** Backend complete (`purchasing.service.ts`, `/purchasing/returns`), frontend page missing.
-   - **PO-to-Bill Bridge:** Goods receipt updates inventory, but does not generate a Supplier Bill in Finance. Manual re-entry required.
+   - **PO-to-Bill Workflow:** Goods receipt updates inventory (GRN), but does not and should not automatically post a financial liability. Proper workflow requires an explicit user action to create a Draft Supplier Bill to support 3-way matching, partial receipts, freight/tax adjustments, and duplicate prevention.
 9. **Automation Catalog:**
    - Triggers strictly limited to `incoming_message` and `manual`. Steps strictly limited to `create_note`, `create_task`, `send_message`, `wait`.
+
 
