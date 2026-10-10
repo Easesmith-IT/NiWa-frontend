@@ -13,18 +13,22 @@ import {
   Plus,
   Search,
   Send,
+  Trash2,
   XCircle,
 } from "lucide-react";
 
 import { apiClient } from "../../../../lib/api/api-client";
 import { Button } from "../../../../components/ui/button";
 import { Input } from "../../../../components/ui/input";
+import { Textarea } from "../../../../components/ui/textarea";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "../../../../components/ui/dialog";
+import { productsApi, type ProductItem } from "../../../../lib/api/products-api";
+import type { CrmPerson, CrmCompany } from "../../../../lib/api/api-types";
 
 interface QuoteItem {
   _id?: string;
@@ -87,6 +91,173 @@ export default function QuotesPage() {
       apiClient.post(`/api/sales/quotes/${quoteId}/decline`, { reason }),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["sales-quotes"] }),
   });
+
+  // Quotation Create Form State
+  const [customerType, setCustomerType] = useState<"PERSON" | "COMPANY">("PERSON");
+  const [selectedCustomerId, setSelectedCustomerId] = useState("");
+  const [quoteCurrency, setQuoteCurrency] = useState("INR");
+  const [quoteValidUntil, setQuoteValidUntil] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 30);
+    return d.toISOString().split("T")[0];
+  });
+  const [quoteNotes, setQuoteNotes] = useState("");
+  const [quoteTerms, setQuoteTerms] = useState("");
+  const [quoteLines, setQuoteLines] = useState<
+    Array<{
+      productVariantId: string;
+      variantName: string;
+      quantity: number;
+      unitPrice: number;
+      taxRatePercent: number;
+    }>
+  >([]);
+  const [createError, setCreateError] = useState<string | null>(null);
+
+  const { data: peopleData } = useQuery({
+    queryKey: ["crm-people"],
+    queryFn: async () => {
+      const res = await apiClient.get<{ success: boolean; data: CrmPerson[] }>("/api/crm/people", {
+        params: { limit: 100 },
+      });
+      return res.data.data;
+    },
+  });
+
+  const { data: companiesData } = useQuery({
+    queryKey: ["crm-companies"],
+    queryFn: async () => {
+      const res = await apiClient.get<{ success: boolean; data: CrmCompany[] }>("/api/crm/companies", {
+        params: { limit: 100 },
+      });
+      return res.data.data;
+    },
+  });
+
+  const { data: productsData } = useQuery({
+    queryKey: ["products-list"],
+    queryFn: () => productsApi.getProducts({ limit: 100 }),
+  });
+
+  const resetCreateForm = () => {
+    setSelectedCustomerId("");
+    setCustomerType("PERSON");
+    setQuoteCurrency("INR");
+    const d = new Date();
+    d.setDate(d.getDate() + 30);
+    setQuoteValidUntil(d.toISOString().split("T")[0]);
+    setQuoteNotes("");
+    setQuoteTerms("");
+    setQuoteLines([]);
+    setCreateError(null);
+  };
+
+  const handleCloseCreateModal = () => {
+    setIsCreateModalOpen(false);
+    resetCreateForm();
+    if (searchParams?.has("action")) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("action");
+      const nextQuery = params.toString();
+      const currentPath = window.location.pathname || "/sales/quotes";
+      router.replace(nextQuery ? `${currentPath}?${nextQuery}` : currentPath, { scroll: false });
+    }
+  };
+
+  const createQuoteMutation = useMutation({
+    mutationFn: async (payload: any) => {
+      const res = await apiClient.post("/api/sales/quotes", payload);
+      return res.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["sales-quotes"] });
+      handleCloseCreateModal();
+    },
+    onError: (err: any) => {
+      setCreateError(err.response?.data?.message || err.message || "Failed to create quotation");
+    },
+  });
+
+  const handleAddQuoteLine = (variant: any, product: ProductItem) => {
+    const existingIndex = quoteLines.findIndex((l) => l.productVariantId === variant._id);
+    if (existingIndex >= 0) {
+      const updated = [...quoteLines];
+      updated[existingIndex].quantity += 1;
+      setQuoteLines(updated);
+    } else {
+      setQuoteLines([
+        ...quoteLines,
+        {
+          productVariantId: variant._id,
+          variantName: `${product.name} - ${variant.name}`,
+          quantity: 1,
+          unitPrice: variant.sellingPrice || product.sellingPrice || 0,
+          taxRatePercent: 0,
+        },
+      ]);
+    }
+  };
+
+  const handleRemoveQuoteLine = (index: number) => {
+    setQuoteLines(quoteLines.filter((_, i) => i !== index));
+  };
+
+  const handleUpdateQuoteLineQuantity = (index: number, qty: number) => {
+    if (qty < 1) return;
+    const updated = [...quoteLines];
+    updated[index].quantity = qty;
+    setQuoteLines(updated);
+  };
+
+  const handleUpdateQuoteLinePrice = (index: number, price: number) => {
+    if (price < 0) return;
+    const updated = [...quoteLines];
+    updated[index].unitPrice = price;
+    setQuoteLines(updated);
+  };
+
+  const previewSubtotal = useMemo(
+    () => quoteLines.reduce((sum, l) => sum + l.quantity * l.unitPrice, 0),
+    [quoteLines]
+  );
+  const previewTax = useMemo(
+    () =>
+      quoteLines.reduce(
+        (sum, l) => sum + (l.quantity * l.unitPrice * (l.taxRatePercent || 0)) / 100,
+        0
+      ),
+    [quoteLines]
+  );
+  const previewGrandTotal = previewSubtotal + previewTax;
+
+  const handleCreateQuoteSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCustomerId) {
+      setCreateError("Please select a customer.");
+      return;
+    }
+    if (quoteLines.length === 0) {
+      setCreateError("Please add at least one line item to the quotation.");
+      return;
+    }
+
+    const payload = {
+      customerType,
+      customerId: selectedCustomerId,
+      currency: quoteCurrency,
+      validUntil: quoteValidUntil ? new Date(quoteValidUntil).toISOString() : null,
+      notes: quoteNotes.trim() || null,
+      terms: quoteTerms.trim() || null,
+      lines: quoteLines.map((l) => ({
+        productVariantId: l.productVariantId,
+        quantity: l.quantity,
+        customUnitPrice: l.unitPrice,
+        taxRatePercent: l.taxRatePercent || 0,
+      })),
+    };
+
+    createQuoteMutation.mutate(payload);
+  };
 
   const filteredQuotes = useMemo(() => {
     return quotes.filter((q) => {
@@ -325,38 +496,285 @@ export default function QuotesPage() {
         )}
       </div>
 
-      {/* Quick Create Dialog */}
-      <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-        <DialogContent className="max-w-md p-6">
+      {/* Quotation Creation Dialog */}
+      <Dialog
+        open={isCreateModalOpen}
+        onOpenChange={(open) => {
+          if (!open) handleCloseCreateModal();
+        }}
+      >
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-6">
           <DialogHeader>
             <DialogTitle>New Quotation</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 pt-2">
-            <p className="text-xs text-muted-foreground">
-              To build full line items with products and catalog pricing, you can initiate a quotation or generate directly from an active deal in Deals Pipeline.
-            </p>
-            <div className="flex gap-2">
+
+          <form onSubmit={handleCreateQuoteSubmit} className="space-y-4 pt-2">
+            {createError && (
+              <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-xs text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300">
+                {createError}
+              </div>
+            )}
+
+            {/* Customer Selection */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
+                  Customer Type
+                </label>
+                <div className="flex rounded-md border border-[#E4E4E7] dark:border-[#303438] p-0.5 bg-[#FAFAFA] dark:bg-[#17191B]">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomerType("PERSON");
+                      setSelectedCustomerId("");
+                    }}
+                    className={`flex-1 py-1 text-xs font-medium rounded ${
+                      customerType === "PERSON"
+                        ? "bg-white dark:bg-[#202326] shadow-xs text-foreground font-semibold"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Individual (Person)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCustomerType("COMPANY");
+                      setSelectedCustomerId("");
+                    }}
+                    className={`flex-1 py-1 text-xs font-medium rounded ${
+                      customerType === "COMPANY"
+                        ? "bg-white dark:bg-[#202326] shadow-xs text-foreground font-semibold"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    Company
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
+                  Select {customerType === "PERSON" ? "Person" : "Company"} *
+                </label>
+                <select
+                  value={selectedCustomerId}
+                  onChange={(e) => setSelectedCustomerId(e.target.value)}
+                  className="w-full h-8 px-2.5 text-xs rounded-md border border-[#E4E4E7] dark:border-[#303438] bg-white dark:bg-[#17191B] text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                >
+                  <option value="">Select a customer...</option>
+                  {customerType === "PERSON"
+                    ? (peopleData || []).map((p) => (
+                        <option key={p._id} value={p._id}>
+                          {p.displayName || p.firstName + " " + p.lastName}
+                        </option>
+                      ))
+                    : (companiesData || []).map((c) => (
+                        <option key={c._id} value={c._id}>
+                          {c.name}
+                        </option>
+                      ))}
+                </select>
+              </div>
+            </div>
+
+            {/* Currency & Valid Until */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
+                  Currency
+                </label>
+                <select
+                  value={quoteCurrency}
+                  onChange={(e) => setQuoteCurrency(e.target.value)}
+                  className="w-full h-8 px-2.5 text-xs rounded-md border border-[#E4E4E7] dark:border-[#303438] bg-white dark:bg-[#17191B] text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
+                >
+                  <option value="INR">INR (₹)</option>
+                  <option value="USD">USD ($)</option>
+                  <option value="EUR">EUR (€)</option>
+                  <option value="GBP">GBP (£)</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
+                  Valid Until
+                </label>
+                <Input
+                  type="date"
+                  value={quoteValidUntil}
+                  onChange={(e) => setQuoteValidUntil(e.target.value)}
+                  className="h-8 text-xs"
+                />
+              </div>
+            </div>
+
+            {/* Product Items Selection */}
+            <div>
+              <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
+                Add Products & Line Items *
+              </label>
+              <div className="border border-[#E4E4E7] dark:border-[#303438] rounded-lg p-3 bg-[#FAFAFA] dark:bg-[#17191B] space-y-2">
+                <div className="max-h-28 overflow-y-auto space-y-1 niwa-scrollbar">
+                  {(productsData?.data || []).flatMap((p) =>
+                    (p.variants || []).map((v) => (
+                      <div
+                        key={v._id}
+                        className="flex justify-between items-center text-xs py-1 px-2 hover:bg-white dark:hover:bg-[#202326] rounded transition-colors"
+                      >
+                        <div className="truncate mr-2">
+                          <span className="font-semibold text-foreground">{p.name}</span>{" "}
+                          <span className="text-muted-foreground">— {v.name}</span>{" "}
+                          <span className="font-mono text-emerald-700 dark:text-emerald-400">
+                            ₹{v.sellingPrice || p.sellingPrice || 0}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleAddQuoteLine(v, p)}
+                          className="shrink-0 px-2 py-0.5 rounded bg-[#176B4D]/10 hover:bg-[#176B4D]/20 text-[#176B4D] dark:text-[#63B592] font-medium text-xs"
+                        >
+                          + Add
+                        </button>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Selected Lines Table */}
+            {quoteLines.length === 0 ? (
+              <div className="text-xs text-center py-4 text-muted-foreground border border-dashed border-[#E4E4E7] dark:border-[#303438] rounded-lg">
+                No items added yet. Click &quot;+ Add&quot; above to select products.
+              </div>
+            ) : (
+              <div className="border border-[#E4E4E7] dark:border-[#303438] rounded-lg overflow-hidden">
+                <table className="w-full text-xs text-left">
+                  <thead className="bg-[#FAFAFA] dark:bg-[#1F2225] text-muted-foreground uppercase text-[10px] font-semibold">
+                    <tr>
+                      <th className="p-2">Item</th>
+                      <th className="p-2 w-20">Qty</th>
+                      <th className="p-2 w-28">Price</th>
+                      <th className="p-2 w-20">Tax %</th>
+                      <th className="p-2 w-24 text-right">Total</th>
+                      <th className="p-2 w-8"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-[#E4E4E7] dark:divide-[#303438]">
+                    {quoteLines.map((line, idx) => (
+                      <tr key={line.productVariantId + idx}>
+                        <td className="p-2 font-medium text-foreground">{line.variantName}</td>
+                        <td className="p-2">
+                          <Input
+                            type="number"
+                            min="1"
+                            value={line.quantity}
+                            onChange={(e) => handleUpdateQuoteLineQuantity(idx, parseInt(e.target.value) || 1)}
+                            className="h-7 text-xs w-16"
+                          />
+                        </td>
+                        <td className="p-2">
+                          <Input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={line.unitPrice}
+                            onChange={(e) => handleUpdateQuoteLinePrice(idx, parseFloat(e.target.value) || 0)}
+                            className="h-7 text-xs w-24 font-mono"
+                          />
+                        </td>
+                        <td className="p-2">
+                          <Input
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={line.taxRatePercent}
+                            onChange={(e) => {
+                              const val = parseFloat(e.target.value) || 0;
+                              const updated = [...quoteLines];
+                              updated[idx].taxRatePercent = val;
+                              setQuoteLines(updated);
+                            }}
+                            className="h-7 text-xs w-16 font-mono"
+                          />
+                        </td>
+                        <td className="p-2 text-right font-mono font-semibold text-foreground">
+                          ₹{(line.quantity * line.unitPrice * (1 + (line.taxRatePercent || 0) / 100)).toFixed(2)}
+                        </td>
+                        <td className="p-2 text-center">
+                          <button
+                            type="button"
+                            onClick={() => handleRemoveQuoteLine(idx)}
+                            className="text-muted-foreground hover:text-rose-600 transition-colors"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Totals Summary */}
+            <div className="rounded-lg border border-[#E4E4E7] dark:border-[#303438] p-3 bg-[#FAFAFA] dark:bg-[#17191B] flex justify-between items-center text-xs">
+              <span className="text-muted-foreground">Summary</span>
+              <div className="flex gap-4 font-mono">
+                <span>Subtotal: ₹{previewSubtotal.toFixed(2)}</span>
+                <span>Tax: ₹{previewTax.toFixed(2)}</span>
+                <span className="font-bold text-foreground">Grand Total: ₹{previewGrandTotal.toFixed(2)}</span>
+              </div>
+            </div>
+
+            {/* Notes & Terms */}
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              <div>
+                <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
+                  Customer Notes
+                </label>
+                <Textarea
+                  placeholder="Special pricing, remarks, or proposal notes..."
+                  value={quoteNotes}
+                  onChange={(e) => setQuoteNotes(e.target.value)}
+                  className="text-xs h-16 resize-none"
+                />
+              </div>
+              <div>
+                <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
+                  Terms & Conditions
+                </label>
+                <Textarea
+                  placeholder="Payment terms, delivery estimates, validity..."
+                  value={quoteTerms}
+                  onChange={(e) => setQuoteTerms(e.target.value)}
+                  className="text-xs h-16 resize-none"
+                />
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex justify-end gap-2 pt-2 border-t border-[#E4E4E7] dark:border-[#303438]">
               <Button
-                onClick={() => {
-                  setIsCreateModalOpen(false);
-                  router.push("/deals");
-                }}
+                type="button"
                 variant="outline"
-                className="flex-1 text-xs"
+                size="sm"
+                onClick={handleCloseCreateModal}
+                className="text-xs"
               >
-                From Deal Pipeline
+                Cancel
               </Button>
               <Button
-                onClick={() => {
-                  setIsCreateModalOpen(false);
-                  router.push("/sales/orders");
-                }}
-                className="flex-1 bg-[#176B4D] text-xs text-white hover:bg-[#12583F]"
+                type="submit"
+                size="sm"
+                disabled={createQuoteMutation.isPending || quoteLines.length === 0 || !selectedCustomerId}
+                className="bg-[#176B4D] text-xs text-white hover:bg-[#12583F] dark:bg-[#208560] dark:hover:bg-[#176B4D]"
               >
-                Go to Sales Orders
+                {createQuoteMutation.isPending ? "Creating Quotation..." : "Create Quotation"}
               </Button>
             </div>
-          </div>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

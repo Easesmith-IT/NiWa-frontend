@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ShoppingBag,
@@ -68,6 +68,7 @@ interface CrmCompany {
 }
 
 export default function SalesOrdersPage() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
 
@@ -223,8 +224,7 @@ export default function SalesOrdersPage() {
     mutationFn: createSalesOrder,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders });
-      setIsCreateModalOpen(false);
-      resetCreateForm();
+      handleCloseCreateModal();
       setActionError(null);
     },
     onError: (err: any) => {
@@ -286,6 +286,18 @@ export default function SalesOrdersPage() {
     setOrderCustomFields({});
     setActionError(null);
   }
+
+  const handleCloseCreateModal = () => {
+    setIsCreateModalOpen(false);
+    resetCreateForm();
+    if (searchParams?.has("action")) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("action");
+      const nextQuery = params.toString();
+      const currentPath = window.location.pathname || "/sales/orders";
+      router.replace(nextQuery ? `${currentPath}?${nextQuery}` : currentPath, { scroll: false });
+    }
+  };
 
   function handleAddLine(variant: any, product: ProductItem) {
     // Check if variant already added
@@ -738,7 +750,12 @@ export default function SalesOrdersPage() {
 
       {/* CREATE ORDER MODAL */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) handleCloseCreateModal();
+          }}
+        >
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col border border-slate-200 dark:border-slate-800">
             {/* Modal Header */}
             <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
@@ -747,7 +764,8 @@ export default function SalesOrdersPage() {
                 <p className="text-xs text-slate-500">Draft a new commercial order with real CRM customer and product lines.</p>
               </div>
               <button
-                onClick={() => setIsCreateModalOpen(false)}
+                type="button"
+                onClick={handleCloseCreateModal}
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               >
                 ✕
@@ -1199,7 +1217,7 @@ export default function SalesOrdersPage() {
               <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3">
                 <button
                   type="button"
-                  onClick={() => setIsCreateModalOpen(false)}
+                  onClick={handleCloseCreateModal}
                   className="px-4 py-2 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                 >
                   Cancel

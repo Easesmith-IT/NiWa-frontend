@@ -19,8 +19,14 @@ export function useSearchOrchestration() {
   const hasError = globalSearchQuery.isError || inboxSearchQuery.isError;
   const hasResults =
     (totals?.contacts ?? 0) +
+      (totals?.conversations ?? 0) +
       (totals?.messages ?? 0) +
       (totals?.notes ?? 0) +
+      (totals?.products ?? 0) +
+      (totals?.salesOrders ?? 0) +
+      (totals?.purchaseOrders ?? 0) +
+      (totals?.deals ?? 0) +
+      (totals?.leads ?? 0) +
       (inboxSearchQuery.data?.metadata.total ?? 0) >
     0;
 

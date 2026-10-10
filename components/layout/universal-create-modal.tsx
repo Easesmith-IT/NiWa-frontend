@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   Briefcase,
@@ -147,10 +147,13 @@ export const UniversalCreateModal: React.FC<UniversalCreateModalProps> = ({
   const [search, setSearch] = useState("");
   const { isModuleEnabled } = useWorkspaceModules();
 
-  const navigateTo = (path: string) => {
-    onClose();
-    router.push(path);
-  };
+  const navigateTo = useCallback(
+    (path: string) => {
+      onClose();
+      router.push(path);
+    },
+    [onClose, router],
+  );
 
   const options: CreateOption[] = useMemo(() => {
     return UNIVERSAL_CREATE_CONFIG.map((cfg) => {
@@ -187,8 +190,7 @@ export const UniversalCreateModal: React.FC<UniversalCreateModalProps> = ({
         action,
       };
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onClose, onSelectLead, onSelectDeal, onSelectTask, onSelectContact]);
+  }, [navigateTo, onClose, onSelectLead, onSelectDeal, onSelectTask, onSelectContact]);
 
   const enabledOptions = useMemo(() => {
     return options.filter((opt) => !opt.moduleKey || isModuleEnabled(opt.moduleKey));

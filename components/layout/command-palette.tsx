@@ -1,13 +1,23 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { ArrowRight, Command, Search } from "lucide-react";
+import {
+  ArrowRight,
+  Briefcase,
+  Command,
+  Package,
+  Search,
+  ShoppingBag,
+  ShoppingCart,
+  Target,
+} from "lucide-react";
 import { useRouter } from "next/navigation";
 
 import { useGlobalSearchQuery } from "../../features/search";
 import { cn } from "../../lib/utils";
 import { Input } from "../ui/input";
 import { navigationGroups } from "./navigation";
+import { useWorkspaceModules } from "../../lib/workspace/use-workspace-modules";
 
 interface CommandPaletteProps {
   onClose: () => void;
@@ -36,6 +46,7 @@ export const CommandPalette = ({
   open,
 }: CommandPaletteProps) => {
   const router = useRouter();
+  const { isModuleEnabled } = useWorkspaceModules();
   const [query, setQuery] = useState("");
   const searchQuery = useGlobalSearchQuery({ limit: 5, query });
 
@@ -96,6 +107,38 @@ export const CommandPalette = ({
     });
   }, [query, quickCreateActions]);
 
+  const visibleConversations = searchQuery.data?.data.conversations ?? [];
+  const visibleContacts = searchQuery.data?.data.contacts ?? [];
+  const visibleNotes = searchQuery.data?.data.notes ?? [];
+  const visibleMessages = searchQuery.data?.data.messages ?? [];
+
+  const visibleProducts = isModuleEnabled("products")
+    ? (searchQuery.data?.data.products ?? [])
+    : [];
+  const visibleSalesOrders = isModuleEnabled("sales")
+    ? (searchQuery.data?.data.salesOrders ?? [])
+    : [];
+  const visiblePurchaseOrders = isModuleEnabled("purchasing")
+    ? (searchQuery.data?.data.purchaseOrders ?? [])
+    : [];
+  const visibleDeals = isModuleEnabled("crm")
+    ? (searchQuery.data?.data.deals ?? [])
+    : [];
+  const visibleLeads = isModuleEnabled("crm")
+    ? (searchQuery.data?.data.leads ?? [])
+    : [];
+
+  const hasAnyResults =
+    visibleConversations.length > 0 ||
+    visibleContacts.length > 0 ||
+    visibleNotes.length > 0 ||
+    visibleMessages.length > 0 ||
+    visibleProducts.length > 0 ||
+    visibleSalesOrders.length > 0 ||
+    visiblePurchaseOrders.length > 0 ||
+    visibleDeals.length > 0 ||
+    visibleLeads.length > 0;
+
   if (!open) {
     return null;
   }
@@ -123,7 +166,7 @@ export const CommandPalette = ({
               autoFocus
               className="h-10 border-0 bg-transparent pl-10 text-sm shadow-none focus:border-0 focus:ring-0"
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search contacts, conversations, notes, or jump to a page..."
+              placeholder="Search contacts, conversations, notes, products, orders, deals, or jump to a page..."
               value={query}
             />
           </div>
@@ -165,7 +208,7 @@ export const CommandPalette = ({
                 </div>
               ) : null}
 
-              {(searchQuery.data?.data.conversations ?? []).map((item) => (
+              {visibleConversations.map((item) => (
                 <button
                   className="block w-full rounded-md px-2.5 py-2.5 text-left transition-colors hover:bg-[#F4F4F5] dark:hover:bg-[#202326]"
                   key={item.conversation._id}
@@ -184,7 +227,7 @@ export const CommandPalette = ({
                 </button>
               ))}
 
-              {(searchQuery.data?.data.contacts ?? []).map((item) => (
+              {visibleContacts.map((item) => (
                 <button
                   className="block w-full rounded-md px-2.5 py-2.5 text-left transition-colors hover:bg-[#F4F4F5] dark:hover:bg-[#202326]"
                   key={item.contact._id}
@@ -202,7 +245,7 @@ export const CommandPalette = ({
                 </button>
               ))}
 
-              {(searchQuery.data?.data.notes ?? []).map((item) => (
+              {visibleNotes.map((item) => (
                 <button
                   className="block w-full rounded-md px-2.5 py-2.5 text-left transition-colors hover:bg-[#F4F4F5] dark:hover:bg-[#202326]"
                   key={item.note._id}
@@ -229,7 +272,7 @@ export const CommandPalette = ({
                 </button>
               ))}
 
-              {(searchQuery.data?.data.messages ?? []).map((item) => (
+              {visibleMessages.map((item) => (
                 <button
                   className="block w-full rounded-md px-2.5 py-2.5 text-left transition-colors hover:bg-[#F4F4F5] dark:hover:bg-[#202326]"
                   key={item.message._id}
@@ -256,21 +299,116 @@ export const CommandPalette = ({
                 </button>
               ))}
 
-              {query.trim() && !searchQuery.isPending && searchQuery.data && (
-                <div
-                  className={cn(
-                    "px-3 py-6 text-xs text-muted-foreground",
-                    searchQuery.data.data.contacts.length === 0 &&
-                      searchQuery.data.data.conversations.length === 0 &&
-                      searchQuery.data.data.messages.length === 0 &&
-                      searchQuery.data.data.notes.length === 0
-                      ? "block"
-                      : "hidden",
-                  )}
+              {visibleProducts.map((item) => (
+                <button
+                  className="block w-full rounded-md px-2.5 py-2.5 text-left transition-colors hover:bg-[#F4F4F5] dark:hover:bg-[#202326]"
+                  key={item._id}
+                  onClick={() => goTo(`/products/${encodeURIComponent(item._id)}`)}
+                  type="button"
                 >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                      <Package className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      <span>{item.name}</span>
+                    </p>
+                    <span className="shrink-0 text-[11px] text-muted-foreground">Product</span>
+                  </div>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    SKU: {item.productId} • {item.status}
+                  </p>
+                </button>
+              ))}
+
+              {visibleSalesOrders.map((item) => (
+                <button
+                  className="block w-full rounded-md px-2.5 py-2.5 text-left transition-colors hover:bg-[#F4F4F5] dark:hover:bg-[#202326]"
+                  key={item._id}
+                  onClick={() => goTo("/sales/orders")}
+                  type="button"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                      <ShoppingBag className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      <span>Order #{item.orderId}</span>
+                    </p>
+                    <span className="shrink-0 text-[11px] text-muted-foreground">Sales Order</span>
+                  </div>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    {item.customerName || "Customer"} • {item.status}
+                    {item.total != null ? ` • $${item.total.toLocaleString()}` : ""}
+                  </p>
+                </button>
+              ))}
+
+              {visiblePurchaseOrders.map((item) => (
+                <button
+                  className="block w-full rounded-md px-2.5 py-2.5 text-left transition-colors hover:bg-[#F4F4F5] dark:hover:bg-[#202326]"
+                  key={item._id}
+                  onClick={() => goTo("/purchasing/orders")}
+                  type="button"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                      <ShoppingCart className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      <span>PO #{item.orderId}</span>
+                    </p>
+                    <span className="shrink-0 text-[11px] text-muted-foreground">Purchase Order</span>
+                  </div>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    {item.supplierName || "Supplier"} • {item.status}
+                    {item.total != null ? ` • $${item.total.toLocaleString()}` : ""}
+                  </p>
+                </button>
+              ))}
+
+              {visibleDeals.map((item) => (
+                <button
+                  className="block w-full rounded-md px-2.5 py-2.5 text-left transition-colors hover:bg-[#F4F4F5] dark:hover:bg-[#202326]"
+                  key={item._id}
+                  onClick={() => goTo("/deals")}
+                  type="button"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                      <Briefcase className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      <span>{item.title}</span>
+                    </p>
+                    <span className="shrink-0 text-[11px] text-muted-foreground">Deal</span>
+                  </div>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    {item.status}
+                    {item.value != null ? ` • ${item.currency || "$"}${item.value.toLocaleString()}` : ""}
+                  </p>
+                </button>
+              ))}
+
+              {visibleLeads.map((item) => (
+                <button
+                  className="block w-full rounded-md px-2.5 py-2.5 text-left transition-colors hover:bg-[#F4F4F5] dark:hover:bg-[#202326]"
+                  key={item._id}
+                  onClick={() => goTo("/leads")}
+                  type="button"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                      <Target className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                      <span>{item.title}</span>
+                    </p>
+                    <span className="shrink-0 text-[11px] text-muted-foreground">Lead</span>
+                  </div>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    {item.status}
+                    {item.leadSource ? ` • Source: ${item.leadSource}` : ""}
+                    {item.value != null ? ` • $${item.value.toLocaleString()}` : ""}
+                  </p>
+                </button>
+              ))}
+
+              {query.trim() && !searchQuery.isPending && searchQuery.data && !hasAnyResults ? (
+                <div className="px-3 py-6 text-xs text-muted-foreground">
                   No records matched this search.
                 </div>
-              )}
+              ) : null}
 
               {searchQuery.isPending ? (
                 <div className="px-3 py-6 text-xs text-muted-foreground">Searching…</div>
