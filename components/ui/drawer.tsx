@@ -123,7 +123,7 @@ export function DrawerContent({
   children: React.ReactNode;
   className?: string;
   onInteractOutside?: (e: Event) => void;
-  side?: "right" | "bottom";
+  side?: "left" | "right" | "bottom";
 }) {
   const { open, onOpenChange, titleId, descriptionId, hasTitle, hasDescription } = useDrawerContext();
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -207,6 +207,8 @@ export function DrawerContent({
         "open:animate-in open:fade-in-0",
         side === "right" 
           ? "inset-y-0 right-0 h-full w-3/4 max-w-md border-l open:slide-in-from-right-full"
+          : side === "left"
+          ? "inset-y-0 left-0 h-full w-[280px] max-w-[85vw] border-r open:slide-in-from-left-full"
           : "inset-x-0 bottom-0 mt-auto h-auto max-h-[90vh] w-full border-t rounded-t-xl open:slide-in-from-bottom-full",
         className
       )}

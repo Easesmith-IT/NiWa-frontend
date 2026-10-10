@@ -11,19 +11,30 @@ import { navigationGroups } from "./navigation";
 
 interface CommandPaletteProps {
   onClose: () => void;
+  onOpenUniversalCreate?: () => void;
   open: boolean;
 }
 
 const primaryActions = [
   { href: "/inbox", label: "Open Inbox", keywords: ["conversation", "reply", "chat"] },
-  { href: "/contacts", label: "Create Contact", keywords: ["customer", "directory"] },
+  { href: "/contacts", label: "Open Contacts", keywords: ["customer", "directory", "people"] },
+  { href: "/crm/customer-360", label: "Customer 360", keywords: ["customer", "profile", "overview"] },
+  { href: "/deals", label: "Open Deals Pipeline", keywords: ["sales", "pipeline", "deals", "opportunities"] },
+  { href: "/leads", label: "Open Leads Management", keywords: ["prospects", "leads", "inbound"] },
+  { href: "/products", label: "Product Catalog", keywords: ["inventory", "skus", "items", "goods"] },
+  { href: "/sales/orders", label: "Sales Orders", keywords: ["orders", "sales", "invoicing"] },
+  { href: "/purchasing/orders", label: "Purchase Orders", keywords: ["procurement", "suppliers", "po"] },
   { href: "/automations", label: "Create Automation", keywords: ["workflow", "automation"] },
   { href: "/scheduled", label: "Schedule Message", keywords: ["queue", "follow-up"] },
   { href: "/templates", label: "Open Templates", keywords: ["whatsapp", "meta"] },
   { href: "/settings", label: "Open Settings", keywords: ["configuration", "account"] },
 ];
 
-export const CommandPalette = ({ onClose, open }: CommandPaletteProps) => {
+export const CommandPalette = ({
+  onClose,
+  onOpenUniversalCreate,
+  open,
+}: CommandPaletteProps) => {
   const router = useRouter();
   const [query, setQuery] = useState("");
   const searchQuery = useGlobalSearchQuery({ limit: 5, query });
@@ -49,10 +60,33 @@ export const CommandPalette = ({ onClose, open }: CommandPaletteProps) => {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [onClose, open]);
 
+  const quickCreateActions = useMemo(
+    () => [
+      {
+        action: () => {
+          onClose();
+          onOpenUniversalCreate?.();
+        },
+        href: "#create",
+        isSpecial: true,
+        keywords: ["new", "create", "lead", "deal", "task", "contact", "order", "product"],
+        label: "+ Create New Record…",
+      },
+      { href: "/products/new", label: "+ New Product", keywords: ["product", "sku", "create"] },
+      { href: "/purchasing/orders/new", label: "+ New Purchase Order", keywords: ["po", "procurement", "create"] },
+      { href: "/sales/quotes", label: "+ New Quotation", keywords: ["quote", "proposal", "estimate"] },
+    ],
+    [onClose, onOpenUniversalCreate],
+  );
+
   const filteredActions = useMemo(() => {
-    const source = [...primaryActions, ...navigationGroups.flatMap((group) => group.items)];
+    const source = [
+      ...quickCreateActions,
+      ...primaryActions,
+      ...navigationGroups.flatMap((group) => group.items),
+    ];
     if (!query.trim()) {
-      return source.slice(0, 8);
+      return source.slice(0, 10);
     }
 
     const needle = query.toLowerCase();
@@ -60,7 +94,7 @@ export const CommandPalette = ({ onClose, open }: CommandPaletteProps) => {
       const haystack = [item.label, ...(item.keywords ?? []), item.href].join(" ").toLowerCase();
       return haystack.includes(needle);
     });
-  }, [query]);
+  }, [query, quickCreateActions]);
 
   if (!open) {
     return null;
@@ -69,6 +103,14 @@ export const CommandPalette = ({ onClose, open }: CommandPaletteProps) => {
   const goTo = (href: string) => {
     router.push(href);
     onClose();
+  };
+
+  const handleActionClick = (action: (typeof filteredActions)[number]) => {
+    if ("action" in action && typeof action.action === "function") {
+      action.action();
+    } else {
+      goTo(action.href);
+    }
   };
 
   return (
@@ -95,9 +137,14 @@ export const CommandPalette = ({ onClose, open }: CommandPaletteProps) => {
             <div className="niwa-scrollbar max-h-[50vh] overflow-y-auto px-2 pb-2">
               {filteredActions.map((action) => (
                 <button
-                  className="flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-xs font-medium text-foreground transition-colors hover:bg-[#F4F4F5] focus:bg-[#F4F4F5] focus:outline-none dark:hover:bg-[#202326] dark:focus:bg-[#202326]"
+                  className={cn(
+                    "flex w-full items-center justify-between rounded-md px-2.5 py-2 text-left text-xs font-medium transition-colors hover:bg-[#F4F4F5] focus:bg-[#F4F4F5] focus:outline-none dark:hover:bg-[#202326] dark:focus:bg-[#202326]",
+                    "isSpecial" in action && action.isSpecial
+                      ? "text-[#176B4D] font-semibold hover:bg-[#EDF8F3] dark:text-[#63B592] dark:hover:bg-[#15271F]"
+                      : "text-foreground",
+                  )}
                   key={`${action.href}-${action.label}`}
-                  onClick={() => goTo(action.href)}
+                  onClick={() => handleActionClick(action)}
                   type="button"
                 >
                   <span>{action.label}</span>
@@ -114,7 +161,7 @@ export const CommandPalette = ({ onClose, open }: CommandPaletteProps) => {
             <div className="niwa-scrollbar max-h-[50vh] overflow-y-auto px-2 pb-2">
               {!query.trim() ? (
                 <div className="px-3 py-6 text-xs text-muted-foreground">
-                  Use <kbd className="rounded border border-[#E4E4E7] bg-[#FAFAFA] px-1 py-0.5 font-medium text-foreground dark:border-[#303438] dark:bg-[#1B1D20]">Ctrl + K</kbd> to jump between modules.
+                  Use <kbd className="rounded border border-[#E4E4E7] bg-[#FAFAFA] px-1 py-0.5 font-medium text-foreground dark:border-[#303438] dark:bg-[#1B1D20]">Ctrl + K</kbd> to jump between modules or search across all records.
                 </div>
               ) : null}
 
@@ -141,7 +188,7 @@ export const CommandPalette = ({ onClose, open }: CommandPaletteProps) => {
                 <button
                   className="block w-full rounded-md px-2.5 py-2.5 text-left transition-colors hover:bg-[#F4F4F5] dark:hover:bg-[#202326]"
                   key={item.contact._id}
-                  onClick={() => goTo("/contacts")}
+                  onClick={() => goTo(`/contacts?contactId=${encodeURIComponent(item.contact._id)}`)}
                   type="button"
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -151,6 +198,60 @@ export const CommandPalette = ({ onClose, open }: CommandPaletteProps) => {
                   <p className="mt-0.5 truncate text-xs text-muted-foreground">
                     {item.contact.phoneNumber}
                     {item.contact.company ? ` • ${item.contact.company}` : ""}
+                  </p>
+                </button>
+              ))}
+
+              {(searchQuery.data?.data.notes ?? []).map((item) => (
+                <button
+                  className="block w-full rounded-md px-2.5 py-2.5 text-left transition-colors hover:bg-[#F4F4F5] dark:hover:bg-[#202326]"
+                  key={item.note._id}
+                  onClick={() => {
+                    if (item.conversation?._id) {
+                      goTo(`/inbox?conversationId=${encodeURIComponent(item.conversation._id)}`);
+                    } else if (item.contact?._id) {
+                      goTo(`/contacts?contactId=${encodeURIComponent(item.contact._id)}`);
+                    } else {
+                      goTo("/inbox");
+                    }
+                  }}
+                  type="button"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs font-semibold text-foreground">
+                      {item.contact?.displayName || "Note"}
+                    </p>
+                    <span className="text-[11px] text-muted-foreground">Note</span>
+                  </div>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    {item.note.content}
+                  </p>
+                </button>
+              ))}
+
+              {(searchQuery.data?.data.messages ?? []).map((item) => (
+                <button
+                  className="block w-full rounded-md px-2.5 py-2.5 text-left transition-colors hover:bg-[#F4F4F5] dark:hover:bg-[#202326]"
+                  key={item.message._id}
+                  onClick={() => {
+                    if (item.message.conversationId) {
+                      goTo(`/inbox?conversationId=${encodeURIComponent(String(item.message.conversationId))}`);
+                    } else if (item.contact?._id) {
+                      goTo(`/contacts?contactId=${encodeURIComponent(item.contact._id)}`);
+                    } else {
+                      goTo("/inbox");
+                    }
+                  }}
+                  type="button"
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="text-xs font-semibold text-foreground">
+                      {item.contact?.displayName || item.message.from || "Message"}
+                    </p>
+                    <span className="text-[11px] text-muted-foreground">Message</span>
+                  </div>
+                  <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                    {item.message.previewText || "Message text"}
                   </p>
                 </button>
               ))}

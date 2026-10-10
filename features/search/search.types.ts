@@ -37,17 +37,67 @@ export interface SearchNoteResult {
   note: NoteRecord;
 }
 
+export interface SearchProductResult {
+  _id: string;
+  productId: string;
+  name: string;
+  description?: string | null;
+  status: string;
+}
+
+export interface SearchSalesOrderResult {
+  _id: string;
+  orderId: string;
+  customerName?: string | null;
+  status: string;
+  total?: number | null;
+}
+
+export interface SearchPurchaseOrderResult {
+  _id: string;
+  orderId: string;
+  supplierName?: string | null;
+  status: string;
+  total?: number | null;
+}
+
+export interface SearchDealResult {
+  _id: string;
+  title: string;
+  status: string;
+  value?: number | null;
+  currency?: string | null;
+}
+
+export interface SearchLeadResult {
+  _id: string;
+  title: string;
+  status: string;
+  leadSource?: string | null;
+  value?: number | null;
+}
+
 export interface GlobalSearchResponse {
   data: {
     contacts: SearchContactResult[];
     conversations: SearchConversationResult[];
     messages: SearchMessageResult[];
     notes: SearchNoteResult[];
+    products?: SearchProductResult[];
+    salesOrders?: SearchSalesOrderResult[];
+    purchaseOrders?: SearchPurchaseOrderResult[];
+    deals?: SearchDealResult[];
+    leads?: SearchLeadResult[];
     totals: {
       contacts: number;
       conversations: number;
       messages: number;
       notes: number;
+      products?: number;
+      salesOrders?: number;
+      purchaseOrders?: number;
+      deals?: number;
+      leads?: number;
     };
   };
 }

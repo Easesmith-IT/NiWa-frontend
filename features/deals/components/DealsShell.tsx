@@ -5,6 +5,7 @@ import { Input } from "../../../components/ui/input";
 import { usePipelinesQuery, useStagesQuery } from "../../pipelines/pipeline.queries";
 import { useArchiveDealMutation, useDealsQuery } from "../deal.queries";
 import { DealBoardView } from "./DealBoardView";
+import { DealDetailDrawer } from "./DealDetailDrawer";
 import { DealFormModal } from "./DealFormModal";
 import { DealListView } from "./DealListView";
 import { DealMoveModal } from "./DealMoveModal";
@@ -42,6 +43,7 @@ export const DealsShell: React.FC = () => {
 
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [editingDeal, setEditingDeal] = useState<DealRecord | null>(null);
+  const [detailDeal, setDetailDeal] = useState<DealRecord | null>(null);
 
   const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
   const [movingDeal, setMovingDeal] = useState<DealRecord | null>(null);
@@ -51,6 +53,10 @@ export const DealsShell: React.FC = () => {
   const handleOpenCreateDeal = () => {
     setEditingDeal(null);
     setIsFormModalOpen(true);
+  };
+
+  const handleOpenDetailDeal = (deal: DealRecord) => {
+    setDetailDeal(deal);
   };
 
   const handleOpenEditDeal = (deal: DealRecord) => {
@@ -217,7 +223,7 @@ export const DealsShell: React.FC = () => {
           <DealBoardView
             stages={stages}
             deals={pipelineDeals}
-            onEditDeal={handleOpenEditDeal}
+            onEditDeal={handleOpenDetailDeal}
             onMoveDeal={handleOpenMoveDeal}
           />
         ) : (
@@ -225,7 +231,7 @@ export const DealsShell: React.FC = () => {
             deals={pipelineDeals}
             pipelines={pipelines}
             stages={stages}
-            onEditDeal={handleOpenEditDeal}
+            onEditDeal={handleOpenDetailDeal}
             onMoveDeal={handleOpenMoveDeal}
             onArchiveDeal={handleArchiveDeal}
             activeSavedView={activeSavedView}
@@ -233,6 +239,21 @@ export const DealsShell: React.FC = () => {
         )
       }
     >
+      <DealDetailDrawer
+        deal={detailDeal}
+        isOpen={!!detailDeal}
+        onClose={() => setDetailDeal(null)}
+        onEdit={(deal) => {
+          setDetailDeal(null);
+          handleOpenEditDeal(deal);
+        }}
+        onMove={(deal) => {
+          setDetailDeal(null);
+          handleOpenMoveDeal(deal);
+        }}
+        stages={stages}
+        pipelineName={pipelines.find((p) => p._id === activePipelineId)?.name}
+      />
       <DealFormModal
         isOpen={isFormModalOpen}
         onClose={() => setIsFormModalOpen(false)}

@@ -569,3 +569,61 @@ export async function getCurrencies(): Promise<IsoCurrencyItem[]> {
   return res.data?.data || [];
 }
 
+// ==========================================
+// 5. CUSTOMER REFUNDS
+// ==========================================
+
+export interface CustomerRefundItem {
+  _id: string;
+  refundId: string;
+  customerId: string;
+  customerType: "PERSON" | "COMPANY";
+  customerDisplayName: string;
+  source: "SALES_RETURN" | "INVOICE" | "CUSTOMER_CREDIT";
+  salesReturnId?: string | null;
+  invoiceId?: string | null;
+  amount: number;
+  currency: string;
+  paymentMethod: PaymentMethod;
+  paymentAccountId?: string | null;
+  transactionReference?: string | null;
+  refundDate: string;
+  status: "COMPLETED" | "VOIDED";
+  notes?: string | null;
+  createdAt: string;
+}
+
+export interface CreateCustomerRefundInput {
+  customerId: string;
+  customerType: "PERSON" | "COMPANY";
+  amount: number;
+  paymentMethod: PaymentMethod;
+  currency?: string;
+  source?: "SALES_RETURN" | "INVOICE" | "CUSTOMER_CREDIT";
+  salesReturnId?: string | null;
+  invoiceId?: string | null;
+  refundDate?: string | null;
+  transactionReference?: string | null;
+  notes?: string | null;
+}
+
+export async function createCustomerRefund(
+  data: CreateCustomerRefundInput
+): Promise<CustomerRefundItem> {
+  const res = await apiClient.post<{ success: boolean; data: CustomerRefundItem }>(
+    "/api/sales/refunds",
+    data
+  );
+  return res.data.data;
+}
+
+export async function getCustomerRefunds(
+  params?: any
+): Promise<{ data: CustomerRefundItem[]; total: number }> {
+  const res = await apiClient.get<{ success: boolean; data: CustomerRefundItem[]; total: number }>(
+    "/api/sales/refunds",
+    { params }
+  );
+  return res.data;
+}
+

@@ -36,6 +36,7 @@ import {
   ReceivePurchaseOrderInput,
   CreatePurchaseReturnInput,
 } from "lib/api/purchasing-api";
+import { financeApi, Account } from "lib/api/finance-api";
 import { queryKeys } from "lib/api/query-keys";
 import { formatCurrency } from "features/sales/utils/currency-formatter";
 import { useWorkspace } from "lib/workspace/workspace-context";
@@ -53,6 +54,18 @@ export default function PurchaseOrderDetailPage() {
   const [isReceiveModalOpen, setIsReceiveModalOpen] = useState(false);
   const [isReturnModalOpen, setIsReturnModalOpen] = useState(false);
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
+  const [isBillModalOpen, setIsBillModalOpen] = useState(false);
+
+  // Form states for Draft Supplier Bill modal
+  const [billNumber, setBillNumber] = useState("");
+  const [billDate, setBillDate] = useState(new Date().toISOString().split("T")[0]);
+  const [dueDate, setDueDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 30);
+    return d.toISOString().split("T")[0];
+  });
+  const [selectedAccountId, setSelectedAccountId] = useState("");
+  const [billNotes, setBillNotes] = useState("");
 
   // Form states for Receive Stock modal
   const [receiveQuantities, setReceiveQuantities] = useState<Record<string, number>>({});
@@ -96,7 +109,42 @@ export default function PurchaseOrderDetailPage() {
 
   const returns: PurchaseReturn[] = returnsResponse?.data || [];
 
+  // 3. Fetch Existing Supplier Bills for this order
+  const { data: existingBillsResponse } = useQuery({
+    queryKey: ["finance", "bills", { purchaseOrderId: order?._id }],
+    queryFn: () => financeApi.getSupplierBills({ purchaseOrderId: order?._id }),
+    enabled: !!order?._id,
+  });
+
+  const existingBill = existingBillsResponse?.items?.[0];
+
+  // 4. Fetch Asset Accounts for Bill Creation
+  const { data: accountsResponse } = useQuery({
+    queryKey: queryKeys.finance.accounts,
+    queryFn: () => financeApi.getAccounts({ type: "ASSET" }),
+    enabled: isBillModalOpen,
+  });
+
+  const assetAccounts = (accountsResponse?.data || []).filter(
+    (a: Account) => a.allowPosting && a.isActive
+  );
+
   // Mutations
+  const createBillMutation = useMutation({
+    mutationFn: (data: any) => financeApi.createSupplierBill(data),
+    onSuccess: (newBill) => {
+      queryClient.invalidateQueries({ queryKey: ["finance", "bills"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.purchaseOrder(orderIdParam) });
+      setIsBillModalOpen(false);
+      setActionSuccess(`Draft Supplier Bill created successfully: ${newBill.data.billId}`);
+      setActionError(null);
+    },
+    onError: (err: any) => {
+      setActionError(err.response?.data?.message || err.message || "Failed to create supplier bill");
+      setActionSuccess(null);
+    },
+  });
+
   const orderMutation = useMutation({
     mutationFn: () => purchasingApi.orderPurchaseOrder(order!._id),
     onSuccess: () => {
@@ -274,6 +322,56 @@ export default function PurchaseOrderDetailPage() {
     });
   }
 
+  const defaultAccount =
+    assetAccounts.find(
+      (a: Account) => a.code === "1040" || a.name.toLowerCase().includes("inventory")
+    ) || assetAccounts[0];
+  const effectiveAccountId = selectedAccountId || defaultAccount?._id || "";
+
+  function handleSubmitBill(e: React.FormEvent) {
+    e.preventDefault();
+    if (!order) return;
+    if (!effectiveAccountId) {
+      setActionError("Please select an active asset/inventory account");
+      return;
+    }
+    if (!billNumber.trim()) {
+      setActionError("Please enter a supplier invoice/bill number");
+      return;
+    }
+
+    const lines = order.items.map((item) => {
+      const qty =
+        item.receivedQuantity && item.receivedQuantity > 0
+          ? item.receivedQuantity
+          : item.orderedQuantity;
+      return {
+        classification: "INVENTORY" as const,
+        accountId: effectiveAccountId,
+        description: `${item.productName} - ${item.variantName}`,
+        quantity: qty,
+        unitPrice: item.purchasePrice,
+        taxRatePercent: item.taxRatePercent || 0,
+        lineTotal: qty * item.purchasePrice,
+      };
+    });
+
+    createBillMutation.mutate({
+      supplierId:
+        order.supplierId ||
+        (order.supplier as any).supplierId ||
+        (order.supplier as any)._id,
+      purchaseOrderId: order._id,
+      billNumber: billNumber.trim(),
+      billDate,
+      dueDate,
+      currency: order.currency,
+      status: "DRAFT",
+      lines,
+      notes: billNotes.trim() || undefined,
+    });
+  }
+
   // Badges
   function getStatusBadge(status: PurchaseOrderStatus) {
     switch (status) {
@@ -436,6 +534,32 @@ export default function PurchaseOrderDetailPage() {
                   <RotateCcw className="w-3.5 h-3.5 text-muted-foreground" />
                   Return Items
                 </button>
+              )}
+
+              {/* PO to Supplier Bill Bridge */}
+              {(order.status === "PARTIALLY_RECEIVED" || order.status === "RECEIVED") && (
+                existingBill ? (
+                  <Link
+                    href="/finance/payables"
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-300 text-xs font-medium transition-colors"
+                  >
+                    <Receipt className="w-3.5 h-3.5" />
+                    Bill: {existingBill.billId} ({existingBill.status})
+                  </Link>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setBillNumber(`INV-${order.orderId}`);
+                      setActionError(null);
+                      setIsBillModalOpen(true);
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-[#E4E4E7] dark:border-[#24272A] bg-card hover:bg-zinc-100 dark:hover:bg-zinc-800 text-foreground text-xs font-medium transition-colors shadow-sm"
+                  >
+                    <Receipt className="w-3.5 h-3.5 text-[#176B4D]" />
+                    Create Draft Supplier Bill
+                  </button>
+                )
               )}
 
               {canCancel && (
@@ -1128,6 +1252,161 @@ export default function PurchaseOrderDetailPage() {
                 Confirm Cancellation
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 4. DRAFT SUPPLIER BILL MODAL                                              */}
+      {/* ========================================================================= */}
+      {isBillModalOpen && (
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 overflow-y-auto">
+          <div className="bg-card border border-[#E4E4E7] dark:border-[#24272A] rounded-2xl w-full max-w-xl overflow-hidden shadow-2xl p-6 my-8 space-y-4 animate-in fade-in zoom-in-95 duration-150">
+            <div className="flex items-center justify-between border-b border-[#E4E4E7] dark:border-[#24272A] pb-3">
+              <h3 className="text-base font-bold text-foreground flex items-center gap-2">
+                <Receipt className="w-5 h-5 text-[#176B4D]" />
+                Create Draft Supplier Bill
+              </h3>
+              <button
+                onClick={() => setIsBillModalOpen(false)}
+                className="p-1 rounded-lg text-muted-foreground hover:bg-zinc-100 dark:hover:bg-zinc-800"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-muted-foreground">
+              Create an unposted draft bill in Finance Payables for Purchase Order{" "}
+              <span className="font-mono font-bold text-foreground">{order.orderId}</span>.
+              This bridges purchasing with accounts payable while preserving draft accounting isolation.
+            </p>
+
+            <form onSubmit={handleSubmitBill} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-foreground">
+                    Supplier Invoice # *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={billNumber}
+                    onChange={(e) => setBillNumber(e.target.value)}
+                    placeholder="e.g. INV-2026-001"
+                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-[#E4E4E7] dark:border-[#24272A] bg-background text-foreground"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-foreground">
+                    Inventory Asset Account *
+                  </label>
+                  <select
+                    value={effectiveAccountId}
+                    onChange={(e) => setSelectedAccountId(e.target.value)}
+                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-[#E4E4E7] dark:border-[#24272A] bg-background text-foreground"
+                    required
+                  >
+                    {assetAccounts.length === 0 ? (
+                      <option value="">Loading accounts...</option>
+                    ) : (
+                      assetAccounts.map((acc: Account) => (
+                        <option key={acc._id} value={acc._id}>
+                          {acc.code} — {acc.name} ({acc.subtype})
+                        </option>
+                      ))
+                    )}
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-foreground">
+                    Bill Date
+                  </label>
+                  <input
+                    type="date"
+                    value={billDate}
+                    onChange={(e) => setBillDate(e.target.value)}
+                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-[#E4E4E7] dark:border-[#24272A] bg-background text-foreground"
+                  />
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-xs font-semibold text-foreground">
+                    Due Date
+                  </label>
+                  <input
+                    type="date"
+                    value={dueDate}
+                    onChange={(e) => setDueDate(e.target.value)}
+                    className="w-full px-3 py-1.5 text-xs rounded-lg border border-[#E4E4E7] dark:border-[#24272A] bg-background text-foreground"
+                  />
+                </div>
+              </div>
+
+              {/* Items Summary preview */}
+              <div className="space-y-1.5">
+                <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Billed Items Preview ({order.items.length})
+                </div>
+                <div className="border border-[#E4E4E7] dark:border-[#24272A] rounded-xl max-h-40 overflow-y-auto divide-y divide-zinc-100 dark:divide-zinc-800">
+                  {order.items.map((it) => {
+                    const qty =
+                      it.receivedQuantity && it.receivedQuantity > 0
+                        ? it.receivedQuantity
+                        : it.orderedQuantity;
+                    return (
+                      <div key={it._id} className="p-2.5 text-xs flex justify-between items-center">
+                        <div>
+                          <div className="font-semibold text-foreground">{it.productName}</div>
+                          <div className="text-[11px] text-muted-foreground font-mono">
+                            {qty} {it.unitCode || "PCS"} @ {formatCurrency(it.purchasePrice, order.currency)}
+                          </div>
+                        </div>
+                        <div className="font-mono font-medium text-foreground">
+                          {formatCurrency(qty * it.purchasePrice, order.currency)}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-foreground">
+                  Notes / Terms (Optional)
+                </label>
+                <textarea
+                  rows={2}
+                  value={billNotes}
+                  onChange={(e) => setBillNotes(e.target.value)}
+                  placeholder="Notes for finance team..."
+                  className="w-full px-3 py-1.5 text-xs rounded-lg border border-[#E4E4E7] dark:border-[#24272A] bg-background text-foreground placeholder:text-muted-foreground"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2.5 border-t border-[#E4E4E7] dark:border-[#24272A] pt-4">
+                <button
+                  type="button"
+                  onClick={() => setIsBillModalOpen(false)}
+                  className="px-4 py-2 text-xs font-medium text-muted-foreground hover:text-foreground border border-[#E4E4E7] dark:border-[#24272A] rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={createBillMutation.isPending}
+                  className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#176B4D] hover:bg-[#13573E] text-white text-xs font-medium transition-colors shadow-sm disabled:opacity-50"
+                >
+                  {createBillMutation.isPending ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Receipt className="w-3.5 h-3.5" />
+                  )}
+                  Create Draft Bill
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

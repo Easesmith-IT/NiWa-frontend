@@ -40,6 +40,9 @@ import {
   Wallet,
   FileSpreadsheet,
   Percent,
+  Target,
+  UserCheck,
+  PhoneCall,
 } from "lucide-react";
 
 
@@ -149,12 +152,26 @@ export const navigationGroups: NavigationGroup[] = [
         description: "Replenish stock, supplier orders, and receiving.",
         moduleKey: "purchasing",
       },
+      {
+        href: "/purchasing/returns",
+        icon: RotateCcw,
+        label: "Returns",
+        description: "Supplier returns, debit notes, and stock deduction.",
+        moduleKey: "purchasing",
+      },
     ],
   },
   {
     label: "Sales",
     moduleKey: "sales",
     items: [
+      {
+        href: "/sales/quotes",
+        icon: FileText,
+        label: "Quotes",
+        description: "Customer price quotations, proposals, and orders conversion.",
+        moduleKey: "sales",
+      },
       {
         href: "/sales/orders",
         icon: ShoppingBag,
@@ -291,6 +308,18 @@ export const navigationGroups: NavigationGroup[] = [
         description: "B2B accounts, organizations, and industry details.",
       },
       {
+        href: "/crm/customer-360",
+        icon: UserCheck,
+        label: "Customer 360",
+        description: "Unified customer identity, communication, and deal history.",
+      },
+      {
+        href: "/leads",
+        icon: Target,
+        label: "Leads",
+        description: "Inbound prospects, qualification, and deal conversions.",
+      },
+      {
         href: "/deals",
         icon: Briefcase,
         label: "Deals",
@@ -348,6 +377,13 @@ export const navigationGroups: NavigationGroup[] = [
         icon: Slash,
         label: "Quick Replies",
         description: "Reusable shortcut replies and variables.",
+      },
+      {
+        href: "/ai-calling",
+        icon: PhoneCall,
+        label: "AI Calling",
+        description: "AI voice call sessions, recordings, transcripts, and handoffs.",
+        moduleKey: "ai_calling",
       },
     ],
   },
