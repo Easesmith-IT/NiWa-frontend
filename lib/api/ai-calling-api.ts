@@ -71,3 +71,24 @@ export async function getAICallTranscript(callId: string): Promise<{ turns: Tran
   );
   return res.data;
 }
+
+export async function getAICallRecordingBlob(callId: string): Promise<Blob> {
+  const res = await apiClient.get(`/api/ai-calling/calls/${callId}/recording/stream`, {
+    responseType: "blob",
+  });
+  return res.data;
+}
+
+export async function downloadAICallRecordingFile(callId: string, filename?: string): Promise<void> {
+  const res = await apiClient.get(`/api/ai-calling/calls/${callId}/recording/download`, {
+    responseType: "blob",
+  });
+  const url = window.URL.createObjectURL(new Blob([res.data]));
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", filename || `call-${callId}-recording.mp3`);
+  document.body.appendChild(link);
+  link.click();
+  link.parentNode?.removeChild(link);
+  window.URL.revokeObjectURL(url);
+}

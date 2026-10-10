@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import React, { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowRight,
@@ -50,10 +50,17 @@ interface QuoteItem {
 
 export default function QuotesPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (searchParams?.get("action") === "create") {
+      setIsCreateModalOpen(true);
+    }
+  }, [searchParams]);
 
   const { data: quotes = [], isLoading, isError, error } = useQuery<QuoteItem[]>({
     queryKey: ["sales-quotes", statusFilter],

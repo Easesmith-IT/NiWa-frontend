@@ -22,6 +22,7 @@ import {
   DialogTitle,
 } from "../ui/dialog";
 import { Input } from "../ui/input";
+import { useWorkspaceModules } from "../../lib/workspace/use-workspace-modules";
 
 export interface UniversalCreateModalProps {
   isOpen: boolean;
@@ -32,11 +33,103 @@ export interface UniversalCreateModalProps {
   onSelectContact: () => void;
 }
 
-interface CreateOption {
+export interface CreateOptionConfig {
   id: string;
   title: string;
   description: string;
   category: "CRM & Sales" | "Operations & Inventory" | "Productivity";
+  moduleKey?: string;
+  directRoute?: string;
+  modalAction?: "lead" | "deal" | "contact" | "task";
+}
+
+export const UNIVERSAL_CREATE_CONFIG: CreateOptionConfig[] = [
+  {
+    id: "lead",
+    title: "New Lead",
+    description: "Capture potential prospect with source, expected value, and contact.",
+    category: "CRM & Sales",
+    moduleKey: "crm",
+    modalAction: "lead",
+  },
+  {
+    id: "deal",
+    title: "New Deal",
+    description: "Track pipeline opportunity, stage progress, and revenue potential.",
+    category: "CRM & Sales",
+    moduleKey: "crm",
+    modalAction: "deal",
+  },
+  {
+    id: "quote",
+    title: "New Quotation",
+    description: "Prepare customer quotation with pricing, taxes, and expiration.",
+    category: "CRM & Sales",
+    moduleKey: "sales",
+    directRoute: "/sales/quotes?action=create",
+  },
+  {
+    id: "sales-order",
+    title: "New Sales Order",
+    description: "Generate sales order for fulfillment and invoicing.",
+    category: "CRM & Sales",
+    moduleKey: "sales",
+    directRoute: "/sales/orders?action=create",
+  },
+  {
+    id: "contact",
+    title: "New Contact",
+    description: "Create customer or company record with phone and WhatsApp info.",
+    category: "CRM & Sales",
+    moduleKey: "crm",
+    modalAction: "contact",
+  },
+  {
+    id: "product",
+    title: "New Product",
+    description: "Add inventory SKU, variant options, pricing, and unit assignments.",
+    category: "Operations & Inventory",
+    moduleKey: "products",
+    directRoute: "/products/new",
+  },
+  {
+    id: "purchase-order",
+    title: "New Purchase Order",
+    description: "Procure inventory items and raw stock from verified suppliers.",
+    category: "Operations & Inventory",
+    moduleKey: "purchasing",
+    directRoute: "/purchasing/orders/new",
+  },
+  {
+    id: "task",
+    title: "New Task",
+    description: "Schedule follow-up, customer action, or team deadline.",
+    category: "Productivity",
+    moduleKey: "crm",
+    modalAction: "task",
+  },
+];
+
+export function filterCreateOptionsByEnabledModules(
+  config: CreateOptionConfig[],
+  enabledModuleKeys: Set<string> | string[]
+): CreateOptionConfig[] {
+  const set = enabledModuleKeys instanceof Set ? enabledModuleKeys : new Set(enabledModuleKeys);
+  return config.filter((opt) => !opt.moduleKey || set.has(opt.moduleKey));
+}
+
+const OPTION_ICONS: Record<string, React.ElementType> = {
+  lead: Target,
+  deal: Briefcase,
+  quote: FileText,
+  "sales-order": ShoppingBag,
+  contact: UserPlus,
+  product: PackagePlus,
+  "purchase-order": ShoppingCart,
+  task: CheckSquare,
+};
+
+interface CreateOption extends CreateOptionConfig {
   icon: React.ElementType;
   badge?: string;
   action: () => void;
@@ -52,105 +145,65 @@ export const UniversalCreateModal: React.FC<UniversalCreateModalProps> = ({
 }) => {
   const router = useRouter();
   const [search, setSearch] = useState("");
+  const { isModuleEnabled } = useWorkspaceModules();
 
   const navigateTo = (path: string) => {
     onClose();
     router.push(path);
   };
 
-  const options: CreateOption[] = useMemo(
-    () => [
-      {
-        id: "lead",
-        title: "New Lead",
-        description: "Capture potential prospect with source, expected value, and contact.",
-        category: "CRM & Sales",
-        icon: Target,
-        action: () => {
+  const options: CreateOption[] = useMemo(() => {
+    return UNIVERSAL_CREATE_CONFIG.map((cfg) => {
+      let action: () => void;
+      if (cfg.modalAction === "lead") {
+        action = () => {
           onClose();
           onSelectLead();
-        },
-      },
-      {
-        id: "deal",
-        title: "New Deal",
-        description: "Track pipeline opportunity, stage progress, and revenue potential.",
-        category: "CRM & Sales",
-        icon: Briefcase,
-        action: () => {
+        };
+      } else if (cfg.modalAction === "deal") {
+        action = () => {
           onClose();
           onSelectDeal();
-        },
-      },
-      {
-        id: "quote",
-        title: "New Quotation",
-        description: "Prepare customer quotation with pricing, taxes, and expiration.",
-        category: "CRM & Sales",
-        icon: FileText,
-        action: () => navigateTo("/sales/quotes"),
-      },
-      {
-        id: "sales-order",
-        title: "New Sales Order",
-        description: "Generate sales order for fulfillment and invoicing.",
-        category: "CRM & Sales",
-        icon: ShoppingBag,
-        action: () => navigateTo("/sales/orders"),
-      },
-      {
-        id: "contact",
-        title: "New Contact",
-        description: "Create customer or company record with phone and WhatsApp info.",
-        category: "CRM & Sales",
-        icon: UserPlus,
-        action: () => {
+        };
+      } else if (cfg.modalAction === "contact") {
+        action = () => {
           onClose();
           onSelectContact();
-        },
-      },
-      {
-        id: "product",
-        title: "New Product",
-        description: "Add inventory SKU, variant options, pricing, and unit assignments.",
-        category: "Operations & Inventory",
-        icon: PackagePlus,
-        action: () => navigateTo("/products/new"),
-      },
-      {
-        id: "purchase-order",
-        title: "New Purchase Order",
-        description: "Procure inventory items and raw stock from verified suppliers.",
-        category: "Operations & Inventory",
-        icon: ShoppingCart,
-        action: () => navigateTo("/purchasing/orders/new"),
-      },
-      {
-        id: "task",
-        title: "New Task",
-        description: "Schedule follow-up, customer action, or team deadline.",
-        category: "Productivity",
-        icon: CheckSquare,
-        action: () => {
+        };
+      } else if (cfg.modalAction === "task") {
+        action = () => {
           onClose();
           onSelectTask();
-        },
-      },
-    ],
+        };
+      } else if (cfg.directRoute) {
+        action = () => navigateTo(cfg.directRoute!);
+      } else {
+        action = () => onClose();
+      }
+
+      return {
+        ...cfg,
+        icon: OPTION_ICONS[cfg.id] || Plus,
+        action,
+      };
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [onClose, onSelectLead, onSelectDeal, onSelectTask, onSelectContact],
-  );
+  }, [onClose, onSelectLead, onSelectDeal, onSelectTask, onSelectContact]);
+
+  const enabledOptions = useMemo(() => {
+    return options.filter((opt) => !opt.moduleKey || isModuleEnabled(opt.moduleKey));
+  }, [options, isModuleEnabled]);
 
   const filteredOptions = useMemo(() => {
-    if (!search.trim()) return options;
+    if (!search.trim()) return enabledOptions;
     const term = search.toLowerCase();
-    return options.filter(
+    return enabledOptions.filter(
       (opt) =>
         opt.title.toLowerCase().includes(term) ||
         opt.description.toLowerCase().includes(term) ||
         opt.category.toLowerCase().includes(term),
     );
-  }, [options, search]);
+  }, [enabledOptions, search]);
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>

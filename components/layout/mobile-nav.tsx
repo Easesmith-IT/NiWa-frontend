@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -8,13 +9,14 @@ import { X } from "lucide-react";
 import { cn } from "../../lib/utils";
 import { useWorkspace } from "../../lib/workspace/workspace-context";
 import { useWorkspaceDefaultCurrency } from "../../lib/workspace/use-workspace-currency";
+import { useWorkspaceModules } from "../../lib/workspace/use-workspace-modules";
 import {
   Drawer,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
 } from "../ui/drawer";
-import { navigationGroups, secondaryActions } from "./navigation";
+import { navigationGroups, filterNavigationByModules, secondaryActions } from "./navigation";
 
 interface MobileNavProps {
   open: boolean;
@@ -25,6 +27,12 @@ export const MobileNav = ({ open, onOpenChange }: MobileNavProps) => {
   const pathname = usePathname();
   const { activeWorkspaceId } = useWorkspace();
   const { currency, symbol } = useWorkspaceDefaultCurrency();
+  const { enabledModuleKeys } = useWorkspaceModules();
+
+  const visibleGroups = useMemo(
+    () => filterNavigationByModules(navigationGroups, enabledModuleKeys),
+    [enabledModuleKeys],
+  );
 
   const handleLinkClick = () => {
     onOpenChange(false);
@@ -70,7 +78,7 @@ export const MobileNav = ({ open, onOpenChange }: MobileNavProps) => {
         </DrawerHeader>
 
         <div className="flex-1 space-y-4 overflow-y-auto px-3 py-3 niwa-scrollbar">
-          {navigationGroups.map((group) => (
+          {visibleGroups.map((group) => (
             <div key={group.label}>
               <div className="px-2.5 pb-1.5 text-[11px] font-medium tracking-wider uppercase text-muted-foreground">
                 {group.label}

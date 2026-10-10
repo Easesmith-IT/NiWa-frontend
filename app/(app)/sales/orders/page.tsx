@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ShoppingBag,
@@ -68,6 +69,7 @@ interface CrmCompany {
 
 export default function SalesOrdersPage() {
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
 
   // Search & Filter state
   const [search, setSearch] = useState("");
@@ -77,6 +79,13 @@ export default function SalesOrdersPage() {
   // Active drawer & modal state
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (searchParams?.get("action") === "create") {
+      setIsCreateModalOpen(true);
+    }
+  }, [searchParams]);
+
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [confirmOrderTarget, setConfirmOrderTarget] = useState<SalesOrderItem | null>(null);
   const [confirmLocationId, setConfirmLocationId] = useState<string>("");

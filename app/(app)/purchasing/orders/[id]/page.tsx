@@ -36,7 +36,7 @@ import {
   ReceivePurchaseOrderInput,
   CreatePurchaseReturnInput,
 } from "lib/api/purchasing-api";
-import { financeApi, Account } from "lib/api/finance-api";
+import { financeApi, Account, SupplierBill } from "lib/api/finance-api";
 import { queryKeys } from "lib/api/query-keys";
 import { formatCurrency } from "features/sales/utils/currency-formatter";
 import { useWorkspace } from "lib/workspace/workspace-context";
@@ -116,11 +116,13 @@ export default function PurchaseOrderDetailPage() {
     enabled: !!order?._id,
   });
 
-  const existingBill = existingBillsResponse?.items?.[0];
+  const existingBills: SupplierBill[] = existingBillsResponse?.items || [];
+  const activeBill = existingBills.find((b) => b.status !== "REVERSED");
+  const existingBill = activeBill || existingBills[0];
 
   // 4. Fetch Asset Accounts for Bill Creation
-  const { data: accountsResponse } = useQuery({
-    queryKey: queryKeys.finance.accounts,
+  const { data: accountsResponse, isLoading: isLoadingAccounts } = useQuery({
+    queryKey: [...queryKeys.finance.accounts, { type: "ASSET" }],
     queryFn: () => financeApi.getAccounts({ type: "ASSET" }),
     enabled: isBillModalOpen,
   });
@@ -331,6 +333,10 @@ export default function PurchaseOrderDetailPage() {
   function handleSubmitBill(e: React.FormEvent) {
     e.preventDefault();
     if (!order) return;
+    if (activeBill) {
+      setActionError(`A supplier bill (${activeBill.billId}) already exists for this purchase order.`);
+      return;
+    }
     if (!effectiveAccountId) {
       setActionError("Please select an active asset/inventory account");
       return;
@@ -538,13 +544,13 @@ export default function PurchaseOrderDetailPage() {
 
               {/* PO to Supplier Bill Bridge */}
               {(order.status === "PARTIALLY_RECEIVED" || order.status === "RECEIVED") && (
-                existingBill ? (
+                activeBill ? (
                   <Link
                     href="/finance/payables"
                     className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-emerald-200 dark:border-emerald-900/60 bg-emerald-50/50 dark:bg-emerald-950/20 text-emerald-700 dark:text-emerald-300 text-xs font-medium transition-colors"
                   >
                     <Receipt className="w-3.5 h-3.5" />
-                    Bill: {existingBill.billId} ({existingBill.status})
+                    Bill: {activeBill.billId} ({activeBill.status})
                   </Link>
                 ) : (
                   <button
@@ -1281,6 +1287,20 @@ export default function PurchaseOrderDetailPage() {
               This bridges purchasing with accounts payable while preserving draft accounting isolation.
             </p>
 
+            {activeBill && (
+              <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 rounded-lg flex items-center gap-2 text-xs text-amber-700 dark:text-amber-300">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>A supplier bill ({activeBill.billId}) already exists for this purchase order. Duplicate active bills are not permitted.</span>
+              </div>
+            )}
+
+            {!isLoadingAccounts && assetAccounts.length === 0 && (
+              <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 rounded-lg flex items-center gap-2 text-xs text-amber-700 dark:text-amber-300">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>No active asset or inventory accounts found. An inventory asset account is required to bill stock.</span>
+              </div>
+            )}
+
             <form onSubmit={handleSubmitBill} className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div className="space-y-1">
@@ -1395,7 +1415,7 @@ export default function PurchaseOrderDetailPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={createBillMutation.isPending}
+                  disabled={createBillMutation.isPending || !effectiveAccountId || !!activeBill}
                   className="inline-flex items-center gap-1.5 px-4 py-2 rounded-lg bg-[#176B4D] hover:bg-[#13573E] text-white text-xs font-medium transition-colors shadow-sm disabled:opacity-50"
                 >
                   {createBillMutation.isPending ? (

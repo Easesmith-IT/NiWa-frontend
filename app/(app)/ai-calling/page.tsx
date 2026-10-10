@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
   PhoneCall,
@@ -31,6 +31,8 @@ import {
   getAICalls,
   getAICall,
   getAICallTranscript,
+  getAICallRecordingBlob,
+  downloadAICallRecordingFile,
   AICallItem,
   TranscriptTurn,
 } from "lib/api/ai-calling-api";
@@ -81,13 +83,63 @@ export default function AICallingPage() {
   const activeCall = activeCallData?.call;
 
   // 3. Fetch Selected Call Transcript
-  const { data: transcriptData, isLoading: isLoadingTranscript } = useQuery({
+  const { data: transcriptData, isLoading: isLoadingTranscript, error: transcriptError } = useQuery({
     queryKey: selectedCallId ? queryKeys.aiCalling.transcript(selectedCallId) : ["null-transcript"],
     queryFn: () => (selectedCallId ? getAICallTranscript(selectedCallId) : null),
     enabled: !!selectedCallId,
   });
 
   const turns: TranscriptTurn[] = transcriptData?.turns || [];
+
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [isLoadingAudio, setIsLoadingAudio] = useState(false);
+  const [audioError, setAudioError] = useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    let url: string | null = null;
+
+    if (activeCall?._id && activeCall.recording?.status === "ready") {
+      setIsLoadingAudio(true);
+      setAudioError(null);
+      getAICallRecordingBlob(activeCall._id)
+        .then((blob) => {
+          if (!active) return;
+          url = URL.createObjectURL(blob);
+          setAudioUrl(url);
+          setIsLoadingAudio(false);
+        })
+        .catch(() => {
+          if (!active) return;
+          setAudioError("Unable to load audio recording");
+          setIsLoadingAudio(false);
+        });
+    } else {
+      setAudioUrl(null);
+      setIsLoadingAudio(false);
+      setAudioError(null);
+    }
+
+    return () => {
+      active = false;
+      if (url) {
+        URL.revokeObjectURL(url);
+      }
+    };
+  }, [activeCall?._id, activeCall?.recording?.status]);
+
+  async function handleDownloadRecording() {
+    if (!activeCall?._id) return;
+    try {
+      setIsDownloading(true);
+      await downloadAICallRecordingFile(activeCall._id);
+    } catch (err: any) {
+      console.error("Failed to download recording:", err);
+    } finally {
+      setIsDownloading(false);
+    }
+  }
 
   function formatDuration(seconds?: number | null) {
     if (!seconds || seconds <= 0) return "0s";
@@ -255,6 +307,12 @@ export default function AICallingPage() {
                     Loading call records...
                   </td>
                 </tr>
+              ) : callsError ? (
+                <tr>
+                  <td colSpan={7} className="py-8 text-center text-rose-500">
+                    Failed to load call sessions: {(callsError as any)?.message || "Unknown error"}
+                  </td>
+                </tr>
               ) : filteredCalls.length === 0 ? (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400">
@@ -382,26 +440,34 @@ export default function AICallingPage() {
                         Call Audio Recording
                       </div>
                       {activeCall.recording?.status === "ready" && (
-                        <a
-                          href={`/api/ai-calling/calls/${activeCall._id}/recording/download`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline"
+                        <button
+                          type="button"
+                          onClick={handleDownloadRecording}
+                          disabled={isDownloading}
+                          className="inline-flex items-center gap-1 text-xs text-blue-600 hover:underline disabled:opacity-50"
                         >
                           <Download className="w-3.5 h-3.5" />
-                          Download
-                        </a>
+                          {isDownloading ? "Downloading..." : "Download"}
+                        </button>
                       )}
                     </div>
 
                     {activeCall.recording?.status === "ready" ? (
-                      <audio
-                        controls
-                        className="w-full mt-2"
-                        src={`/api/ai-calling/calls/${activeCall._id}/recording/stream`}
-                      >
-                        Your browser does not support the audio element.
-                      </audio>
+                      isLoadingAudio ? (
+                        <div className="py-4 text-center text-xs text-slate-400">Loading audio stream...</div>
+                      ) : audioUrl ? (
+                        <audio
+                          controls
+                          className="w-full mt-2"
+                          src={audioUrl}
+                        >
+                          Your browser does not support the audio element.
+                        </audio>
+                      ) : (
+                        <div className="py-2 text-center text-xs text-rose-500">
+                          {audioError || "Failed to load audio recording."}
+                        </div>
+                      )
                     ) : (
                       <div className="py-4 text-center text-xs text-slate-400 bg-slate-50 dark:bg-slate-800/30 rounded-lg">
                         {activeCall.recording?.status === "pending"
@@ -458,6 +524,10 @@ export default function AICallingPage() {
 
                     {isLoadingTranscript ? (
                       <div className="py-8 text-center text-xs text-slate-400">Loading transcript...</div>
+                    ) : transcriptError ? (
+                      <div className="p-6 text-center text-xs text-rose-500 border border-rose-200 dark:border-rose-900 rounded-xl bg-rose-50/50 dark:bg-rose-950/20">
+                        Failed to load conversation transcript.
+                      </div>
                     ) : turns.length === 0 ? (
                       <div className="p-6 text-center text-xs text-slate-400 border border-slate-200 dark:border-slate-800 rounded-xl bg-slate-50/50 dark:bg-slate-800/30">
                         No transcript turns captured for this call.
