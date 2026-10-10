@@ -413,18 +413,34 @@ Run frontend typecheck, lint, unit tests, build, and relevant E2E tests. Run bac
 - Typecheck, lint, tests, build, and relevant E2E results are truthfully reported.
 - Backend dependencies are explicit; no unapproved backend redesign is hidden in frontend UX work.
 
-## 30. Open verification items
+## 30. Verified reality & closed audit findings
 
-Do not guess. Inspect current code/tests for:
-- Full route inventory and route guards.
-- Command palette search sources and whether global Create exists.
-- Email automation implementation and exposed frontend/API surface.
-- AI Calling implementation and exposed frontend/API surface.
-- Customer 360 aggregation and linked-record APIs.
-- Notification system and supported events.
-- Role/permission-to-navigation mapping.
-- Responsive/accessibility test coverage.
-- Exact Sales, purchase receiving, supplier bill/payment, and return lifecycles.
-- Automation trigger/action catalog and execution history contract.
+The comprehensive code audit conducted against latest `main` (Frontend commit `a08a3ee`, Backend commit `9252386`) has formally verified each item. Detailed evidence and line references are recorded in `docs/NIWA-UX-CURRENT-STATE-AUDIT.md` and `docs/NIWA-UX-GAP-MATRIX.md`.
 
-Close these items against latest main before freezing implementation decisions.
+1. **Route Inventory & Route Guards:**
+   - 45+ frontend routes exist across `app/(app)/`.
+   - Client-side route guards for disabled modules or viewer roles do **not** exist.
+   - Backend enforces `requireModuleEnabled` for `products`, `inventory`, `sales`, `purchasing`, `finance`, and `ai_calling`. Rejection returns HTTP 403 `MODULE_DISABLED`.
+2. **Command Palette & Search Sources:**
+   - Command palette searches only Contacts and Conversations in the UI (messages and notes exist in API payload but are unrendered).
+   - Global search queries only `ContactModel`, `ConversationModel`, `MessageModel`, `NoteModel`. Companies, Deals, Leads, Products, Orders, Invoices, and Tasks are **not** searchable.
+   - **P0 Defect:** Backend `runGlobalSearch` ([search.service.ts#L27-L78](file:///e:/easesmith/niwa/NiWa-backend/src/modules/search/search.service.ts#L27-L78)) does not scope queries by `workspaceId`.
+3. **Universal Create:**
+   - **Missing.** No universal creation modal or drawer exists. Command palette "Create Contact" / "Create Automation" actions merely navigate to listing pages.
+4. **Email Automation:**
+   - **Unimplemented.** Zero email libraries (`nodemailer`, `@sendgrid/mail`, `resend`) in `package.json`. No email models, triggers, or workers exist anywhere in frontend or backend.
+5. **AI Calling:**
+   - **Backend Verified / Frontend Missing.** Complete backend implementation exists on `main` (`src/modules/ai-calling/`, Plivo telephony, and Python `voice-runtime/`). Frontend has zero UI pages or components.
+6. **Customer 360 Aggregation:**
+   - **Backend Verified / Frontend Missing.** Full service exists at `GET /api/crm/customer-360/:recordType/:recordId` ([customer-360.service.ts](file:///e:/easesmith/niwa/NiWa-backend/src/modules/crm-core/customer-360.service.ts)), but frontend never queries it.
+7. **Mobile Navigation & Dynamic Entitlements:**
+   - **Mobile Broken:** Sidebar has `hidden lg:flex` and lacks a mobile drawer component.
+   - **Entitlements Unwired:** `filterNavigationByModules` exists in `navigation.ts` but is never called by `sidebar.tsx`.
+8. **Commercial & Procurement Lifecycles:**
+   - **Quotations:** Backend complete (`quotes.service.ts`, `/quotes`), frontend UI missing.
+   - **Refunds:** Backend complete (`refunds.service.ts`, `/refunds`), frontend UI missing on returns page.
+   - **Purchase Returns:** Backend complete (`purchasing.service.ts`, `/purchasing/returns`), frontend page missing.
+   - **PO-to-Bill Bridge:** Goods receipt updates inventory, but does not generate a Supplier Bill in Finance. Manual re-entry required.
+9. **Automation Catalog:**
+   - Triggers strictly limited to `incoming_message` and `manual`. Steps strictly limited to `create_note`, `create_task`, `send_message`, `wait`.
+
