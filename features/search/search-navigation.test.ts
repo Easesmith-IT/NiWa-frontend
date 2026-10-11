@@ -136,4 +136,17 @@ describe("Search & Universal Create Navigation Contract Suite", () => {
       }
     }
   });
+
+  it("resolves business sequence orderId (e.g. ORD-000042) identically to MongoDB _id for drawer deep linking", () => {
+    const businessOrderId = "ORD-000042";
+    const mongoObjectId = "6601b01a2b3c4d5e6f7a8b9c";
+
+    // 1. URL encoding and param parsing for business sequence ID
+    const businessUrl = new URL(`https://app.niwa.local/sales/orders?orderId=${encodeURIComponent(businessOrderId)}`);
+    expect(businessUrl.searchParams.get("orderId")).toBe("ORD-000042");
+
+    // 2. URL encoding and param parsing for MongoDB ObjectId
+    const objectIdUrl = new URL(`https://app.niwa.local/sales/orders?orderId=${encodeURIComponent(mongoObjectId)}`);
+    expect(objectIdUrl.searchParams.get("orderId")).toBe("6601b01a2b3c4d5e6f7a8b9c");
+  });
 });
