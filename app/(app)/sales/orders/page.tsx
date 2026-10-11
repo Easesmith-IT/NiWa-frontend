@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ShoppingBag,
@@ -69,6 +69,7 @@ interface CrmCompany {
 
 export default function SalesOrdersPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
 
@@ -84,6 +85,10 @@ export default function SalesOrdersPage() {
   useEffect(() => {
     if (searchParams?.get("action") === "create") {
       setIsCreateModalOpen(true);
+    }
+    const orderIdParam = searchParams?.get("orderId");
+    if (orderIdParam) {
+      setSelectedOrderId(orderIdParam);
     }
   }, [searchParams]);
 
@@ -294,7 +299,18 @@ export default function SalesOrdersPage() {
       const params = new URLSearchParams(searchParams.toString());
       params.delete("action");
       const nextQuery = params.toString();
-      const currentPath = window.location.pathname || "/sales/orders";
+      const currentPath = pathname || "/sales/orders";
+      router.replace(nextQuery ? `${currentPath}?${nextQuery}` : currentPath, { scroll: false });
+    }
+  };
+
+  const handleCloseOrderDrawer = () => {
+    setSelectedOrderId(null);
+    if (searchParams?.has("orderId")) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("orderId");
+      const nextQuery = params.toString();
+      const currentPath = pathname || "/sales/orders";
       router.replace(nextQuery ? `${currentPath}?${nextQuery}` : currentPath, { scroll: false });
     }
   };
@@ -1297,7 +1313,12 @@ export default function SalesOrdersPage() {
 
       {/* ORDER DETAIL DRAWER */}
       {selectedOrderId && (
-        <div className="fixed inset-0 z-40 flex justify-end bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
+        <div
+          className="fixed inset-0 z-40 flex justify-end bg-black/40 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) handleCloseOrderDrawer();
+          }}
+        >
           <div className="w-full max-w-xl bg-white dark:bg-slate-900 h-full shadow-2xl flex flex-col border-l border-slate-200 dark:border-slate-800">
             {/* Drawer Header */}
             <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
@@ -1313,7 +1334,7 @@ export default function SalesOrdersPage() {
                 </div>
               </div>
               <button
-                onClick={() => setSelectedOrderId(null)}
+                onClick={handleCloseOrderDrawer}
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"
               >
                 ✕

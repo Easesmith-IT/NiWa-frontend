@@ -323,7 +323,7 @@ export const CommandPalette = ({
                 <button
                   className="block w-full rounded-md px-2.5 py-2.5 text-left transition-colors hover:bg-[#F4F4F5] dark:hover:bg-[#202326]"
                   key={item._id}
-                  onClick={() => goTo("/sales/orders")}
+                  onClick={() => goTo(`/sales/orders?orderId=${encodeURIComponent(item.orderId || item._id)}`)}
                   type="button"
                 >
                   <div className="flex items-center justify-between gap-3">
@@ -344,7 +344,7 @@ export const CommandPalette = ({
                 <button
                   className="block w-full rounded-md px-2.5 py-2.5 text-left transition-colors hover:bg-[#F4F4F5] dark:hover:bg-[#202326]"
                   key={item._id}
-                  onClick={() => goTo("/purchasing/orders")}
+                  onClick={() => goTo(`/purchasing/orders/${encodeURIComponent(item._id)}`)}
                   type="button"
                 >
                   <div className="flex items-center justify-between gap-3">

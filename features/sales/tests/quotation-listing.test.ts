@@ -1,0 +1,256 @@
+import { describe, expect, it } from "vitest";
+import { parseQuotesResponse } from "../quotes.api";
+import type { QuoteItem, QuotesApiResponse } from "../quotes.types";
+
+describe("Quotation Listing API Response & Lifecycle Contract Suite", () => {
+  const sampleQuotes: QuoteItem[] = [
+    {
+      _id: "6601a01",
+      quoteId: "QTE-000001",
+      customer: {
+        customerId: "cust_1",
+        customerType: "PERSON",
+        displayName: "Alice Smith",
+        email: "alice@example.com",
+      },
+      status: "SENT",
+      currency: "INR",
+      subtotal: 1000,
+      taxAmount: 180,
+      grandTotal: 1180,
+      notes: "Urgent delivery requested",
+      createdAt: "2026-10-01T10:00:00.000Z",
+    },
+    {
+      _id: "6601a02",
+      quoteId: "QTE-000002",
+      customer: {
+        customerId: "cust_2",
+        customerType: "COMPANY",
+        displayName: "Acme Corp",
+        email: "billing@acme.com",
+      },
+      status: "ACCEPTED",
+      currency: "INR",
+      subtotal: 5000,
+      taxAmount: 900,
+      grandTotal: 5900,
+      notes: "Annual contract proposal",
+      createdAt: "2026-10-02T11:00:00.000Z",
+    },
+    {
+      _id: "6601a03",
+      quoteId: "QTE-000003",
+      customer: {
+        customerId: "cust_3",
+        customerType: "PERSON",
+        displayName: "Bob Jones",
+        email: "bob@example.com",
+      },
+      status: "DECLINED",
+      currency: "INR",
+      subtotal: 2000,
+      taxAmount: 360,
+      grandTotal: 2360,
+      notes: "Budget exceeded",
+      createdAt: "2026-10-03T12:00:00.000Z",
+    },
+    {
+      _id: "6601a04",
+      quoteId: "QTE-000004",
+      customer: {
+        customerId: "cust_4",
+        customerType: "COMPANY",
+        displayName: "Global Dynamics",
+        email: "procurement@global.com",
+      },
+      status: "DRAFT",
+      currency: "INR",
+      subtotal: 3000,
+      taxAmount: 540,
+      grandTotal: 3540,
+      notes: null,
+      createdAt: "2026-10-04T13:00:00.000Z",
+    },
+    {
+      _id: "6601a05",
+      quoteId: "QTE-000005",
+      customer: {
+        customerId: "cust_5",
+        customerType: "PERSON",
+        displayName: "Charlie Brown",
+      },
+      status: "EXPIRED",
+      currency: "INR",
+      subtotal: 1500,
+      taxAmount: 270,
+      grandTotal: 1770,
+      notes: "Validity past 30 days",
+      createdAt: "2026-09-01T09:00:00.000Z",
+    },
+  ];
+
+  it("1. Parses the authoritative backend nested envelope: { success: true, data: { quotes, total, page, limit, totalPages } }", () => {
+    const backendResponse: QuotesApiResponse = {
+      success: true,
+      data: {
+        quotes: sampleQuotes,
+        total: 5,
+        page: 1,
+        limit: 20,
+        totalPages: 1,
+      },
+    };
+
+    const parsed = parseQuotesResponse(backendResponse);
+
+    expect(Array.isArray(parsed.quotes)).toBe(true);
+    expect(parsed.quotes.length).toBe(5);
+    expect(parsed.total).toBe(5);
+    expect(parsed.page).toBe(1);
+    expect(parsed.limit).toBe(20);
+    expect(parsed.totalPages).toBe(1);
+    expect(parsed.quotes[0].quoteId).toBe("QTE-000001");
+    expect(parsed.quotes[1].customer?.displayName).toBe("Acme Corp");
+  });
+
+  it("2. Parses an empty quotation list without crashing and returns safe defaults", () => {
+    const emptyResponse = {
+      success: true,
+      data: {
+        quotes: [],
+        total: 0,
+        page: 1,
+        limit: 20,
+        totalPages: 0,
+      },
+    };
+
+    const parsed = parseQuotesResponse(emptyResponse);
+
+    expect(Array.isArray(parsed.quotes)).toBe(true);
+    expect(parsed.quotes.length).toBe(0);
+    expect(parsed.total).toBe(0);
+    expect(parsed.page).toBe(1);
+    expect(parsed.totalPages).toBe(0);
+  });
+
+  it("3. Handles direct paginated object or raw array for backward compatibility", () => {
+    // Direct paginated object without outer { success, data }
+    const directPaginated = {
+      quotes: [sampleQuotes[0]],
+      total: 1,
+      page: 1,
+      limit: 20,
+      totalPages: 1,
+    };
+    const parsedDirect = parseQuotesResponse(directPaginated);
+    expect(parsedDirect.quotes.length).toBe(1);
+    expect(parsedDirect.total).toBe(1);
+
+    // Direct array
+    const directArray = [sampleQuotes[0], sampleQuotes[1]];
+    const parsedArray = parseQuotesResponse(directArray);
+    expect(parsedArray.quotes.length).toBe(2);
+    expect(parsedArray.total).toBe(2);
+    expect(parsedArray.totalPages).toBe(1);
+  });
+
+  it("4. Gracefully handles null, undefined, or unexpected shapes without throwing", () => {
+    expect(parseQuotesResponse(null)).toEqual({ quotes: [], total: 0, page: 1, limit: 20, totalPages: 0 });
+    expect(parseQuotesResponse(undefined)).toEqual({ quotes: [], total: 0, page: 1, limit: 20, totalPages: 0 });
+    expect(parseQuotesResponse({})).toEqual({ quotes: [], total: 0, page: 1, limit: 20, totalPages: 0 });
+    expect(parseQuotesResponse("invalid string")).toEqual({ quotes: [], total: 0, page: 1, limit: 20, totalPages: 0 });
+  });
+
+  it("5. Filters parsed quotations by status, search term across quote ID, customer name, and notes", () => {
+    const parsed = parseQuotesResponse({
+      success: true,
+      data: {
+        quotes: sampleQuotes,
+        total: 5,
+        page: 1,
+        limit: 20,
+        totalPages: 1,
+      },
+    });
+
+    const quotes = parsed.quotes;
+
+    // Filter by search term: "Acme"
+    const searchAcme = quotes.filter((q) => {
+      const term = "acme";
+      return (
+        q.quoteId.toLowerCase().includes(term) ||
+        (q.customer?.displayName && q.customer.displayName.toLowerCase().includes(term)) ||
+        (q.notes && q.notes.toLowerCase().includes(term))
+      );
+    });
+    expect(searchAcme.length).toBe(1);
+    expect(searchAcme[0].quoteId).toBe("QTE-000002");
+
+    // Filter by search term: "Urgent" (matches in notes)
+    const searchUrgent = quotes.filter((q) => {
+      const term = "urgent";
+      return (
+        q.quoteId.toLowerCase().includes(term) ||
+        (q.customer?.displayName && q.customer.displayName.toLowerCase().includes(term)) ||
+        (q.notes && q.notes.toLowerCase().includes(term))
+      );
+    });
+    expect(searchUrgent.length).toBe(1);
+    expect(searchUrgent[0].quoteId).toBe("QTE-000001");
+
+    // Filter by status: ACCEPTED
+    const acceptedOnly = quotes.filter((q) => q.status === "ACCEPTED");
+    expect(acceptedOnly.length).toBe(1);
+    expect(acceptedOnly[0].quoteId).toBe("QTE-000002");
+  });
+
+  it("6. Calculates summary KPI statistics accurately from parsed quotes", () => {
+    const parsed = parseQuotesResponse({
+      success: true,
+      data: {
+        quotes: sampleQuotes,
+        total: 5,
+        page: 1,
+        limit: 20,
+        totalPages: 1,
+      },
+    });
+
+    const quotes = parsed.quotes;
+    const totalCount = parsed.total;
+    const sentCount = quotes.filter((q) => q.status === "SENT").length;
+    const acceptedCount = quotes.filter((q) => q.status === "ACCEPTED").length;
+    const totalValue = quotes
+      .filter((q) => q.status !== "DECLINED" && q.status !== "EXPIRED")
+      .reduce((sum, q) => sum + (q.grandTotal || 0), 0);
+
+    expect(totalCount).toBe(5);
+    expect(sentCount).toBe(1); // QTE-000001
+    expect(acceptedCount).toBe(1); // QTE-000002
+    // totalValue: QTE-1 (1180) + QTE-2 (5900) + QTE-4 (3540) = 10620 (DECLINED 2360 and EXPIRED 1770 excluded)
+    expect(totalValue).toBe(10620);
+  });
+
+  it("7. Safely removes action=create and preserves all other query parameters", () => {
+    const url = new URL("https://app.niwa.local/sales/quotes?action=create&search=acme&status=SENT&page=2");
+    const params = new URLSearchParams(url.search);
+
+    expect(params.get("action")).toBe("create");
+    expect(params.get("search")).toBe("acme");
+    expect(params.get("status")).toBe("SENT");
+    expect(params.get("page")).toBe("2");
+
+    params.delete("action");
+
+    const nextQuery = params.toString();
+    expect(nextQuery).toBe("search=acme&status=SENT&page=2");
+    expect(params.get("action")).toBeNull();
+
+    const currentPath = "/sales/quotes";
+    const resultingUrl = nextQuery ? `${currentPath}?${nextQuery}` : currentPath;
+    expect(resultingUrl).toBe("/sales/quotes?search=acme&status=SENT&page=2");
+  });
+});

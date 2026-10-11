@@ -33,7 +33,7 @@ export const SearchSalesOrdersSection: React.FC<SearchSalesOrdersSectionProps> =
         {orders.map((item) => (
           <Link
             className="block rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 transition-colors hover:border-[#D4D4D8] dark:border-[#292C2F] dark:bg-[#17191B] dark:hover:border-[#3A3E42]"
-            href="/sales/orders"
+            href={`/sales/orders?orderId=${encodeURIComponent(item.orderId || item._id)}`}
             key={item._id}
           >
             <div className="flex items-center justify-between gap-2">

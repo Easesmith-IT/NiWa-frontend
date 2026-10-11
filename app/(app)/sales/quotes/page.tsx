@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ArrowRight,
@@ -29,35 +29,36 @@ import {
 } from "../../../../components/ui/dialog";
 import { productsApi, type ProductItem } from "../../../../lib/api/products-api";
 import type { CrmPerson, CrmCompany } from "../../../../lib/api/api-types";
+import { fetchQuotes } from "../../../../features/sales/quotes.api";
+import type {
+  PaginatedQuotesData,
+  QuoteItem,
+} from "../../../../features/sales/quotes.types";
 
-interface QuoteItem {
-  _id?: string;
-  quoteId: string;
-  customer?: {
-    displayName: string;
-    email?: string;
-    phone?: string;
-    customerType: "PERSON" | "COMPANY";
-  };
-  status: "DRAFT" | "SENT" | "ACCEPTED" | "DECLINED" | "EXPIRED";
+interface CreateQuotePayload {
+  customerType: "PERSON" | "COMPANY";
+  customerId: string;
   currency: string;
-  subtotal: number;
-  discountAmount: number;
-  netAmount: number;
-  taxAmount: number;
-  grandTotal: number;
-  expirationDate?: string;
-  notes?: string;
-  createdAt: string;
-  lines?: any[];
+  validUntil: string | null;
+  notes?: string | null;
+  terms?: string | null;
+  lines: Array<{
+    productId?: string;
+    productVariantId: string;
+    quantity: number;
+    customUnitPrice: number;
+    taxRatePercent: number;
+  }>;
 }
 
 export default function QuotesPage() {
   const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [page, setPage] = useState<number>(1);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   useEffect(() => {
@@ -66,15 +67,19 @@ export default function QuotesPage() {
     }
   }, [searchParams]);
 
-  const { data: quotes = [], isLoading, isError, error } = useQuery<QuoteItem[]>({
-    queryKey: ["sales-quotes", statusFilter],
-    queryFn: async () => {
-      const params: Record<string, string> = {};
-      if (statusFilter !== "ALL") params.status = statusFilter;
-      const res = await apiClient.get<QuoteItem[] | { data: QuoteItem[] }>("/api/sales/quotes", { params });
-      return Array.isArray(res.data) ? res.data : (res.data as any)?.data || [];
-    },
+  const {
+    data: paginatedData,
+    isLoading,
+    isError,
+    error,
+  } = useQuery<PaginatedQuotesData>({
+    queryKey: ["sales-quotes", statusFilter, page],
+    queryFn: () => fetchQuotes({ status: statusFilter, page, limit: 20 }),
   });
+
+  const quotes = paginatedData?.quotes ?? [];
+  const total = paginatedData?.total ?? 0;
+  const totalPages = paginatedData?.totalPages ?? 1;
 
   const sendMutation = useMutation({
     mutationFn: (quoteId: string) => apiClient.post(`/api/sales/quotes/${quoteId}/send`),
@@ -159,13 +164,13 @@ export default function QuotesPage() {
       const params = new URLSearchParams(searchParams.toString());
       params.delete("action");
       const nextQuery = params.toString();
-      const currentPath = window.location.pathname || "/sales/quotes";
+      const currentPath = pathname || "/sales/quotes";
       router.replace(nextQuery ? `${currentPath}?${nextQuery}` : currentPath, { scroll: false });
     }
   };
 
   const createQuoteMutation = useMutation({
-    mutationFn: async (payload: any) => {
+    mutationFn: async (payload: CreateQuotePayload) => {
       const res = await apiClient.post("/api/sales/quotes", payload);
       return res.data;
     },
@@ -173,8 +178,12 @@ export default function QuotesPage() {
       queryClient.invalidateQueries({ queryKey: ["sales-quotes"] });
       handleCloseCreateModal();
     },
-    onError: (err: any) => {
-      setCreateError(err.response?.data?.message || err.message || "Failed to create quotation");
+    onError: (err: unknown) => {
+      const message =
+        (err as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message ||
+        (err as { message?: string })?.message ||
+        "Failed to create quotation";
+      setCreateError(message);
     },
   });
 
@@ -272,14 +281,14 @@ export default function QuotesPage() {
   }, [quotes, search]);
 
   const stats = useMemo(() => {
-    const total = quotes.length;
+    const totalCount = paginatedData?.total ?? quotes.length;
     const sentCount = quotes.filter((q) => q.status === "SENT").length;
     const acceptedCount = quotes.filter((q) => q.status === "ACCEPTED").length;
     const totalValue = quotes
       .filter((q) => q.status !== "DECLINED" && q.status !== "EXPIRED")
       .reduce((sum, q) => sum + (q.grandTotal || 0), 0);
-    return { total, sentCount, acceptedCount, totalValue };
-  }, [quotes]);
+    return { total: totalCount, sentCount, acceptedCount, totalValue };
+  }, [paginatedData?.total, quotes]);
 
   return (
     <div className="space-y-6">
@@ -347,7 +356,10 @@ export default function QuotesPage() {
           {["ALL", "DRAFT", "SENT", "ACCEPTED", "DECLINED", "EXPIRED"].map((status) => (
             <button
               key={status}
-              onClick={() => setStatusFilter(status)}
+              onClick={() => {
+                setStatusFilter(status);
+                setPage(1);
+              }}
               className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition-colors ${
                 statusFilter === status
                   ? "bg-[#176B4D] text-white dark:bg-[#208560]"
@@ -492,6 +504,33 @@ export default function QuotesPage() {
                 ))}
               </tbody>
             </table>
+          </div>
+        )}
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between border-t border-[#E4E4E7] bg-[#FAFAFA] px-4 py-3 dark:border-[#282B2E] dark:bg-[#191B1D]">
+            <p className="text-xs text-muted-foreground">
+              Showing Page {page} of {totalPages} ({total} total quotes)
+            </p>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                disabled={page <= 1}
+                className="h-7 text-xs"
+              >
+                Previous
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                disabled={page >= totalPages}
+                className="h-7 text-xs"
+              >
+                Next
+              </Button>
+            </div>
           </div>
         )}
       </div>
