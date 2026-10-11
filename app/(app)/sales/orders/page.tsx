@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   ShoppingBag,
@@ -67,7 +68,10 @@ interface CrmCompany {
 }
 
 export default function SalesOrdersPage() {
+  const router = useRouter();
+  const pathname = usePathname();
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
 
   // Search & Filter state
   const [search, setSearch] = useState("");
@@ -77,6 +81,17 @@ export default function SalesOrdersPage() {
   // Active drawer & modal state
   const [selectedOrderId, setSelectedOrderId] = useState<string | null>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (searchParams?.get("action") === "create") {
+      setIsCreateModalOpen(true);
+    }
+    const orderIdParam = searchParams?.get("orderId");
+    if (orderIdParam) {
+      setSelectedOrderId(orderIdParam);
+    }
+  }, [searchParams]);
+
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
   const [confirmOrderTarget, setConfirmOrderTarget] = useState<SalesOrderItem | null>(null);
   const [confirmLocationId, setConfirmLocationId] = useState<string>("");
@@ -136,7 +151,11 @@ export default function SalesOrdersPage() {
       }),
   });
 
-  const { data: activeOrder, isLoading: isLoadingActiveOrder } = useQuery({
+  const {
+    data: activeOrder,
+    isLoading: isLoadingActiveOrder,
+    isError: isErrorActiveOrder,
+  } = useQuery({
     queryKey: selectedOrderId ? queryKeys.salesOrder(selectedOrderId) : ["null-order"],
     queryFn: () => (selectedOrderId ? getSalesOrder(selectedOrderId) : null),
     enabled: !!selectedOrderId,
@@ -214,8 +233,7 @@ export default function SalesOrdersPage() {
     mutationFn: createSalesOrder,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.salesOrders });
-      setIsCreateModalOpen(false);
-      resetCreateForm();
+      handleCloseCreateModal();
       setActionError(null);
     },
     onError: (err: any) => {
@@ -277,6 +295,29 @@ export default function SalesOrdersPage() {
     setOrderCustomFields({});
     setActionError(null);
   }
+
+  const handleCloseCreateModal = () => {
+    setIsCreateModalOpen(false);
+    resetCreateForm();
+    if (searchParams?.has("action")) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("action");
+      const nextQuery = params.toString();
+      const currentPath = pathname || "/sales/orders";
+      router.replace(nextQuery ? `${currentPath}?${nextQuery}` : currentPath, { scroll: false });
+    }
+  };
+
+  const handleCloseOrderDrawer = () => {
+    setSelectedOrderId(null);
+    if (searchParams?.has("orderId")) {
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("orderId");
+      const nextQuery = params.toString();
+      const currentPath = pathname || "/sales/orders";
+      router.replace(nextQuery ? `${currentPath}?${nextQuery}` : currentPath, { scroll: false });
+    }
+  };
 
   function handleAddLine(variant: any, product: ProductItem) {
     // Check if variant already added
@@ -729,7 +770,12 @@ export default function SalesOrdersPage() {
 
       {/* CREATE ORDER MODAL */}
       {isCreateModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) handleCloseCreateModal();
+          }}
+        >
           <div className="bg-white dark:bg-slate-900 rounded-2xl shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col border border-slate-200 dark:border-slate-800">
             {/* Modal Header */}
             <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
@@ -738,7 +784,8 @@ export default function SalesOrdersPage() {
                 <p className="text-xs text-slate-500">Draft a new commercial order with real CRM customer and product lines.</p>
               </div>
               <button
-                onClick={() => setIsCreateModalOpen(false)}
+                type="button"
+                onClick={handleCloseCreateModal}
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
               >
                 ✕
@@ -1190,7 +1237,7 @@ export default function SalesOrdersPage() {
               <div className="pt-4 border-t border-slate-200 dark:border-slate-800 flex justify-end gap-3">
                 <button
                   type="button"
-                  onClick={() => setIsCreateModalOpen(false)}
+                  onClick={handleCloseCreateModal}
                   className="px-4 py-2 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                 >
                   Cancel
@@ -1270,7 +1317,12 @@ export default function SalesOrdersPage() {
 
       {/* ORDER DETAIL DRAWER */}
       {selectedOrderId && (
-        <div className="fixed inset-0 z-40 flex justify-end bg-black/40 backdrop-blur-xs animate-in fade-in duration-200">
+        <div
+          className="fixed inset-0 z-40 flex justify-end bg-black/40 backdrop-blur-xs animate-in fade-in duration-200"
+          onClick={(e) => {
+            if (e.target === e.currentTarget) handleCloseOrderDrawer();
+          }}
+        >
           <div className="w-full max-w-xl bg-white dark:bg-slate-900 h-full shadow-2xl flex flex-col border-l border-slate-200 dark:border-slate-800">
             {/* Drawer Header */}
             <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
@@ -1286,7 +1338,7 @@ export default function SalesOrdersPage() {
                 </div>
               </div>
               <button
-                onClick={() => setSelectedOrderId(null)}
+                onClick={handleCloseOrderDrawer}
                 className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1"
               >
                 ✕
@@ -1295,8 +1347,24 @@ export default function SalesOrdersPage() {
 
             {/* Drawer Content */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              {isLoadingActiveOrder || !activeOrder ? (
+              {isLoadingActiveOrder ? (
                 <div className="py-12 text-center text-sm text-slate-400">Loading order details...</div>
+              ) : isErrorActiveOrder || !activeOrder ? (
+                <div className="py-12 text-center text-slate-500 space-y-3">
+                  <div className="w-10 h-10 rounded-full bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto">
+                    <AlertCircle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-900 dark:text-white">Order Not Found</p>
+                    <p className="text-xs text-slate-400 mt-1">The requested sales order could not be located in this workspace.</p>
+                  </div>
+                  <button
+                    onClick={handleCloseOrderDrawer}
+                    className="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white"
+                  >
+                    Close
+                  </button>
+                </div>
               ) : (
                 <>
                   {actionError && (

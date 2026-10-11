@@ -60,6 +60,8 @@ export const queryKeys = {
   salesReturn: (id: string) => ["sales-returns", id] as const,
   orderReturns: (orderId: string) => ["sales-orders", orderId, "returns"] as const,
   orderReturnableQuantities: (orderId: string) => ["sales-orders", orderId, "returnable-quantities"] as const,
+  customerRefunds: ["customer-refunds"] as const,
+  customerRefund: (id: string) => ["customer-refunds", id] as const,
   currencies: ["sales", "currencies"] as const,
   purchaseOrders: ["purchase-orders"] as const,
   purchaseOrder: (id: string) => ["purchase-orders", id] as const,
@@ -94,6 +96,11 @@ export const queryKeys = {
       bank: (accountId?: string, date?: string) => ["finance", "reconciliation", "bank", accountId, date] as const,
     },
     settings: ["finance", "settings"] as const,
+  },
+  aiCalling: {
+    calls: ["ai-calling", "calls"] as const,
+    call: (id: string) => ["ai-calling", "calls", id] as const,
+    transcript: (id: string) => ["ai-calling", "calls", id, "transcript"] as const,
   },
 };
 

@@ -29,11 +29,13 @@ import {
   cancelSalesReturn,
   getOrderReturnableQuantities,
   getSalesOrders,
+  createCustomerRefund,
   SalesReturnItem,
   ReturnStatus,
   ReturnItemCondition,
   SalesOrderItem,
   ReturnableLineQuantity,
+  PaymentMethod,
 } from "lib/api/sales-api";
 import { queryKeys } from "lib/api/query-keys";
 import { formatCurrency } from "features/sales/utils/currency-formatter";
@@ -54,6 +56,14 @@ export default function SalesReturnsPage() {
   // Cancel Modal State
   const [isCancelModalOpen, setIsCancelModalOpen] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
+
+  // Refund Modal State
+  const [isRefundModalOpen, setIsRefundModalOpen] = useState(false);
+  const [refundPaymentMethod, setRefundPaymentMethod] = useState<PaymentMethod>("BANK_TRANSFER");
+  const [refundAmount, setRefundAmount] = useState<number>(0);
+  const [refundRef, setRefundRef] = useState<string>("");
+  const [refundNotes, setRefundNotes] = useState<string>("");
+  const [refundDate, setRefundDate] = useState<string>(new Date().toISOString().split("T")[0]);
 
   // Create Return Modal State
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -251,6 +261,23 @@ export default function SalesReturnsPage() {
     },
     onError: (err: any) => {
       setActionError(err.response?.data?.message || err.message || "Failed to cancel return");
+    },
+  });
+
+  const refundMutation = useMutation({
+    mutationFn: createCustomerRefund,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeys.customerRefunds });
+      queryClient.invalidateQueries({ queryKey: queryKeys.salesReturns });
+      if (selectedReturnId) {
+        queryClient.invalidateQueries({ queryKey: queryKeys.salesReturn(selectedReturnId) });
+      }
+      queryClient.invalidateQueries({ queryKey: queryKeys.finance.accounts });
+      setIsRefundModalOpen(false);
+      setActionError(null);
+    },
+    onError: (err: any) => {
+      setActionError(err.response?.data?.message || err.message || "Failed to issue customer refund");
     },
   });
 
@@ -658,13 +685,25 @@ export default function SalesReturnsPage() {
                 )}
 
                 {activeReturn.status === "CONFIRMED" && (
-                  <button
-                    onClick={() => setIsCancelModalOpen(true)}
-                    disabled={cancelMutation.isPending}
-                    className="px-4 py-2 text-xs font-semibold rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 border border-rose-200 dark:border-rose-800"
-                  >
-                    Cancel Return (Reverse Stock)
-                  </button>
+                  <>
+                    <button
+                      onClick={() => setIsCancelModalOpen(true)}
+                      disabled={cancelMutation.isPending || refundMutation.isPending}
+                      className="px-4 py-2 text-xs font-semibold rounded-lg text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 border border-rose-200 dark:border-rose-800"
+                    >
+                      Cancel Return (Reverse Stock)
+                    </button>
+                    <button
+                      onClick={() => {
+                        setRefundAmount(activeReturn.refundAmount);
+                        setIsRefundModalOpen(true);
+                      }}
+                      disabled={cancelMutation.isPending || refundMutation.isPending}
+                      className="px-4 py-2 text-xs font-semibold rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50"
+                    >
+                      Issue Customer Refund
+                    </button>
+                  </>
                 )}
               </div>
             )}
@@ -908,6 +947,141 @@ export default function SalesReturnsPage() {
                 {cancelMutation.isPending ? "Cancelling..." : "Confirm Cancellation"}
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ISSUE REFUND MODAL */}
+      {isRefundModalOpen && activeReturn && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-xs p-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl max-w-md w-full border border-slate-200 dark:border-slate-800 p-6 space-y-4 shadow-2xl">
+            <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
+              Issue Customer Refund
+            </h3>
+            <p className="text-xs text-slate-500">
+              Record a financial refund for Return{" "}
+              <span className="font-mono font-semibold">{activeReturn.returnId}</span>.
+              This will record the payment and update accounting records.
+            </p>
+
+            {actionError && (
+              <div className="p-3 bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 rounded-lg text-xs text-rose-700 dark:text-rose-300 flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{actionError}</span>
+              </div>
+            )}
+
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                refundMutation.mutate({
+                  customerId: activeReturn.customer.customerId,
+                  customerType: activeReturn.customer.customerType,
+                  amount: refundAmount,
+                  paymentMethod: refundPaymentMethod,
+                  currency: activeReturn.currency || defaultCurrency,
+                  source: "SALES_RETURN",
+                  salesReturnId: activeReturn._id,
+                  invoiceId:
+                    typeof activeReturn.invoiceId === "object" && activeReturn.invoiceId !== null
+                      ? (activeReturn.invoiceId as any)._id
+                      : (activeReturn.invoiceId as string | undefined),
+                  refundDate,
+                  transactionReference: refundRef.trim() || undefined,
+                  notes: refundNotes.trim() || undefined,
+                });
+              }}
+              className="space-y-3"
+            >
+              <div>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Refund Amount ({activeReturn.currency || defaultCurrency}) *
+                </label>
+                <input
+                  type="number"
+                  step="0.01"
+                  max={activeReturn.refundAmount}
+                  min={0.01}
+                  required
+                  value={refundAmount || ""}
+                  onChange={(e) => setRefundAmount(parseFloat(e.target.value) || 0)}
+                  className="w-full mt-1 px-3 py-1.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg font-mono font-bold text-slate-900 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Payment Method *
+                </label>
+                <select
+                  value={refundPaymentMethod}
+                  onChange={(e) => setRefundPaymentMethod(e.target.value as PaymentMethod)}
+                  className="w-full mt-1 px-3 py-1.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white"
+                >
+                  <option value="BANK_TRANSFER">Bank Transfer</option>
+                  <option value="CASH">Cash</option>
+                  <option value="CREDIT_CARD">Credit Card</option>
+                  <option value="UPI">UPI</option>
+                  <option value="OTHER">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Refund Date
+                </label>
+                <input
+                  type="date"
+                  value={refundDate}
+                  onChange={(e) => setRefundDate(e.target.value)}
+                  className="w-full mt-1 px-3 py-1.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Transaction Reference (Optional)
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g. TXN-98234, Check #102..."
+                  value={refundRef}
+                  onChange={(e) => setRefundRef(e.target.value)}
+                  className="w-full mt-1 px-3 py-1.5 text-sm bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white"
+                />
+              </div>
+
+              <div>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300">
+                  Notes (Optional)
+                </label>
+                <textarea
+                  rows={2}
+                  placeholder="Refund notes or details..."
+                  value={refundNotes}
+                  onChange={(e) => setRefundNotes(e.target.value)}
+                  className="w-full mt-1 px-3 py-1.5 text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setIsRefundModalOpen(false)}
+                  className="px-3 py-1.5 text-xs font-medium rounded-lg border border-slate-200 dark:border-slate-700"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={refundMutation.isPending}
+                  className="px-4 py-1.5 text-xs font-semibold rounded-lg text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50"
+                >
+                  {refundMutation.isPending ? "Issuing Refund..." : "Confirm & Issue Refund"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

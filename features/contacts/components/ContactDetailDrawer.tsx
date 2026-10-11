@@ -20,7 +20,7 @@ import {
   createPersonFromContact,
 } from "../contact.api";
 import { listPeople } from "../../people/people.api";
-import { apiClient } from "../../../lib/api/api-client";
+import { listCompanies } from "../../companies/company.api";
 import type { CrmPerson, CrmCompany } from "../../../lib/api/api-types";
 import { withDisplayPhoneNumber } from "../../shared/mappers";
 import {
@@ -86,12 +86,9 @@ export function ContactDetailDrawer({
     queryFn: () => listPeople(),
   });
 
-  const { data: companiesList = [] } = useQuery({
+  const { data: companiesList = [] } = useQuery<CrmCompany[]>({
     queryKey: ["crm-companies"],
-    queryFn: async () => {
-      const res = await apiClient.get<{ success: boolean; data: CrmCompany[] }>("/api/crm/companies");
-      return res.data.data;
-    },
+    queryFn: () => listCompanies(),
   });
 
   const linkPersonMut = useMutation({

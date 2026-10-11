@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
@@ -8,8 +9,9 @@ import { usePathname } from "next/navigation";
 import { cn } from "../../lib/utils";
 import { useWorkspace } from "../../lib/workspace/workspace-context";
 import { useWorkspaceDefaultCurrency } from "../../lib/workspace/use-workspace-currency";
+import { useWorkspaceModules } from "../../lib/workspace/use-workspace-modules";
 import { Button } from "../ui/button";
-import { navigationGroups, secondaryActions } from "./navigation";
+import { navigationGroups, filterNavigationByModules, secondaryActions } from "./navigation";
 
 interface SidebarProps {
   collapsed: boolean;
@@ -20,6 +22,12 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
   const pathname = usePathname();
   const { activeWorkspaceId } = useWorkspace();
   const { currency, symbol } = useWorkspaceDefaultCurrency();
+  const { enabledModuleKeys } = useWorkspaceModules();
+
+  const visibleGroups = useMemo(
+    () => filterNavigationByModules(navigationGroups, enabledModuleKeys),
+    [enabledModuleKeys],
+  );
 
   return (
     <aside
@@ -59,7 +67,7 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
       </div>
 
       <div className="mt-5 flex-1 space-y-4 overflow-y-auto px-0.5 pb-3 niwa-scrollbar">
-        {navigationGroups.map((group) => (
+        {visibleGroups.map((group) => (
           <div key={group.label}>
             {!collapsed ? (
               <div className="px-2.5 pb-1.5 text-[11px] font-medium tracking-wider uppercase text-muted-foreground">
