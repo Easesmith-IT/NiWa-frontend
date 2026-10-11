@@ -199,9 +199,78 @@ describe("Quotation Listing API Response & Lifecycle Contract Suite", () => {
     expect(parsed.summary?.sentCount).toBe(3);
     expect(parsed.summary?.acceptedCount).toBe(4);
     expect(parsed.summary?.totalValue).toBe(125000);
+    expect(parsed.summary?.totalValueByCurrency).toEqual([
+      { currency: "INR", totalValue: 125000, count: 0 },
+    ]);
   });
 
-  it("6. Filters parsed quotations by status, search term across quote ID, customer name, and notes", () => {
+  it("6. Parses multi-currency summary breakdown and sets totalValue to null to prevent misleading sums", () => {
+    const multiCurrencyResponse = {
+      success: true,
+      data: {
+        quotes: sampleQuotes,
+        total: 5,
+        page: 1,
+        limit: 20,
+        totalPages: 1,
+        summary: {
+          total: 8,
+          sentCount: 3,
+          acceptedCount: 2,
+          draftCount: 3,
+          declinedCount: 0,
+          expiredCount: 0,
+          totalValueByCurrency: [
+            { currency: "EUR", totalValue: 4500, count: 2 },
+            { currency: "INR", totalValue: 50000, count: 3 },
+            { currency: "USD", totalValue: 1200, count: 1 },
+          ],
+          totalValue: null,
+        },
+      },
+    };
+
+    const parsed = parseQuotesResponse(multiCurrencyResponse);
+    expect(parsed.summary).toBeDefined();
+    expect(parsed.summary?.totalValue).toBeNull();
+    expect(parsed.summary?.totalValueByCurrency.length).toBe(3);
+    expect(parsed.summary?.totalValueByCurrency[0]).toEqual({ currency: "EUR", totalValue: 4500, count: 2 });
+    expect(parsed.summary?.totalValueByCurrency[1]).toEqual({ currency: "INR", totalValue: 50000, count: 3 });
+    expect(parsed.summary?.totalValueByCurrency[2]).toEqual({ currency: "USD", totalValue: 1200, count: 1 });
+  });
+
+  it("7. Formats distinct currencies with their proper symbols and never labels mixed amounts as USD", async () => {
+    const { formatCurrency, getCurrencySymbol } = await import("../utils/currency-formatter");
+
+    const inrFormatted = formatCurrency(50000, "INR", "en-IN");
+    const usdFormatted = formatCurrency(1200, "USD", "en-US");
+    const eurFormatted = formatCurrency(4500, "EUR", "en-US");
+    const gbpFormatted = formatCurrency(950, "GBP", "en-US");
+
+    expect(inrFormatted).toContain("₹");
+    expect(usdFormatted).toContain("$");
+    expect(eurFormatted).toContain("€");
+    expect(gbpFormatted).toContain("£");
+
+    // Symbol retrieval
+    expect(getCurrencySymbol("INR")).toBe("₹");
+    expect(getCurrencySymbol("USD")).toBe("$");
+    expect(getCurrencySymbol("EUR")).toBe("€");
+    expect(getCurrencySymbol("GBP")).toBe("£");
+
+    // A multi-currency list must NEVER be combined into a single dollar sum
+    const currencies = [
+      { currency: "INR", totalValue: 50000 },
+      { currency: "USD", totalValue: 1200 },
+    ];
+    // Each must be formatted in its own currency
+    const formattedList = currencies.map((c) => formatCurrency(c.totalValue, c.currency));
+    expect(formattedList[0]).not.toContain("$");
+    expect(formattedList[0]).toContain("₹");
+    expect(formattedList[1]).toContain("$");
+  });
+
+  it("8. Filters parsed quotations by status, search term across quote ID, customer name, and notes", () => {
     const parsed = parseQuotesResponse({
       success: true,
       data: {
@@ -245,7 +314,7 @@ describe("Quotation Listing API Response & Lifecycle Contract Suite", () => {
     expect(acceptedOnly[0].quoteId).toBe("QTE-000002");
   });
 
-  it("7. Calculates summary KPI statistics accurately from parsed quotes fallback when summary is absent", () => {
+  it("9. Calculates summary KPI statistics accurately from parsed quotes fallback when summary is absent", () => {
     const parsed = parseQuotesResponse({
       success: true,
       data: {
@@ -272,7 +341,7 @@ describe("Quotation Listing API Response & Lifecycle Contract Suite", () => {
     expect(totalValue).toBe(10620);
   });
 
-  it("8. Safely removes action=create and preserves all other query parameters", () => {
+  it("10. Safely removes action=create and preserves all other query parameters", () => {
     const url = new URL("https://app.niwa.local/sales/quotes?action=create&search=acme&status=SENT&page=2");
     const params = new URLSearchParams(url.search);
 

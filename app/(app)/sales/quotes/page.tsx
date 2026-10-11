@@ -31,9 +31,15 @@ import { productsApi, type ProductItem } from "../../../../lib/api/products-api"
 import type { CrmPerson, CrmCompany } from "../../../../lib/api/api-types";
 import { fetchQuotes } from "../../../../features/sales/quotes.api";
 import type {
+  CurrencyTotal,
   PaginatedQuotesData,
   QuoteItem,
 } from "../../../../features/sales/quotes.types";
+import {
+  formatCurrency,
+  getCurrencySymbol,
+  DEFAULT_CURRENCY,
+} from "../../../../features/sales/utils/currency-formatter";
 
 interface CreateQuotePayload {
   customerType: "PERSON" | "COMPANY";
@@ -288,16 +294,41 @@ export default function QuotesPage() {
         total: paginatedData.summary.total,
         sentCount: paginatedData.summary.sentCount,
         acceptedCount: paginatedData.summary.acceptedCount,
-        totalValue: paginatedData.summary.totalValue,
+        totalValueByCurrency: paginatedData.summary.totalValueByCurrency || [],
+        totalValue: paginatedData.summary.totalValue ?? null,
       };
     }
     const totalCount = paginatedData?.total ?? quotes.length;
     const sentCount = quotes.filter((q) => q.status === "SENT").length;
     const acceptedCount = quotes.filter((q) => q.status === "ACCEPTED").length;
-    const totalValue = quotes
-      .filter((q) => q.status !== "DECLINED" && q.status !== "EXPIRED")
-      .reduce((sum, q) => sum + (q.grandTotal || 0), 0);
-    return { total: totalCount, sentCount, acceptedCount, totalValue };
+
+    // Group active quotes by currency for fallback
+    const currencyMap = new Map<string, { totalValue: number; count: number }>();
+    for (const q of quotes) {
+      if (q.status === "DRAFT" || q.status === "SENT" || q.status === "ACCEPTED") {
+        const curr = (q.currency || DEFAULT_CURRENCY).toUpperCase();
+        const existing = currencyMap.get(curr) || { totalValue: 0, count: 0 };
+        existing.totalValue += q.grandTotal || 0;
+        existing.count += 1;
+        currencyMap.set(curr, existing);
+      }
+    }
+    const totalValueByCurrency: CurrencyTotal[] = Array.from(currencyMap.entries())
+      .map(([currency, data]) => ({
+        currency,
+        totalValue: Math.round(data.totalValue * 100) / 100,
+        count: data.count,
+      }))
+      .sort((a, b) => a.currency.localeCompare(b.currency));
+
+    const totalValue =
+      totalValueByCurrency.length === 0
+        ? 0
+        : totalValueByCurrency.length === 1
+        ? totalValueByCurrency[0].totalValue
+        : null;
+
+    return { total: totalCount, sentCount, acceptedCount, totalValueByCurrency, totalValue };
   }, [paginatedData?.summary, paginatedData?.total, quotes]);
 
   return (
@@ -331,7 +362,7 @@ export default function QuotesPage() {
           <p className="mt-2 text-2xl font-bold text-foreground">{stats.total}</p>
           <p className="mt-0.5 text-[11px] text-muted-foreground">
             {statusFilter !== "ALL" || debouncedSearch
-              ? `${total} matching filter`
+              ? `${total} matching filter / ${stats.total} workspace total`
               : "Workspace recorded proposals"}
           </p>
         </div>
@@ -357,10 +388,40 @@ export default function QuotesPage() {
         <div className="rounded-xl border border-[#E4E4E7] bg-white p-4 shadow-xs dark:border-[#282B2E] dark:bg-[#17191B]">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">Quoted Value</span>
-            <span className="text-xs font-bold text-foreground">$</span>
+            <span className="text-xs font-bold text-foreground">
+              {stats.totalValueByCurrency.length === 1
+                ? getCurrencySymbol(stats.totalValueByCurrency[0].currency)
+                : stats.totalValueByCurrency.length > 1
+                ? "MULTI"
+                : getCurrencySymbol(DEFAULT_CURRENCY)}
+            </span>
           </div>
-          <p className="mt-2 text-2xl font-bold text-foreground">${stats.totalValue.toLocaleString()}</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Active pipeline value</p>
+          {stats.totalValueByCurrency.length === 0 ? (
+            <p className="mt-2 text-2xl font-bold text-foreground">
+              {formatCurrency(0, DEFAULT_CURRENCY)}
+            </p>
+          ) : stats.totalValueByCurrency.length === 1 ? (
+            <p className="mt-2 text-2xl font-bold text-foreground">
+              {formatCurrency(
+                stats.totalValueByCurrency[0].totalValue,
+                stats.totalValueByCurrency[0].currency
+              )}
+            </p>
+          ) : (
+            <div className="mt-2 space-y-1">
+              {stats.totalValueByCurrency.map((c) => (
+                <div key={c.currency} className="flex items-baseline justify-between gap-2">
+                  <span className="text-xs font-semibold text-muted-foreground">{c.currency}</span>
+                  <span className="text-sm font-bold text-foreground">
+                    {formatCurrency(c.totalValue, c.currency)}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
+            Workspace active pipeline
+          </p>
         </div>
       </div>
 

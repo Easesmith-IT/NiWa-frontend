@@ -40,6 +40,12 @@ export interface QuoteItem {
   updatedAt?: string;
 }
 
+export interface CurrencyTotal {
+  currency: string;
+  totalValue: number;
+  count?: number;
+}
+
 export interface QuoteSummaryData {
   total: number;
   sentCount: number;
@@ -47,7 +53,8 @@ export interface QuoteSummaryData {
   draftCount?: number;
   declinedCount?: number;
   expiredCount?: number;
-  totalValue: number;
+  totalValueByCurrency: CurrencyTotal[];
+  totalValue?: number | null;
 }
 
 export interface PaginatedQuotesData {

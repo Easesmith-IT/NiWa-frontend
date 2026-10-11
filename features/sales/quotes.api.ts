@@ -1,5 +1,5 @@
 import { apiClient } from "../../lib/api/api-client";
-import type { PaginatedQuotesData, QuoteItem, QuoteSummaryData, QuotesApiResponse } from "./quotes.types";
+import type { CurrencyTotal, PaginatedQuotesData, QuoteItem, QuoteSummaryData, QuotesApiResponse } from "./quotes.types";
 
 /**
  * Safely parses API responses for quotation listing.
@@ -58,6 +58,26 @@ export function parseQuotesResponse(responsePayload: unknown): PaginatedQuotesDa
       let summary: QuoteSummaryData | undefined;
       if ("summary" in obj && typeof obj.summary === "object" && obj.summary !== null) {
         const s = obj.summary as Record<string, unknown>;
+        let totalValueByCurrency: CurrencyTotal[] = [];
+        if (Array.isArray(s.totalValueByCurrency)) {
+          totalValueByCurrency = s.totalValueByCurrency
+            .map((c: any) => ({
+              currency: String(c?.currency || "").toUpperCase(),
+              totalValue: typeof c?.totalValue === "number" ? c.totalValue : 0,
+              count: typeof c?.count === "number" ? c.count : 0,
+            }))
+            .filter((c: CurrencyTotal) => Boolean(c.currency));
+        } else if (typeof s.totalValue === "number" && s.totalValue > 0) {
+          totalValueByCurrency = [{ currency: "INR", totalValue: s.totalValue, count: 0 }];
+        }
+
+        const totalValue =
+          typeof s.totalValue === "number"
+            ? s.totalValue
+            : totalValueByCurrency.length === 1
+            ? totalValueByCurrency[0].totalValue
+            : null;
+
         summary = {
           total: typeof s.total === "number" ? s.total : 0,
           sentCount: typeof s.sentCount === "number" ? s.sentCount : 0,
@@ -65,7 +85,8 @@ export function parseQuotesResponse(responsePayload: unknown): PaginatedQuotesDa
           draftCount: typeof s.draftCount === "number" ? s.draftCount : 0,
           declinedCount: typeof s.declinedCount === "number" ? s.declinedCount : 0,
           expiredCount: typeof s.expiredCount === "number" ? s.expiredCount : 0,
-          totalValue: typeof s.totalValue === "number" ? s.totalValue : 0,
+          totalValueByCurrency,
+          totalValue,
         };
       }
 

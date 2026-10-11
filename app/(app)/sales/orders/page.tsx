@@ -151,7 +151,11 @@ export default function SalesOrdersPage() {
       }),
   });
 
-  const { data: activeOrder, isLoading: isLoadingActiveOrder } = useQuery({
+  const {
+    data: activeOrder,
+    isLoading: isLoadingActiveOrder,
+    isError: isErrorActiveOrder,
+  } = useQuery({
     queryKey: selectedOrderId ? queryKeys.salesOrder(selectedOrderId) : ["null-order"],
     queryFn: () => (selectedOrderId ? getSalesOrder(selectedOrderId) : null),
     enabled: !!selectedOrderId,
@@ -1343,8 +1347,24 @@ export default function SalesOrdersPage() {
 
             {/* Drawer Content */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
-              {isLoadingActiveOrder || !activeOrder ? (
+              {isLoadingActiveOrder ? (
                 <div className="py-12 text-center text-sm text-slate-400">Loading order details...</div>
+              ) : isErrorActiveOrder || !activeOrder ? (
+                <div className="py-12 text-center text-slate-500 space-y-3">
+                  <div className="w-10 h-10 rounded-full bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-600 dark:text-rose-400 flex items-center justify-center mx-auto">
+                    <AlertCircle className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <p className="font-semibold text-slate-900 dark:text-white">Order Not Found</p>
+                    <p className="text-xs text-slate-400 mt-1">The requested sales order could not be located in this workspace.</p>
+                  </div>
+                  <button
+                    onClick={handleCloseOrderDrawer}
+                    className="px-3 py-1.5 text-xs font-medium rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-900 dark:text-white"
+                  >
+                    Close
+                  </button>
+                </div>
               ) : (
                 <>
                   {actionError && (
