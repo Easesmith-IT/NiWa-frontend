@@ -57,9 +57,17 @@ export default function QuotesPage() {
   const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
   const [page, setPage] = useState<number>(1);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearch(search);
+    }, 300);
+    return () => clearTimeout(handler);
+  }, [search]);
 
   useEffect(() => {
     if (searchParams?.get("action") === "create") {
@@ -73,8 +81,14 @@ export default function QuotesPage() {
     isError,
     error,
   } = useQuery<PaginatedQuotesData>({
-    queryKey: ["sales-quotes", statusFilter, page],
-    queryFn: () => fetchQuotes({ status: statusFilter, page, limit: 20 }),
+    queryKey: ["sales-quotes", statusFilter, page, debouncedSearch.trim()],
+    queryFn: () =>
+      fetchQuotes({
+        status: statusFilter,
+        page,
+        limit: 20,
+        search: debouncedSearch.trim() || undefined,
+      }),
   });
 
   const quotes = paginatedData?.quotes ?? [];
@@ -268,19 +282,15 @@ export default function QuotesPage() {
     createQuoteMutation.mutate(payload);
   };
 
-  const filteredQuotes = useMemo(() => {
-    return quotes.filter((q) => {
-      const term = search.toLowerCase().trim();
-      const matchesSearch =
-        !term ||
-        q.quoteId.toLowerCase().includes(term) ||
-        (q.customer?.displayName && q.customer.displayName.toLowerCase().includes(term)) ||
-        (q.notes && q.notes.toLowerCase().includes(term));
-      return matchesSearch;
-    });
-  }, [quotes, search]);
-
   const stats = useMemo(() => {
+    if (paginatedData?.summary) {
+      return {
+        total: paginatedData.summary.total,
+        sentCount: paginatedData.summary.sentCount,
+        acceptedCount: paginatedData.summary.acceptedCount,
+        totalValue: paginatedData.summary.totalValue,
+      };
+    }
     const totalCount = paginatedData?.total ?? quotes.length;
     const sentCount = quotes.filter((q) => q.status === "SENT").length;
     const acceptedCount = quotes.filter((q) => q.status === "ACCEPTED").length;
@@ -288,7 +298,7 @@ export default function QuotesPage() {
       .filter((q) => q.status !== "DECLINED" && q.status !== "EXPIRED")
       .reduce((sum, q) => sum + (q.grandTotal || 0), 0);
     return { total: totalCount, sentCount, acceptedCount, totalValue };
-  }, [paginatedData?.total, quotes]);
+  }, [paginatedData?.summary, paginatedData?.total, quotes]);
 
   return (
     <div className="space-y-6">
@@ -319,7 +329,11 @@ export default function QuotesPage() {
             <FileText className="h-4 w-4 text-[#176B4D] dark:text-[#63B592]" />
           </div>
           <p className="mt-2 text-2xl font-bold text-foreground">{stats.total}</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Recorded proposals</p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">
+            {statusFilter !== "ALL" || debouncedSearch
+              ? `${total} matching filter`
+              : "Workspace recorded proposals"}
+          </p>
         </div>
 
         <div className="rounded-xl border border-[#E4E4E7] bg-white p-4 shadow-xs dark:border-[#282B2E] dark:bg-[#17191B]">
@@ -328,7 +342,7 @@ export default function QuotesPage() {
             <Clock className="h-4 w-4 text-blue-600 dark:text-blue-400" />
           </div>
           <p className="mt-2 text-2xl font-bold text-foreground">{stats.sentCount}</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Customer review stage</p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">Workspace review stage</p>
         </div>
 
         <div className="rounded-xl border border-[#E4E4E7] bg-white p-4 shadow-xs dark:border-[#282B2E] dark:bg-[#17191B]">
@@ -337,7 +351,7 @@ export default function QuotesPage() {
             <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
           </div>
           <p className="mt-2 text-2xl font-bold text-foreground">{stats.acceptedCount}</p>
-          <p className="mt-0.5 text-[11px] text-muted-foreground">Ready for sales order</p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">Workspace ready for order</p>
         </div>
 
         <div className="rounded-xl border border-[#E4E4E7] bg-white p-4 shadow-xs dark:border-[#282B2E] dark:bg-[#17191B]">
@@ -375,7 +389,10 @@ export default function QuotesPage() {
           <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
           <Input
             className="h-8.5 border-[#E4E4E7] bg-[#FAFAFA] pl-8 text-xs dark:border-[#282B2E] dark:bg-[#191B1D]"
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => {
+              setSearch(e.target.value);
+              setPage(1);
+            }}
             placeholder="Search quotes or customers…"
             value={search}
           />
@@ -390,7 +407,7 @@ export default function QuotesPage() {
           <div className="p-12 text-center text-xs text-destructive">
             Failed to load quotes: {(error as Error)?.message || "Unknown error"}
           </div>
-        ) : filteredQuotes.length === 0 ? (
+        ) : quotes.length === 0 ? (
           <div className="p-12 text-center">
             <FileText className="mx-auto h-8 w-8 text-muted-foreground" />
             <p className="mt-3 text-sm font-semibold text-foreground">No quotes found</p>
@@ -421,7 +438,7 @@ export default function QuotesPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E4E4E7] dark:divide-[#282B2E]">
-                {filteredQuotes.map((q) => (
+                {quotes.map((q) => (
                   <tr key={q.quoteId} className="hover:bg-[#FAFAFA] dark:hover:bg-[#1D2022]">
                     <td className="px-4 py-3 font-semibold text-foreground">
                       {q.quoteId}

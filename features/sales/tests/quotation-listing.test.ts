@@ -156,14 +156,52 @@ describe("Quotation Listing API Response & Lifecycle Contract Suite", () => {
     expect(parsedArray.totalPages).toBe(1);
   });
 
-  it("4. Gracefully handles null, undefined, or unexpected shapes without throwing", () => {
-    expect(parseQuotesResponse(null)).toEqual({ quotes: [], total: 0, page: 1, limit: 20, totalPages: 0 });
-    expect(parseQuotesResponse(undefined)).toEqual({ quotes: [], total: 0, page: 1, limit: 20, totalPages: 0 });
-    expect(parseQuotesResponse({})).toEqual({ quotes: [], total: 0, page: 1, limit: 20, totalPages: 0 });
-    expect(parseQuotesResponse("invalid string")).toEqual({ quotes: [], total: 0, page: 1, limit: 20, totalPages: 0 });
+  it("4. Rejects malformed API responses and throws errors instead of silently converting to empty success", () => {
+    expect(() => parseQuotesResponse(null)).toThrow(/empty or missing/i);
+    expect(() => parseQuotesResponse(undefined)).toThrow(/empty or missing/i);
+    expect(() => parseQuotesResponse({})).toThrow(/unrecognized response structure/i);
+    expect(() => parseQuotesResponse("invalid string")).toThrow(/must be an object or array/i);
+    expect(() => parseQuotesResponse({ success: false, message: "Database failure" })).toThrow(/Database failure/i);
+    expect(() => parseQuotesResponse({ quotes: "not an array" })).toThrow(/'quotes' property must be an array/i);
   });
 
-  it("5. Filters parsed quotations by status, search term across quote ID, customer name, and notes", () => {
+  it("5. Parses workspace-wide summary metrics alongside paginated page records", () => {
+    const multiPageResponse = {
+      success: true,
+      data: {
+        quotes: [sampleQuotes[0], sampleQuotes[1]], // only 2 items on page 1
+        total: 5, // 5 total matching filter
+        page: 1,
+        limit: 2,
+        totalPages: 3,
+        summary: {
+          total: 10, // 10 total across entire workspace
+          sentCount: 3,
+          acceptedCount: 4,
+          draftCount: 2,
+          declinedCount: 1,
+          expiredCount: 0,
+          totalValue: 125000,
+        },
+      },
+    };
+
+    const parsed = parseQuotesResponse(multiPageResponse);
+
+    expect(parsed.quotes.length).toBe(2);
+    expect(parsed.total).toBe(5);
+    expect(parsed.page).toBe(1);
+    expect(parsed.limit).toBe(2);
+    expect(parsed.totalPages).toBe(3);
+
+    expect(parsed.summary).toBeDefined();
+    expect(parsed.summary?.total).toBe(10);
+    expect(parsed.summary?.sentCount).toBe(3);
+    expect(parsed.summary?.acceptedCount).toBe(4);
+    expect(parsed.summary?.totalValue).toBe(125000);
+  });
+
+  it("6. Filters parsed quotations by status, search term across quote ID, customer name, and notes", () => {
     const parsed = parseQuotesResponse({
       success: true,
       data: {
@@ -207,7 +245,7 @@ describe("Quotation Listing API Response & Lifecycle Contract Suite", () => {
     expect(acceptedOnly[0].quoteId).toBe("QTE-000002");
   });
 
-  it("6. Calculates summary KPI statistics accurately from parsed quotes", () => {
+  it("7. Calculates summary KPI statistics accurately from parsed quotes fallback when summary is absent", () => {
     const parsed = parseQuotesResponse({
       success: true,
       data: {
@@ -234,7 +272,7 @@ describe("Quotation Listing API Response & Lifecycle Contract Suite", () => {
     expect(totalValue).toBe(10620);
   });
 
-  it("7. Safely removes action=create and preserves all other query parameters", () => {
+  it("8. Safely removes action=create and preserves all other query parameters", () => {
     const url = new URL("https://app.niwa.local/sales/quotes?action=create&search=acme&status=SENT&page=2");
     const params = new URLSearchParams(url.search);
 

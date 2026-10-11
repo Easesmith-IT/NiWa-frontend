@@ -40,12 +40,23 @@ export interface QuoteItem {
   updatedAt?: string;
 }
 
+export interface QuoteSummaryData {
+  total: number;
+  sentCount: number;
+  acceptedCount: number;
+  draftCount?: number;
+  declinedCount?: number;
+  expiredCount?: number;
+  totalValue: number;
+}
+
 export interface PaginatedQuotesData {
   quotes: QuoteItem[];
   total: number;
   page: number;
   limit: number;
   totalPages: number;
+  summary?: QuoteSummaryData;
 }
 
 export interface QuotesApiResponse {

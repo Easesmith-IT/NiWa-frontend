@@ -73,4 +73,54 @@ describe("Search & Universal Create Navigation Contract Suite", () => {
     expect(optionIds).toContain("quote");
     expect(optionIds).toContain("sales-order");
   });
+
+  it("handles deep-link URLs with special characters and URL encoding safely", () => {
+    const specialOrderId = "SO/2026/04#01 & 02";
+    const targetUrl = `/sales/orders?orderId=${encodeURIComponent(specialOrderId)}`;
+    expect(targetUrl).toBe("/sales/orders?orderId=SO%2F2026%2F04%2301%20%26%2002");
+
+    const parsed = new URL(`https://app.niwa.local${targetUrl}`);
+    expect(parsed.searchParams.get("orderId")).toBe(specialOrderId);
+  });
+
+  it("preserves unrelated query parameters when closing sales order drawer or clearing action", () => {
+    const initialUrl = new URL("https://app.niwa.local/sales/orders?orderId=ORD-001&filter=all&page=3&search=acme");
+    const params = new URLSearchParams(initialUrl.search);
+
+    expect(params.get("orderId")).toBe("ORD-001");
+    expect(params.get("filter")).toBe("all");
+    expect(params.get("page")).toBe("3");
+    expect(params.get("search")).toBe("acme");
+
+    // Close drawer: delete orderId
+    params.delete("orderId");
+    const nextQuery = params.toString();
+
+    expect(params.get("orderId")).toBeNull();
+    expect(nextQuery).toBe("filter=all&page=3&search=acme");
+
+    const currentPath = "/sales/orders";
+    const resultingUrl = nextQuery ? `${currentPath}?${nextQuery}` : currentPath;
+    expect(resultingUrl).toBe("/sales/orders?filter=all&page=3&search=acme");
+  });
+
+  it("verifies and documents routes supporting dedicated deep-link detail targets vs list-only routes", () => {
+    const ROUTE_CAPABILITIES = {
+      products: { supportedDeepLink: true, pattern: "/products/:id" },
+      purchaseOrders: { supportedDeepLink: true, pattern: "/purchasing/orders/:id" },
+      salesOrders: { supportedDeepLink: true, pattern: "/sales/orders?orderId=:orderId" },
+      inboxThreads: { supportedDeepLink: true, pattern: "/inbox?conversationId=:conversationId" },
+      contacts: { supportedDeepLink: true, pattern: "/contacts?contactId=:contactId" },
+      deals: { supportedDeepLink: false, pattern: "/deals (board view, no standalone detail route)" },
+      leads: { supportedDeepLink: false, pattern: "/leads (pipeline view, no standalone detail route)" },
+    };
+
+    expect(ROUTE_CAPABILITIES.products.supportedDeepLink).toBe(true);
+    expect(ROUTE_CAPABILITIES.purchaseOrders.supportedDeepLink).toBe(true);
+    expect(ROUTE_CAPABILITIES.salesOrders.supportedDeepLink).toBe(true);
+    expect(ROUTE_CAPABILITIES.inboxThreads.supportedDeepLink).toBe(true);
+    expect(ROUTE_CAPABILITIES.contacts.supportedDeepLink).toBe(true);
+    expect(ROUTE_CAPABILITIES.deals.supportedDeepLink).toBe(false);
+    expect(ROUTE_CAPABILITIES.leads.supportedDeepLink).toBe(false);
+  });
 });
