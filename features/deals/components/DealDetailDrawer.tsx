@@ -13,6 +13,7 @@ import {
   TrendingUp,
   User,
   Users,
+  X,
   XCircle,
 } from "lucide-react";
 
@@ -66,6 +67,7 @@ export const DealDetailDrawer: React.FC<DealDetailDrawerProps> = ({
   return (
     <Drawer open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DrawerContent
+        hideClose
         side="right"
         className="w-full max-w-lg p-0 flex flex-col h-full bg-white dark:bg-[#17191B] border-l border-[#E4E4E7] dark:border-[#282B2E]"
       >
@@ -104,6 +106,15 @@ export const DealDetailDrawer: React.FC<DealDetailDrawerProps> = ({
                 className="h-7 text-xs"
               >
                 <MoveRight className="mr-1 h-3 w-3" /> Move
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                aria-label="Close deal details"
+              >
+                <X className="h-4 w-4" />
               </Button>
             </div>
           </div>

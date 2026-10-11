@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -38,9 +38,24 @@ export const MobileNav = ({ open, onOpenChange }: MobileNavProps) => {
     onOpenChange(false);
   };
 
+  useEffect(() => {
+    onOpenChange(false);
+  }, [pathname, onOpenChange]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 1024 && open) {
+        onOpenChange(false);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, [open, onOpenChange]);
+
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
       <DrawerContent
+        hideClose
         side="left"
         className="w-[280px] max-w-[85vw] p-0 flex flex-col h-full bg-[#FCFCFD] dark:bg-[#101214] border-r border-[#E4E4E7] dark:border-[#24272A]"
       >

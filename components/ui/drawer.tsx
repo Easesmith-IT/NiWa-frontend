@@ -119,11 +119,13 @@ export function DrawerContent({
   className,
   onInteractOutside,
   side = "right",
+  hideClose = false,
 }: {
   children: React.ReactNode;
   className?: string;
   onInteractOutside?: (e: Event) => void;
   side?: "left" | "right" | "bottom";
+  hideClose?: boolean;
 }) {
   const { open, onOpenChange, titleId, descriptionId, hasTitle, hasDescription } = useDrawerContext();
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -136,20 +138,20 @@ export function DrawerContent({
 
   useEffect(() => {
     const dialog = dialogRef.current;
-    if (!dialog) return;
+    if (!dialog || !open) return;
 
-    if (open) {
-      if (!dialog.open) {
-        overflowStateRef.current = document.body.style.overflow;
-        dialog.showModal();
-        document.body.style.overflow = "hidden";
-      }
-    } else {
-      if (dialog.open) {
+    overflowStateRef.current = document.body.style.overflow;
+    dialog.showModal();
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      if (dialog && dialog.open) {
         dialog.close();
+      }
+      if (overflowStateRef.current !== undefined) {
         document.body.style.overflow = overflowStateRef.current;
       }
-    }
+    };
   }, [open]);
 
   // Unmount cleanup
@@ -158,6 +160,8 @@ export function DrawerContent({
       const dialog = dialogRef.current;
       if (dialog && dialog.open) {
         dialog.close();
+      }
+      if (overflowStateRef.current) {
         document.body.style.overflow = overflowStateRef.current;
       }
     };
@@ -194,7 +198,7 @@ export function DrawerContent({
     return () => dialog.removeEventListener("click", handleClick);
   }, [onOpenChange, onInteractOutside]);
 
-  if (!mounted) return null;
+  if (!mounted || !open) return null;
 
   return createPortal(
     <dialog
@@ -203,7 +207,7 @@ export function DrawerContent({
       aria-describedby={hasDescription ? descriptionId : undefined}
       className={cn(
         "backdrop:bg-black/50 backdrop:backdrop-blur-sm",
-        "fixed m-0 bg-surface p-0 text-foreground shadow-modal border-border overflow-y-auto outline-none",
+        "fixed m-0 bg-surface p-0 text-foreground shadow-modal border-border overflow-hidden outline-none",
         "open:animate-in open:fade-in-0",
         side === "right" 
           ? "inset-y-0 right-0 h-full w-3/4 max-w-md border-l open:slide-in-from-right-full"
@@ -213,14 +217,16 @@ export function DrawerContent({
         className
       )}
     >
-      <div className="relative p-6">
-        <button
-          onClick={() => onOpenChange(false)}
-          className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-surface transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-2"
-          aria-label="Close"
-        >
-          <X className="h-4 w-4" />
-        </button>
+      <div className="relative flex flex-col h-full w-full">
+        {!hideClose && (
+          <button
+            onClick={() => onOpenChange(false)}
+            className="absolute right-4 top-4 z-10 rounded-sm opacity-70 ring-offset-surface transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-focus focus:ring-offset-2"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
         {children}
       </div>
     </dialog>,
