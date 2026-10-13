@@ -402,6 +402,12 @@ export const navigationGroups: NavigationGroup[] = [
         description: "Inbound webhook payload and processing logs.",
       },
       {
+        href: "/usage",
+        icon: Receipt,
+        label: "WhatsApp Usage",
+        description: "WhatsApp message pricing, allowance, and financial ledger.",
+      },
+      {
         href: "/settings",
         icon: Settings,
         label: "Settings",

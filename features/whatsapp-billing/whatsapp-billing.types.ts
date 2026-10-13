@@ -1,0 +1,149 @@
+export interface CategorySummary {
+  count: number;
+  billableCount: number;
+  freeCount: number;
+  metaCost: number;
+  customerCharge: number;
+}
+
+export interface WhatsAppBillingSummary {
+  period: string;
+  startDate: string;
+  endDate: string;
+  metrics: {
+    totalEvents: number;
+    billableCount: number;
+    freeAllowanceCount: number;
+    failedCount: number;
+    pendingCount: number;
+    totalMetaCost: number;
+    totalCustomerCharge: number;
+    currency: string;
+  };
+  byCategory: {
+    marketing: CategorySummary;
+    utility: CategorySummary;
+    authentication: CategorySummary;
+    service: CategorySummary;
+    unknown: CategorySummary;
+  };
+  allowance: {
+    granted: number;
+    consumed: number;
+    remaining: number;
+    percentUsed: number;
+  };
+}
+
+export interface WhatsAppUsageEvent {
+  _id: string;
+  workspaceId: string;
+  connectionId?: string;
+  phoneNumberId?: string;
+  displayPhoneNumber?: string;
+  metaMessageId: string;
+  direction: "outgoing" | "incoming";
+  messageType: string;
+  category: "marketing" | "utility" | "authentication" | "service" | "unknown";
+  templateName?: string;
+  recipientPhoneNumber: string;
+  recipientMarket: string;
+  customerServiceWindowOpen: boolean;
+  currency: string;
+  sentAt: string;
+  deliveredAt?: string;
+  billingTimestamp: string;
+  billingState:
+    | "pending"
+    | "provisional"
+    | "billable"
+    | "free_allowance"
+    | "ineligible"
+    | "failed"
+    | "reconciled"
+    | "adjusted";
+  isFreeAllowance: boolean;
+  metaCost: number;
+  markupAmount: number;
+  taxAmount: number;
+  customerCharge: number;
+  reconciliationStatus: "unreconciled" | "matched" | "discrepancy" | "reconciled";
+  source: string;
+  idempotencyKey: string;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface WhatsAppLedgerEntry {
+  _id: string;
+  workspaceId: string;
+  phoneNumberId?: string;
+  entryType:
+    | "DEBIT_USAGE"
+    | "CREDIT_ADJUSTMENT"
+    | "REVERSAL"
+    | "ALLOWANCE_OFFSET"
+    | "RECONCILIATION_ADJUSTMENT";
+  currency: string;
+  metaCost: number;
+  customerCharge: number;
+  metaMessageId?: string;
+  idempotencyKey: string;
+  description: string;
+  sourceReference?: string;
+  reversalOfLedgerId?: string;
+  createdAt: string;
+}
+
+export interface WhatsAppAllowance {
+  _id: string;
+  workspaceId: string;
+  phoneNumberId: string;
+  displayPhoneNumber?: string;
+  period: string;
+  periodStart: string;
+  periodEnd: string;
+  granted: number;
+  consumed: number;
+  remaining: number;
+  currency: string;
+}
+
+export interface WhatsAppRateCard {
+  _id: string;
+  workspaceId: string;
+  name: string;
+  category: "marketing" | "utility" | "authentication" | "service";
+  countryCode: string;
+  currency: string;
+  effectiveFrom: string;
+  effectiveTo?: string | null;
+  metaRate: number;
+  sellingRate: number;
+  markupPercent: number;
+  freeAllowanceEligible: boolean;
+  verificationStatus: "verified_official" | "provisional_secondary" | "unverified";
+  pricingBasis: "on_delivery" | "on_submission" | "on_chargeable_reply";
+  source: string;
+  isActive: boolean;
+  isDefault: boolean;
+}
+
+export interface ReconciliationResult {
+  jobId: string;
+  status: "completed" | "completed_with_discrepancies" | "failed";
+  totalRows: number;
+  matchedRows: number;
+  discrepancyRows: number;
+  autoAdjustedRows: number;
+  totalMetaCostReported: number;
+  totalMetaCostRecorded: number;
+  discrepancies: Array<{
+    metaMessageId: string;
+    reportedCost: number;
+    recordedCost: number;
+    difference: number;
+    reason: string;
+    actionTaken: string;
+  }>;
+}

@@ -102,5 +102,12 @@ export const queryKeys = {
     call: (id: string) => ["ai-calling", "calls", id] as const,
     transcript: (id: string) => ["ai-calling", "calls", id, "transcript"] as const,
   },
+  whatsappBilling: {
+    summary: (params?: unknown) => ["whatsapp-billing", "summary", params] as const,
+    events: (params?: unknown) => ["whatsapp-billing", "events", params] as const,
+    ledger: (params?: unknown) => ["whatsapp-billing", "ledger", params] as const,
+    allowances: (params?: unknown) => ["whatsapp-billing", "allowances", params] as const,
+    rateCards: (params?: unknown) => ["whatsapp-billing", "rate-cards", params] as const,
+  },
 };
 
