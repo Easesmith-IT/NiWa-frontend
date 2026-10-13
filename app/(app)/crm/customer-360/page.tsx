@@ -23,7 +23,6 @@ import {
   Users,
 } from "lucide-react";
 
-import { apiClient } from "../../../../lib/api/api-client";
 import { Button } from "../../../../components/ui/button";
 import { Input } from "../../../../components/ui/input";
 import { DealFormModal } from "../../../../features/deals/components/DealFormModal";
@@ -31,43 +30,11 @@ import { LeadFormModal } from "../../../../features/leads/components/LeadFormMod
 import { TaskFormModal } from "../../../../features/tasks/components/TaskFormModal";
 import { listPeople } from "../../../../features/people/people.api";
 import { listCompanies } from "../../../../features/companies/company.api";
-
-interface Customer360Data {
-  recordType: "Person" | "Company";
-  record: any;
-  linkedEntities: {
-    people?: any[];
-    companies?: any[];
-    contacts: any[];
-  };
-  deals: {
-    items: any[];
-    totalOpenValue: number;
-    openCount: number;
-    wonCount: number;
-    lostCount: number;
-  };
-  leads: {
-    items: any[];
-    totalCount: number;
-    openCount: number;
-  };
-  tasks: {
-    items: any[];
-    pendingCount: number;
-    overdueCount: number;
-  };
-  timeline: {
-    activities: any[];
-    totalCount: number;
-  };
-  communication: {
-    conversations: any[];
-    totalUnreadCount: number;
-    lastContactedAt: string | null;
-    activeChannels: string[];
-  };
-}
+import {
+  Customer360Data,
+  normalizeCustomer360Response,
+} from "../../../../features/crm/customer-360.utils";
+import { fetchCustomer360 } from "../../../../features/crm/customer-360.api";
 
 function Customer360Content() {
   const searchParams = useSearchParams();
@@ -121,10 +88,7 @@ function Customer360Content() {
     queryKey: ["customer-360", recordTypeParam, recordIdParam],
     queryFn: async () => {
       if (!recordIdParam) throw new Error("No record selected");
-      const res = await apiClient.get<Customer360Data>(
-        `/api/crm/customer-360/${recordTypeParam}/${recordIdParam}`
-      );
-      return res.data;
+      return fetchCustomer360(recordTypeParam, recordIdParam);
     },
     enabled: !!recordIdParam,
   });
@@ -356,8 +320,28 @@ function Customer360Content() {
     );
   }
 
-  const { record, deals, leads, tasks, timeline, communication } = customerData;
-  const displayName = record?.name || record?.displayName || `${record?.firstName || ""} ${record?.lastName || ""}`.trim() || "Customer";
+  const normalizedData = normalizeCustomer360Response(customerData, recordTypeParam);
+  const { record, deals, leads, tasks, timeline, communication } = normalizedData;
+
+  const displayName =
+    record?.name ||
+    record?.displayName ||
+    `${record?.firstName || ""} ${record?.lastName || ""}`.trim() ||
+    "Customer";
+
+  const primaryEmail =
+    record?.email ||
+    (Array.isArray(record?.emails) ? record.emails[0]?.email : undefined);
+
+  const primaryPhone =
+    record?.phone ||
+    (Array.isArray(record?.phones) ? record.phones[0]?.phone : undefined);
+
+  const companyName =
+    record?.companyName ||
+    (Array.isArray(normalizedData.linkedEntities?.companies)
+      ? normalizedData.linkedEntities.companies[0]?.name
+      : undefined);
 
   return (
     <div className="space-y-6">
@@ -381,23 +365,23 @@ function Customer360Content() {
               <div className="flex items-center gap-2">
                 <h1 className="text-lg font-bold text-foreground">{displayName}</h1>
                 <span className="rounded bg-[#F4F4F5] px-2 py-0.5 text-[10px] font-semibold text-muted-foreground dark:bg-[#25282B]">
-                  {customerData.recordType}
+                  {normalizedData.recordType}
                 </span>
               </div>
               <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
-                {record?.email && (
+                {primaryEmail && (
                   <span className="inline-flex items-center gap-1">
-                    <Mail className="h-3 w-3" /> {record.email}
+                    <Mail className="h-3 w-3" /> {primaryEmail}
                   </span>
                 )}
-                {record?.phone && (
+                {primaryPhone && (
                   <span className="inline-flex items-center gap-1">
-                    <Phone className="h-3 w-3" /> {record.phone}
+                    <Phone className="h-3 w-3" /> {primaryPhone}
                   </span>
                 )}
-                {record?.companyName && (
+                {companyName && (
                   <span className="inline-flex items-center gap-1">
-                    <Users className="h-3 w-3" /> {record.companyName}
+                    <Users className="h-3 w-3" /> {companyName}
                   </span>
                 )}
               </div>
@@ -428,7 +412,7 @@ function Customer360Content() {
             >
               <Plus className="mr-1 h-3.5 w-3.5" /> New Task
             </Button>
-            {communication.conversations?.[0]?._id && (
+            {communication?.conversations?.[0]?._id && (
               <Button
                 onClick={() => router.push(`/inbox?conversationId=${encodeURIComponent(communication.conversations[0]._id)}`)}
                 size="sm"
@@ -532,7 +516,7 @@ function Customer360Content() {
               {(timeline?.activities || []).length === 0 ? (
                 <p className="py-6 text-center text-xs text-muted-foreground">No recorded activities for this customer.</p>
               ) : (
-                timeline.activities.map((act: any) => (
+                (timeline?.activities || []).map((act: any) => (
                   <div key={act._id || act.createdAt} className="flex items-start gap-3 border-b border-border/50 pb-3 last:border-0">
                     <div className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#EDF8F3] text-[#176B4D] dark:bg-[#15271F] dark:text-[#63B592]">
                       <Calendar className="h-3.5 w-3.5" />
@@ -562,7 +546,7 @@ function Customer360Content() {
               {(deals?.items || []).length === 0 ? (
                 <p className="py-6 text-center text-xs text-muted-foreground">No deals linked to this customer yet.</p>
               ) : (
-                deals.items.map((deal: any) => (
+                (deals?.items || []).map((deal: any) => (
                   <div
                     key={deal._id}
                     className="flex items-center justify-between rounded-lg border border-[#E4E4E7] p-3 hover:bg-[#FAFAFA] dark:border-[#282B2E] dark:hover:bg-[#1D2022]"
@@ -603,7 +587,7 @@ function Customer360Content() {
               {(leads?.items || []).length === 0 ? (
                 <p className="py-6 text-center text-xs text-muted-foreground">No leads recorded for this customer.</p>
               ) : (
-                leads.items.map((lead: any) => (
+                (leads?.items || []).map((lead: any) => (
                   <div
                     key={lead._id}
                     className="flex items-center justify-between rounded-lg border border-[#E4E4E7] p-3 hover:bg-[#FAFAFA] dark:border-[#282B2E] dark:hover:bg-[#1D2022]"
@@ -634,7 +618,7 @@ function Customer360Content() {
               {(tasks?.items || []).length === 0 ? (
                 <p className="py-6 text-center text-xs text-muted-foreground">No tasks scheduled for this customer.</p>
               ) : (
-                tasks.items.map((t: any) => (
+                (tasks?.items || []).map((t: any) => (
                   <div
                     key={t._id}
                     className="flex items-center justify-between rounded-lg border border-[#E4E4E7] p-3 hover:bg-[#FAFAFA] dark:border-[#282B2E] dark:hover:bg-[#1D2022]"
@@ -661,8 +645,8 @@ function Customer360Content() {
         <DealFormModal
           isOpen={dealModalOpen}
           onClose={() => setDealModalOpen(false)}
-          defaultPrimaryPersonId={customerData.recordType === "Person" ? recordIdParam : null}
-          defaultCompanyId={customerData.recordType === "Company" ? recordIdParam : record?.companyId || null}
+          defaultPrimaryPersonId={normalizedData.recordType === "Person" ? recordIdParam : null}
+          defaultCompanyId={normalizedData.recordType === "Company" ? recordIdParam : record?.companyId || null}
           defaultTitle={`Deal for ${displayName}`}
         />
       )}
@@ -671,8 +655,8 @@ function Customer360Content() {
         <LeadFormModal
           isOpen={leadModalOpen}
           onClose={() => setLeadModalOpen(false)}
-          defaultPrimaryPersonId={customerData.recordType === "Person" ? recordIdParam : null}
-          defaultCompanyId={customerData.recordType === "Company" ? recordIdParam : record?.companyId || null}
+          defaultPrimaryPersonId={normalizedData.recordType === "Person" ? recordIdParam : null}
+          defaultCompanyId={normalizedData.recordType === "Company" ? recordIdParam : record?.companyId || null}
           defaultTitle={`Lead for ${displayName}`}
         />
       )}
@@ -683,7 +667,7 @@ function Customer360Content() {
           onClose={() => setTaskModalOpen(false)}
           defaultLinkedRecord={{
             recordId: recordIdParam,
-            recordType: customerData.recordType === "Person" ? "Person" : "Company",
+            recordType: normalizedData.recordType === "Person" ? "Person" : "Company",
           }}
         />
       )}

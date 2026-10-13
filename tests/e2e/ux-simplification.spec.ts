@@ -68,7 +68,44 @@ test.describe('NIWA UX Simplification E2E Verification', () => {
     await expect(sidebar).toContainText('Automate & System');
   });
 
-  test('3. Customer 360 Searchable Directory & Lookup Hub (Zero Raw ObjectId Input)', async ({ page }) => {
+  test('3. Customer 360 Searchable Directory & Full Profile Deep-Link (Zero Raw ObjectId Input)', async ({ page }) => {
+    // Seed test Person and Company via backend API
+    const unique = Date.now();
+    const personRes = await fetch('http://localhost:4000/api/crm/people', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.token}`,
+        'x-workspace-id': session.workspaceId,
+      },
+      body: JSON.stringify({
+        firstName: 'Aarav',
+        lastName: `Patel ${unique}`,
+        emails: [{ email: `aarav.${unique}@test.local`, isPrimary: true }],
+        phones: [{ phone: `+9198765${unique.toString().slice(-5)}`, isPrimary: true }],
+        jobTitle: 'Procurement Head',
+      }),
+    });
+    const personJson = await personRes.json();
+    const personId = personJson.data?._id;
+
+    const companyRes = await fetch('http://localhost:4000/api/crm/companies', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${session.token}`,
+        'x-workspace-id': session.workspaceId,
+      },
+      body: JSON.stringify({
+        name: `Acme Logistics ${unique}`,
+        industry: 'Supply Chain',
+        domain: `acmelogistics${unique}.local`,
+      }),
+    });
+    const companyJson = await companyRes.json();
+    const companyId = companyJson.data?._id;
+
+    // 1. Verify Directory list view
     await page.goto('/crm/customer-360');
     await page.waitForLoadState('domcontentloaded');
 
@@ -80,6 +117,55 @@ test.describe('NIWA UX Simplification E2E Verification', () => {
     const companiesTab = page.getByRole('button', { name: /companies/i }).first();
     await companiesTab.click();
     await expect(page.getByPlaceholder(/search company by name, industry, or domain/i)).toBeVisible();
+
+    // Switch back to People tab
+    const peopleTab = page.getByRole('button', { name: /people/i }).first();
+    await peopleTab.click();
+
+    // 2. Open Person 360 Profile and verify full profile renders without ANY client-side exception
+    if (personId) {
+      await page.goto(`/crm/customer-360?recordType=Person&recordId=${personId}`);
+      await page.waitForLoadState('domcontentloaded');
+
+      // Assert zero client-side exceptions
+      await expect(page.locator('text=Application error: a client-side exception has occurred')).not.toBeVisible();
+
+      // Profile header & badge
+      await expect(page.getByRole('heading', { name: new RegExp(`Aarav Patel ${unique}`, 'i') })).toBeVisible();
+      await expect(page.getByText('Person', { exact: true })).toBeVisible();
+
+      // Stat cards
+      await expect(page.getByText(/open deals/i)).toBeVisible();
+      await expect(page.getByText(/lifetime leads/i)).toBeVisible();
+      await expect(page.getByText(/customer tasks/i).or(page.getByText(/overdue/i))).toBeVisible();
+      await expect(page.getByText(/communication/i)).toBeVisible();
+
+      // Tabs: switch to Deals, Leads, Tasks, and Timeline
+      await page.getByRole('button', { name: /deals/i }).first().click();
+      await expect(page.getByText(/associated deals/i)).toBeVisible();
+
+      await page.getByRole('button', { name: /leads/i }).first().click();
+      await expect(page.getByText(/active leads/i)).toBeVisible();
+
+      await page.getByRole('button', { name: /tasks/i }).first().click();
+      await expect(page.getByText(/customer tasks/i)).toBeVisible();
+
+      await page.getByRole('button', { name: /timeline/i }).first().click();
+      await expect(page.getByText(/activity timeline/i)).toBeVisible();
+
+      // Verify no client errors after all tab switches
+      await expect(page.locator('text=Application error: a client-side exception has occurred')).not.toBeVisible();
+    }
+
+    // 3. Open Company 360 Profile and verify
+    if (companyId) {
+      await page.goto(`/crm/customer-360?recordType=Company&recordId=${companyId}`);
+      await page.waitForLoadState('domcontentloaded');
+
+      await expect(page.locator('text=Application error: a client-side exception has occurred')).not.toBeVisible();
+      await expect(page.getByRole('heading', { name: new RegExp(`Acme Logistics ${unique}`, 'i') })).toBeVisible();
+      await expect(page.getByText('Company', { exact: true })).toBeVisible();
+    }
   });
 
   test('4. Universal Create opens in-place ContactCreateModal with auto-CRM Person link', async ({ page }) => {

@@ -1,4 +1,4 @@
-import { Page } from '@playwright/test';
+import { Page, expect } from '@playwright/test';
 
 export interface TestSession {
   token: string;
@@ -27,12 +27,22 @@ export async function loginViaApi(
   return { token, workspaceId };
 }
 
+export async function assertNoClientErrors(page: Page): Promise<void> {
+  const appError = page.locator('text=Application error: a client-side exception has occurred');
+  await expect(appError).not.toBeVisible();
+}
+
 export async function setupAuthenticatedContext(
   page: Page,
   email = 'admin@niwa.local',
   password = 'ChangeMe123!'
 ): Promise<TestSession> {
   const session = await loginViaApi(email, password);
+
+  page.on('pageerror', (err) => {
+    // Fail or log uncaught client-side JavaScript runtime exceptions
+    console.error(`[Playwright Unhandled PageError on ${page.url()}]: ${err.message}\n${err.stack || ''}`);
+  });
 
   await page.addInitScript(
     ({ token, workspaceId }) => {
