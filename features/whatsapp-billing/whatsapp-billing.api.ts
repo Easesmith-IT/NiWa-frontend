@@ -102,9 +102,24 @@ export const triggerWhatsAppReconciliation = async (payload: {
   }>;
   billingPeriod?: string;
   autoAdjust?: boolean;
+  confirmAutoAdjust?: boolean;
+  reportIdentifier?: string;
 }) => {
   const { data } = await apiClient.post<{ success: boolean; data: ReconciliationResult }>(
     "/billing/whatsapp/reconcile",
+    payload
+  );
+  return data.data;
+};
+
+export const resolveWhatsAppDiscrepancy = async (payload: {
+  jobId: string;
+  metaMessageId?: string;
+  discrepancyId?: string;
+  action: "create_adjustment" | "waive";
+}) => {
+  const { data } = await apiClient.post<{ success: boolean; data: any }>(
+    "/billing/whatsapp/reconcile/resolve",
     payload
   );
   return data.data;

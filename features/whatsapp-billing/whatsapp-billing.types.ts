@@ -109,6 +109,13 @@ export interface WhatsAppAllowance {
   currency: string;
 }
 
+export interface WhatsAppRateCardTier {
+  minVolume: number;
+  maxVolume?: number | null;
+  metaRate: number;
+  sellingRate: number;
+}
+
 export interface WhatsAppRateCard {
   _id: string;
   workspaceId: string;
@@ -124,6 +131,7 @@ export interface WhatsAppRateCard {
   freeAllowanceEligible: boolean;
   verificationStatus: "verified_official" | "provisional_secondary" | "unverified";
   pricingBasis: "on_delivery" | "on_submission" | "on_chargeable_reply";
+  tiers?: WhatsAppRateCardTier[];
   source: string;
   isActive: boolean;
   isDefault: boolean;
@@ -139,11 +147,19 @@ export interface ReconciliationResult {
   totalMetaCostReported: number;
   totalMetaCostRecorded: number;
   discrepancies: Array<{
+    discrepancyId?: string;
     metaMessageId: string;
     reportedCost: number;
     recordedCost: number;
     difference: number;
     reason: string;
     actionTaken: string;
+    status?: string;
+    type?: string;
   }>;
+  rejectedRecords?: Array<{
+    record: unknown;
+    reason: string;
+  }>;
+  rejectedCount?: number;
 }
