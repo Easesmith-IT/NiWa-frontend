@@ -100,6 +100,7 @@ export const triggerWhatsAppReconciliation = async (payload: {
     category?: string;
     timestamp?: string;
   }>;
+  billingPeriod?: string;
   autoAdjust?: boolean;
 }) => {
   const { data } = await apiClient.post<{ success: boolean; data: ReconciliationResult }>(
@@ -107,6 +108,30 @@ export const triggerWhatsAppReconciliation = async (payload: {
     payload
   );
   return data.data;
+};
+
+export const downloadUsageReport = async (format: "json" | "csv", month?: number, year?: number): Promise<void> => {
+  const params: Record<string, any> = { format };
+  if (month) params.month = month;
+  if (year) params.year = year;
+
+  const response = await apiClient.get<Blob>("/billing/whatsapp/export", {
+    params,
+    responseType: "blob",
+  });
+
+  const blob = new Blob([response.data], {
+    type: format === "csv" ? "text/csv;charset=utf-8;" : "application/json",
+  });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  const periodStr = month && year ? `${year}-${String(month).padStart(2, "0")}` : "export";
+  link.setAttribute("download", `whatsapp-usage-${periodStr}.${format}`);
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
 };
 
 export const downloadUsageReportUrl = (format: "json" | "csv", month?: number, year?: number) => {

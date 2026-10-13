@@ -20,7 +20,7 @@ import {
   useCreateWhatsAppRateCard,
   useTriggerWhatsAppReconciliation,
 } from "../whatsapp-billing.queries";
-import { downloadUsageReportUrl } from "../whatsapp-billing.api";
+import { downloadUsageReport, downloadUsageReportUrl } from "../whatsapp-billing.api";
 import { WhatsAppBillingOverview } from "./WhatsAppBillingOverview";
 import { WhatsAppUsageEventsTable } from "./WhatsAppUsageEventsTable";
 import { WhatsAppFinancialLedgerTable } from "./WhatsAppFinancialLedgerTable";
@@ -73,9 +73,14 @@ export const WhatsAppUsageAdminView: React.FC = () => {
   const createRateCardMutation = useCreateWhatsAppRateCard();
   const triggerReconciliationMutation = useTriggerWhatsAppReconciliation();
 
-  const handleExport = (format: "json" | "csv") => {
-    const url = downloadUsageReportUrl(format, selectedMonth, selectedYear);
-    window.open(url, "_blank");
+  const handleExport = async (format: "json" | "csv") => {
+    try {
+      await downloadUsageReport(format, selectedMonth, selectedYear);
+    } catch (err) {
+      console.error("Export download failed, falling back to URL download", err);
+      const url = downloadUsageReportUrl(format, selectedMonth, selectedYear);
+      window.open(url, "_blank");
+    }
   };
 
   return (
