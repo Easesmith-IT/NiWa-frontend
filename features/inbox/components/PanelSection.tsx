@@ -7,7 +7,7 @@ export interface PanelSectionProps {
 
 export function PanelSection({ title, children }: PanelSectionProps) {
   return (
-    <section className="border-t border-[#E4E4E7] px-5 py-4 first:border-t-0">
+    <section className="border-t border-[#E4E4E7] px-5 py-4 first:border-t-0 dark:border-[#24272A]">
       <h3 className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
         {title}
       </h3>

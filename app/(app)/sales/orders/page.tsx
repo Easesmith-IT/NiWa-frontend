@@ -49,7 +49,7 @@ import { productsApi, ProductItem } from "lib/api/products-api";
 import { getLocations, LocationItem } from "lib/api/inventory-api";
 import { apiClient } from "lib/api/api-client";
 import { queryKeys } from "lib/api/query-keys";
-import { listContacts } from "features/contacts/contact.api";
+import { listContacts, createPersonFromContact } from "features/contacts/contact.api";
 import type { ContactRecord } from "features/contacts/contact.types";
 import { formatCurrency, getCurrencySymbol, COMMON_CURRENCIES } from "features/sales/utils/currency-formatter";
 
@@ -227,6 +227,7 @@ export default function SalesOrdersPage() {
   }, [activeOrder]);
 
   const contactList: ContactRecord[] = (contactsData as any)?.data || [];
+  const unlinkedContacts: ContactRecord[] = contactList.filter((c) => !c.personId);
 
   // Mutations
   const createOrderMutation = useMutation({
@@ -435,7 +436,7 @@ export default function SalesOrdersPage() {
     }
   };
 
-  function handleCreateSubmit(e: React.FormEvent) {
+  async function handleCreateSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!selectedCustomerId) {
       setActionError("Please select a customer.");
@@ -444,6 +445,30 @@ export default function SalesOrdersPage() {
     if (orderLines.length === 0) {
       setActionError("Please add at least one line item to the order.");
       return;
+    }
+
+    let resolvedCustomerId = selectedCustomerId;
+    if (customerType === "PERSON" && selectedCustomerId.startsWith("contact:")) {
+      const contactId = selectedCustomerId.replace("contact:", "");
+      const targetContact = unlinkedContacts.find((c) => c._id === contactId);
+      try {
+        const promoted = await createPersonFromContact(contactId, {
+          displayName: targetContact?.displayName || "Customer",
+        });
+        const newPersonId = promoted?.data?.person?._id;
+        if (!newPersonId) {
+          throw new Error("Could not create CRM customer profile from contact.");
+        }
+        resolvedCustomerId = newPersonId;
+        setSelectedCustomerId(newPersonId);
+        await queryClient.invalidateQueries({ queryKey: ["crm-people"] });
+        await queryClient.invalidateQueries({ queryKey: ["contacts-for-order-autofill"] });
+      } catch (err: any) {
+        setActionError(
+          err.response?.data?.message || err.message || "Failed to promote WhatsApp contact to CRM Person."
+        );
+        return;
+      }
     }
 
     const payloadLines: CreateOrderLineInput[] = orderLines.map((l) => ({
@@ -456,7 +481,7 @@ export default function SalesOrdersPage() {
 
     createOrderMutation.mutate({
       customerType,
-      customerId: selectedCustomerId,
+      customerId: resolvedCustomerId,
       locationId: orderLocationId || null,
       currency: orderCurrency,
       notes: orderNotes || null,
@@ -891,14 +916,27 @@ export default function SalesOrdersPage() {
                       required
                       className="w-full px-3 py-2 text-sm rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100"
                     >
-                      <option value="">Select a Person...</option>
-                      {(peopleData || []).map((p) => (
-                        <option key={p._id} value={p._id}>
-                          {p.displayName} {p.emails?.[0]?.email ? `(${p.emails[0].email})` : ""}
-                        </option>
-                      ))}
+                      <option value="">Select a Customer or WhatsApp Contact...</option>
+                      {(peopleData || []).length > 0 && (
+                        <optgroup label="CRM Customers (People)">
+                          {(peopleData || []).map((p) => (
+                            <option key={p._id} value={p._id}>
+                              {p.displayName} {p.emails?.[0]?.email ? `(${p.emails[0].email})` : ""}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                      {unlinkedContacts.length > 0 && (
+                        <optgroup label="WhatsApp Contacts (Auto-creates CRM Profile)">
+                          {unlinkedContacts.map((c) => (
+                            <option key={`contact:${c._id}`} value={`contact:${c._id}`}>
+                              {c.displayName} ({c.phoneNumber}) — WhatsApp Contact
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
                     </select>
-                    {(peopleData || []).length === 0 && (
+                    {(peopleData || []).length === 0 && unlinkedContacts.length === 0 && (
                       <div className="mt-2 p-2.5 bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900/50 rounded-lg flex flex-col sm:flex-row sm:items-center justify-between gap-2">
                         <p className="text-xs text-amber-800 dark:text-amber-300">
                           No CRM persons found in this workspace yet.

@@ -50,12 +50,12 @@ export function ContactNotesSection({
   return (
     <PanelSection title="Notes">
       <Textarea
-        className="min-h-24 border-[#ddd2c3] bg-white text-[#25342f]"
+        className="min-h-20 text-xs"
         onChange={(event) => onNoteContentChange(event.target.value)}
         placeholder="Add internal note"
         value={noteContent}
       />
-      <label className="mt-3 flex items-center gap-2 text-sm text-[#6f7f75]">
+      <label className="mt-2.5 flex items-center gap-2 text-xs text-muted-foreground">
         <input
           checked={notePinned}
           onChange={(event) => onNotePinnedChange(event.target.checked)}
@@ -64,31 +64,32 @@ export function ContactNotesSection({
         Pin note
       </label>
       <Button
-        className="mt-3 w-full border-[#ddd2c3] bg-white text-[#25342f] hover:bg-[#f6f1e9]"
+        className="mt-2.5 w-full text-xs"
         disabled={!noteContent.trim() || isCreatingNote}
         onClick={onAddNote}
+        size="sm"
         type="button"
-        variant="secondary"
+        variant="outline"
       >
         Add note
       </Button>
-      <div className="mt-4 space-y-3">
+      <div className="mt-3 space-y-2.5">
         {notes.slice(0, 6).map((note) => (
-          <div className="rounded-xl bg-white px-4 py-4" key={note._id}>
-            <div className="flex items-center justify-between gap-3">
-              <p className="text-sm font-medium text-[#25342f]">{note.authorName}</p>
+          <div className="rounded-lg border border-[#E4E4E7] bg-[#FAFAFA] p-3 dark:border-[#282B2E] dark:bg-[#17191B]" key={note._id}>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-xs font-semibold text-foreground">{note.authorName}</p>
               <button
-                className="rounded-full p-1.5 text-[#6f7f75] transition hover:bg-[#f3ede4] hover:text-[#25342f]"
+                className="rounded-md p-1 text-muted-foreground transition hover:bg-[#F4F4F5] hover:text-foreground dark:hover:bg-[#25282B]"
                 onClick={() => onTogglePinNote(note._id, note.pinned)}
                 type="button"
               >
-                <Pin className="h-4 w-4" />
+                <Pin className="h-3.5 w-3.5" />
               </button>
             </div>
             {editingNoteId === note._id ? (
-              <div className="mt-3 space-y-2">
+              <div className="mt-2 space-y-2">
                 <Textarea
-                  className="min-h-20 border-[#ddd2c3] bg-[#fffdf9] text-[#25342f]"
+                  className="min-h-16 text-xs"
                   onChange={(event) => onEditingNoteContentChange(event.target.value)}
                   value={editingNoteContent}
                 />
@@ -108,35 +109,33 @@ export function ContactNotesSection({
                     }}
                     size="sm"
                     type="button"
-                    variant="secondary"
+                    variant="outline"
                   >
                     Cancel
                   </Button>
                 </div>
               </div>
             ) : (
-              <p className="mt-2 whitespace-pre-wrap text-sm text-[#5c6d63]">{note.content}</p>
+              <p className="mt-1.5 whitespace-pre-wrap text-xs text-muted-foreground">{note.content}</p>
             )}
-            <div className="mt-3 flex gap-2">
+            <div className="mt-2.5 flex gap-2">
               <Button
-                className="border-[#ddd2c3] bg-white text-[#25342f] hover:bg-[#f6f1e9]"
                 onClick={() => {
                   onEditingNoteIdChange(note._id);
                   onEditingNoteContentChange(note.content);
                 }}
                 size="sm"
                 type="button"
-                variant="secondary"
+                variant="outline"
               >
                 Edit
               </Button>
               <Button
-                className="border-[#ddd2c3] bg-white text-[#25342f] hover:bg-[#f6f1e9]"
                 disabled={isDeletingNote}
                 onClick={() => onDeleteNote(note._id)}
                 size="sm"
                 type="button"
-                variant="secondary"
+                variant="outline"
               >
                 Delete
               </Button>
@@ -144,7 +143,7 @@ export function ContactNotesSection({
           </div>
         ))}
         {notes.length === 0 ? (
-          <p className="text-sm text-[#7a8b82]">No notes yet.</p>
+          <p className="text-xs text-muted-foreground">No notes yet.</p>
         ) : null}
       </div>
     </PanelSection>

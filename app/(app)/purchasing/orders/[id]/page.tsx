@@ -1319,7 +1319,7 @@ export default function PurchaseOrderDetailPage() {
 
                 <div className="space-y-1">
                   <label className="text-xs font-semibold text-foreground">
-                    Inventory Asset Account *
+                    Inventory Asset Account (Auto-selected)
                   </label>
                   <select
                     value={effectiveAccountId}
@@ -1337,6 +1337,9 @@ export default function PurchaseOrderDetailPage() {
                       ))
                     )}
                   </select>
+                  <p className="text-[11px] text-muted-foreground">
+                    Pre-filled with your default Inventory Asset account.
+                  </p>
                 </div>
 
                 <div className="space-y-1">

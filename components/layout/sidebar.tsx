@@ -20,7 +20,7 @@ interface SidebarProps {
 
 export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
   const pathname = usePathname();
-  const { activeWorkspaceId } = useWorkspace();
+  const { activeWorkspaceId, activeMembership } = useWorkspace();
   const { currency, symbol } = useWorkspaceDefaultCurrency();
   const { enabledModuleKeys } = useWorkspaceModules();
 
@@ -130,7 +130,7 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
           <div className="mt-3 rounded-md border border-[#E4E4E7] bg-[#FAFAFA] px-2.5 py-2 dark:border-[#24272A] dark:bg-[#17191B]">
             <div className="flex items-center justify-between gap-1">
               <p className="text-[10px] font-semibold tracking-wider uppercase text-muted-foreground">
-                Workspace Context
+                Workspace
               </p>
               {currency ? (
                 <span className="inline-flex items-center gap-1 rounded bg-[#EDF8F3] px-1.5 py-0.5 font-mono text-[10px] font-semibold text-emerald-700 dark:bg-[#15271F] dark:text-emerald-400">
@@ -138,9 +138,16 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
                 </span>
               ) : null}
             </div>
-            <p className="mt-0.5 truncate text-xs font-medium text-foreground">
-              {activeWorkspaceId ? activeWorkspaceId : "No Active Workspace"}
-            </p>
+            <div className="mt-1 flex items-center justify-between gap-1.5">
+              <p className="truncate text-xs font-medium text-foreground" title={activeWorkspaceId || undefined}>
+                {activeWorkspaceId ? `Active (#${activeWorkspaceId.slice(-6)})` : "No Active Workspace"}
+              </p>
+              {activeMembership?.role ? (
+                <span className="shrink-0 rounded border border-[#E4E4E7] bg-white px-1.5 py-0.5 text-[10px] font-medium capitalize text-[#52525B] dark:border-[#303438] dark:bg-[#121416] dark:text-[#A1A1AA]">
+                  {activeMembership.role.toLowerCase()}
+                </span>
+              ) : null}
+            </div>
           </div>
         ) : null}
       </div>

@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { isAxiosError } from "axios";
 import { useLabelsQuery } from "../../labels";
-import { exportContacts } from "../contact.api";
+import { createPersonFromContact, exportContacts } from "../contact.api";
 import {
   useContactDuplicatesQuery,
   useContactsQuery,
@@ -74,7 +74,7 @@ export function useContactsOrchestration() {
     router.push(`/inbox?search=${encodeURIComponent(phoneNumber)}`);
   };
 
-  const handleCreateContact = () => {
+  const handleCreateContact = (alsoCreatePerson = true) => {
     const payload = {
       company: newContactDraft.company.trim() || undefined,
       displayName: newContactDraft.displayName.trim(),
@@ -86,7 +86,18 @@ export function useContactsOrchestration() {
     };
 
     createContactMutation.mutate(payload, {
-      onSuccess: (result) => {
+      onSuccess: async (result) => {
+        if (alsoCreatePerson && result?.data?._id) {
+          try {
+            await createPersonFromContact(result.data._id, {
+              displayName: payload.displayName,
+              createCompany: Boolean(payload.company),
+              companyName: payload.company,
+            });
+          } catch {
+            // Non-blocking if CRM Person auto-promotion fails
+          }
+        }
         setFeedback({ message: "Contact created successfully.", tone: "success" });
         setCreateModalOpen(false);
         setNewContactDraft(defaultNewContact);

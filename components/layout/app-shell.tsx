@@ -11,6 +11,7 @@ import { UniversalCreateModal } from "./universal-create-modal";
 import { LeadFormModal } from "../../features/leads/components/LeadFormModal";
 import { DealFormModal } from "../../features/deals/components/DealFormModal";
 import { TaskFormModal } from "../../features/tasks/components/TaskFormModal";
+import { ContactCreateModal } from "../../features/contacts/components/ContactCreateModal";
 
 export const AppShell = ({ children }: { children: ReactNode }) => {
   const router = useRouter();
@@ -22,6 +23,7 @@ export const AppShell = ({ children }: { children: ReactNode }) => {
   const [leadModalOpen, setLeadModalOpen] = useState(false);
   const [dealModalOpen, setDealModalOpen] = useState(false);
   const [taskModalOpen, setTaskModalOpen] = useState(false);
+  const [contactModalOpen, setContactModalOpen] = useState(false);
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
@@ -68,11 +70,16 @@ export const AppShell = ({ children }: { children: ReactNode }) => {
       <UniversalCreateModal
         isOpen={universalCreateOpen}
         onClose={() => setUniversalCreateOpen(false)}
-        onSelectContact={() => router.push("/contacts")}
+        onSelectContact={() => setContactModalOpen(true)}
         onSelectDeal={() => setDealModalOpen(true)}
         onSelectLead={() => setLeadModalOpen(true)}
         onSelectTask={() => setTaskModalOpen(true)}
       />
+      {contactModalOpen && (
+        <ContactCreateModal
+          onClose={() => setContactModalOpen(false)}
+        />
+      )}
       {leadModalOpen && (
         <LeadFormModal
           isOpen={leadModalOpen}

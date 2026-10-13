@@ -31,10 +31,10 @@ export function ContactLabelsSection({
 }: ContactLabelsSectionProps) {
   return (
     <PanelSection title="Labels">
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-1.5">
         {contactLabels.map((label) => (
           <button
-            className="inline-flex items-center gap-1 rounded-full px-3 py-1.5 text-sm"
+            className="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium"
             disabled={isRemovingLabel}
             key={label._id}
             onClick={() => onRemoveLabel(label._id)}
@@ -42,16 +42,16 @@ export function ContactLabelsSection({
             type="button"
           >
             {label.name}
-            <X className="h-3.5 w-3.5" />
+            <X className="h-3 w-3" />
           </button>
         ))}
         {contactLabels.length === 0 ? (
-          <p className="text-sm text-[#7a8b82]">No labels assigned.</p>
+          <p className="text-xs text-muted-foreground">No labels assigned.</p>
         ) : null}
       </div>
-      <div className="mt-4 flex gap-2">
+      <div className="mt-3 flex gap-2">
         <select
-          className="h-10 flex-1 rounded-lg border border-[#ddd2c3] bg-white px-3 text-sm text-[#25342f] outline-none"
+          className="h-8 flex-1 rounded-md border border-[#E4E4E7] bg-white px-2.5 text-xs text-foreground outline-none dark:border-[#303438] dark:bg-[#17191B]"
           onChange={(event) => onSelectLabelId(event.target.value)}
           value={selectedLabelId}
         >
@@ -63,14 +63,13 @@ export function ContactLabelsSection({
           ))}
         </select>
         <Button
-          className="border-[#ddd2c3] bg-white text-[#25342f] hover:bg-[#f6f1e9]"
           disabled={!selectedLabelId || isAddingLabel}
           onClick={onAddLabel}
           size="sm"
           type="button"
-          variant="secondary"
+          variant="outline"
         >
-          <Tags className="h-4 w-4" />
+          <Tags className="h-3.5 w-3.5" />
         </Button>
       </div>
     </PanelSection>

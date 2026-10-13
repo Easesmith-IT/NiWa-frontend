@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   ArrowRight,
   CheckCircle2,
@@ -33,6 +33,8 @@ const STATUS_TABS: Array<{ id: "ALL" | LeadStatus; label: string }> = [
 
 export default function LeadsPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const highlightedLeadId = searchParams?.get("leadId") || null;
   const [search, setSearch] = useState("");
   const [selectedStatus, setSelectedStatus] = useState<"ALL" | LeadStatus>("ALL");
   const [createModalOpen, setCreateModalOpen] = useState(false);
@@ -40,7 +42,10 @@ export default function LeadsPage() {
   const { data: leads = [], isLoading, isError, error } = useLeadsQuery();
 
   const filteredLeads = useMemo(() => {
-    return leads.filter((lead: LeadRecord) => {
+    const list = leads.filter((lead: LeadRecord) => {
+      if (highlightedLeadId && String(lead._id) === String(highlightedLeadId)) {
+        return true;
+      }
       const matchesStatus =
         selectedStatus === "ALL" || lead.status === selectedStatus;
       const term = search.toLowerCase().trim();
@@ -50,7 +55,17 @@ export default function LeadsPage() {
         (lead.leadSource && lead.leadSource.toLowerCase().includes(term));
       return matchesStatus && matchesSearch;
     });
-  }, [leads, selectedStatus, search]);
+    if (highlightedLeadId) {
+      return [...list].sort((a, b) =>
+        String(a._id) === String(highlightedLeadId)
+          ? -1
+          : String(b._id) === String(highlightedLeadId)
+          ? 1
+          : 0
+      );
+    }
+    return list;
+  }, [leads, selectedStatus, search, highlightedLeadId]);
 
   const stats = useMemo(() => {
     const total = leads.length;
@@ -191,10 +206,26 @@ export default function LeadsPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-[#E4E4E7] dark:divide-[#282B2E]">
-                {filteredLeads.map((lead: LeadRecord) => (
-                  <tr key={lead._id} className="hover:bg-[#FAFAFA] dark:hover:bg-[#1D2022]">
+                {filteredLeads.map((lead: LeadRecord) => {
+                  const isHighlighted = Boolean(highlightedLeadId && String(lead._id) === String(highlightedLeadId));
+                  return (
+                  <tr
+                    key={lead._id}
+                    className={
+                      isHighlighted
+                        ? "bg-[#EDF8F3] ring-1 ring-inset ring-[#176B4D]/40 dark:bg-[#15271F]"
+                        : "hover:bg-[#FAFAFA] dark:hover:bg-[#1D2022]"
+                    }
+                  >
                     <td className="px-4 py-3 font-semibold text-foreground">
-                      {lead.title}
+                      <div className="flex items-center gap-2">
+                        <span>{lead.title}</span>
+                        {isHighlighted ? (
+                          <span className="rounded bg-[#176B4D] px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                            Selected
+                          </span>
+                        ) : null}
+                      </div>
                     </td>
                     <td className="px-4 py-3">
                       <span className="inline-flex items-center gap-1 rounded bg-[#F4F4F5] px-2 py-0.5 font-medium text-[10px] text-muted-foreground dark:bg-[#25282B]">
@@ -247,7 +278,8 @@ export default function LeadsPage() {
                       )}
                     </td>
                   </tr>
-                ))}
+                  );
+                })}
               </tbody>
             </table>
           </div>

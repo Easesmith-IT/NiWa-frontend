@@ -149,7 +149,10 @@ export function FinanceOverview() {
         {/* Receivables */}
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Receivables (AR)</span>
+            <div>
+              <span className="text-xs font-semibold text-slate-700">Receivables (AR)</span>
+              <p className="text-[11px] text-slate-400">Money customers owe you</p>
+            </div>
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-50 text-blue-600">
               <Wallet className="h-4 w-4" />
             </div>
@@ -160,7 +163,7 @@ export function FinanceOverview() {
           <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
             <span>Overdue: {formatCurrency(overview?.receivables.overdueAmount || 0, overview?.currency || "INR")}</span>
             <Link href="/finance/receivables" className="font-medium text-blue-600 hover:underline">
-              View AR
+              Collect / View &rarr;
             </Link>
           </div>
         </div>
@@ -168,7 +171,10 @@ export function FinanceOverview() {
         {/* Payables */}
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Payables (AP)</span>
+            <div>
+              <span className="text-xs font-semibold text-slate-700">Payables (AP)</span>
+              <p className="text-[11px] text-slate-400">Money you owe suppliers</p>
+            </div>
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-50 text-purple-600">
               <CreditCard className="h-4 w-4" />
             </div>
@@ -179,7 +185,7 @@ export function FinanceOverview() {
           <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
             <span>Overdue: {formatCurrency(overview?.payables.overdueAmount || 0, overview?.currency || "INR")}</span>
             <Link href="/finance/payables" className="font-medium text-purple-600 hover:underline">
-              View AP
+              Pay / View &rarr;
             </Link>
           </div>
         </div>
@@ -187,7 +193,10 @@ export function FinanceOverview() {
         {/* Cash & Bank */}
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">Cash & Bank Balances</span>
+            <div>
+              <span className="text-xs font-semibold text-slate-700">Cash & Bank Balances</span>
+              <p className="text-[11px] text-slate-400">Available funds in accounts</p>
+            </div>
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">
               <Landmark className="h-4 w-4" />
             </div>
@@ -198,7 +207,7 @@ export function FinanceOverview() {
           <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
             <span>{overview?.cashAndBank.accounts.length || 0} liquid accounts</span>
             <Link href="/finance/accounts" className="font-medium text-emerald-600 hover:underline">
-              Accounts
+              Accounts &rarr;
             </Link>
           </div>
         </div>
@@ -206,7 +215,10 @@ export function FinanceOverview() {
         {/* Month to Date Net Profit */}
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500">MTD Net Income</span>
+            <div>
+              <span className="text-xs font-semibold text-slate-700">MTD Net Income</span>
+              <p className="text-[11px] text-slate-400">This month&apos;s profit after expenses</p>
+            </div>
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50 text-amber-600">
               <TrendingUp className="h-4 w-4" />
             </div>
@@ -217,7 +229,7 @@ export function FinanceOverview() {
           <div className="mt-2 flex items-center justify-between text-xs text-slate-500">
             <span>Rev: {formatCurrency(overview?.monthToDate.revenue || 0, overview?.currency || "INR")}</span>
             <Link href="/finance/reports" className="font-medium text-amber-600 hover:underline">
-              P&L
+              P&L Report &rarr;
             </Link>
           </div>
         </div>
@@ -230,7 +242,7 @@ export function FinanceOverview() {
           <div className="flex items-center justify-between border-b border-slate-100 pb-4">
             <div>
               <h2 className="text-base font-semibold text-slate-900">Reconciliation Health</h2>
-              <p className="text-xs text-slate-500">Integrity check between operational records and general ledger accounts</p>
+              <p className="text-xs text-slate-500">Checks that your customer invoices and supplier bills match your accounting ledger</p>
             </div>
             <Link href="/finance/reconciliation" className="text-xs font-semibold text-indigo-600 hover:underline">
               Details &rarr;

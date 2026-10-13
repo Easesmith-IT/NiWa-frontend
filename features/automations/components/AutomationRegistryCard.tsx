@@ -1,8 +1,10 @@
 import React from "react";
-import { Archive, Bot, PauseCircle, PlayCircle } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import { Archive, Bot, PauseCircle, PlayCircle, User } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Card } from "../../../components/ui/card";
 import { Input } from "../../../components/ui/input";
+import { listContacts } from "../../contacts/contact.api";
 import type { AutomationRecord } from "../automation.types";
 
 export interface AutomationRegistryCardProps {
@@ -30,6 +32,12 @@ export const AutomationRegistryCard: React.FC<AutomationRegistryCardProps> = ({
   onArchiveAutomation,
   onRunTest,
 }) => {
+  const { data: contactsResponse } = useQuery({
+    queryKey: ["contacts", "automation-test-picker"],
+    queryFn: () => listContacts({ limit: 100 }),
+  });
+  const contacts = contactsResponse?.data ?? [];
+
   return (
     <Card className="space-y-3.5 p-4">
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[#F0F0F2] pb-2.5 dark:border-[#202326]">
@@ -51,15 +59,31 @@ export const AutomationRegistryCard: React.FC<AutomationRegistryCardProps> = ({
           ))}
         </div>
       </div>
-      <div className="grid gap-2.5 md:grid-cols-[minmax(0,1fr)_200px]">
-        <Input
-          placeholder="Test run contact ID"
-          value={testContactId}
-          onChange={(event) => onTestContactIdChange(event.target.value)}
-        />
-        <p className="text-[11px] text-muted-foreground self-center">
-          Enter contact ID to trigger manual execution.
-        </p>
+      <div className="rounded-lg border border-[#E4E4E7] bg-[#FAFAFA] p-3 dark:border-[#292C2F] dark:bg-[#17191B]">
+        <label className="mb-1.5 flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          <User className="h-3.5 w-3.5 text-[#176B4D] dark:text-[#63B592]" />
+          Test Contact for Manual Execution
+        </label>
+        <div className="grid gap-2 md:grid-cols-2">
+          <select
+            value={contacts.some((c) => c._id === testContactId) ? testContactId : ""}
+            onChange={(event) => onTestContactIdChange(event.target.value)}
+            className="h-8.5 rounded-md border border-[#D4D4D8] bg-white px-2.5 text-xs text-foreground focus:border-[#176B4D] focus:outline-none dark:border-[#303438] dark:bg-[#121416]"
+          >
+            <option value="">Select a contact by name or phone...</option>
+            {contacts.map((c) => (
+              <option key={c._id} value={c._id}>
+                {c.displayName} ({c.phoneNumber})
+              </option>
+            ))}
+          </select>
+          <Input
+            placeholder="Or enter contact ID directly"
+            value={testContactId}
+            onChange={(event) => onTestContactIdChange(event.target.value)}
+            className="h-8.5 bg-white text-xs dark:bg-[#121416]"
+          />
+        </div>
       </div>
 
       <div className="space-y-3">

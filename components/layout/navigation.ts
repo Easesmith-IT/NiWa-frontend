@@ -78,86 +78,58 @@ export const navigationGroups: NavigationGroup[] = [
         label: "Inbox",
         description: "Live conversations, context, and messaging actions.",
       },
-    ],
-  },
-  {
-    label: "Products",
-    moduleKey: "products",
-    items: [
       {
-        href: "/products",
-        icon: Package,
-        label: "Products",
-        description: "Product catalog, variants, and pricing.",
-        moduleKey: "products",
-      },
-      {
-        href: "/products/categories",
-        icon: Layers,
-        label: "Categories",
-        description: "Hierarchical product category tree.",
-        moduleKey: "products",
-      },
-      {
-        href: "/products/brands",
-        icon: Tag,
-        label: "Brands",
-        description: "Product brand registry.",
-        moduleKey: "products",
-      },
-      {
-        href: "/products/suppliers",
-        icon: Truck,
-        label: "Suppliers",
-        description: "Supplier contacts and variant links.",
-        moduleKey: "products",
+        href: "/tasks",
+        icon: ListTodo,
+        label: "Tasks",
+        description: "Follow-up execution and due work.",
       },
     ],
   },
   {
-    label: "Inventory",
-    moduleKey: "inventory",
+    label: "CRM & Customers",
     items: [
       {
-        href: "/inventory",
-        icon: Boxes,
-        label: "Stock",
-        description: "Stock levels, on-hand counts, and availability.",
-        moduleKey: "inventory",
+        href: "/crm/customer-360",
+        icon: UserCheck,
+        label: "Customer 360",
+        description: "Unified customer identity, communication, and deal history.",
       },
       {
-        href: "/inventory/locations",
-        icon: MapPin,
-        label: "Locations",
-        description: "Warehouses, stores, and stock locations.",
-        moduleKey: "inventory",
+        href: "/contacts",
+        icon: ContactRound,
+        label: "Contacts",
+        description: "Communication channels and WhatsApp endpoints.",
       },
       {
-        href: "/inventory/movements",
-        icon: History,
-        label: "Movements",
-        description: "Stock movement ledger and audit history.",
-        moduleKey: "inventory",
-      },
-    ],
-  },
-  {
-    label: "Purchasing",
-    moduleKey: "purchasing",
-    items: [
-      {
-        href: "/purchasing/orders",
-        icon: ShoppingCart,
-        label: "Purchase Orders",
-        description: "Replenish stock, supplier orders, and receiving.",
-        moduleKey: "purchasing",
+        href: "/people",
+        icon: Users,
+        label: "People",
+        description: "Customer individuals, personal identities, and job titles.",
       },
       {
-        href: "/purchasing/returns",
-        icon: RotateCcw,
-        label: "Returns",
-        description: "Supplier returns, debit notes, and stock deduction.",
-        moduleKey: "purchasing",
+        href: "/companies",
+        icon: Building2,
+        label: "Companies",
+        description: "B2B accounts, organizations, and industry details.",
+      },
+      {
+        href: "/leads",
+        icon: Target,
+        label: "Leads",
+        description: "Inbound prospects, qualification, and deal conversions.",
+      },
+      {
+        href: "/deals",
+        icon: Briefcase,
+        label: "Deals",
+        description: "Sales opportunities, stages, and pipeline progress.",
+      },
+      {
+        href: "/pipelines",
+        icon: GitFork,
+        label: "Pipelines",
+        description: "Configure deal pipelines and stage workflows.",
       },
     ],
   },
@@ -196,9 +168,77 @@ export const navigationGroups: NavigationGroup[] = [
       {
         href: "/sales/returns",
         icon: RotateCcw,
-        label: "Returns",
+        label: "Sales Returns",
         description: "Customer returns, product restocking, and credit tracking.",
         moduleKey: "sales",
+      },
+    ],
+  },
+  {
+    label: "Catalog & Stock",
+    items: [
+      {
+        href: "/products",
+        icon: Package,
+        label: "Products",
+        description: "Product catalog, variants, and pricing.",
+        moduleKey: "products",
+      },
+      {
+        href: "/products/categories",
+        icon: Layers,
+        label: "Categories",
+        description: "Hierarchical product category tree.",
+        moduleKey: "products",
+      },
+      {
+        href: "/products/brands",
+        icon: Tag,
+        label: "Brands",
+        description: "Product brand registry.",
+        moduleKey: "products",
+      },
+      {
+        href: "/products/suppliers",
+        icon: Truck,
+        label: "Suppliers",
+        description: "Supplier contacts and variant links.",
+        moduleKey: "products",
+      },
+      {
+        href: "/inventory",
+        icon: Boxes,
+        label: "Stock",
+        description: "Stock levels, on-hand counts, and availability.",
+        moduleKey: "inventory",
+      },
+      {
+        href: "/inventory/locations",
+        icon: MapPin,
+        label: "Locations",
+        description: "Warehouses, stores, and stock locations.",
+        moduleKey: "inventory",
+      },
+      {
+        href: "/inventory/movements",
+        icon: History,
+        label: "Movements",
+        description: "Stock movement ledger and audit history.",
+        moduleKey: "inventory",
+      },
+      {
+        href: "/purchasing/orders",
+        icon: ShoppingCart,
+        label: "Purchase Orders",
+        description: "Replenish stock, supplier orders, and receiving.",
+        moduleKey: "purchasing",
+      },
+      {
+        href: "/purchasing/returns",
+        icon: RotateCcw,
+        label: "Purchase Returns",
+        description: "Supplier returns, debit notes, and stock deduction.",
+        moduleKey: "purchasing",
       },
     ],
   },
@@ -211,6 +251,20 @@ export const navigationGroups: NavigationGroup[] = [
         icon: Landmark,
         label: "Overview",
         description: "Financial overview, KPIs, and quick actions.",
+        moduleKey: "finance",
+      },
+      {
+        href: "/finance/receivables",
+        icon: Wallet,
+        label: "Receivables",
+        description: "AR aging, customer balances, and ledger reconciliation.",
+        moduleKey: "finance",
+      },
+      {
+        href: "/finance/payables",
+        icon: CreditCard,
+        label: "Payables",
+        description: "Supplier bills, payments, AP aging, and reconciliation.",
         moduleKey: "finance",
       },
       {
@@ -232,20 +286,6 @@ export const navigationGroups: NavigationGroup[] = [
         icon: BookOpen,
         label: "Journals",
         description: "Double-entry general journals and manual adjusting entries.",
-        moduleKey: "finance",
-      },
-      {
-        href: "/finance/receivables",
-        icon: Wallet,
-        label: "Receivables",
-        description: "AR aging, customer balances, and ledger reconciliation.",
-        moduleKey: "finance",
-      },
-      {
-        href: "/finance/payables",
-        icon: CreditCard,
-        label: "Payables",
-        description: "Supplier bills, payments, AP aging, and reconciliation.",
         moduleKey: "finance",
       },
       {
@@ -285,68 +325,21 @@ export const navigationGroups: NavigationGroup[] = [
       },
     ],
   },
-
   {
-    label: "CRM",
-    items: [
-      {
-        href: "/people",
-        icon: Users,
-        label: "People",
-        description: "Customer individuals, personal identities, and job titles.",
-      },
-      {
-        href: "/contacts",
-        icon: ContactRound,
-        label: "Contacts",
-        description: "Communication channels and WhatsApp endpoints.",
-      },
-      {
-        href: "/companies",
-        icon: Building2,
-        label: "Companies",
-        description: "B2B accounts, organizations, and industry details.",
-      },
-      {
-        href: "/crm/customer-360",
-        icon: UserCheck,
-        label: "Customer 360",
-        description: "Unified customer identity, communication, and deal history.",
-      },
-      {
-        href: "/leads",
-        icon: Target,
-        label: "Leads",
-        description: "Inbound prospects, qualification, and deal conversions.",
-      },
-      {
-        href: "/deals",
-        icon: Briefcase,
-        label: "Deals",
-        description: "Sales opportunities, stages, and pipeline progress.",
-      },
-      {
-        href: "/tasks",
-        icon: ListTodo,
-        label: "Tasks",
-        description: "Follow-up execution and due work.",
-      },
-      {
-        href: "/pipelines",
-        icon: GitFork,
-        label: "Pipelines",
-        description: "Configure deal pipelines and stage workflows.",
-      },
-    ],
-  },
-  {
-    label: "Automate",
+    label: "Automate & System",
     items: [
       {
         href: "/ai-agent",
         icon: Sparkles,
         label: "AI Agent",
         description: "AI auto-reply settings, testing playground, and activity logs.",
+      },
+      {
+        href: "/ai-calling",
+        icon: PhoneCall,
+        label: "AI Calling",
+        description: "AI voice call sessions, recordings, transcripts, and handoffs.",
+        moduleKey: "ai_calling",
       },
       {
         href: "/automations",
@@ -379,28 +372,11 @@ export const navigationGroups: NavigationGroup[] = [
         description: "Reusable shortcut replies and variables.",
       },
       {
-        href: "/ai-calling",
-        icon: PhoneCall,
-        label: "AI Calling",
-        description: "AI voice call sessions, recordings, transcripts, and handoffs.",
-        moduleKey: "ai_calling",
-      },
-    ],
-  },
-  {
-    label: "Content",
-    items: [
-      {
         href: "/media",
         icon: ImagePlus,
         label: "Media",
         description: "Media library for reusable assets.",
       },
-    ],
-  },
-  {
-    label: "Developer",
-    items: [
       {
         href: "/message-studio",
         icon: MessageSquare,
@@ -425,11 +401,6 @@ export const navigationGroups: NavigationGroup[] = [
         label: "Webhook Logs",
         description: "Inbound webhook payload and processing logs.",
       },
-    ],
-  },
-  {
-    label: "System",
-    items: [
       {
         href: "/settings",
         icon: Settings,
@@ -455,6 +426,52 @@ export const routeMeta = new Map(
     item,
   ]),
 );
+
+export interface RouteBreadcrumb {
+  groupLabel: string;
+  item: NavigationItem;
+  isDetailSubpage: boolean;
+}
+
+/**
+ * Resolves the most specific matching navigation group and item for a pathname
+ * so the Topbar can render concise clickable breadcrumbs.
+ */
+export function getRouteBreadcrumb(pathname: string): RouteBreadcrumb {
+  let bestGroup = navigationGroups[0];
+  let bestItem = navigationGroups[0].items[0];
+  let bestMatchLen = -1;
+
+  for (const group of navigationGroups) {
+    for (const item of group.items) {
+      const matches =
+        item.href === "/"
+          ? pathname === "/"
+          : pathname === item.href || pathname.startsWith(`${item.href}/`);
+      if (matches && item.href.length > bestMatchLen) {
+        bestGroup = group;
+        bestItem = item;
+        bestMatchLen = item.href.length;
+      }
+    }
+  }
+
+  for (const sec of secondaryActions) {
+    const matches = pathname === sec.href || pathname.startsWith(`${sec.href}/`);
+    if (matches && sec.href.length > bestMatchLen) {
+      bestGroup = { label: "Workspace", items: secondaryActions };
+      bestItem = sec;
+      bestMatchLen = sec.href.length;
+    }
+  }
+
+  const isDetailSubpage = bestItem.href !== "/" && pathname !== bestItem.href && pathname.startsWith(`${bestItem.href}/`);
+  return {
+    groupLabel: bestGroup.label,
+    item: bestItem,
+    isDetailSubpage,
+  };
+}
 
 /**
  * Filters navigation groups and items based on the active workspace's enabled modules.

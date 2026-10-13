@@ -361,25 +361,36 @@ export function ContactDetailDrawer({
             </div>
 
             {contact.personId ? (
-              <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 flex items-center justify-center font-bold text-xs">
-                    {(typeof contact.personId === "object" ? contact.personId.displayName : "P").slice(0, 2).toUpperCase()}
-                  </div>
-                  <div>
-                    <div className="text-xs font-semibold text-gray-900 dark:text-white">
-                      {typeof contact.personId === "object" ? contact.personId.displayName : "Linked Person"}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between p-3 rounded-xl bg-emerald-50/50 dark:bg-emerald-950/20 border border-emerald-100 dark:border-emerald-900/40">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900 text-emerald-800 dark:text-emerald-200 flex items-center justify-center font-bold text-xs">
+                      {(typeof contact.personId === "object" ? contact.personId.displayName : "P").slice(0, 2).toUpperCase()}
                     </div>
-                    {typeof contact.personId === "object" && contact.personId.jobTitle && (
-                      <div className="text-[11px] text-gray-500">
-                        {contact.personId.jobTitle}
+                    <div>
+                      <div className="text-xs font-semibold text-gray-900 dark:text-white">
+                        {typeof contact.personId === "object" ? contact.personId.displayName : "Linked Person"}
                       </div>
-                    )}
+                      {typeof contact.personId === "object" && contact.personId.jobTitle && (
+                        <div className="text-[11px] text-gray-500">
+                          {contact.personId.jobTitle}
+                        </div>
+                      )}
+                    </div>
                   </div>
+                  <span className="text-[10px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 px-2 py-0.5 rounded-full">
+                    LINKED
+                  </span>
                 </div>
-                <span className="text-[10px] font-semibold bg-emerald-100 text-emerald-800 dark:bg-emerald-900 dark:text-emerald-200 px-2 py-0.5 rounded-full">
-                  LINKED
-                </span>
+                <a
+                  href={`/crm/customer-360?recordType=Person&recordId=${encodeURIComponent(
+                    typeof contact.personId === "object" ? contact.personId._id : String(contact.personId)
+                  )}`}
+                  className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg border border-[#176B4D]/30 bg-[#EDF8F3] px-3 py-1.5 text-xs font-semibold text-[#176B4D] transition hover:bg-[#176B4D] hover:text-white dark:bg-[#15271F] dark:text-[#63B592]"
+                >
+                  <UserCheck className="h-3.5 w-3.5" />
+                  Open Customer 360 Profile →
+                </a>
               </div>
             ) : (
               <div className="space-y-2.5">

@@ -25,20 +25,20 @@ export interface ScheduledMessagesSectionProps {
 export function ScheduledMessagesSection({ scheduledItems }: ScheduledMessagesSectionProps) {
   return (
     <PanelSection title="Scheduled messages">
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         {scheduledItems.slice(0, 5).map((item) => (
-          <div className="rounded-xl bg-white px-4 py-4" key={item._id}>
-            <p className="text-sm font-medium text-[#25342f]">{getSchedulePreview(item.payload)}</p>
-            <p className="mt-1 text-xs text-[#7a8b82]">
+          <div className="rounded-lg border border-[#E4E4E7] bg-[#FAFAFA] p-3 dark:border-[#282B2E] dark:bg-[#17191B]" key={item._id}>
+            <p className="text-xs font-semibold text-foreground">{getSchedulePreview(item.payload)}</p>
+            <p className="mt-0.5 text-[11px] text-muted-foreground">
               {item.status} • {item.scheduleType}
             </p>
-            <p className="mt-1 text-xs text-[#7a8b82]">
+            <p className="mt-0.5 text-[11px] text-muted-foreground">
               {formatDateTime(item.nextRunAt ?? item.scheduledFor)}
             </p>
           </div>
         ))}
         {scheduledItems.length === 0 ? (
-          <p className="text-sm text-[#7a8b82]">No scheduled sends.</p>
+          <p className="text-xs text-muted-foreground">No scheduled sends.</p>
         ) : null}
       </div>
     </PanelSection>

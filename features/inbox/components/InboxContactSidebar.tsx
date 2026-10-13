@@ -127,18 +127,18 @@ export function InboxContactSidebar({
   activities,
 }: InboxContactSidebarProps) {
   return (
-    <aside className="niwa-scrollbar min-h-0 overflow-y-auto border-l border-[#ddd2c3] bg-[#fbf7f1]">
-      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#e5ddd3] bg-[#fbf7f1] px-6 py-5">
+    <aside className="niwa-scrollbar min-h-0 overflow-y-auto border-l border-[#E4E4E7] bg-white dark:border-[#24272A] dark:bg-[#121416]">
+      <div className="sticky top-0 z-10 flex items-center justify-between border-b border-[#E4E4E7] bg-white px-5 py-4 dark:border-[#24272A] dark:bg-[#121416]">
         <div>
-          <h2 className="text-[18px] font-semibold text-[#25342f]">Contact info</h2>
-          <p className="text-sm text-[#6f7f75]">CRM context for the active conversation</p>
+          <h2 className="text-sm font-semibold text-foreground">Contact & CRM Context</h2>
+          <p className="text-xs text-muted-foreground">Customer identity, deals, tasks, and notes</p>
         </div>
         <button
-          className="rounded-full p-2 text-[#6f7f75] transition hover:bg-[#efe7db] hover:text-[#25342f]"
+          className="rounded-lg p-1.5 text-muted-foreground transition hover:bg-[#F4F4F5] hover:text-foreground dark:hover:bg-[#1F2225]"
           onClick={onClose}
           type="button"
         >
-          <X className="h-5 w-5" />
+          <X className="h-4 w-4" />
         </button>
       </div>
 

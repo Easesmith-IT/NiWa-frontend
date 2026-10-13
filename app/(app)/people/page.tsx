@@ -309,6 +309,13 @@ export default function PeoplePage() {
                       </td>
                       <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
                         <div className="flex items-center justify-end gap-1.5">
+                          <a
+                            href={`/crm/customer-360?recordType=Person&recordId=${encodeURIComponent(person._id)}`}
+                            className="inline-flex items-center gap-1 rounded-md border border-[#E4E4E7] bg-[#FAFAFA] px-2 py-1 text-xs font-medium text-[#176B4D] hover:bg-[#EDF8F3] dark:border-[#303438] dark:bg-[#17191B] dark:text-[#63B592]"
+                            title="Open Customer 360"
+                          >
+                            360°
+                          </a>
                           <button
                             type="button"
                             onClick={() => setSelectedPersonId(person._id)}
@@ -630,6 +637,13 @@ function PersonDetailDrawer({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <a
+            href={`/crm/customer-360?recordType=Person&recordId=${encodeURIComponent(person._id)}`}
+            className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-[#176B4D]/30 bg-[#EDF8F3] text-xs font-semibold text-[#176B4D] hover:bg-[#176B4D] hover:text-white dark:bg-[#15271F] dark:text-[#63B592] transition"
+            title="Open Customer 360 Profile"
+          >
+            <span>Customer 360</span>
+          </a>
           <button
             onClick={() => setShowEditPerson(true)}
             className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 text-xs font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm transition"

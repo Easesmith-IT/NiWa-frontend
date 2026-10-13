@@ -16,22 +16,22 @@ export interface ContactActivitySectionProps {
 export function ContactActivitySection({ activities }: ContactActivitySectionProps) {
   return (
     <PanelSection title="Activity">
-      <div className="space-y-3">
+      <div className="space-y-2.5">
         {activities.slice(0, 6).map((activity) => (
-          <div className="rounded-xl bg-white px-4 py-4" key={activity._id}>
-            <div className="flex items-start justify-between gap-3">
-              <p className="text-sm text-[#25342f]">{activity.description}</p>
-              <span className="rounded-full bg-[#f6f1e9] px-2 py-1 text-[10px] uppercase tracking-[0.14em] text-[#7a8b82]">
+          <div className="rounded-lg border border-[#E4E4E7] bg-[#FAFAFA] p-3 dark:border-[#282B2E] dark:bg-[#17191B]" key={activity._id}>
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-xs text-foreground">{activity.description}</p>
+              <span className="rounded bg-[#F4F4F5] px-1.5 py-0.5 text-[10px] font-medium uppercase tracking-wider text-muted-foreground dark:bg-[#25282B]">
                 {activity.type}
               </span>
             </div>
-            <p className="mt-2 text-xs text-[#7a8b82]">
+            <p className="mt-1.5 text-[11px] text-muted-foreground">
               {activity.actorName} • {formatDateTime(activity.createdAt)}
             </p>
           </div>
         ))}
         {activities.length === 0 ? (
-          <p className="text-sm text-[#7a8b82]">No activity recorded.</p>
+          <p className="text-xs text-muted-foreground">No activity recorded.</p>
         ) : null}
       </div>
     </PanelSection>

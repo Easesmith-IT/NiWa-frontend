@@ -29,6 +29,7 @@ import {
 } from "../../../../components/ui/dialog";
 import { productsApi, type ProductItem } from "../../../../lib/api/products-api";
 import type { CrmPerson, CrmCompany } from "../../../../lib/api/api-types";
+import { listContacts, createPersonFromContact } from "../../../../features/contacts/contact.api";
 import { fetchQuotes } from "../../../../features/sales/quotes.api";
 import type {
   CurrencyTotal,
@@ -159,6 +160,16 @@ export default function QuotesPage() {
     },
   });
 
+  const { data: contactsData } = useQuery({
+    queryKey: ["contacts-for-quote-autofill"],
+    queryFn: () => listContacts({ limit: 150 }),
+  });
+
+  const unlinkedContacts = useMemo(
+    () => (contactsData?.data || []).filter((c) => !c.personId),
+    [contactsData]
+  );
+
   const { data: productsData } = useQuery({
     queryKey: ["products-list"],
     queryFn: () => productsApi.getProducts({ limit: 100 }),
@@ -259,7 +270,7 @@ export default function QuotesPage() {
   );
   const previewGrandTotal = previewSubtotal + previewTax;
 
-  const handleCreateQuoteSubmit = (e: React.FormEvent) => {
+  const handleCreateQuoteSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedCustomerId) {
       setCreateError("Please select a customer.");
@@ -270,9 +281,34 @@ export default function QuotesPage() {
       return;
     }
 
+    let resolvedCustomerId = selectedCustomerId;
+    if (customerType === "PERSON" && selectedCustomerId.startsWith("contact:")) {
+      const contactId = selectedCustomerId.replace("contact:", "");
+      const targetContact = unlinkedContacts.find((c) => c._id === contactId);
+      try {
+        const promoted = await createPersonFromContact(contactId, {
+          displayName: targetContact?.displayName || "Customer",
+        });
+        const newPersonId = promoted?.data?.person?._id;
+        if (!newPersonId) {
+          throw new Error("Could not create CRM customer profile from contact.");
+        }
+        resolvedCustomerId = newPersonId;
+        setSelectedCustomerId(newPersonId);
+        await queryClient.invalidateQueries({ queryKey: ["crm-people"] });
+        await queryClient.invalidateQueries({ queryKey: ["contacts-for-quote-autofill"] });
+      } catch (err: unknown) {
+        const msg =
+          (err as { response?: { data?: { message?: string } }; message?: string })?.response?.data?.message ||
+          (err instanceof Error ? err.message : "Failed to promote WhatsApp contact to CRM Person.");
+        setCreateError(msg);
+        return;
+      }
+    }
+
     const payload = {
       customerType,
-      customerId: selectedCustomerId,
+      customerId: resolvedCustomerId,
       currency: quoteCurrency,
       validUntil: quoteValidUntil ? new Date(quoteValidUntil).toISOString() : null,
       notes: quoteNotes.trim() || null,
@@ -672,7 +708,7 @@ export default function QuotesPage() {
 
               <div>
                 <label className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground block mb-1">
-                  Select {customerType === "PERSON" ? "Person" : "Company"} *
+                  Select {customerType === "PERSON" ? "Customer / WhatsApp Contact" : "Company"} *
                 </label>
                 <select
                   value={selectedCustomerId}
@@ -680,17 +716,34 @@ export default function QuotesPage() {
                   className="w-full h-8 px-2.5 text-xs rounded-md border border-[#E4E4E7] dark:border-[#303438] bg-white dark:bg-[#17191B] text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
                 >
                   <option value="">Select a customer...</option>
-                  {customerType === "PERSON"
-                    ? (peopleData || []).map((p) => (
-                        <option key={p._id} value={p._id}>
-                          {p.displayName || p.firstName + " " + p.lastName}
-                        </option>
-                      ))
-                    : (companiesData || []).map((c) => (
-                        <option key={c._id} value={c._id}>
-                          {c.name}
-                        </option>
-                      ))}
+                  {customerType === "PERSON" ? (
+                    <>
+                      {(peopleData || []).length > 0 && (
+                        <optgroup label="CRM Customers (People)">
+                          {(peopleData || []).map((p) => (
+                            <option key={p._id} value={p._id}>
+                              {p.displayName || `${p.firstName || ""} ${p.lastName || ""}`.trim()}
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                      {unlinkedContacts.length > 0 && (
+                        <optgroup label="WhatsApp Contacts (Auto-creates CRM Profile)">
+                          {unlinkedContacts.map((c) => (
+                            <option key={`contact:${c._id}`} value={`contact:${c._id}`}>
+                              {c.displayName} ({c.phoneNumber}) — WhatsApp Contact
+                            </option>
+                          ))}
+                        </optgroup>
+                      )}
+                    </>
+                  ) : (
+                    (companiesData || []).map((c) => (
+                      <option key={c._id} value={c._id}>
+                        {c.name}
+                      </option>
+                    ))
+                  )}
                 </select>
               </div>
             </div>

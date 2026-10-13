@@ -1,5 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { filterNavigationByModules, NavigationGroup } from "../../components/layout/navigation";
+import {
+  filterNavigationByModules,
+  getRouteBreadcrumb,
+  navigationGroups,
+  NavigationGroup,
+} from "../../components/layout/navigation";
 import { LayoutDashboard, Inbox, ContactRound, Briefcase, Package, Boxes } from "lucide-react";
 
 describe("Frontend Navigation Module Filtering", () => {
@@ -94,5 +99,33 @@ describe("Frontend Navigation Module Filtering", () => {
     // When inventory is not enabled, Operations group has 0 items and is omitted
     const withoutInventory = filterNavigationByModules(mockGroups, ["crm"]);
     expect(withoutInventory.map((g) => g.label)).not.toContain("Operations");
+  });
+
+  it("consolidates production navigationGroups into 6 task-oriented groups", () => {
+    expect(navigationGroups.map((g) => g.label)).toEqual([
+      "Workspace",
+      "CRM & Customers",
+      "Sales",
+      "Catalog & Stock",
+      "Finance",
+      "Automate & System",
+    ]);
+  });
+
+  it("resolves accurate breadcrumbs via getRouteBreadcrumb", () => {
+    const rootCrumb = getRouteBreadcrumb("/");
+    expect(rootCrumb.groupLabel).toBe("Workspace");
+    expect(rootCrumb.item.label).toBe("Dashboard");
+    expect(rootCrumb.isDetailSubpage).toBe(false);
+
+    const c360Crumb = getRouteBreadcrumb("/crm/customer-360/person/507f1f77bcf86cd799439011");
+    expect(c360Crumb.groupLabel).toBe("CRM & Customers");
+    expect(c360Crumb.item.label).toBe("Customer 360");
+    expect(c360Crumb.isDetailSubpage).toBe(true);
+
+    const poCrumb = getRouteBreadcrumb("/purchasing/orders/123");
+    expect(poCrumb.groupLabel).toBe("Catalog & Stock");
+    expect(poCrumb.item.label).toBe("Purchase Orders");
+    expect(poCrumb.isDetailSubpage).toBe(true);
   });
 });

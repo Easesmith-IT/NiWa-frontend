@@ -16,7 +16,11 @@ import { useExecuteCrmViewQuery } from "../../crm/views.queries";
 import { CrmPageShell } from "../../crm/components/CrmPageShell";
 import { useDealsRealtime } from "../deal.realtime";
 
-export const DealsShell: React.FC = () => {
+export interface DealsShellProps {
+  initialDealId?: string | null;
+}
+
+export const DealsShell: React.FC<DealsShellProps> = ({ initialDealId }) => {
   useDealsRealtime();
   const { data: pipelines = [], isLoading: isLoadingPipelines } = usePipelinesQuery();
   const [selectedPipelineId, setSelectedPipelineId] = useState<string>("");
@@ -44,6 +48,7 @@ export const DealsShell: React.FC = () => {
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [editingDeal, setEditingDeal] = useState<DealRecord | null>(null);
   const [detailDeal, setDetailDeal] = useState<DealRecord | null>(null);
+  const [handledDealId, setHandledDealId] = useState<string | null>(null);
 
   const [isMoveModalOpen, setIsMoveModalOpen] = useState(false);
   const [movingDeal, setMovingDeal] = useState<DealRecord | null>(null);
@@ -92,6 +97,25 @@ export const DealsShell: React.FC = () => {
   const activeDealsList: DealRecord[] = activeSavedView
     ? executedRecords
     : safeStandardDeals;
+
+  React.useEffect(() => {
+    const targetDealId =
+      initialDealId ||
+      (typeof window !== "undefined"
+        ? new URLSearchParams(window.location.search).get("dealId")
+        : null);
+    if (!targetDealId || targetDealId === handledDealId || activeDealsList.length === 0) {
+      return;
+    }
+    const matched = activeDealsList.find((d) => d && String(d._id) === String(targetDealId));
+    if (matched) {
+      if (matched.pipelineId && String(matched.pipelineId) !== String(activePipelineId)) {
+        setSelectedPipelineId(String(matched.pipelineId));
+      }
+      setDetailDeal(matched);
+      setHandledDealId(targetDealId);
+    }
+  }, [activeDealsList, activePipelineId, handledDealId, initialDealId]);
 
   // Correction 4 Precedence:
   // When a Saved View is active, executeView() backend results control the dataset.

@@ -1,7 +1,8 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { Menu, Plus, Search, Wifi } from "lucide-react";
+import { ChevronRight, Menu, Plus, Search, Wifi } from "lucide-react";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
 import { clearAccessToken } from "../../lib/auth";
@@ -9,7 +10,7 @@ import { clearActiveWorkspaceId } from "../../lib/workspace/workspace-state";
 import { disconnectCampaignSocket } from "../../features/campaigns/campaign.realtime";
 import { logout } from "../../features/auth";
 import { Button } from "../ui/button";
-import { routeMeta } from "./navigation";
+import { getRouteBreadcrumb } from "./navigation";
 import { ThemeSwitcher } from "./theme-switcher";
 
 interface TopbarProps {
@@ -41,12 +42,8 @@ export const Topbar = ({
     }
   };
 
-  const currentRoute =
-    [...routeMeta.entries()].find(([href]) =>
-      href === "/"
-        ? pathname === href
-        : pathname === href || pathname.startsWith(`${href}/`),
-    )?.[1] ?? routeMeta.get("/");
+  const breadcrumb = getRouteBreadcrumb(pathname);
+  const RouteIcon = breadcrumb.item.icon;
 
   return (
     <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center justify-between gap-3 border-b border-[#E4E4E7] bg-white px-4 transition-colors dark:border-[#24272A] dark:bg-[#121416] md:px-5 lg:px-6">
@@ -60,10 +57,28 @@ export const Topbar = ({
         >
           <Menu className="h-4 w-4" />
         </Button>
-        <div className="min-w-0">
-          <h1 className="truncate text-base font-semibold leading-6 text-foreground tracking-tight">{currentRoute?.label || "NiWa"}</h1>
-          <p className="truncate text-xs text-muted-foreground">{currentRoute?.description}</p>
-        </div>
+        <nav aria-label="Breadcrumb" className="flex min-w-0 items-center gap-1.5 text-xs">
+          <span className="hidden font-medium text-[#71717A] dark:text-[#A1A1AA] sm:inline">
+            {breadcrumb.groupLabel}
+          </span>
+          <ChevronRight className="hidden h-3.5 w-3.5 shrink-0 text-[#A1A1AA] dark:text-[#52525B] sm:inline" />
+          <Link
+            className="inline-flex min-w-0 items-center gap-1.5 rounded-md px-1.5 py-1 text-sm font-semibold text-[#18181B] transition-colors hover:bg-[#F4F4F5] dark:text-[#F4F4F5] dark:hover:bg-[#1E2024]"
+            href={breadcrumb.item.href}
+            title={breadcrumb.item.description}
+          >
+            <RouteIcon className="h-3.5 w-3.5 shrink-0 text-[#176B4D] dark:text-[#3B9B77]" />
+            <span className="truncate">{breadcrumb.item.label}</span>
+          </Link>
+          {breadcrumb.isDetailSubpage ? (
+            <>
+              <ChevronRight className="h-3.5 w-3.5 shrink-0 text-[#A1A1AA] dark:text-[#52525B]" />
+              <span className="truncate rounded bg-[#F4F4F5] px-2 py-0.5 text-[11px] font-medium text-[#52525B] dark:bg-[#1E2024] dark:text-[#A1A1AA]">
+                Detail View
+              </span>
+            </>
+          ) : null}
+        </nav>
       </div>
 
       <div className="flex items-center gap-2">
@@ -84,7 +99,7 @@ export const Topbar = ({
           type="button"
         >
           <Search className="h-3.5 w-3.5 shrink-0 text-[#71717A] dark:text-[#81868B]" />
-          <span className="flex-1 text-left truncate">Search contacts, conversations...</span>
+          <span className="flex-1 text-left truncate">Search anything or jump to a page...</span>
           <kbd className="rounded border border-[#E4E4E7] bg-white px-1.5 py-0.5 text-[10px] font-medium text-[#71717A] dark:border-[#303438] dark:bg-[#1B1D20] dark:text-[#B4B7BA]">Ctrl K</kbd>
         </button>
         <Button
