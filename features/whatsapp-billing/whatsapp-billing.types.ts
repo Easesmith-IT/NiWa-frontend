@@ -83,7 +83,8 @@ export interface WhatsAppLedgerEntry {
     | "CREDIT_ADJUSTMENT"
     | "REVERSAL"
     | "ALLOWANCE_OFFSET"
-    | "RECONCILIATION_ADJUSTMENT";
+    | "RECONCILIATION_ADJUSTMENT"
+    | "PROVIDER_COST_ADJUSTMENT";
   currency: string;
   metaCost: number;
   customerCharge: number;
@@ -144,8 +145,11 @@ export interface ReconciliationResult {
   matchedRows: number;
   discrepancyRows: number;
   autoAdjustedRows: number;
+  failedAdjustedRows?: number;
   totalMetaCostReported: number;
+  totalMetaCostReportedMicros?: number;
   totalMetaCostRecorded: number;
+  totalMetaCostRecordedMicros?: number;
   discrepancies: Array<{
     discrepancyId?: string;
     metaMessageId: string;
@@ -154,6 +158,7 @@ export interface ReconciliationResult {
     difference: number;
     reason: string;
     actionTaken: string;
+    errorMessage?: string | null;
     status?: string;
     type?: string;
   }>;

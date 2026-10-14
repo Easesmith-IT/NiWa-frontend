@@ -84,30 +84,41 @@ export const WhatsAppReconciliationModal: React.FC<WhatsAppReconciliationModalPr
       }
 
       // Pre-submission client-side validation
-      const warnings: string[] = [];
-      const formattedItems = parsed.map((item: any, idx: number) => {
+      const errors: string[] = [];
+      for (let idx = 0; idx < parsed.length; idx++) {
+        const item: any = parsed[idx];
         const id = item?.metaMessageId || item?.id;
         const amt = item?.billedCost !== undefined ? item?.billedCost : item?.metaChargedAmount;
 
-        if (!id || typeof id !== "string") {
-          warnings.push(`Row ${idx + 1}: Missing or invalid metaMessageId`);
+        if (!id || typeof id !== "string" || !id.trim()) {
+          errors.push(`Row ${idx + 1}: Missing or invalid metaMessageId`);
         }
         if (typeof amt !== "number" || !Number.isFinite(amt) || isNaN(amt) || amt < 0) {
-          warnings.push(`Row ${idx + 1}: Amount must be a non-negative finite number`);
+          errors.push(`Row ${idx + 1}: Amount must be a non-negative finite number`);
         }
-
-        return {
-          metaMessageId: id || `invalid_row_${idx + 1}`,
-          billedCost: typeof amt === "number" ? amt : 0,
-          currency: item?.currency || "INR",
-          category: item?.category,
-          timestamp: item?.timestamp,
-        };
-      });
-
-      if (warnings.length > 0) {
-        setValidationWarnings(warnings);
+        if (
+          item?.currency !== undefined &&
+          item?.currency !== null &&
+          (typeof item.currency !== "string" || item.currency.trim().toUpperCase() !== "INR")
+        ) {
+          errors.push(`Row ${idx + 1}: Currency must be 'INR'`);
+        }
       }
+
+      if (errors.length > 0) {
+        setValidationWarnings(errors);
+        throw new Error(
+          `Pre-flight validation failed with ${errors.length} error(s). Please correct the input before submitting.`
+        );
+      }
+
+      const formattedItems = parsed.map((item: any) => ({
+        metaMessageId: (item?.metaMessageId || item?.id).trim(),
+        billedCost: item?.billedCost !== undefined ? item?.billedCost : item?.metaChargedAmount,
+        currency: item?.currency ? item.currency.trim().toUpperCase() : "INR",
+        category: item?.category,
+        timestamp: item?.timestamp,
+      }));
 
       if (autoAdjust && !confirmAutoAdjust) {
         throw new Error(
@@ -215,7 +226,7 @@ export const WhatsAppReconciliationModal: React.FC<WhatsAppReconciliationModalPr
                 <div className="flex items-start gap-1.5 text-[11px] text-amber-700 dark:text-amber-300">
                   <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600" />
                   <span>
-                    Warning: Automatic adjustments will create append-only financial ledger entries (CREDIT_ADJUSTMENT or RECONCILIATION_ADJUSTMENT) affecting workspace balance.
+                    Note: Wholesale reconciliation adjustments create append-only financial ledger entries (PROVIDER_COST_ADJUSTMENT) correcting provider wholesale costs without altering customer balances.
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
