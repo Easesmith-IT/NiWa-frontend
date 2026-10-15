@@ -18,6 +18,17 @@ export interface WhatsAppBillingSummary {
     pendingCount: number;
     totalMetaCost: number;
     totalCustomerCharge: number;
+    provisionalCustomerCharge?: number;
+    provisionalMetaCost?: number;
+    ledgerSummary?: {
+      debitUsageCount: number;
+      debitUsageAmount: number;
+      reversalCount: number;
+      reversalAmount: number;
+      adjustmentCount: number;
+      adjustmentAmount: number;
+      netCustomerCharge: number;
+    };
     currency: string;
   };
   byCategory: {

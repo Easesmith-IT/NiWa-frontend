@@ -159,7 +159,7 @@ export const WhatsAppBillingOverview: React.FC<WhatsAppBillingOverviewProps> = (
         {/* Customer Selling Price / Charges */}
         <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Customer Charged</span>
+            <span className="text-xs font-medium text-slate-500 dark:text-slate-400">Confirmed Charges</span>
             <div className="rounded-md bg-emerald-50 p-2 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400">
               <ArrowUpRight className="h-4 w-4" />
             </div>
@@ -168,8 +168,13 @@ export const WhatsAppBillingOverview: React.FC<WhatsAppBillingOverviewProps> = (
             <div className="text-2xl font-bold text-slate-900 dark:text-slate-100">
               ₹{isLoading ? "..." : totalCustomerCharge.toFixed(4)}
             </div>
-            <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Inclusive of configured markup & taxes
+            <div className="mt-1 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+              <span>Finalized ledger debits</span>
+              {metrics?.provisionalCustomerCharge !== undefined && metrics.provisionalCustomerCharge > 0 && (
+                <span className="text-amber-600 dark:text-amber-400 font-medium" title="Unconfirmed holds pending delivery">
+                  +₹{metrics.provisionalCustomerCharge.toFixed(4)} pending
+                </span>
+              )}
             </div>
           </div>
         </div>
