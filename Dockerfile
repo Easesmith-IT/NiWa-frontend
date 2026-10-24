@@ -1,5 +1,5 @@
 # Multi-stage production build for NiWa Next.js Frontend
-FROM node:22-alpine AS builder
+FROM node:24.22.1-alpine AS builder
 
 WORKDIR /app
 
@@ -10,7 +10,7 @@ COPY . .
 RUN npm run build
 
 # Production runtime stage
-FROM node:22-alpine AS runner
+FROM node:24.22.1-alpine AS runner
 
 WORKDIR /app
 
