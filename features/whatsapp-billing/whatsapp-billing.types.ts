@@ -128,6 +128,61 @@ export interface WhatsAppRateCardTier {
   sellingRate: number;
 }
 
+export type RateVerificationStatus =
+  | "verified_official"
+  | "evidence_validated"
+  | "provisional_secondary"
+  | "unverified"
+  | "revoked"
+  | "admin_attested";
+
+export interface RateVerificationEvidence {
+  verifiedBy: string;
+  verifiedAt: string;
+  sourceUrl: string;
+  finalSourceUrl?: string;
+  sourceHost?: string;
+  sourceType?: string;
+  evidenceRef: string;
+  revision?: string;
+  retrievedAt?: string;
+  contentHashAlgorithm?: string;
+  evidenceHash: string;
+  contentType?: string;
+  verificationMethod?: string;
+  sourceAuthenticationMethod?: string;
+  isSourceAuthenticated?: boolean;
+  verifiedRate?: number;
+  verifiedCurrency?: string;
+  verifiedCategory?: string;
+  verifiedCountry?: string;
+  verifiedPricingBasis?: string;
+  verifiedEffectiveFrom?: string;
+  verifiedEffectiveTo?: string | null;
+  reason: string;
+  snapshotFingerprint?: string;
+}
+
+export interface VerifyRateCardPayload {
+  sourceUrl: string;
+  trustedRetrieval?: boolean;
+  approvalReason: string;
+  evidenceRef?: string;
+  evidenceHash?: string;
+  metaRate: number;
+  category: string;
+  countryCode: string;
+  currency: string;
+  pricingBasis?: "on_delivery" | "on_submission" | "on_chargeable_reply";
+  effectiveFrom: string;
+  effectiveTo?: string | null;
+  revision?: string;
+}
+
+export interface RevokeRateCardPayload {
+  reason: string;
+}
+
 export interface WhatsAppRateCard {
   _id: string;
   workspaceId: string;
@@ -141,7 +196,8 @@ export interface WhatsAppRateCard {
   sellingRate: number;
   markupPercent: number;
   freeAllowanceEligible: boolean;
-  verificationStatus: "verified_official" | "provisional_secondary" | "unverified";
+  verificationStatus: RateVerificationStatus;
+  verificationEvidence?: RateVerificationEvidence | null;
   pricingBasis: "on_delivery" | "on_submission" | "on_chargeable_reply";
   tiers?: WhatsAppRateCardTier[];
   source: string;

@@ -92,6 +92,28 @@ export const createWhatsAppRateCard = async (payload: Partial<WhatsAppRateCard>)
   return data.data;
 };
 
+export const verifyWhatsAppRateCard = async (
+  rateCardId: string,
+  payload: import("./whatsapp-billing.types").VerifyRateCardPayload
+) => {
+  const { data } = await apiClient.post<{ success: boolean; data: WhatsAppRateCard }>(
+    `/billing/whatsapp/rate-cards/${rateCardId}/verify`,
+    payload
+  );
+  return data.data;
+};
+
+export const revokeWhatsAppRateCard = async (
+  rateCardId: string,
+  payload: import("./whatsapp-billing.types").RevokeRateCardPayload
+) => {
+  const { data } = await apiClient.post<{ success: boolean; data: WhatsAppRateCard }>(
+    `/billing/whatsapp/rate-cards/${rateCardId}/revoke`,
+    payload
+  );
+  return data.data;
+};
+
 export const triggerWhatsAppReconciliation = async (payload: {
   reportItems: Array<{
     metaMessageId: string;

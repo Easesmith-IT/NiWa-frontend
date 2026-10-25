@@ -7,12 +7,16 @@ import {
   getWhatsAppAllowances,
   getWhatsAppRateCards,
   createWhatsAppRateCard,
+  verifyWhatsAppRateCard,
+  revokeWhatsAppRateCard,
   triggerWhatsAppReconciliation,
   type GetSummaryParams,
   type GetEventsParams,
   type GetLedgerParams,
   type GetRateCardsParams,
   type WhatsAppRateCard,
+  type VerifyRateCardPayload,
+  type RevokeRateCardPayload,
 } from "./whatsapp-billing.api";
 
 export const useWhatsAppBillingSummary = (params?: GetSummaryParams, enabled = true) => {
@@ -69,6 +73,28 @@ export const useCreateWhatsAppRateCard = () => {
     mutationFn: (payload: Partial<WhatsAppRateCard>) => createWhatsAppRateCard(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["whatsapp-billing", "rate-cards"] });
+    },
+  });
+};
+
+export const useVerifyWhatsAppRateCard = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ rateCardId, payload }: { rateCardId: string; payload: VerifyRateCardPayload }) =>
+      verifyWhatsAppRateCard(rateCardId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["whatsapp-billing"] });
+    },
+  });
+};
+
+export const useRevokeWhatsAppRateCard = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ rateCardId, payload }: { rateCardId: string; payload: RevokeRateCardPayload }) =>
+      revokeWhatsAppRateCard(rateCardId, payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["whatsapp-billing"] });
     },
   });
 };
