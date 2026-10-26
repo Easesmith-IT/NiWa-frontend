@@ -45,6 +45,8 @@ export interface WhatsAppBillingSummary {
     finalizedConsumed?: number;
     provisionalReserved?: number;
     released?: number;
+    releaseFailedCount?: number;
+    unexplainedAllocation?: number;
     remaining: number;
     percentUsed: number;
     unresolvedDiscrepanciesCount?: number;
