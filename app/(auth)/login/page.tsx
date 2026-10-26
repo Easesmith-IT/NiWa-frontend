@@ -79,10 +79,16 @@ export default function LoginPage() {
         router.push(nextParam || "/");
       }
     } catch (error) {
-      const message =
-        error instanceof AxiosError
-          ? error.response?.data?.message ?? "Login failed. Check your credentials."
-          : "Login failed. Check your credentials.";
+      let message = "Login failed. Check your credentials.";
+      if (error instanceof AxiosError) {
+        if (error.response?.data?.message) {
+          message = error.response.data.message;
+        } else if (!error.response || error.code === "ERR_NETWORK" || error.code === "ECONNREFUSED") {
+          message = "Cannot connect to the NiWa backend service. Please ensure the backend is running on port 4000.";
+        } else if (error.message) {
+          message = error.message;
+        }
+      }
       setSubmitError(message);
     }
   };

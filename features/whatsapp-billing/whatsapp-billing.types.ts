@@ -41,8 +41,13 @@ export interface WhatsAppBillingSummary {
   allowance: {
     granted: number;
     consumed: number;
+    allocated?: number;
+    finalizedConsumed?: number;
+    provisionalReserved?: number;
+    released?: number;
     remaining: number;
     percentUsed: number;
+    unresolvedDiscrepanciesCount?: number;
   };
 }
 

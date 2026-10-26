@@ -222,7 +222,11 @@ export const WhatsAppBillingOverview: React.FC<WhatsAppBillingOverviewProps> = (
 
           <div className="text-right sm:min-w-[180px]">
             <div className="text-sm font-bold text-slate-900 dark:text-slate-100">
-              {isLoading ? "..." : `${allowance?.consumed ?? 0} / ${allowance?.granted ?? 1000}`}
+              {isLoading
+                ? "..."
+                : (allowance?.provisionalReserved ?? 0) > 0
+                ? `${allowance?.finalizedConsumed ?? 0} finalized (${allowance?.provisionalReserved} in-flight) / ${allowance?.granted ?? 1000}`
+                : `${allowance?.finalizedConsumed ?? allowance?.consumed ?? 0} / ${allowance?.granted ?? 1000}`}
             </div>
             <div className="text-xs text-slate-500 dark:text-slate-400">
               {isLoading ? "..." : `${allowance?.remaining ?? 1000} remaining`}
@@ -240,10 +244,25 @@ export const WhatsAppBillingOverview: React.FC<WhatsAppBillingOverviewProps> = (
           </div>
           <div className="mt-1.5 flex justify-between text-[11px] text-slate-500 dark:text-slate-400">
             <span>0 used</span>
-            <span>{allowance?.percentUsed?.toFixed(1) ?? 0}% consumed</span>
+            <span>
+              {allowance?.percentUsed?.toFixed(1) ?? 0}% allocated
+              {(allowance?.provisionalReserved ?? 0) > 0
+                ? ` (${allowance?.finalizedConsumed ?? 0} confirmed, ${allowance?.provisionalReserved} provisional)`
+                : ""}
+            </span>
             <span>1,000 free quota</span>
           </div>
         </div>
+
+        {/* Optional Discrepancy Warning Badge */}
+        {(allowance?.unresolvedDiscrepanciesCount ?? 0) > 0 && (
+          <div className="mt-3 flex items-center justify-between rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-300">
+            <span>
+              <strong>Reconciliation Alert:</strong> {allowance?.unresolvedDiscrepanciesCount} allowance discrepancy
+              {allowance?.unresolvedDiscrepanciesCount === 1 ? " requires" : "s require"} operator review in the Reconciliation Hub.
+            </span>
+          </div>
+        )}
       </div>
 
       {/* Category Cost Breakdown Grid */}

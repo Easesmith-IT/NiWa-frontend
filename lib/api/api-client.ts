@@ -18,6 +18,9 @@ const isPlatformEndpoint = (url?: string): boolean => {
 };
 
 apiClient.interceptors.request.use((config) => {
+  if (typeof window !== "undefined" && typeof window.location !== "undefined") {
+    config.baseURL = getBaseApiUrl();
+  }
   const token = getAccessToken();
 
   if (token) {
