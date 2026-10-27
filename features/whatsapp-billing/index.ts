@@ -11,3 +11,4 @@ export * from "./components/WorkspaceWalletCard";
 export * from "./components/WalletAdjustmentModal";
 export * from "./components/CustomerPricingCard";
 export * from "./components/WalletTransactionsTable";
+export * from "./customer-pricing.utils";
