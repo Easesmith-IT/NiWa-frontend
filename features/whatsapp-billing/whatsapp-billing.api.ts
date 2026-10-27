@@ -178,3 +178,78 @@ export const downloadUsageReportUrl = (format: "json" | "csv", month?: number, y
   if (year) query.set("year", year.toString());
   return `/api/billing/whatsapp/export?${query.toString()}`;
 };
+
+// -------------------------------------------------------------
+// NIWA WhatsApp Billing v3.3: Wallet & Customer Pricing APIs
+// -------------------------------------------------------------
+
+export const getWorkspaceWallet = async () => {
+  const { data } = await apiClient.get<{ success: boolean; data: import("./whatsapp-billing.types").WorkspaceWallet }>(
+    "/billing/whatsapp/wallet"
+  );
+  return data.data;
+};
+
+export const getWalletTransactions = async (params?: { page?: number; limit?: number; transactionType?: string }) => {
+  const { data } = await apiClient.get<{
+    success: boolean;
+    data: import("./whatsapp-billing.types").WalletTransaction[];
+    pagination: { page: number; limit: number; total: number; totalPages: number };
+  }>("/billing/whatsapp/wallet/transactions", { params });
+  return data;
+};
+
+export const getCustomerRateCards = async () => {
+  const { data } = await apiClient.get<{
+    success: boolean;
+    data: import("./whatsapp-billing.types").WhatsAppCustomerRateCard[];
+  }>("/billing/whatsapp/customer-pricing");
+  return data.data;
+};
+
+export const adminAdjustWallet = async (payload: import("./whatsapp-billing.types").WalletAdjustmentPayload) => {
+  const { data } = await apiClient.post<{
+    success: boolean;
+    data: import("./whatsapp-billing.types").WalletTransaction;
+  }>("/billing/whatsapp/admin/wallet/adjust", payload);
+  return data.data;
+};
+
+export const adminGetWorkspaceWallet = async (workspaceId: string) => {
+  const { data } = await apiClient.get<{
+    success: boolean;
+    data: import("./whatsapp-billing.types").WorkspaceWallet;
+  }>(`/billing/whatsapp/admin/wallet/${workspaceId}`);
+  return data.data;
+};
+
+export const adminListWorkspaceTransactions = async (
+  workspaceId: string,
+  params?: { page?: number; limit?: number; transactionType?: string }
+) => {
+  const { data } = await apiClient.get<{
+    success: boolean;
+    data: import("./whatsapp-billing.types").WalletTransaction[];
+    pagination: { page: number; limit: number; total: number; totalPages: number };
+  }>(`/billing/whatsapp/admin/wallet/${workspaceId}/transactions`, { params });
+  return data;
+};
+
+export const adminCreateCustomerRateCard = async (
+  payload: Partial<import("./whatsapp-billing.types").WhatsAppCustomerRateCard>
+) => {
+  const { data } = await apiClient.post<{
+    success: boolean;
+    data: import("./whatsapp-billing.types").WhatsAppCustomerRateCard;
+  }>("/billing/whatsapp/admin/customer-pricing", payload);
+  return data.data;
+};
+
+export const getProfitabilitySummary = async (params?: { startDate?: string; endDate?: string }) => {
+  const { data } = await apiClient.get<{
+    success: boolean;
+    data: import("./whatsapp-billing.types").ProfitabilitySummary;
+  }>("/billing/whatsapp/admin/profitability", { params });
+  return data.data;
+};
+

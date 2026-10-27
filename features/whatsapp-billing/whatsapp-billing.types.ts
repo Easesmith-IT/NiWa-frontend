@@ -242,3 +242,92 @@ export interface ReconciliationResult {
   }>;
   rejectedCount?: number;
 }
+
+// -------------------------------------------------------------
+// NIWA WhatsApp Billing v3.3: Wallet & Independent Customer Pricing
+// -------------------------------------------------------------
+
+export interface WorkspaceWallet {
+  _id: string;
+  workspaceId: string;
+  currency: string;
+  postedBalancePaise: number;
+  reservedPaise: number;
+  availablePaise: number;
+  postedBalanceInr: string;
+  reservedInr: string;
+  availableInr: string;
+  lastTransactionAt?: string;
+  version: number;
+}
+
+export type WalletTransactionType = "CREDIT" | "DEBIT" | "HOLD" | "RELEASE" | "ADJUSTMENT";
+export type WalletReferenceType = "TOPUP" | "MESSAGE" | "REFUND" | "MANUAL_ADJUSTMENT" | "SYSTEM_RECONCILIATION";
+
+export interface WalletTransaction {
+  _id: string;
+  workspaceId: string;
+  walletId: string;
+  transactionType: WalletTransactionType;
+  referenceType: WalletReferenceType;
+  referenceId?: string;
+  idempotencyKey: string;
+  amountPaise: number;
+  amountInr: string;
+  amountMicros?: number;
+  balanceBeforePaise: number;
+  balanceAfterPaise: number;
+  reservedBeforePaise: number;
+  reservedAfterPaise: number;
+  currency: string;
+  description: string;
+  actorType: "ADMIN" | "SYSTEM" | "USER";
+  actorId: string;
+  actorEmail?: string;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
+}
+
+export interface WhatsAppCustomerRateCard {
+  _id: string;
+  workspaceId: string;
+  category: "marketing" | "utility" | "authentication" | "service";
+  countryCode: string;
+  pricePaise: number;
+  priceInr: string;
+  currency: string;
+  taxPercent: number;
+  taxMode: "exclusive" | "inclusive";
+  effectiveFrom: string;
+  effectiveTo?: string | null;
+  isCustom: boolean;
+  notes?: string;
+}
+
+export interface WalletAdjustmentPayload {
+  workspaceId: string;
+  adjustmentType: "CREDIT" | "DEBIT";
+  amountPaise: number;
+  reason: string;
+  referenceId?: string;
+}
+
+export interface ProfitabilitySummary {
+  totalCustomerRevenuePaise: number;
+  totalCustomerRevenueInr: string;
+  totalMetaCostPaise: number;
+  totalMetaCostInr: string;
+  grossProfitPaise: number;
+  grossProfitInr: string;
+  grossMarginPercent: number;
+  byCategory: Record<
+    string,
+    {
+      customerChargePaise: number;
+      metaCostPaise: number;
+      marginPaise: number;
+      count: number;
+    }
+  >;
+}
+

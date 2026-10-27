@@ -15,10 +15,13 @@ import {
   Zap,
 } from "lucide-react";
 import { Button } from "../../../components/ui/button";
-import type { WhatsAppBillingSummary } from "../whatsapp-billing.types";
+import type { WhatsAppBillingSummary, WorkspaceWallet } from "../whatsapp-billing.types";
+import { WorkspaceWalletCard } from "./WorkspaceWalletCard";
 
 interface WhatsAppBillingOverviewProps {
   summary?: WhatsAppBillingSummary;
+  wallet?: WorkspaceWallet;
+  isWalletLoading?: boolean;
   isLoading: boolean;
   selectedMonth: number;
   selectedYear: number;
@@ -34,6 +37,8 @@ const MONTHS = [
 
 export const WhatsAppBillingOverview: React.FC<WhatsAppBillingOverviewProps> = ({
   summary,
+  wallet,
+  isWalletLoading,
   isLoading,
   selectedMonth,
   selectedYear,
@@ -111,6 +116,9 @@ export const WhatsAppBillingOverview: React.FC<WhatsAppBillingOverviewProps> = (
           </Button>
         </div>
       </div>
+
+      {/* Prepaid Workspace Messaging Wallet */}
+      <WorkspaceWalletCard wallet={wallet} isLoading={Boolean(isWalletLoading)} />
 
       {/* Main KPI Cards Grid */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">

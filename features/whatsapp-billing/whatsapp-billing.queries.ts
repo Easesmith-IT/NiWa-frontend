@@ -10,6 +10,14 @@ import {
   verifyWhatsAppRateCard,
   revokeWhatsAppRateCard,
   triggerWhatsAppReconciliation,
+  getWorkspaceWallet,
+  getWalletTransactions,
+  getCustomerRateCards,
+  adminAdjustWallet,
+  adminCreateCustomerRateCard,
+  getProfitabilitySummary,
+  type WalletAdjustmentPayload,
+  type WhatsAppCustomerRateCard,
   type GetSummaryParams,
   type GetEventsParams,
   type GetLedgerParams,
@@ -106,5 +114,68 @@ export const useTriggerWhatsAppReconciliation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["whatsapp-billing"] });
     },
+  });
+};
+
+// -------------------------------------------------------------
+// NIWA WhatsApp Billing v3.3: Wallet & Customer Pricing Hooks
+// -------------------------------------------------------------
+
+export const useWorkspaceWallet = (enabled = true) => {
+  return useQuery({
+    queryKey: queryKeys.whatsappBilling.wallet(),
+    queryFn: () => getWorkspaceWallet(),
+    enabled,
+    staleTime: 10_000,
+  });
+};
+
+export const useWalletTransactions = (
+  params?: { page?: number; limit?: number; transactionType?: string },
+  enabled = true
+) => {
+  return useQuery({
+    queryKey: queryKeys.whatsappBilling.walletTransactions(params),
+    queryFn: () => getWalletTransactions(params),
+    enabled,
+    staleTime: 10_000,
+  });
+};
+
+export const useCustomerRateCards = (enabled = true) => {
+  return useQuery({
+    queryKey: queryKeys.whatsappBilling.customerPricing(),
+    queryFn: () => getCustomerRateCards(),
+    enabled,
+    staleTime: 60_000,
+  });
+};
+
+export const useAdminAdjustWallet = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: WalletAdjustmentPayload) => adminAdjustWallet(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["whatsapp-billing"] });
+    },
+  });
+};
+
+export const useAdminCreateCustomerRateCard = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: Partial<WhatsAppCustomerRateCard>) => adminCreateCustomerRateCard(payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["whatsapp-billing"] });
+    },
+  });
+};
+
+export const useProfitabilitySummary = (params?: { startDate?: string; endDate?: string }, enabled = true) => {
+  return useQuery({
+    queryKey: queryKeys.whatsappBilling.profitability(params),
+    queryFn: () => getProfitabilitySummary(params),
+    enabled,
+    staleTime: 30_000,
   });
 };

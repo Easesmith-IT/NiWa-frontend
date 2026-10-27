@@ -7,3 +7,7 @@ export * from "./components/WhatsAppFinancialLedgerTable";
 export * from "./components/WhatsAppRateCardsCard";
 export * from "./components/WhatsAppReconciliationModal";
 export * from "./components/WhatsAppUsageAdminView";
+export * from "./components/WorkspaceWalletCard";
+export * from "./components/WalletAdjustmentModal";
+export * from "./components/CustomerPricingCard";
+export * from "./components/WalletTransactionsTable";

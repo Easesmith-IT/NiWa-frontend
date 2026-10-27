@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   ShieldCheck,
   Tag,
+  Wallet,
 } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import {
@@ -19,6 +20,9 @@ import {
   useWhatsAppRateCards,
   useCreateWhatsAppRateCard,
   useTriggerWhatsAppReconciliation,
+  useWorkspaceWallet,
+  useWalletTransactions,
+  useCustomerRateCards,
 } from "../whatsapp-billing.queries";
 import { downloadUsageReport, downloadUsageReportUrl } from "../whatsapp-billing.api";
 import { WhatsAppBillingOverview } from "./WhatsAppBillingOverview";
@@ -26,12 +30,14 @@ import { WhatsAppUsageEventsTable } from "./WhatsAppUsageEventsTable";
 import { WhatsAppFinancialLedgerTable } from "./WhatsAppFinancialLedgerTable";
 import { WhatsAppRateCardsCard } from "./WhatsAppRateCardsCard";
 import { WhatsAppReconciliationModal } from "./WhatsAppReconciliationModal";
+import { CustomerPricingCard } from "./CustomerPricingCard";
+import { WalletTransactionsTable } from "./WalletTransactionsTable";
 
 export const WhatsAppUsageAdminView: React.FC = () => {
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState<number>(currentDate.getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState<number>(currentDate.getFullYear());
-  const [activeTab, setActiveTab] = useState<"overview" | "ledger" | "rate-cards">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "wallet" | "customer-pricing" | "ledger" | "rate-cards">("overview");
 
   // Events Table State
   const [eventsPage, setEventsPage] = useState<number>(1);
@@ -43,6 +49,10 @@ export const WhatsAppUsageAdminView: React.FC = () => {
   const [ledgerPage, setLedgerPage] = useState<number>(1);
   const [entryTypeFilter, setEntryTypeFilter] = useState<string>("");
 
+  // Wallet Ledger State
+  const [walletTxPage, setWalletTxPage] = useState<number>(1);
+  const [walletTypeFilter, setWalletTypeFilter] = useState<string>("");
+
   // Reconciliation Modal
   const [isReconcileModalOpen, setIsReconcileModalOpen] = useState<boolean>(false);
 
@@ -51,6 +61,16 @@ export const WhatsAppUsageAdminView: React.FC = () => {
     month: selectedMonth,
     year: selectedYear,
   });
+
+  const { data: wallet, isLoading: isWalletLoading } = useWorkspaceWallet();
+
+  const { data: walletTransactionsData, isLoading: isWalletTransactionsLoading } = useWalletTransactions({
+    page: walletTxPage,
+    limit: 15,
+    transactionType: walletTypeFilter || undefined,
+  });
+
+  const { data: customerRateCards, isLoading: isCustomerPricingLoading } = useCustomerRateCards();
 
   const { data: eventsData, isLoading: isEventsLoading } = useWhatsAppUsageEvents({
     page: eventsPage,
@@ -88,6 +108,8 @@ export const WhatsAppUsageAdminView: React.FC = () => {
       {/* Overview Dashboard & KPIs */}
       <WhatsAppBillingOverview
         summary={summary}
+        wallet={wallet}
+        isWalletLoading={isWalletLoading}
         isLoading={isSummaryLoading}
         selectedMonth={selectedMonth}
         selectedYear={selectedYear}
@@ -98,7 +120,7 @@ export const WhatsAppUsageAdminView: React.FC = () => {
 
       {/* Navigation Tabs & Actions Toolbar */}
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between border-b border-slate-200 pb-2 dark:border-slate-800">
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-1.5 sm:gap-2">
           <button
             onClick={() => setActiveTab("overview")}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
@@ -109,6 +131,30 @@ export const WhatsAppUsageAdminView: React.FC = () => {
           >
             <LayoutDashboard className="h-3.5 w-3.5" />
             Outbound Usage Events
+          </button>
+
+          <button
+            onClick={() => setActiveTab("wallet")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+              activeTab === "wallet"
+                ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+            }`}
+          >
+            <Wallet className="h-3.5 w-3.5 text-emerald-500" />
+            Wallet Ledger
+          </button>
+
+          <button
+            onClick={() => setActiveTab("customer-pricing")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+              activeTab === "customer-pricing"
+                ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+            }`}
+          >
+            <Tag className="h-3.5 w-3.5 text-indigo-500" />
+            Customer Selling Prices
           </button>
 
           <button
@@ -131,8 +177,8 @@ export const WhatsAppUsageAdminView: React.FC = () => {
                 : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
             }`}
           >
-            <Tag className="h-3.5 w-3.5" />
-            Rate Cards & Pricing Rules
+            <Layers className="h-3.5 w-3.5" />
+            Meta Wholesale Costs
           </button>
         </div>
 
@@ -162,6 +208,24 @@ export const WhatsAppUsageAdminView: React.FC = () => {
           onStateFilterChange={setStateFilter}
           searchQuery={searchQuery}
           onSearchChange={setSearchQuery}
+        />
+      )}
+
+      {activeTab === "wallet" && (
+        <WalletTransactionsTable
+          transactions={walletTransactionsData?.data || []}
+          isLoading={isWalletTransactionsLoading}
+          pagination={walletTransactionsData?.pagination}
+          onPageChange={setWalletTxPage}
+          typeFilter={walletTypeFilter}
+          onTypeFilterChange={setWalletTypeFilter}
+        />
+      )}
+
+      {activeTab === "customer-pricing" && (
+        <CustomerPricingCard
+          rateCards={customerRateCards || []}
+          isLoading={isCustomerPricingLoading}
         />
       )}
 

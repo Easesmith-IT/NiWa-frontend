@@ -108,6 +108,10 @@ export const queryKeys = {
     ledger: (params?: unknown) => ["whatsapp-billing", "ledger", params] as const,
     allowances: (params?: unknown) => ["whatsapp-billing", "allowances", params] as const,
     rateCards: (params?: unknown) => ["whatsapp-billing", "rate-cards", params] as const,
+    wallet: () => ["whatsapp-billing", "wallet"] as const,
+    walletTransactions: (params?: unknown) => ["whatsapp-billing", "wallet-transactions", params] as const,
+    customerPricing: () => ["whatsapp-billing", "customer-pricing"] as const,
+    profitability: (params?: unknown) => ["whatsapp-billing", "profitability", params] as const,
   },
 };
 
