@@ -84,6 +84,11 @@ export interface WhatsAppUsageEvent {
   metaCost: number;
   markupAmount: number;
   taxAmount: number;
+  customerTaxAmountMicros?: number;
+  supplierTaxAmountMicros?: number;
+  supplierTaxRatePercent?: number | null;
+  supplierTaxSource?: string | null;
+  supplierTaxStatus?: "unknown" | "estimated" | "invoice_verified";
   customerCharge: number;
   reconciliationStatus: "unreconciled" | "matched" | "discrepancy" | "reconciled";
   source: string;
@@ -102,10 +107,16 @@ export interface WhatsAppLedgerEntry {
     | "REVERSAL"
     | "ALLOWANCE_OFFSET"
     | "RECONCILIATION_ADJUSTMENT"
-    | "PROVIDER_COST_ADJUSTMENT";
+    | "PROVIDER_COST_ADJUSTMENT"
+    | "SUPPLIER_TAX_EVIDENCE";
   currency: string;
   metaCost: number;
   customerCharge: number;
+  customerTaxAmountMicros?: number;
+  supplierTaxAmountMicros?: number;
+  supplierTaxRatePercent?: number | null;
+  supplierTaxSource?: string | null;
+  supplierTaxStatus?: "unknown" | "estimated" | "invoice_verified";
   metaMessageId?: string;
   idempotencyKey: string;
   description: string;
