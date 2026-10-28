@@ -68,6 +68,18 @@ export const WhatsAppFinancialLedgerTable: React.FC<WhatsAppFinancialLedgerTable
           label: "Supplier Tax Evidence",
           classes: "bg-cyan-50 text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-300",
         };
+      case "SUPPLIER_TAX_CORRECTION":
+        return {
+          icon: <ShieldCheck className="h-3 w-3 text-amber-600" />,
+          label: "Supplier Tax Correction",
+          classes: "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300",
+        };
+      case "INVOICE_LINK":
+        return {
+          icon: <FileText className="h-3 w-3 text-blue-600" />,
+          label: "Invoice Reference Link",
+          classes: "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300",
+        };
       default:
         return {
           icon: <FileText className="h-3 w-3" />,
@@ -105,6 +117,8 @@ export const WhatsAppFinancialLedgerTable: React.FC<WhatsAppFinancialLedgerTable
             <option value="ALLOWANCE_OFFSET">Meta Free Tier Offset</option>
             <option value="PROVIDER_COST_ADJUSTMENT">Provider Cost Adjustment</option>
             <option value="SUPPLIER_TAX_EVIDENCE">Supplier Tax Evidence</option>
+            <option value="SUPPLIER_TAX_CORRECTION">Supplier Tax Correction</option>
+            <option value="INVOICE_LINK">Invoice Reference Link</option>
             <option value="RECONCILIATION_ADJUSTMENT">Reconciliation Adjustment</option>
           </select>
         </div>
