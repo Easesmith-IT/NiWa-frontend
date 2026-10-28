@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import type { WhatsAppCustomerRateCard } from "../whatsapp-billing.types";
-import { useAdminCreateCustomerRateCard } from "../whatsapp-billing.queries";
+import { useAdminCreateCustomerRateCard, useAdminDeactivateCustomerRateCard } from "../whatsapp-billing.queries";
 import {
   PRICING_CATEGORIES,
   resolveCategoryPricingView,
@@ -40,6 +40,7 @@ export const CustomerPricingCard: React.FC<CustomerPricingCardProps> = ({
   const [notesInput, setNotesInput] = useState<string>("");
 
   const createCardMutation = useAdminCreateCustomerRateCard();
+  const deactivateCardMutation = useAdminDeactivateCustomerRateCard();
 
   const handleOpenEdit = (category: WhatsAppBillingCategory, currentPricePaise?: number) => {
     setSelectedCategory(category);
@@ -186,7 +187,27 @@ export const CustomerPricingCard: React.FC<CustomerPricingCardProps> = ({
               </div>
 
               {isAdmin && (
-                <div className="mt-4 pt-3 border-t border-slate-200/60 dark:border-slate-700/60">
+                <div className="mt-4 pt-3 border-t border-slate-200/60 dark:border-slate-700/60 space-y-2">
+                  {item.isConfigured && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={deactivateCardMutation.isPending}
+                      onClick={async () => {
+                        const cardToDeactivate = rateCards.find((c) => c.category === item.category && c.isActive !== false);
+                        if (!cardToDeactivate) return;
+                        if (!window.confirm(`Deactivate the active NIWA customer price for ${item.label}? New sends in this category will fail closed until a replacement price is configured.`)) return;
+                        await deactivateCardMutation.mutateAsync({
+                          workspaceId,
+                          rateCardId: cardToDeactivate._id,
+                          reason: "Deactivated by platform administrator",
+                        });
+                      }}
+                      className="w-full text-xs font-medium h-8 text-rose-600"
+                    >
+                      Deactivate current price
+                    </Button>
+                  )}
                   <Button
                     variant={item.isConfigured ? "outline" : "primary"}
                     size="sm"
