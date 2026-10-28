@@ -267,6 +267,50 @@ export const adminDeactivateCustomerRateCard = async (payload: { workspaceId: st
   return data.data;
 };
 
+export const linkWhatsAppUsageToInvoice = async (payload: {
+  metaMessageId: string;
+  invoiceId: string;
+  invoiceLineId: string;
+  invoicedAt?: string;
+}) => {
+  const { data } = await apiClient.post<{ success: boolean; data: unknown }>(
+    "/billing/whatsapp/invoices/link-usage",
+    payload
+  );
+  return data.data;
+};
+
+export const adminRecordWhatsAppUsageAdjustment = async (payload: {
+  workspaceId: string;
+  metaMessageId: string;
+  adjustmentPaise: number;
+  reason: string;
+  idempotencyKey: string;
+  creditNoteId?: string;
+}) => {
+  const { data } = await apiClient.post<{ success: boolean; data: unknown }>(
+    "/billing/whatsapp/admin/invoices/usage-adjustment",
+    payload
+  );
+  return data.data;
+};
+
+export const adminRecordWhatsAppSupplierTaxEvidence = async (payload: {
+  workspaceId: string;
+  metaMessageId: string;
+  supplierTaxAmountMicros: number;
+  supplierTaxRatePercent?: number | null;
+  supplierInvoiceId: string;
+  supplierInvoiceLineId: string;
+  sourceRef: string;
+}) => {
+  const { data } = await apiClient.post<{ success: boolean; data: unknown }>(
+    "/billing/whatsapp/admin/provider-tax/evidence",
+    payload
+  );
+  return data.data;
+};
+
 export const getProfitabilitySummary = async (params?: { startDate?: string; endDate?: string }) => {
   const { data } = await apiClient.get<{
     success: boolean;
