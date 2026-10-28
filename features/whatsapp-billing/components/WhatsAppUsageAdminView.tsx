@@ -32,12 +32,13 @@ import { WhatsAppRateCardsCard } from "./WhatsAppRateCardsCard";
 import { WhatsAppReconciliationModal } from "./WhatsAppReconciliationModal";
 import { CustomerPricingCard } from "./CustomerPricingCard";
 import { WalletTransactionsTable } from "./WalletTransactionsTable";
+import { DispatchOperationsCard } from "./DispatchOperationsCard";
 
 export const WhatsAppUsageAdminView: React.FC<{ workspaceId?: string }> = ({ workspaceId = "default" }) => {
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState<number>(currentDate.getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState<number>(currentDate.getFullYear());
-  const [activeTab, setActiveTab] = useState<"overview" | "wallet" | "customer-pricing" | "ledger" | "rate-cards">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "wallet" | "customer-pricing" | "ledger" | "rate-cards" | "dispatch-operations">("overview");
 
   // Events Table State
   const [eventsPage, setEventsPage] = useState<number>(1);
@@ -87,6 +88,7 @@ export const WhatsAppUsageAdminView: React.FC<{ workspaceId?: string }> = ({ wor
   });
 
   const { data: rateCards, isLoading: isRateCardsLoading } = useWhatsAppRateCards({
+    workspaceId,
     includeInactive: false,
   });
 
@@ -170,6 +172,18 @@ export const WhatsAppUsageAdminView: React.FC<{ workspaceId?: string }> = ({ wor
           </button>
 
           <button
+            onClick={() => setActiveTab("dispatch-operations")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+              activeTab === "dispatch-operations"
+                ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+            }`}
+          >
+            <ShieldCheck className="h-3.5 w-3.5" />
+            Dispatch Recovery
+          </button>
+
+          <button
             onClick={() => setActiveTab("rate-cards")}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
               activeTab === "rate-cards"
@@ -239,6 +253,10 @@ export const WhatsAppUsageAdminView: React.FC<{ workspaceId?: string }> = ({ wor
           entryTypeFilter={entryTypeFilter}
           onEntryTypeFilterChange={setEntryTypeFilter}
         />
+      )}
+
+      {activeTab === "dispatch-operations" && (
+        <DispatchOperationsCard workspaceId={workspaceId} />
       )}
 
       {activeTab === "rate-cards" && (
