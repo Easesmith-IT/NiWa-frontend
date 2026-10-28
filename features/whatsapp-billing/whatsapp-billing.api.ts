@@ -267,6 +267,41 @@ export const adminDeactivateCustomerRateCard = async (payload: { workspaceId: st
   return data.data;
 };
 
+export interface WhatsAppDispatchOperation {
+  operationId: string;
+  providerAttemptId: string;
+  workspaceId: string;
+  recipientPhoneNumber: string;
+  messageType: string;
+  category: string;
+  status: string;
+  metaMessageId?: string | null;
+  lastError?: string | null;
+  createdAt: string;
+  updatedAt: string;
+  terminalAt?: string | null;
+}
+
+export const getAdminDispatchOperations = async (workspaceId: string, status?: string) => {
+  const { data } = await apiClient.get<{ success: boolean; data: WhatsAppDispatchOperation[] }>(
+    "/billing/whatsapp/admin/dispatch-operations",
+    { params: { workspaceId, status } }
+  );
+  return data.data;
+};
+
+export const resolveAdminDispatchOperation = async (payload: {
+  operationId: string;
+  providerStatus: "delivered" | "failed";
+  evidenceRef: string;
+}) => {
+  const { data } = await apiClient.post<{ success: boolean; data: unknown }>(
+    `/billing/whatsapp/admin/dispatch-operations/${payload.operationId}/resolve`,
+    { providerStatus: payload.providerStatus, evidenceRef: payload.evidenceRef }
+  );
+  return data.data;
+};
+
 export const linkWhatsAppUsageToInvoice = async (payload: {
   metaMessageId: string;
   invoiceId: string;
