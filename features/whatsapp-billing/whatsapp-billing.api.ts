@@ -37,6 +37,7 @@ export interface GetLedgerParams {
 }
 
 export interface GetRateCardsParams {
+  workspaceId?: string;
   category?: string;
   countryCode?: string;
   includeInactive?: boolean;
@@ -78,38 +79,48 @@ export const getWhatsAppAllowances = async (params?: { period?: string; phoneNum
 
 export const getWhatsAppRateCards = async (params?: GetRateCardsParams) => {
   const { data } = await apiClient.get<{ success: boolean; data: WhatsAppRateCard[] }>(
-    "/billing/whatsapp/rate-cards",
-    { params }
+    "/billing/whatsapp/admin/provider-rates",
+    { params: { workspaceId: params?.workspaceId || "default" } }
   );
   return data.data;
 };
 
 export const createWhatsAppRateCard = async (payload: Partial<WhatsAppRateCard>) => {
   const { data } = await apiClient.post<{ success: boolean; data: WhatsAppRateCard }>(
-    "/billing/whatsapp/rate-cards",
-    payload
+    "/billing/whatsapp/admin/provider-rates",
+    { ...payload, workspaceId: (payload as any).workspaceId || "default" }
   );
   return data.data;
 };
 
 export const verifyWhatsAppRateCard = async (
   rateCardId: string,
-  payload: import("./whatsapp-billing.types").VerifyRateCardPayload
+  payload: import("./whatsapp-billing.types").VerifyRateCardPayload,
+  workspaceId = "default"
 ) => {
   const { data } = await apiClient.post<{ success: boolean; data: WhatsAppRateCard }>(
-    `/billing/whatsapp/rate-cards/${rateCardId}/verify`,
-    payload
+    `/billing/whatsapp/admin/provider-rates/${rateCardId}/verify`,
+    { ...payload, workspaceId }
   );
   return data.data;
 };
 
 export const revokeWhatsAppRateCard = async (
   rateCardId: string,
-  payload: import("./whatsapp-billing.types").RevokeRateCardPayload
+  payload: import("./whatsapp-billing.types").RevokeRateCardPayload,
+  workspaceId = "default"
 ) => {
   const { data } = await apiClient.post<{ success: boolean; data: WhatsAppRateCard }>(
-    `/billing/whatsapp/rate-cards/${rateCardId}/revoke`,
-    payload
+    `/billing/whatsapp/admin/provider-rates/${rateCardId}/revoke`,
+    { ...payload, workspaceId }
+  );
+  return data.data;
+};
+
+export const deactivateWhatsAppRateCard = async (rateCardId: string, workspaceId: string, reason: string) => {
+  const { data } = await apiClient.post<{ success: boolean; data: WhatsAppRateCard }>(
+    `/billing/whatsapp/admin/provider-rates/${rateCardId}/deactivate`,
+    { workspaceId, reason }
   );
   return data.data;
 };
@@ -199,11 +210,11 @@ export const getWalletTransactions = async (params?: { page?: number; limit?: nu
   return data;
 };
 
-export const getCustomerRateCards = async () => {
+export const getCustomerRateCards = async (workspaceId = "default", includeInactive = false) => {
   const { data } = await apiClient.get<{
     success: boolean;
     data: import("./whatsapp-billing.types").WhatsAppCustomerRateCard[];
-  }>("/billing/whatsapp/customer-pricing");
+  }>("/billing/whatsapp/admin/customer-pricing", { params: { workspaceId, includeInactive } });
   return data.data;
 };
 
@@ -242,6 +253,17 @@ export const adminCreateCustomerRateCard = async (
     success: boolean;
     data: import("./whatsapp-billing.types").WhatsAppCustomerRateCard;
   }>("/billing/whatsapp/admin/customer-pricing", payload);
+  return data.data;
+};
+
+export const adminDeactivateCustomerRateCard = async (payload: { workspaceId: string; rateCardId: string; reason: string }) => {
+  const { data } = await apiClient.post<{
+    success: boolean;
+    data: import("./whatsapp-billing.types").WhatsAppCustomerRateCard;
+  }>(`/billing/whatsapp/admin/customer-pricing/${payload.rateCardId}/deactivate`, {
+    workspaceId: payload.workspaceId,
+    reason: payload.reason,
+  });
   return data.data;
 };
 
