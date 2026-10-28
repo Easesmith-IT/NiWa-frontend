@@ -378,29 +378,29 @@ export const WhatsAppUsageAdminView: React.FC<{ workspaceId?: string }> = ({ wor
                 <p className="mt-1 text-xs text-slate-500">Correct tax from supplier invoice evidence. Amount is entered in INR and stored in micro-INR.</p>
               </div>
               <label className="block text-xs font-medium">Meta message ID
-                <input required value={supplierTaxForm.metaMessageId} onChange={(e) => setSupplierTaxForm((v) => ({ ...v, metaMessageId: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
+                <input required disabled={supplierTaxSubmitting} value={supplierTaxForm.metaMessageId} onChange={(e) => setSupplierTaxForm((v) => ({ ...v, metaMessageId: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
               </label>
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="block text-xs font-medium">Corrected supplier tax (INR)
-                  <input required type="number" min="0" step="0.000001" value={supplierTaxForm.supplierTaxAmountInr} onChange={(e) => setSupplierTaxForm((v) => ({ ...v, supplierTaxAmountInr: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
+                  <input required type="number" min="0" step="0.000001" disabled={supplierTaxSubmitting} value={supplierTaxForm.supplierTaxAmountInr} onChange={(e) => setSupplierTaxForm((v) => ({ ...v, supplierTaxAmountInr: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
                 </label>
                 <label className="block text-xs font-medium">Supplier tax rate (%)
-                  <input type="number" min="0" max="100" step="0.01" value={supplierTaxForm.supplierTaxRatePercent} onChange={(e) => setSupplierTaxForm((v) => ({ ...v, supplierTaxRatePercent: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
+                  <input type="number" min="0" max="100" step="0.01" disabled={supplierTaxSubmitting} value={supplierTaxForm.supplierTaxRatePercent} onChange={(e) => setSupplierTaxForm((v) => ({ ...v, supplierTaxRatePercent: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
                 </label>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="block text-xs font-medium">Supplier invoice ID
-                  <input required value={supplierTaxForm.supplierInvoiceId} onChange={(e) => setSupplierTaxForm((v) => ({ ...v, supplierInvoiceId: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
+                  <input required disabled={supplierTaxSubmitting} value={supplierTaxForm.supplierInvoiceId} onChange={(e) => setSupplierTaxForm((v) => ({ ...v, supplierInvoiceId: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
                 </label>
                 <label className="block text-xs font-medium">Supplier invoice line ID
-                  <input required value={supplierTaxForm.supplierInvoiceLineId} onChange={(e) => setSupplierTaxForm((v) => ({ ...v, supplierInvoiceLineId: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
+                  <input required disabled={supplierTaxSubmitting} value={supplierTaxForm.supplierInvoiceLineId} onChange={(e) => setSupplierTaxForm((v) => ({ ...v, supplierInvoiceLineId: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
                 </label>
               </div>
               <label className="block text-xs font-medium">Evidence source reference
-                <input required value={supplierTaxForm.sourceRef} onChange={(e) => setSupplierTaxForm((v) => ({ ...v, sourceRef: e.target.value, idempotencyKey: "" }))} placeholder="Invoice file/reference or provider export ID" className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
+                <input required disabled={supplierTaxSubmitting} value={supplierTaxForm.sourceRef} onChange={(e) => setSupplierTaxForm((v) => ({ ...v, sourceRef: e.target.value, idempotencyKey: "" }))} placeholder="Invoice file/reference or provider export ID" className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
               </label>
               <label className="block text-xs font-medium">Correction reason
-                <textarea required value={supplierTaxForm.correctionReason} onChange={(e) => setSupplierTaxForm((v) => ({ ...v, correctionReason: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" rows={2} />
+                <textarea required disabled={supplierTaxSubmitting} value={supplierTaxForm.correctionReason} onChange={(e) => setSupplierTaxForm((v) => ({ ...v, correctionReason: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" rows={2} />
               </label>
               <Button type="submit" disabled={supplierTaxSubmitting} className="w-full">
                 {supplierTaxSubmitting ? "Recording correction..." : "Record supplier-tax correction"}
@@ -412,20 +412,20 @@ export const WhatsAppUsageAdminView: React.FC<{ workspaceId?: string }> = ({ wor
                 <p className="mt-1 text-xs text-slate-500">Credits the customer wallet and records an append-only billing adjustment. For invoiced charges, provide the credit-note ID and source reference.</p>
               </div>
               <label className="block text-xs font-medium">Meta message ID
-                <input required value={chargeAdjustmentForm.metaMessageId} onChange={(e) => setChargeAdjustmentForm((v) => ({ ...v, metaMessageId: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
+                <input required disabled={chargeAdjustmentSubmitting} value={chargeAdjustmentForm.metaMessageId} onChange={(e) => setChargeAdjustmentForm((v) => ({ ...v, metaMessageId: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
               </label>
               <label className="block text-xs font-medium">Customer credit amount (INR, including tax)
-                <input required type="number" min="0.01" step="0.01" value={chargeAdjustmentForm.adjustmentInr} onChange={(e) => setChargeAdjustmentForm((v) => ({ ...v, adjustmentInr: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
+                <input required type="number" min="0.01" step="0.01" disabled={chargeAdjustmentSubmitting} value={chargeAdjustmentForm.adjustmentInr} onChange={(e) => setChargeAdjustmentForm((v) => ({ ...v, adjustmentInr: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
               </label>
               <label className="block text-xs font-medium">Reason
-                <textarea required value={chargeAdjustmentForm.reason} onChange={(e) => setChargeAdjustmentForm((v) => ({ ...v, reason: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" rows={2} />
+                <textarea required disabled={chargeAdjustmentSubmitting} value={chargeAdjustmentForm.reason} onChange={(e) => setChargeAdjustmentForm((v) => ({ ...v, reason: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" rows={2} />
               </label>
               <div className="grid gap-3 sm:grid-cols-2">
                 <label className="block text-xs font-medium">Credit-note ID (for invoiced charges)
-                  <input value={chargeAdjustmentForm.creditNoteId} onChange={(e) => setChargeAdjustmentForm((v) => ({ ...v, creditNoteId: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
+                  <input disabled={chargeAdjustmentSubmitting} value={chargeAdjustmentForm.creditNoteId} onChange={(e) => setChargeAdjustmentForm((v) => ({ ...v, creditNoteId: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
                 </label>
                 <label className="block text-xs font-medium">Credit-note source reference
-                  <input value={chargeAdjustmentForm.creditNoteSourceRef} onChange={(e) => setChargeAdjustmentForm((v) => ({ ...v, creditNoteSourceRef: e.target.value, idempotencyKey: "" }))} placeholder="External credit note file/reference" className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
+                  <input disabled={chargeAdjustmentSubmitting} value={chargeAdjustmentForm.creditNoteSourceRef} onChange={(e) => setChargeAdjustmentForm((v) => ({ ...v, creditNoteSourceRef: e.target.value, idempotencyKey: "" }))} placeholder="External credit note file/reference" className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
                 </label>
               </div>
               <Button type="submit" disabled={chargeAdjustmentSubmitting} className="w-full">
