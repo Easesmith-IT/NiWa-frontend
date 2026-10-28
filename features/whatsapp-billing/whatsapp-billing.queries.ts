@@ -18,6 +18,9 @@ import {
   getProfitabilitySummary,
   deactivateWhatsAppRateCard,
   adminDeactivateCustomerRateCard,
+  getAdminDispatchOperations,
+  resolveAdminDispatchOperation,
+  type WhatsAppDispatchOperation,
   type WalletAdjustmentPayload,
   type WhatsAppCustomerRateCard,
   type GetSummaryParams,
@@ -187,6 +190,23 @@ export const useAdminDeactivateCustomerRateCard = () => {
   return useMutation({
     mutationFn: adminDeactivateCustomerRateCard,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["whatsapp-billing"] }),
+  });
+};
+
+export const useAdminDispatchOperations = (workspaceId: string, enabled = true) => {
+  return useQuery({
+    queryKey: ["whatsapp-billing", "dispatch-operations", workspaceId],
+    queryFn: () => getAdminDispatchOperations(workspaceId),
+    enabled: enabled && Boolean(workspaceId),
+    staleTime: 10_000,
+  });
+};
+
+export const useResolveAdminDispatchOperation = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: resolveAdminDispatchOperation,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["whatsapp-billing", "dispatch-operations"] }),
   });
 };
 
