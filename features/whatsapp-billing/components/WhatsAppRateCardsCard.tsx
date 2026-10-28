@@ -40,6 +40,7 @@ export const WhatsAppRateCardsCard: React.FC<WhatsAppRateCardsCardProps> = ({
   const [category, setCategory] = useState<"marketing" | "utility" | "authentication" | "service">("marketing");
   const [metaRate, setMetaRate] = useState<number>(0.8631);
   const [countryCode, setCountryCode] = useState<string>("IN");
+  const [effectiveFromInput, setEffectiveFromInput] = useState<string>(new Date().toISOString().slice(0, 10));
   const [source, setSource] = useState<string>("Meta Published Pricing (1 Oct 2026)");
 
   // Modals state
@@ -77,7 +78,7 @@ export const WhatsAppRateCardsCard: React.FC<WhatsAppRateCardsCardProps> = ({
       category,
       countryCode,
       currency: "INR",
-      effectiveFrom: new Date().toISOString(),
+      effectiveFrom: new Date(effectiveFromInput).toISOString(),
       metaRate,
       markupPercent: 0,
       pricingBasis: category === "service" ? "on_chargeable_reply" : "on_delivery",
@@ -264,7 +265,7 @@ export const WhatsAppRateCardsCard: React.FC<WhatsAppRateCardsCardProps> = ({
             <div>
               <p className="font-semibold">Verification Requirement</p>
               <p className="text-[11px] text-blue-700 dark:text-blue-400">
-                New rate cards are created with status <strong>Unverified</strong>. A platform administrator must verify rates against official Meta pricing documentation before they can be used for provider-cost resolution.
+                New rate cards are created with status <strong>Unverified</strong>. A platform administrator must verify rates against official Meta pricing documentation before they can be used for provider-cost resolution. Customer selling prices are managed separately.
               </p>
             </div>
           </div>
@@ -294,6 +295,10 @@ export const WhatsAppRateCardsCard: React.FC<WhatsAppRateCardsCardProps> = ({
               />
             </div>
 
+            <div>
+              <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">Effective From</label>
+              <input type="date" value={effectiveFromInput} onChange={(e) => setEffectiveFromInput(e.target.value)} className="mt-1 h-8 w-full rounded-md border border-slate-300 bg-white px-2.5 text-xs dark:border-slate-700 dark:bg-slate-800" />
+            </div>
             <div>
               <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">Meta Cost Rate (₹)</label>
               <input
@@ -342,7 +347,7 @@ export const WhatsAppRateCardsCard: React.FC<WhatsAppRateCardsCardProps> = ({
               </tr>
             ) : rateCards.length === 0 ? (
               <tr>
-                <td colSpan={9} className="py-8 text-center text-slate-400">
+                <td colSpan={8} className="py-8 text-center text-slate-400">
                   No rate cards configured.
                 </td>
               </tr>
@@ -358,7 +363,7 @@ export const WhatsAppRateCardsCard: React.FC<WhatsAppRateCardsCardProps> = ({
                   <td className="px-4 py-3 text-right font-mono font-medium text-slate-700 dark:text-slate-300">
                     ₹{rc.metaRate.toFixed(4)}
                   </td>
-                      <td className="px-4 py-3">
+                  <td className="px-4 py-3">
                     {rc.freeAllowanceEligible ? (
                       <span className="rounded-xs bg-purple-100 px-1.5 py-0.5 text-[10px] font-semibold text-purple-800 dark:bg-purple-950 dark:text-purple-300">
                         Meta tier eligible
