@@ -119,7 +119,6 @@ export interface WhatsAppLedgerEntry {
     | "PROVIDER_COST_ADJUSTMENT"
     | "SUPPLIER_TAX_EVIDENCE"
     | "SUPPLIER_TAX_CORRECTION"
-    | "CUSTOMER_CHARGE_ADJUSTMENT"
     | "INVOICE_LINK";
   currency: string;
   metaCost: number;
