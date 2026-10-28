@@ -38,6 +38,9 @@ export const CustomerPricingCard: React.FC<CustomerPricingCardProps> = ({
   const [taxPercentInput, setTaxPercentInput] = useState<number>(18);
   const [taxModeInput, setTaxModeInput] = useState<"exclusive" | "inclusive">("exclusive");
   const [notesInput, setNotesInput] = useState<string>("");
+  const [approvalRefInput, setApprovalRefInput] = useState<string>("");
+  const [approvedByInput, setApprovedByInput] = useState<string>("");
+  const [effectiveFromInput, setEffectiveFromInput] = useState<string>(new Date().toISOString().slice(0, 10));
 
   const createCardMutation = useAdminCreateCustomerRateCard();
   const deactivateCardMutation = useAdminDeactivateCustomerRateCard();
@@ -48,12 +51,15 @@ export const CustomerPricingCard: React.FC<CustomerPricingCardProps> = ({
     setTaxPercentInput(18);
     setTaxModeInput("exclusive");
     setNotesInput("");
+    setApprovalRefInput("");
+    setApprovedByInput("");
+    setEffectiveFromInput(new Date().toISOString().slice(0, 10));
     setShowEditModal(true);
   };
 
   const handleSavePrice = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pricePaiseInput === "" || Number(pricePaiseInput) <= 0) {
+    if (pricePaiseInput === "" || Number(pricePaiseInput) <= 0 || !approvalRefInput.trim() || !approvedByInput.trim() || !effectiveFromInput) {
       return;
     }
 
@@ -64,6 +70,10 @@ export const CustomerPricingCard: React.FC<CustomerPricingCardProps> = ({
         taxPercent: Number(taxPercentInput),
         taxMode: taxModeInput,
         notes: notesInput.trim() || undefined,
+        approvalRef: approvalRefInput.trim(),
+        approvedBy: approvedByInput.trim(),
+        approvedAt: new Date().toISOString(),
+        effectiveFrom: new Date(effectiveFromInput).toISOString(),
         workspaceId,
       });
       setShowEditModal(false);
@@ -323,6 +333,21 @@ export const CustomerPricingCard: React.FC<CustomerPricingCardProps> = ({
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Commercial Approval Reference</label>
+                  <input type="text" required value={approvalRefInput} onChange={(e) => setApprovalRefInput(e.target.value)} placeholder="Finance ticket / approval ID" className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Approved By</label>
+                  <input type="text" required value={approvedByInput} onChange={(e) => setApprovedByInput(e.target.value)} placeholder="Approver identity" className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Effective From</label>
+                  <input type="date" required value={effectiveFromInput} onChange={(e) => setEffectiveFromInput(e.target.value)} className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100" />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Commercial Approval / Audit Notes
@@ -349,7 +374,7 @@ export const CustomerPricingCard: React.FC<CustomerPricingCardProps> = ({
                 <Button
                   type="submit"
                   size="sm"
-                  disabled={createCardMutation.isPending || pricePaiseInput === "" || Number(pricePaiseInput) <= 0}
+                  disabled={createCardMutation.isPending || pricePaiseInput === "" || Number(pricePaiseInput) <= 0 || !approvalRefInput.trim() || !approvedByInput.trim() || !effectiveFromInput}
                   className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs"
                 >
                   {createCardMutation.isPending
