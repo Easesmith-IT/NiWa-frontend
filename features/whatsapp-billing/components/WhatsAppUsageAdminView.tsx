@@ -33,7 +33,7 @@ import { WhatsAppReconciliationModal } from "./WhatsAppReconciliationModal";
 import { CustomerPricingCard } from "./CustomerPricingCard";
 import { WalletTransactionsTable } from "./WalletTransactionsTable";
 
-export const WhatsAppUsageAdminView: React.FC = () => {
+export const WhatsAppUsageAdminView: React.FC<{ workspaceId?: string }> = ({ workspaceId = "default" }) => {
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState<number>(currentDate.getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState<number>(currentDate.getFullYear());
@@ -70,7 +70,7 @@ export const WhatsAppUsageAdminView: React.FC = () => {
     transactionType: walletTypeFilter || undefined,
   });
 
-  const { data: customerRateCards, isLoading: isCustomerPricingLoading } = useCustomerRateCards();
+  const { data: customerRateCards, isLoading: isCustomerPricingLoading } = useCustomerRateCards(workspaceId);
 
   const { data: eventsData, isLoading: isEventsLoading } = useWhatsAppUsageEvents({
     page: eventsPage,
@@ -226,6 +226,7 @@ export const WhatsAppUsageAdminView: React.FC = () => {
         <CustomerPricingCard
           rateCards={customerRateCards || []}
           isLoading={isCustomerPricingLoading}
+          workspaceId={workspaceId}
         />
       )}
 
@@ -244,8 +245,9 @@ export const WhatsAppUsageAdminView: React.FC = () => {
         <WhatsAppRateCardsCard
           rateCards={rateCards || []}
           isLoading={isRateCardsLoading}
+          workspaceId={workspaceId}
           onCreateRateCard={async (payload) => {
-            await createRateCardMutation.mutateAsync(payload);
+            await createRateCardMutation.mutateAsync({ ...payload, workspaceId });
           }}
         />
       )}
