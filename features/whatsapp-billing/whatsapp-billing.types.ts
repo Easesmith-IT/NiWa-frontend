@@ -80,8 +80,11 @@ export interface WhatsAppUsageEvent {
     | "failed"
     | "reconciled"
     | "adjusted";
+  /** Compatibility alias; not the billing authority. */
   isFreeAllowance: boolean;
   isMetaFreeServiceTier?: boolean;
+  isProviderFreeAllowance?: boolean;
+  providerCostFree?: boolean;
   supplierTaxAmountMicros?: number;
   supplierTaxRatePercent?: number | null;
   supplierTaxStatus?: "unknown" | "estimated" | "invoice_verified";
@@ -114,7 +117,10 @@ export interface WhatsAppLedgerEntry {
     | "ALLOWANCE_OFFSET"
     | "RECONCILIATION_ADJUSTMENT"
     | "PROVIDER_COST_ADJUSTMENT"
-    | "SUPPLIER_TAX_EVIDENCE";
+    | "SUPPLIER_TAX_EVIDENCE"
+    | "SUPPLIER_TAX_CORRECTION"
+    | "CUSTOMER_CHARGE_ADJUSTMENT"
+    | "INVOICE_LINK";
   currency: string;
   metaCost: number;
   customerCharge: number;
@@ -123,6 +129,7 @@ export interface WhatsAppLedgerEntry {
   supplierTaxRatePercent?: number | null;
   supplierTaxSource?: string | null;
   supplierTaxStatus?: "unknown" | "estimated" | "invoice_verified";
+  walletTransactionId?: string | null;
   metaMessageId?: string;
   idempotencyKey: string;
   description: string;
