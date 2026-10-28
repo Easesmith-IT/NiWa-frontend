@@ -103,6 +103,8 @@ export const WhatsAppFinancialLedgerTable: React.FC<WhatsAppFinancialLedgerTable
             <option value="CREDIT_ADJUSTMENT">Credit Adjustment</option>
             <option value="REVERSAL">Reversal</option>
             <option value="ALLOWANCE_OFFSET">Meta Free Tier Offset</option>
+            <option value="PROVIDER_COST_ADJUSTMENT">Provider Cost Adjustment</option>
+            <option value="SUPPLIER_TAX_EVIDENCE">Supplier Tax Evidence</option>
             <option value="RECONCILIATION_ADJUSTMENT">Reconciliation Adjustment</option>
           </select>
         </div>
