@@ -300,6 +300,9 @@ export interface WhatsAppCustomerRateCard {
   taxMode: "exclusive" | "inclusive";
   effectiveFrom: string;
   effectiveTo?: string | null;
+  approvalRef?: string;
+  approvedBy?: string;
+  approvedAt?: string;
   isCustom: boolean;
   isActive?: boolean;
   notes?: string;
