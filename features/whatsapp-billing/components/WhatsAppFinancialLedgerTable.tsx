@@ -111,13 +111,15 @@ export const WhatsAppFinancialLedgerTable: React.FC<WhatsAppFinancialLedgerTable
               <th className="px-4 py-3">Description / Reason</th>
               <th className="px-4 py-3 text-right">Meta Cost</th>
               <th className="px-4 py-3 text-right">Customer Charge</th>
+              <th className="px-4 py-3 text-right">Customer GST</th>
+              <th className="px-4 py-3 text-right">Supplier Tax</th>
               <th className="px-4 py-3">Idempotency Key</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {isLoading ? (
               <tr>
-                <td colSpan={6} className="py-8 text-center text-slate-400">
+                <td colSpan={8} className="py-8 text-center text-slate-400">
                   Loading ledger entries...
                 </td>
               </tr>
@@ -154,6 +156,14 @@ export const WhatsAppFinancialLedgerTable: React.FC<WhatsAppFinancialLedgerTable
                     </td>
                     <td className="px-4 py-3 text-right font-mono font-bold text-slate-900 dark:text-slate-100">
                       ₹{entry.customerCharge.toFixed(4)}
+                    </td>
+                    <td className="px-4 py-3 text-right font-mono text-slate-700 dark:text-slate-300">
+                      ₹{((entry.customerTaxAmountMicros || 0) / 1_000_000).toFixed(4)}
+                    </td>
+                    <td className="px-4 py-3 text-right font-mono text-slate-700 dark:text-slate-300">
+                      {entry.supplierTaxStatus === "invoice_verified" || entry.supplierTaxStatus === "estimated"
+                        ? `₹${((entry.supplierTaxAmountMicros || 0) / 1_000_000).toFixed(4)}`
+                        : "Unknown"}
                     </td>
                     <td className="px-4 py-3 font-mono text-[10px] text-slate-400 max-w-[160px] truncate">
                       {entry.idempotencyKey}
