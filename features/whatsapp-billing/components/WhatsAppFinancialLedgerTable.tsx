@@ -62,6 +62,12 @@ export const WhatsAppFinancialLedgerTable: React.FC<WhatsAppFinancialLedgerTable
           label: "Reconciliation Adj",
           classes: "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300",
         };
+      case "SUPPLIER_TAX_EVIDENCE":
+        return {
+          icon: <FileText className="h-3 w-3 text-cyan-600" />,
+          label: "Supplier Tax Evidence",
+          classes: "bg-cyan-50 text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-300",
+        };
       default:
         return {
           icon: <FileText className="h-3 w-3" />,
