@@ -16,6 +16,8 @@ import {
   adminAdjustWallet,
   adminCreateCustomerRateCard,
   getProfitabilitySummary,
+  deactivateWhatsAppRateCard,
+  adminDeactivateCustomerRateCard,
   type WalletAdjustmentPayload,
   type WhatsAppCustomerRateCard,
   type GetSummaryParams,
@@ -88,8 +90,8 @@ export const useCreateWhatsAppRateCard = () => {
 export const useVerifyWhatsAppRateCard = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ rateCardId, payload }: { rateCardId: string; payload: VerifyRateCardPayload }) =>
-      verifyWhatsAppRateCard(rateCardId, payload),
+    mutationFn: ({ rateCardId, payload, workspaceId }: { rateCardId: string; payload: VerifyRateCardPayload; workspaceId?: string }) =>
+      verifyWhatsAppRateCard(rateCardId, payload, workspaceId || "default"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["whatsapp-billing"] });
     },
@@ -99,8 +101,8 @@ export const useVerifyWhatsAppRateCard = () => {
 export const useRevokeWhatsAppRateCard = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ rateCardId, payload }: { rateCardId: string; payload: RevokeRateCardPayload }) =>
-      revokeWhatsAppRateCard(rateCardId, payload),
+    mutationFn: ({ rateCardId, payload, workspaceId }: { rateCardId: string; payload: RevokeRateCardPayload; workspaceId?: string }) =>
+      revokeWhatsAppRateCard(rateCardId, payload, workspaceId || "default"),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["whatsapp-billing"] });
     },
@@ -142,10 +144,10 @@ export const useWalletTransactions = (
   });
 };
 
-export const useCustomerRateCards = (enabled = true) => {
+export const useCustomerRateCards = (workspaceId = "default", enabled = true) => {
   return useQuery({
-    queryKey: queryKeys.whatsappBilling.customerPricing(),
-    queryFn: () => getCustomerRateCards(),
+    queryKey: [...queryKeys.whatsappBilling.customerPricing(), workspaceId],
+    queryFn: () => getCustomerRateCards(workspaceId),
     enabled,
     staleTime: 60_000,
   });
@@ -168,6 +170,23 @@ export const useAdminCreateCustomerRateCard = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["whatsapp-billing"] });
     },
+  });
+};
+
+export const useDeactivateWhatsAppRateCard = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ rateCardId, workspaceId, reason }: { rateCardId: string; workspaceId: string; reason: string }) =>
+      deactivateWhatsAppRateCard(rateCardId, workspaceId, reason),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["whatsapp-billing"] }),
+  });
+};
+
+export const useAdminDeactivateCustomerRateCard = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminDeactivateCustomerRateCard,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["whatsapp-billing"] }),
   });
 };
 
