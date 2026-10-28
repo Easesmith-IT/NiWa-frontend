@@ -60,7 +60,7 @@ export const WhatsAppUsageEventsTable: React.FC<WhatsAppUsageEventsTableProps> =
       return (
         <span className="inline-flex items-center gap-1 rounded-full bg-purple-100 px-2 py-0.5 text-[11px] font-semibold text-purple-800 dark:bg-purple-950/70 dark:text-purple-300">
           <Gift className="h-3 w-3" />
-          Free Allowance
+          Meta Free Tier
         </span>
       );
     }
@@ -150,7 +150,7 @@ export const WhatsAppUsageEventsTable: React.FC<WhatsAppUsageEventsTableProps> =
           >
             <option value="">All States</option>
             <option value="billable">Billable</option>
-            <option value="free_allowance">Free Allowance</option>
+            <option value="free_allowance">Meta Free Tier</option>
             <option value="provisional">Provisional</option>
             <option value="failed">Failed / Undelivered</option>
           </select>
