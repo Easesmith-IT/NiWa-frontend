@@ -53,7 +53,7 @@ export const WhatsAppFinancialLedgerTable: React.FC<WhatsAppFinancialLedgerTable
       case "ALLOWANCE_OFFSET":
         return {
           icon: <CheckCircle className="h-3 w-3 text-purple-600" />,
-          label: "Allowance Offset",
+          label: "Meta Free Tier Offset",
           classes: "bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300",
         };
       case "RECONCILIATION_ADJUSTMENT":
@@ -96,7 +96,7 @@ export const WhatsAppFinancialLedgerTable: React.FC<WhatsAppFinancialLedgerTable
             <option value="DEBIT_USAGE">Debit Usage</option>
             <option value="CREDIT_ADJUSTMENT">Credit Adjustment</option>
             <option value="REVERSAL">Reversal</option>
-            <option value="ALLOWANCE_OFFSET">Allowance Offset</option>
+            <option value="ALLOWANCE_OFFSET">Meta Free Tier Offset</option>
             <option value="RECONCILIATION_ADJUSTMENT">Reconciliation Adjustment</option>
           </select>
         </div>
