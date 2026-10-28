@@ -301,6 +301,7 @@ export interface WhatsAppCustomerRateCard {
   effectiveFrom: string;
   effectiveTo?: string | null;
   isCustom: boolean;
+  isActive?: boolean;
   notes?: string;
 }
 
