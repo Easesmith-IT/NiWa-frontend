@@ -81,6 +81,12 @@ export interface WhatsAppUsageEvent {
     | "reconciled"
     | "adjusted";
   isFreeAllowance: boolean;
+  isMetaFreeServiceTier?: boolean;
+  supplierTaxAmountMicros?: number;
+  supplierTaxRatePercent?: number | null;
+  supplierTaxStatus?: "unknown" | "estimated" | "invoice_verified";
+  supplierTaxSource?: string | null;
+  customerTaxAmountMicros?: number;
   metaCost: number;
   markupAmount: number;
   taxAmount: number;
