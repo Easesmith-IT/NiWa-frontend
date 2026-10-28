@@ -306,6 +306,7 @@ export const linkWhatsAppUsageToInvoice = async (payload: {
   metaMessageId: string;
   invoiceId: string;
   invoiceLineId: string;
+  sourceRef: string;
   invoicedAt?: string;
 }) => {
   const { data } = await apiClient.post<{ success: boolean; data: unknown }>(
@@ -322,6 +323,7 @@ export const adminRecordWhatsAppUsageAdjustment = async (payload: {
   reason: string;
   idempotencyKey: string;
   creditNoteId?: string;
+  creditNoteSourceRef?: string;
 }) => {
   const { data } = await apiClient.post<{ success: boolean; data: unknown }>(
     "/billing/whatsapp/admin/invoices/usage-adjustment",
@@ -341,6 +343,24 @@ export const adminRecordWhatsAppSupplierTaxEvidence = async (payload: {
 }) => {
   const { data } = await apiClient.post<{ success: boolean; data: unknown }>(
     "/billing/whatsapp/admin/provider-tax/evidence",
+    payload
+  );
+  return data.data;
+};
+
+export const adminCorrectWhatsAppSupplierTaxEvidence = async (payload: {
+  workspaceId: string;
+  metaMessageId: string;
+  supplierTaxAmountMicros: number;
+  supplierTaxRatePercent?: number | null;
+  supplierInvoiceId: string;
+  supplierInvoiceLineId: string;
+  sourceRef: string;
+  correctionReason: string;
+  idempotencyKey: string;
+}) => {
+  const { data } = await apiClient.post<{ success: boolean; data: unknown }>(
+    "/billing/whatsapp/admin/provider-tax/corrections",
     payload
   );
   return data.data;
