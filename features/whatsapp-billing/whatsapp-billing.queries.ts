@@ -17,7 +17,9 @@ import {
   adminCreateCustomerRateCard,
   getProfitabilitySummary,
   deactivateWhatsAppRateCard,
+  activateWhatsAppRateCard,
   adminDeactivateCustomerRateCard,
+  adminActivateCustomerRateCard,
   getAdminDispatchOperations,
   resolveAdminDispatchOperation,
   type WhatsAppDispatchOperation,
@@ -150,7 +152,7 @@ export const useWalletTransactions = (
 export const useCustomerRateCards = (workspaceId = "default", enabled = true) => {
   return useQuery({
     queryKey: [...queryKeys.whatsappBilling.customerPricing(), workspaceId],
-    queryFn: () => getCustomerRateCards(workspaceId),
+    queryFn: () => getCustomerRateCards(workspaceId, true),
     enabled,
     staleTime: 60_000,
   });
@@ -185,10 +187,27 @@ export const useDeactivateWhatsAppRateCard = () => {
   });
 };
 
+export const useActivateWhatsAppRateCard = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ rateCardId, workspaceId, reason }: { rateCardId: string; workspaceId: string; reason: string }) =>
+      activateWhatsAppRateCard(rateCardId, workspaceId, reason),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["whatsapp-billing"] }),
+  });
+};
+
 export const useAdminDeactivateCustomerRateCard = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: adminDeactivateCustomerRateCard,
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["whatsapp-billing"] }),
+  });
+};
+
+export const useAdminActivateCustomerRateCard = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: adminActivateCustomerRateCard,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["whatsapp-billing"] }),
   });
 };
