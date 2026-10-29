@@ -53,7 +53,7 @@ export const WhatsAppFinancialLedgerTable: React.FC<WhatsAppFinancialLedgerTable
       case "ALLOWANCE_OFFSET":
         return {
           icon: <CheckCircle className="h-3 w-3 text-purple-600" />,
-          label: "Allowance Offset",
+          label: "Meta Free Tier Offset",
           classes: "bg-purple-50 text-purple-700 dark:bg-purple-950/60 dark:text-purple-300",
         };
       case "RECONCILIATION_ADJUSTMENT":
@@ -61,6 +61,24 @@ export const WhatsAppFinancialLedgerTable: React.FC<WhatsAppFinancialLedgerTable
           icon: <ShieldCheck className="h-3 w-3 text-amber-600" />,
           label: "Reconciliation Adj",
           classes: "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300",
+        };
+      case "SUPPLIER_TAX_EVIDENCE":
+        return {
+          icon: <FileText className="h-3 w-3 text-cyan-600" />,
+          label: "Supplier Tax Evidence",
+          classes: "bg-cyan-50 text-cyan-700 dark:bg-cyan-950/60 dark:text-cyan-300",
+        };
+      case "SUPPLIER_TAX_CORRECTION":
+        return {
+          icon: <ShieldCheck className="h-3 w-3 text-amber-600" />,
+          label: "Supplier Tax Correction",
+          classes: "bg-amber-50 text-amber-700 dark:bg-amber-950/60 dark:text-amber-300",
+        };
+      case "INVOICE_LINK":
+        return {
+          icon: <FileText className="h-3 w-3 text-blue-600" />,
+          label: "Invoice Reference Link",
+          classes: "bg-blue-50 text-blue-700 dark:bg-blue-950/60 dark:text-blue-300",
         };
       default:
         return {
@@ -96,7 +114,11 @@ export const WhatsAppFinancialLedgerTable: React.FC<WhatsAppFinancialLedgerTable
             <option value="DEBIT_USAGE">Debit Usage</option>
             <option value="CREDIT_ADJUSTMENT">Credit Adjustment</option>
             <option value="REVERSAL">Reversal</option>
-            <option value="ALLOWANCE_OFFSET">Allowance Offset</option>
+            <option value="ALLOWANCE_OFFSET">Meta Free Tier Offset</option>
+            <option value="PROVIDER_COST_ADJUSTMENT">Provider Cost Adjustment</option>
+            <option value="SUPPLIER_TAX_EVIDENCE">Supplier Tax Evidence</option>
+            <option value="SUPPLIER_TAX_CORRECTION">Supplier Tax Correction</option>
+            <option value="INVOICE_LINK">Invoice Reference Link</option>
             <option value="RECONCILIATION_ADJUSTMENT">Reconciliation Adjustment</option>
           </select>
         </div>
@@ -111,13 +133,15 @@ export const WhatsAppFinancialLedgerTable: React.FC<WhatsAppFinancialLedgerTable
               <th className="px-4 py-3">Description / Reason</th>
               <th className="px-4 py-3 text-right">Meta Cost</th>
               <th className="px-4 py-3 text-right">Customer Charge</th>
+              <th className="px-4 py-3 text-right">Customer GST</th>
+              <th className="px-4 py-3 text-right">Supplier Tax</th>
               <th className="px-4 py-3">Idempotency Key</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {isLoading ? (
               <tr>
-                <td colSpan={6} className="py-8 text-center text-slate-400">
+                <td colSpan={8} className="py-8 text-center text-slate-400">
                   Loading ledger entries...
                 </td>
               </tr>
@@ -154,6 +178,14 @@ export const WhatsAppFinancialLedgerTable: React.FC<WhatsAppFinancialLedgerTable
                     </td>
                     <td className="px-4 py-3 text-right font-mono font-bold text-slate-900 dark:text-slate-100">
                       ₹{entry.customerCharge.toFixed(4)}
+                    </td>
+                    <td className="px-4 py-3 text-right font-mono text-slate-700 dark:text-slate-300">
+                      ₹{((entry.customerTaxAmountMicros || 0) / 1_000_000).toFixed(4)}
+                    </td>
+                    <td className="px-4 py-3 text-right font-mono text-slate-700 dark:text-slate-300">
+                      {entry.supplierTaxStatus === "invoice_verified" || entry.supplierTaxStatus === "estimated"
+                        ? `₹${((entry.supplierTaxAmountMicros || 0) / 1_000_000).toFixed(4)}`
+                        : "Unknown"}
                     </td>
                     <td className="px-4 py-3 font-mono text-[10px] text-slate-400 max-w-[160px] truncate">
                       {entry.idempotencyKey}

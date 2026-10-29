@@ -64,7 +64,7 @@ export const WhatsAppBillingOverview: React.FC<WhatsAppBillingOverviewProps> = (
             WhatsApp Usage & Billing Hub
           </h2>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Real-time usage pricing, immutable financial ledger, and atomic allowance accounting.
+            Real-time usage pricing, immutable financial ledger, and Meta free-tier eligibility accounting.
           </p>
         </div>
 
@@ -140,7 +140,7 @@ export const WhatsAppBillingOverview: React.FC<WhatsAppBillingOverviewProps> = (
               </span>
               <span>•</span>
               <span className="text-purple-600 dark:text-purple-400 font-medium">
-                {metrics?.freeAllowanceCount ?? 0} free
+                {metrics?.freeAllowanceCount ?? 0} Meta-free
               </span>
             </div>
           </div>
@@ -206,7 +206,7 @@ export const WhatsAppBillingOverview: React.FC<WhatsAppBillingOverviewProps> = (
         </div>
       </div>
 
-      {/* Monthly Free Allowance Section */}
+      {/* Meta Free Service Tier Section */}
       <div className="rounded-xl border border-purple-200 bg-purple-50/50 p-5 dark:border-purple-900/50 dark:bg-purple-950/20">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="flex items-center gap-3">
@@ -216,7 +216,7 @@ export const WhatsAppBillingOverview: React.FC<WhatsAppBillingOverviewProps> = (
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                  Monthly Free Service Messages Allowance
+                  Meta Free Service-Message Tier
                 </h3>
                 <span className="rounded-full bg-purple-100 px-2.5 py-0.5 text-[10px] font-semibold text-purple-800 dark:bg-purple-900/60 dark:text-purple-300">
                   Period: {summary?.period || `${selectedYear}-${String(selectedMonth).padStart(2, "0")}`}
@@ -266,7 +266,7 @@ export const WhatsAppBillingOverview: React.FC<WhatsAppBillingOverviewProps> = (
         {(allowance?.unresolvedDiscrepanciesCount ?? 0) > 0 && (
           <div className="mt-3 flex items-center justify-between rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800 dark:border-amber-800/60 dark:bg-amber-950/40 dark:text-amber-300">
             <span>
-              <strong>Reconciliation Alert:</strong> {allowance?.unresolvedDiscrepanciesCount} allowance discrepancy
+              <strong>Reconciliation Alert:</strong> {allowance?.unresolvedDiscrepanciesCount} Meta-tier discrepancy
               {allowance?.unresolvedDiscrepanciesCount === 1 ? " requires" : "s require"} operator review in the Reconciliation Hub.
             </span>
           </div>

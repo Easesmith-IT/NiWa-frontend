@@ -21,25 +21,26 @@ import {
 } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import type { WhatsAppRateCard, RateVerificationStatus } from "../whatsapp-billing.types";
-import { useVerifyWhatsAppRateCard, useRevokeWhatsAppRateCard } from "../whatsapp-billing.queries";
+import { useVerifyWhatsAppRateCard, useRevokeWhatsAppRateCard, useDeactivateWhatsAppRateCard, useActivateWhatsAppRateCard } from "../whatsapp-billing.queries";
 
 interface WhatsAppRateCardsCardProps {
   rateCards: WhatsAppRateCard[];
   isLoading: boolean;
+  workspaceId?: string;
   onCreateRateCard?: (card: Partial<WhatsAppRateCard>) => Promise<void>;
 }
 
 export const WhatsAppRateCardsCard: React.FC<WhatsAppRateCardsCardProps> = ({
   rateCards,
   isLoading,
+  workspaceId = "default",
   onCreateRateCard,
 }) => {
   const [showAddForm, setShowAddForm] = useState(false);
   const [category, setCategory] = useState<"marketing" | "utility" | "authentication" | "service">("marketing");
   const [metaRate, setMetaRate] = useState<number>(0.8631);
-  const [markupPercent, setMarkupPercent] = useState<number>(0);
-  const [sellingRate, setSellingRate] = useState<number>(0.8631);
   const [countryCode, setCountryCode] = useState<string>("IN");
+  const [effectiveFromInput, setEffectiveFromInput] = useState<string>(new Date().toISOString().slice(0, 10));
   const [source, setSource] = useState<string>("Meta Published Pricing (1 Oct 2026)");
 
   // Modals state
@@ -64,18 +65,10 @@ export const WhatsAppRateCardsCard: React.FC<WhatsAppRateCardsCardProps> = ({
 
   const verifyMutation = useVerifyWhatsAppRateCard();
   const revokeMutation = useRevokeWhatsAppRateCard();
+  const deactivateMutation = useDeactivateWhatsAppRateCard();
+  const activateMutation = useActivateWhatsAppRateCard();
 
-  const handleMetaRateChange = (val: number) => {
-    setMetaRate(val);
-    const calculated = val * (1 + markupPercent / 100);
-    setSellingRate(Number(calculated.toFixed(4)));
-  };
-
-  const handleMarkupChange = (val: number) => {
-    setMarkupPercent(val);
-    const calculated = metaRate * (1 + val / 100);
-    setSellingRate(Number(calculated.toFixed(4)));
-  };
+  const handleMetaRateChange = (val: number) => setMetaRate(val);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,10 +82,9 @@ export const WhatsAppRateCardsCard: React.FC<WhatsAppRateCardsCardProps> = ({
       category,
       countryCode,
       currency: "INR",
-      effectiveFrom: new Date().toISOString(),
+      effectiveFrom: new Date(effectiveFromInput).toISOString(),
       metaRate,
-      sellingRate,
-      markupPercent,
+      markupPercent: 0,
       pricingBasis: category === "service" ? "on_chargeable_reply" : "on_delivery",
       freeAllowanceEligible: category === "service",
       source,
@@ -124,6 +116,7 @@ export const WhatsAppRateCardsCard: React.FC<WhatsAppRateCardsCardProps> = ({
       setVerifyError(null);
       await verifyMutation.mutateAsync({
         rateCardId: selectedCardForVerify._id,
+        workspaceId,
         payload: {
           workspaceId: selectedCardForVerify.workspaceId,
           sourceUrl: verifySourceUrl.trim(),
@@ -165,6 +158,7 @@ export const WhatsAppRateCardsCard: React.FC<WhatsAppRateCardsCardProps> = ({
       setRevokeError(null);
       await revokeMutation.mutateAsync({
         rateCardId: selectedCardForRevoke._id,
+        workspaceId,
         payload: {
           workspaceId: selectedCardForRevoke.workspaceId,
           reason: revokeReason.trim(),
@@ -253,7 +247,7 @@ export const WhatsAppRateCardsCard: React.FC<WhatsAppRateCardsCardProps> = ({
             Configured Rate Cards & Primary-Source Verification
           </h3>
           <p className="text-xs text-slate-500 dark:text-slate-400">
-            Authoritative WhatsApp Business Platform pricing. Only verified official rate cards with retained Meta documentation can be selected for production billing.
+            Meta/provider cost schedule only. NIWA customer selling prices are configured separately. Only verified official rate cards with retained Meta documentation can be used for provider-cost resolution.
           </p>
         </div>
 
@@ -277,7 +271,7 @@ export const WhatsAppRateCardsCard: React.FC<WhatsAppRateCardsCardProps> = ({
             <div>
               <p className="font-semibold">Verification Requirement</p>
               <p className="text-[11px] text-blue-700 dark:text-blue-400">
-                New rate cards are created with status <strong>Unverified</strong>. An authorized workspace administrator must verify rates against official Meta pricing documentation before they become active for customer charging.
+                New rate cards are created with status <strong>Unverified</strong>. A platform administrator must verify rates against official Meta pricing documentation before they can be used for provider-cost resolution. Customer selling prices are managed separately.
               </p>
             </div>
           </div>
@@ -308,6 +302,10 @@ export const WhatsAppRateCardsCard: React.FC<WhatsAppRateCardsCardProps> = ({
             </div>
 
             <div>
+              <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">Effective From</label>
+              <input type="date" value={effectiveFromInput} onChange={(e) => setEffectiveFromInput(e.target.value)} className="mt-1 h-8 w-full rounded-md border border-slate-300 bg-white px-2.5 text-xs dark:border-slate-700 dark:bg-slate-800" />
+            </div>
+            <div>
               <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">Meta Cost Rate (₹)</label>
               <input
                 type="number"
@@ -318,16 +316,6 @@ export const WhatsAppRateCardsCard: React.FC<WhatsAppRateCardsCardProps> = ({
               />
             </div>
 
-            <div>
-              <label className="text-[11px] font-semibold text-slate-600 dark:text-slate-400">Customer Price (₹)</label>
-              <input
-                type="number"
-                step="0.0001"
-                value={sellingRate}
-                onChange={(e) => setSellingRate(Number(e.target.value))}
-                className="mt-1 h-8 w-full rounded-md border border-slate-300 bg-white px-2.5 text-xs dark:border-slate-700 dark:bg-slate-800"
-              />
-            </div>
           </div>
 
           <div className="flex justify-end gap-2">
@@ -348,8 +336,8 @@ export const WhatsAppRateCardsCard: React.FC<WhatsAppRateCardsCardProps> = ({
               <th className="px-4 py-3">Category</th>
               <th className="px-4 py-3">Market</th>
               <th className="px-4 py-3 text-right">Meta Cost</th>
-              <th className="px-4 py-3 text-right">Customer Price</th>
-              <th className="px-4 py-3">Free Allowance</th>
+              
+              <th className="px-4 py-3">Meta Free Tier</th>
               <th className="px-4 py-3">Verification</th>
               <th className="px-4 py-3">Eligibility</th>
               <th className="px-4 py-3">Effective Date</th>
@@ -359,13 +347,13 @@ export const WhatsAppRateCardsCard: React.FC<WhatsAppRateCardsCardProps> = ({
           <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
             {isLoading ? (
               <tr>
-                <td colSpan={9} className="py-8 text-center text-slate-400">
+                <td colSpan={8} className="py-8 text-center text-slate-400">
                   Loading rate cards...
                 </td>
               </tr>
             ) : rateCards.length === 0 ? (
               <tr>
-                <td colSpan={9} className="py-8 text-center text-slate-400">
+                <td colSpan={8} className="py-8 text-center text-slate-400">
                   No rate cards configured.
                 </td>
               </tr>
@@ -381,18 +369,10 @@ export const WhatsAppRateCardsCard: React.FC<WhatsAppRateCardsCardProps> = ({
                   <td className="px-4 py-3 text-right font-mono font-medium text-slate-700 dark:text-slate-300">
                     ₹{rc.metaRate.toFixed(4)}
                   </td>
-                  <td className="px-4 py-3 text-right font-mono font-bold text-slate-900 dark:text-slate-100">
-                    ₹{rc.sellingRate.toFixed(4)}
-                    {rc.markupPercent > 0 && (
-                      <span className="ml-1 text-[10px] text-emerald-600">
-                        (+{rc.markupPercent}%)
-                      </span>
-                    )}
-                  </td>
                   <td className="px-4 py-3">
                     {rc.freeAllowanceEligible ? (
                       <span className="rounded-xs bg-purple-100 px-1.5 py-0.5 text-[10px] font-semibold text-purple-800 dark:bg-purple-950 dark:text-purple-300">
-                        Eligible (1k free)
+                        Meta tier eligible
                       </span>
                     ) : (
                       <span className="text-[10px] text-slate-400">Chargeable</span>
@@ -419,6 +399,46 @@ export const WhatsAppRateCardsCard: React.FC<WhatsAppRateCardsCardProps> = ({
                         >
                           <Eye className="h-3.5 w-3.5 mr-1" />
                           Evidence
+                        </Button>
+                      )}
+
+                      {rc.isActive && (
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={deactivateMutation.isPending}
+                          onClick={async () => {
+                            if (!window.confirm("Deactivate this provider-rate schedule? New sends will fail closed if no replacement is active.")) return;
+                            await deactivateMutation.mutateAsync({
+                              rateCardId: rc._id,
+                              workspaceId,
+                              reason: "Deactivated by platform administrator",
+                            });
+                          }}
+                          className="h-7 px-2 text-[11px] text-rose-600 hover:text-rose-700"
+                          title="Deactivate provider rate schedule"
+                        >
+                          Deactivate
+                        </Button>
+                      )}
+
+                      {rc.isActive === false && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={activateMutation.isPending || rc.verificationStatus === "revoked"}
+                          onClick={async () => {
+                            if (!window.confirm("Reactivate this provider-rate schedule? Activation is rejected if its effective dates overlap another active schedule, and unverified rates remain ineligible for charging.")) return;
+                            await activateMutation.mutateAsync({
+                              rateCardId: rc._id,
+                              workspaceId,
+                              reason: "Reactivated by platform administrator",
+                            });
+                          }}
+                          className="h-7 px-2 text-[11px] text-emerald-700 hover:text-emerald-800"
+                          title={rc.verificationStatus === "revoked" ? "Revoked rates cannot be activated" : "Activate provider rate schedule"}
+                        >
+                          Activate
                         </Button>
                       )}
 

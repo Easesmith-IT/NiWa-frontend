@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import type { WhatsAppCustomerRateCard } from "../whatsapp-billing.types";
-import { useAdminCreateCustomerRateCard } from "../whatsapp-billing.queries";
+import { useAdminCreateCustomerRateCard, useAdminDeactivateCustomerRateCard, useAdminActivateCustomerRateCard } from "../whatsapp-billing.queries";
 import {
   PRICING_CATEGORIES,
   resolveCategoryPricingView,
@@ -38,8 +38,13 @@ export const CustomerPricingCard: React.FC<CustomerPricingCardProps> = ({
   const [taxPercentInput, setTaxPercentInput] = useState<number>(18);
   const [taxModeInput, setTaxModeInput] = useState<"exclusive" | "inclusive">("exclusive");
   const [notesInput, setNotesInput] = useState<string>("");
+  const [approvalRefInput, setApprovalRefInput] = useState<string>("");
+  const [approvedByInput, setApprovedByInput] = useState<string>("");
+  const [effectiveFromInput, setEffectiveFromInput] = useState<string>(new Date().toISOString().slice(0, 10));
 
   const createCardMutation = useAdminCreateCustomerRateCard();
+  const deactivateCardMutation = useAdminDeactivateCustomerRateCard();
+  const activateCardMutation = useAdminActivateCustomerRateCard();
 
   const handleOpenEdit = (category: WhatsAppBillingCategory, currentPricePaise?: number) => {
     setSelectedCategory(category);
@@ -47,12 +52,15 @@ export const CustomerPricingCard: React.FC<CustomerPricingCardProps> = ({
     setTaxPercentInput(18);
     setTaxModeInput("exclusive");
     setNotesInput("");
+    setApprovalRefInput("");
+    setApprovedByInput("");
+    setEffectiveFromInput(new Date().toISOString().slice(0, 10));
     setShowEditModal(true);
   };
 
   const handleSavePrice = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (pricePaiseInput === "" || Number(pricePaiseInput) <= 0) {
+    if (pricePaiseInput === "" || Number(pricePaiseInput) <= 0 || !approvalRefInput.trim() || !approvedByInput.trim() || !effectiveFromInput) {
       return;
     }
 
@@ -63,6 +71,10 @@ export const CustomerPricingCard: React.FC<CustomerPricingCardProps> = ({
         taxPercent: Number(taxPercentInput),
         taxMode: taxModeInput,
         notes: notesInput.trim() || undefined,
+        approvalRef: approvalRefInput.trim(),
+        approvedBy: approvedByInput.trim(),
+        approvedAt: new Date().toISOString(),
+        effectiveFrom: new Date(effectiveFromInput).toISOString(),
         workspaceId,
       });
       setShowEditModal(false);
@@ -72,13 +84,14 @@ export const CustomerPricingCard: React.FC<CustomerPricingCardProps> = ({
   };
 
   const viewModels = PRICING_CATEGORIES.map((cat) => {
-    const card = rateCards.find((c) => c.category === cat.key);
+    const card = rateCards.find((c) => c.category === cat.key && c.isActive !== false);
     return resolveCategoryPricingView(card, cat);
   });
 
   const unconfiguredCount = viewModels.filter((v) => !v.isConfigured).length;
   const activeSelectedMeta = PRICING_CATEGORIES.find((c) => c.key === selectedCategory);
-  const activeSelectedCard = rateCards.find((c) => c.category === selectedCategory);
+  const activeSelectedCard = rateCards.find((c) => c.category === selectedCategory && c.isActive !== false);
+  const inactiveCards = rateCards.filter((card) => card.isActive === false);
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
@@ -186,7 +199,27 @@ export const CustomerPricingCard: React.FC<CustomerPricingCardProps> = ({
               </div>
 
               {isAdmin && (
-                <div className="mt-4 pt-3 border-t border-slate-200/60 dark:border-slate-700/60">
+                <div className="mt-4 pt-3 border-t border-slate-200/60 dark:border-slate-700/60 space-y-2">
+                  {item.isConfigured && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={deactivateCardMutation.isPending}
+                      onClick={async () => {
+                        const cardToDeactivate = rateCards.find((c) => c.category === item.category && c.isActive !== false);
+                        if (!cardToDeactivate) return;
+                        if (!window.confirm(`Deactivate the active NIWA customer price for ${item.label}? New sends in this category will fail closed until a replacement price is configured.`)) return;
+                        await deactivateCardMutation.mutateAsync({
+                          workspaceId,
+                          rateCardId: cardToDeactivate._id,
+                          reason: "Deactivated by platform administrator",
+                        });
+                      }}
+                      className="w-full text-xs font-medium h-8 text-rose-600"
+                    >
+                      Deactivate current price
+                    </Button>
+                  )}
                   <Button
                     variant={item.isConfigured ? "outline" : "primary"}
                     size="sm"
@@ -206,6 +239,47 @@ export const CustomerPricingCard: React.FC<CustomerPricingCardProps> = ({
         })}
       </div>
 
+      {isAdmin && inactiveCards.length > 0 && (
+        <section className="mt-5 rounded-lg border border-slate-200 dark:border-slate-800 p-4">
+          <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Inactive customer price versions</h4>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            Historical prices are retained. Reactivation is allowed only with existing commercial approval and a non-overlapping effective period.
+          </p>
+          <div className="mt-3 divide-y divide-slate-100 dark:divide-slate-800">
+            {inactiveCards.map((card) => (
+              <div key={card._id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-xs">
+                  <div className="font-semibold uppercase text-slate-800 dark:text-slate-100">
+                    {card.category} · ₹{(card.pricePaise / 100).toFixed(2)}
+                  </div>
+                  <div className="mt-0.5 text-slate-500 dark:text-slate-400">
+                    Effective {new Date(card.effectiveFrom).toLocaleDateString()}
+                    {card.effectiveTo ? ` – ${new Date(card.effectiveTo).toLocaleDateString()}` : " – open-ended"}
+                    {" · "}GST {card.taxPercent}% ({card.taxMode})
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={activateCardMutation.isPending}
+                  onClick={async () => {
+                    if (!window.confirm(`Reactivate the approved NIWA customer price for ${card.category}? The server will reject overlapping effective periods.`)) return;
+                    await activateCardMutation.mutateAsync({
+                      workspaceId,
+                      rateCardId: card._id,
+                      reason: "Reactivated by platform administrator",
+                    });
+                  }}
+                  className="h-8 text-xs text-emerald-700"
+                >
+                  Activate version
+                </Button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+
       {/* Pricing Rule Note */}
       <div className="mt-5 rounded-lg bg-indigo-50/60 p-3.5 text-xs text-indigo-900 dark:bg-indigo-950/40 dark:text-indigo-300 flex items-start gap-2.5 border border-indigo-100 dark:border-indigo-900">
         <Info className="h-4 w-4 shrink-0 mt-0.5 text-indigo-600 dark:text-indigo-400" />
@@ -215,12 +289,12 @@ export const CustomerPricingCard: React.FC<CustomerPricingCardProps> = ({
         </div>
       </div>
 
-      {/* Edit / Configure Customer Price Modal */}
+      {/* Create a new immutable customer price version */}
       {showEditModal && activeSelectedMeta && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
           <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900">
             <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
-              {activeSelectedCard ? "Update Approved Price" : "Configure Approved Price"}: {activeSelectedMeta.label}
+              {activeSelectedCard ? "Create New Approved Price Version" : "Configure Approved Price"}: {activeSelectedMeta.label}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Configure commercially approved customer selling price in integer paise. Messages in this category cannot be dispatched or billed without an approved card.
@@ -302,6 +376,21 @@ export const CustomerPricingCard: React.FC<CustomerPricingCardProps> = ({
                 </div>
               </div>
 
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Commercial Approval Reference</label>
+                  <input type="text" required value={approvalRefInput} onChange={(e) => setApprovalRefInput(e.target.value)} placeholder="Finance ticket / approval ID" className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Approved By</label>
+                  <input type="text" required value={approvedByInput} onChange={(e) => setApprovedByInput(e.target.value)} placeholder="Approver identity" className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100" />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">Effective From</label>
+                  <input type="date" required value={effectiveFromInput} onChange={(e) => setEffectiveFromInput(e.target.value)} className="w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-xs text-slate-900 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100" />
+                </div>
+              </div>
+
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
                   Commercial Approval / Audit Notes
@@ -328,13 +417,13 @@ export const CustomerPricingCard: React.FC<CustomerPricingCardProps> = ({
                 <Button
                   type="submit"
                   size="sm"
-                  disabled={createCardMutation.isPending || pricePaiseInput === "" || Number(pricePaiseInput) <= 0}
+                  disabled={createCardMutation.isPending || pricePaiseInput === "" || Number(pricePaiseInput) <= 0 || !approvalRefInput.trim() || !approvedByInput.trim() || !effectiveFromInput}
                   className="bg-indigo-600 hover:bg-indigo-700 text-white text-xs"
                 >
                   {createCardMutation.isPending
                     ? "Saving..."
                     : activeSelectedCard
-                    ? "Update Approved Price"
+                    ? "Create New Price Version"
                     : "Save Approved Rate Card"}
                 </Button>
               </div>

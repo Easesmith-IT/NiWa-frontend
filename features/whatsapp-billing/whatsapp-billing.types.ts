@@ -80,7 +80,16 @@ export interface WhatsAppUsageEvent {
     | "failed"
     | "reconciled"
     | "adjusted";
+  /** Compatibility alias; not the billing authority. */
   isFreeAllowance: boolean;
+  isMetaFreeServiceTier?: boolean;
+  isProviderFreeAllowance?: boolean;
+  providerCostFree?: boolean;
+  supplierTaxAmountMicros?: number;
+  supplierTaxRatePercent?: number | null;
+  supplierTaxStatus?: "unknown" | "estimated" | "invoice_verified";
+  supplierTaxSource?: string | null;
+  customerTaxAmountMicros?: number;
   metaCost: number;
   markupAmount: number;
   taxAmount: number;
@@ -102,10 +111,19 @@ export interface WhatsAppLedgerEntry {
     | "REVERSAL"
     | "ALLOWANCE_OFFSET"
     | "RECONCILIATION_ADJUSTMENT"
-    | "PROVIDER_COST_ADJUSTMENT";
+    | "PROVIDER_COST_ADJUSTMENT"
+    | "SUPPLIER_TAX_EVIDENCE"
+    | "SUPPLIER_TAX_CORRECTION"
+    | "INVOICE_LINK";
   currency: string;
   metaCost: number;
   customerCharge: number;
+  customerTaxAmountMicros?: number;
+  supplierTaxAmountMicros?: number;
+  supplierTaxRatePercent?: number | null;
+  supplierTaxSource?: string | null;
+  supplierTaxStatus?: "unknown" | "estimated" | "invoice_verified";
+  walletTransactionId?: string | null;
   metaMessageId?: string;
   idempotencyKey: string;
   description: string;
@@ -171,6 +189,7 @@ export interface RateVerificationEvidence {
 }
 
 export interface VerifyRateCardPayload {
+  workspaceId?: string;
   sourceUrl: string;
   trustedRetrieval?: boolean;
   approvalReason: string;
@@ -187,6 +206,7 @@ export interface VerifyRateCardPayload {
 }
 
 export interface RevokeRateCardPayload {
+  workspaceId?: string;
   reason: string;
 }
 
@@ -300,7 +320,11 @@ export interface WhatsAppCustomerRateCard {
   taxMode: "exclusive" | "inclusive";
   effectiveFrom: string;
   effectiveTo?: string | null;
+  approvalRef?: string;
+  approvedBy?: string;
+  approvedAt?: string;
   isCustom: boolean;
+  isActive?: boolean;
   notes?: string;
 }
 

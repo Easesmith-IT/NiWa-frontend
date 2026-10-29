@@ -24,7 +24,7 @@ import {
   useWalletTransactions,
   useCustomerRateCards,
 } from "../whatsapp-billing.queries";
-import { downloadUsageReport, downloadUsageReportUrl } from "../whatsapp-billing.api";
+import { downloadUsageReport, downloadUsageReportUrl, adminCorrectWhatsAppSupplierTaxEvidence, adminRecordWhatsAppUsageAdjustment } from "../whatsapp-billing.api";
 import { WhatsAppBillingOverview } from "./WhatsAppBillingOverview";
 import { WhatsAppUsageEventsTable } from "./WhatsAppUsageEventsTable";
 import { WhatsAppFinancialLedgerTable } from "./WhatsAppFinancialLedgerTable";
@@ -32,12 +32,34 @@ import { WhatsAppRateCardsCard } from "./WhatsAppRateCardsCard";
 import { WhatsAppReconciliationModal } from "./WhatsAppReconciliationModal";
 import { CustomerPricingCard } from "./CustomerPricingCard";
 import { WalletTransactionsTable } from "./WalletTransactionsTable";
+import { DispatchOperationsCard } from "./DispatchOperationsCard";
 
-export const WhatsAppUsageAdminView: React.FC = () => {
+export const WhatsAppUsageAdminView: React.FC<{ workspaceId?: string }> = ({ workspaceId = "default" }) => {
   const currentDate = new Date();
   const [selectedMonth, setSelectedMonth] = useState<number>(currentDate.getMonth() + 1);
   const [selectedYear, setSelectedYear] = useState<number>(currentDate.getFullYear());
-  const [activeTab, setActiveTab] = useState<"overview" | "wallet" | "customer-pricing" | "ledger" | "rate-cards">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "wallet" | "customer-pricing" | "ledger" | "rate-cards" | "dispatch-operations" | "corrections">("overview");
+  const [supplierTaxForm, setSupplierTaxForm] = useState({
+    metaMessageId: "",
+    supplierTaxAmountInr: "",
+    supplierTaxRatePercent: "",
+    supplierInvoiceId: "",
+    supplierInvoiceLineId: "",
+    sourceRef: "",
+    correctionReason: "",
+    idempotencyKey: "",
+  });
+  const [chargeAdjustmentForm, setChargeAdjustmentForm] = useState({
+    metaMessageId: "",
+    adjustmentInr: "",
+    reason: "",
+    creditNoteId: "",
+    creditNoteSourceRef: "",
+    idempotencyKey: "",
+  });
+  const [supplierTaxSubmitting, setSupplierTaxSubmitting] = useState(false);
+  const [chargeAdjustmentSubmitting, setChargeAdjustmentSubmitting] = useState(false);
+  const [correctionNotice, setCorrectionNotice] = useState<{ kind: "success" | "error"; text: string } | null>(null);
 
   // Events Table State
   const [eventsPage, setEventsPage] = useState<number>(1);
@@ -70,9 +92,9 @@ export const WhatsAppUsageAdminView: React.FC = () => {
     transactionType: walletTypeFilter || undefined,
   });
 
-  const { data: customerRateCards, isLoading: isCustomerPricingLoading } = useCustomerRateCards();
+  const { data: customerRateCards, isLoading: isCustomerPricingLoading } = useCustomerRateCards(workspaceId);
 
-  const { data: eventsData, isLoading: isEventsLoading } = useWhatsAppUsageEvents({
+  const { data: eventsData, isLoading: isEventsLoading, refetch: refetchEvents } = useWhatsAppUsageEvents({
     page: eventsPage,
     limit: 15,
     category: categoryFilter || undefined,
@@ -80,18 +102,84 @@ export const WhatsAppUsageAdminView: React.FC = () => {
     search: searchQuery || undefined,
   });
 
-  const { data: ledgerData, isLoading: isLedgerLoading } = useWhatsAppLedger({
+  const { data: ledgerData, isLoading: isLedgerLoading, refetch: refetchLedger } = useWhatsAppLedger({
     page: ledgerPage,
     limit: 15,
     entryType: entryTypeFilter || undefined,
   });
 
   const { data: rateCards, isLoading: isRateCardsLoading } = useWhatsAppRateCards({
+    workspaceId,
     includeInactive: false,
   });
 
   const createRateCardMutation = useCreateWhatsAppRateCard();
   const triggerReconciliationMutation = useTriggerWhatsAppReconciliation();
+
+  const handleSupplierTaxCorrection = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const amountInr = Number(supplierTaxForm.supplierTaxAmountInr);
+    const taxRate = supplierTaxForm.supplierTaxRatePercent.trim() === "" ? null : Number(supplierTaxForm.supplierTaxRatePercent);
+    if (!supplierTaxForm.metaMessageId.trim() || !supplierTaxForm.supplierInvoiceId.trim() || !supplierTaxForm.supplierInvoiceLineId.trim() || !supplierTaxForm.sourceRef.trim() || !supplierTaxForm.correctionReason.trim() || !Number.isFinite(amountInr) || amountInr < 0 || !Number.isSafeInteger(Math.round(amountInr * 1_000_000)) || (taxRate !== null && (!Number.isFinite(taxRate) || taxRate < 0 || taxRate > 100))) {
+      setCorrectionNotice({ kind: "error", text: "Enter a valid message ID, non-negative tax amount, invoice/line reference, source evidence and correction reason." });
+      return;
+    }
+    const idempotencyKey = supplierTaxForm.idempotencyKey || `supplier-tax:${workspaceId}:${supplierTaxForm.metaMessageId.trim()}:${Date.now()}:${Math.random().toString(36).slice(2)}`;
+    setSupplierTaxForm((current) => ({ ...current, idempotencyKey }));
+    setSupplierTaxSubmitting(true);
+    setCorrectionNotice(null);
+    try {
+      await adminCorrectWhatsAppSupplierTaxEvidence({
+        workspaceId,
+        metaMessageId: supplierTaxForm.metaMessageId.trim(),
+        supplierTaxAmountMicros: Math.round(amountInr * 1_000_000),
+        supplierTaxRatePercent: taxRate,
+        supplierInvoiceId: supplierTaxForm.supplierInvoiceId.trim(),
+        supplierInvoiceLineId: supplierTaxForm.supplierInvoiceLineId.trim(),
+        sourceRef: supplierTaxForm.sourceRef.trim(),
+        correctionReason: supplierTaxForm.correctionReason.trim(),
+        idempotencyKey,
+      });
+      await Promise.all([refetchEvents().catch(() => undefined), refetchLedger().catch(() => undefined)]);
+      setSupplierTaxForm({ metaMessageId: "", supplierTaxAmountInr: "", supplierTaxRatePercent: "", supplierInvoiceId: "", supplierInvoiceLineId: "", sourceRef: "", correctionReason: "", idempotencyKey: "" });
+      setCorrectionNotice({ kind: "success", text: "Supplier-tax correction recorded. The original evidence remains in the immutable ledger." });
+    } catch (error: any) {
+      setCorrectionNotice({ kind: "error", text: error?.response?.data?.message || error?.message || "Supplier-tax correction could not be recorded." });
+    } finally {
+      setSupplierTaxSubmitting(false);
+    }
+  };
+
+  const handleCustomerChargeAdjustment = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const amountInr = Number(chargeAdjustmentForm.adjustmentInr);
+    if (!chargeAdjustmentForm.metaMessageId.trim() || !chargeAdjustmentForm.reason.trim() || !Number.isFinite(amountInr) || amountInr <= 0 || !Number.isSafeInteger(Math.round(amountInr * 100)) || (chargeAdjustmentForm.creditNoteId.trim() && !chargeAdjustmentForm.creditNoteSourceRef.trim())) {
+      setCorrectionNotice({ kind: "error", text: "Enter a valid message ID, positive credit amount and reason." });
+      return;
+    }
+    const idempotencyKey = chargeAdjustmentForm.idempotencyKey || `customer-credit:${workspaceId}:${chargeAdjustmentForm.metaMessageId.trim()}:${Date.now()}:${Math.random().toString(36).slice(2)}`;
+    setChargeAdjustmentForm((current) => ({ ...current, idempotencyKey }));
+    setChargeAdjustmentSubmitting(true);
+    setCorrectionNotice(null);
+    try {
+      await adminRecordWhatsAppUsageAdjustment({
+        workspaceId,
+        metaMessageId: chargeAdjustmentForm.metaMessageId.trim(),
+        adjustmentPaise: Math.round(amountInr * 100),
+        reason: chargeAdjustmentForm.reason.trim(),
+        idempotencyKey,
+        creditNoteId: chargeAdjustmentForm.creditNoteId.trim() || undefined,
+        creditNoteSourceRef: chargeAdjustmentForm.creditNoteSourceRef.trim() || undefined,
+      });
+      await Promise.all([refetchEvents().catch(() => undefined), refetchLedger().catch(() => undefined)]);
+      setChargeAdjustmentForm({ metaMessageId: "", adjustmentInr: "", reason: "", creditNoteId: "", creditNoteSourceRef: "", idempotencyKey: "" });
+      setCorrectionNotice({ kind: "success", text: "Customer charge adjustment recorded in the wallet and billing ledgers." });
+    } catch (error: any) {
+      setCorrectionNotice({ kind: "error", text: error?.response?.data?.message || error?.message || "Customer charge adjustment could not be recorded." });
+    } finally {
+      setChargeAdjustmentSubmitting(false);
+    }
+  };
 
   const handleExport = async (format: "json" | "csv") => {
     try {
@@ -170,6 +258,30 @@ export const WhatsAppUsageAdminView: React.FC = () => {
           </button>
 
           <button
+            onClick={() => setActiveTab("dispatch-operations")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+              activeTab === "dispatch-operations"
+                ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+            }`}
+          >
+            <ShieldCheck className="h-3.5 w-3.5" />
+            Dispatch Recovery
+          </button>
+
+          <button
+            onClick={() => setActiveTab("corrections")}
+            className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
+              activeTab === "corrections"
+                ? "bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900"
+                : "text-slate-600 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800"
+            }`}
+          >
+            <ShieldCheck className="h-3.5 w-3.5 text-amber-500" />
+            Financial Corrections
+          </button>
+
+          <button
             onClick={() => setActiveTab("rate-cards")}
             className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-md transition-colors ${
               activeTab === "rate-cards"
@@ -226,6 +338,7 @@ export const WhatsAppUsageAdminView: React.FC = () => {
         <CustomerPricingCard
           rateCards={customerRateCards || []}
           isLoading={isCustomerPricingLoading}
+          workspaceId={workspaceId}
         />
       )}
 
@@ -240,12 +353,96 @@ export const WhatsAppUsageAdminView: React.FC = () => {
         />
       )}
 
+      {activeTab === "dispatch-operations" && (
+        <DispatchOperationsCard workspaceId={workspaceId} />
+      )}
+
+      {activeTab === "corrections" && (
+        <div className="space-y-5">
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-200">
+            Corrections append new financial-ledger entries; they do not rewrite historical entries. Source references are recorded for audit, but external invoice/credit-note existence is not automatically verified because no external accounting provider is configured.
+          </div>
+          {correctionNotice && (
+            <div role="status" className={`rounded-md border p-3 text-sm ${
+              correctionNotice.kind === "success"
+                ? "border-emerald-200 bg-emerald-50 text-emerald-800 dark:border-emerald-900 dark:bg-emerald-950/30 dark:text-emerald-200"
+                : "border-red-200 bg-red-50 text-red-800 dark:border-red-900 dark:bg-red-950/30 dark:text-red-200"
+            }`}>
+              {correctionNotice.text}
+            </div>
+          )}
+          <div className="grid gap-5 xl:grid-cols-2">
+            <form onSubmit={handleSupplierTaxCorrection} className="space-y-3 rounded-lg border border-slate-200 p-4 dark:border-slate-800">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Supplier-tax correction</h3>
+                <p className="mt-1 text-xs text-slate-500">Correct tax from supplier invoice evidence. Amount is entered in INR and stored in micro-INR.</p>
+              </div>
+              <label className="block text-xs font-medium">Meta message ID
+                <input required disabled={supplierTaxSubmitting} value={supplierTaxForm.metaMessageId} onChange={(e) => setSupplierTaxForm((v) => ({ ...v, metaMessageId: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
+              </label>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block text-xs font-medium">Corrected supplier tax (INR)
+                  <input required type="number" min="0" step="0.000001" disabled={supplierTaxSubmitting} value={supplierTaxForm.supplierTaxAmountInr} onChange={(e) => setSupplierTaxForm((v) => ({ ...v, supplierTaxAmountInr: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
+                </label>
+                <label className="block text-xs font-medium">Supplier tax rate (%)
+                  <input type="number" min="0" max="100" step="0.01" disabled={supplierTaxSubmitting} value={supplierTaxForm.supplierTaxRatePercent} onChange={(e) => setSupplierTaxForm((v) => ({ ...v, supplierTaxRatePercent: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
+                </label>
+              </div>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block text-xs font-medium">Supplier invoice ID
+                  <input required disabled={supplierTaxSubmitting} value={supplierTaxForm.supplierInvoiceId} onChange={(e) => setSupplierTaxForm((v) => ({ ...v, supplierInvoiceId: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
+                </label>
+                <label className="block text-xs font-medium">Supplier invoice line ID
+                  <input required disabled={supplierTaxSubmitting} value={supplierTaxForm.supplierInvoiceLineId} onChange={(e) => setSupplierTaxForm((v) => ({ ...v, supplierInvoiceLineId: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
+                </label>
+              </div>
+              <label className="block text-xs font-medium">Evidence source reference
+                <input required disabled={supplierTaxSubmitting} value={supplierTaxForm.sourceRef} onChange={(e) => setSupplierTaxForm((v) => ({ ...v, sourceRef: e.target.value, idempotencyKey: "" }))} placeholder="Invoice file/reference or provider export ID" className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
+              </label>
+              <label className="block text-xs font-medium">Correction reason
+                <textarea required disabled={supplierTaxSubmitting} value={supplierTaxForm.correctionReason} onChange={(e) => setSupplierTaxForm((v) => ({ ...v, correctionReason: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" rows={2} />
+              </label>
+              <Button type="submit" disabled={supplierTaxSubmitting} className="w-full">
+                {supplierTaxSubmitting ? "Recording correction..." : "Record supplier-tax correction"}
+              </Button>
+            </form>
+            <form onSubmit={handleCustomerChargeAdjustment} className="space-y-3 rounded-lg border border-slate-200 p-4 dark:border-slate-800">
+              <div>
+                <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Customer charge adjustment</h3>
+                <p className="mt-1 text-xs text-slate-500">Credits the customer wallet and records an append-only billing adjustment. For invoiced charges, provide the credit-note ID and source reference.</p>
+              </div>
+              <label className="block text-xs font-medium">Meta message ID
+                <input required disabled={chargeAdjustmentSubmitting} value={chargeAdjustmentForm.metaMessageId} onChange={(e) => setChargeAdjustmentForm((v) => ({ ...v, metaMessageId: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
+              </label>
+              <label className="block text-xs font-medium">Customer credit amount (INR, including tax)
+                <input required type="number" min="0.01" step="0.01" disabled={chargeAdjustmentSubmitting} value={chargeAdjustmentForm.adjustmentInr} onChange={(e) => setChargeAdjustmentForm((v) => ({ ...v, adjustmentInr: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
+              </label>
+              <label className="block text-xs font-medium">Reason
+                <textarea required disabled={chargeAdjustmentSubmitting} value={chargeAdjustmentForm.reason} onChange={(e) => setChargeAdjustmentForm((v) => ({ ...v, reason: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" rows={2} />
+              </label>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block text-xs font-medium">Credit-note ID (for invoiced charges)
+                  <input disabled={chargeAdjustmentSubmitting} value={chargeAdjustmentForm.creditNoteId} onChange={(e) => setChargeAdjustmentForm((v) => ({ ...v, creditNoteId: e.target.value, idempotencyKey: "" }))} className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
+                </label>
+                <label className="block text-xs font-medium">Credit-note source reference
+                  <input disabled={chargeAdjustmentSubmitting} value={chargeAdjustmentForm.creditNoteSourceRef} onChange={(e) => setChargeAdjustmentForm((v) => ({ ...v, creditNoteSourceRef: e.target.value, idempotencyKey: "" }))} placeholder="External credit note file/reference" className="mt-1 w-full rounded-md border border-slate-300 bg-white px-3 py-2 text-sm dark:border-slate-700 dark:bg-slate-900" />
+                </label>
+              </div>
+              <Button type="submit" disabled={chargeAdjustmentSubmitting} className="w-full">
+                {chargeAdjustmentSubmitting ? "Recording adjustment..." : "Record customer charge adjustment"}
+              </Button>
+            </form>
+          </div>
+        </div>
+      )}
+
       {activeTab === "rate-cards" && (
         <WhatsAppRateCardsCard
           rateCards={rateCards || []}
           isLoading={isRateCardsLoading}
+          workspaceId={workspaceId}
           onCreateRateCard={async (payload) => {
-            await createRateCardMutation.mutateAsync(payload);
+            await createRateCardMutation.mutateAsync({ ...payload, workspaceId });
           }}
         />
       )}
