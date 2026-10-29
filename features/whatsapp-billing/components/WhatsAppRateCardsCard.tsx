@@ -81,7 +81,10 @@ export const WhatsAppRateCardsCard: React.FC<WhatsAppRateCardsCardProps> = ({
     e.preventDefault();
     if (!onCreateRateCard) return;
 
+    const workspaceId = rateCards[0]?.workspaceId;
+    if (!workspaceId) throw new Error("Cannot create provider rate card without an explicit workspace context.");
     await onCreateRateCard({
+      workspaceId,
       name: `${countryCode} ${category.toUpperCase()} Rate`,
       category,
       countryCode,
@@ -122,6 +125,7 @@ export const WhatsAppRateCardsCard: React.FC<WhatsAppRateCardsCardProps> = ({
       await verifyMutation.mutateAsync({
         rateCardId: selectedCardForVerify._id,
         payload: {
+          workspaceId: selectedCardForVerify.workspaceId,
           sourceUrl: verifySourceUrl.trim(),
           trustedRetrieval: verifyMode === "trusted",
           approvalReason: verifyReason.trim(),
@@ -162,6 +166,7 @@ export const WhatsAppRateCardsCard: React.FC<WhatsAppRateCardsCardProps> = ({
       await revokeMutation.mutateAsync({
         rateCardId: selectedCardForRevoke._id,
         payload: {
+          workspaceId: selectedCardForRevoke.workspaceId,
           reason: revokeReason.trim(),
         },
       });
