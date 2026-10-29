@@ -125,6 +125,14 @@ export const deactivateWhatsAppRateCard = async (rateCardId: string, workspaceId
   return data.data;
 };
 
+export const activateWhatsAppRateCard = async (rateCardId: string, workspaceId: string, reason: string) => {
+  const { data } = await apiClient.post<{ success: boolean; data: WhatsAppRateCard }>(
+    `/billing/whatsapp/admin/provider-rates/${rateCardId}/activate`,
+    { workspaceId, reason }
+  );
+  return data.data;
+};
+
 export const triggerWhatsAppReconciliation = async (payload: {
   reportItems: Array<{
     metaMessageId: string;
@@ -261,6 +269,17 @@ export const adminDeactivateCustomerRateCard = async (payload: { workspaceId: st
     success: boolean;
     data: import("./whatsapp-billing.types").WhatsAppCustomerRateCard;
   }>(`/billing/whatsapp/admin/customer-pricing/${payload.rateCardId}/deactivate`, {
+    workspaceId: payload.workspaceId,
+    reason: payload.reason,
+  });
+  return data.data;
+};
+
+export const adminActivateCustomerRateCard = async (payload: { workspaceId: string; rateCardId: string; reason: string }) => {
+  const { data } = await apiClient.post<{
+    success: boolean;
+    data: import("./whatsapp-billing.types").WhatsAppCustomerRateCard;
+  }>(`/billing/whatsapp/admin/customer-pricing/${payload.rateCardId}/activate`, {
     workspaceId: payload.workspaceId,
     reason: payload.reason,
   });
