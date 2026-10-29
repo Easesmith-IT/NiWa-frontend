@@ -85,8 +85,9 @@ export const getWhatsAppRateCards = async (params?: GetRateCardsParams) => {
 };
 
 export const createWhatsAppRateCard = async (payload: Partial<WhatsAppRateCard>) => {
+  if (!payload.workspaceId) throw new Error("workspaceId is required for platform-admin rate-card configuration");
   const { data } = await apiClient.post<{ success: boolean; data: WhatsAppRateCard }>(
-    "/billing/whatsapp/rate-cards",
+    "/billing/whatsapp/admin/rate-cards",
     payload
   );
   return data.data;
@@ -96,8 +97,9 @@ export const verifyWhatsAppRateCard = async (
   rateCardId: string,
   payload: import("./whatsapp-billing.types").VerifyRateCardPayload
 ) => {
+  if (!payload.workspaceId) throw new Error("workspaceId is required for platform-admin rate-card verification");
   const { data } = await apiClient.post<{ success: boolean; data: WhatsAppRateCard }>(
-    `/billing/whatsapp/rate-cards/${rateCardId}/verify`,
+    `/billing/whatsapp/admin/rate-cards/${rateCardId}/verify`,
     payload
   );
   return data.data;
@@ -107,8 +109,9 @@ export const revokeWhatsAppRateCard = async (
   rateCardId: string,
   payload: import("./whatsapp-billing.types").RevokeRateCardPayload
 ) => {
+  if (!payload.workspaceId) throw new Error("workspaceId is required for platform-admin rate-card revocation");
   const { data } = await apiClient.post<{ success: boolean; data: WhatsAppRateCard }>(
-    `/billing/whatsapp/rate-cards/${rateCardId}/revoke`,
+    `/billing/whatsapp/admin/rate-cards/${rateCardId}/revoke`,
     payload
   );
   return data.data;
