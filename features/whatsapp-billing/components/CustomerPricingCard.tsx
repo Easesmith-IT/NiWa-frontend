@@ -289,12 +289,12 @@ export const CustomerPricingCard: React.FC<CustomerPricingCardProps> = ({
         </div>
       </div>
 
-      {/* Edit / Configure Customer Price Modal */}
+      {/* Create a new immutable customer price version */}
       {showEditModal && activeSelectedMeta && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 backdrop-blur-xs">
           <div className="w-full max-w-md rounded-xl border border-slate-200 bg-white p-6 shadow-xl dark:border-slate-800 dark:bg-slate-900">
             <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
-              {activeSelectedCard ? "Update Approved Price" : "Configure Approved Price"}: {activeSelectedMeta.label}
+              {activeSelectedCard ? "Create New Approved Price Version" : "Configure Approved Price"}: {activeSelectedMeta.label}
             </h3>
             <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
               Configure commercially approved customer selling price in integer paise. Messages in this category cannot be dispatched or billed without an approved card.
@@ -423,7 +423,7 @@ export const CustomerPricingCard: React.FC<CustomerPricingCardProps> = ({
                   {createCardMutation.isPending
                     ? "Saving..."
                     : activeSelectedCard
-                    ? "Update Approved Price"
+                    ? "Create New Price Version"
                     : "Save Approved Rate Card"}
                 </Button>
               </div>
