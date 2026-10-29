@@ -21,7 +21,7 @@ import {
 } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import type { WhatsAppRateCard, RateVerificationStatus } from "../whatsapp-billing.types";
-import { useVerifyWhatsAppRateCard, useRevokeWhatsAppRateCard, useDeactivateWhatsAppRateCard } from "../whatsapp-billing.queries";
+import { useVerifyWhatsAppRateCard, useRevokeWhatsAppRateCard, useDeactivateWhatsAppRateCard, useActivateWhatsAppRateCard } from "../whatsapp-billing.queries";
 
 interface WhatsAppRateCardsCardProps {
   rateCards: WhatsAppRateCard[];
@@ -66,6 +66,7 @@ export const WhatsAppRateCardsCard: React.FC<WhatsAppRateCardsCardProps> = ({
   const verifyMutation = useVerifyWhatsAppRateCard();
   const revokeMutation = useRevokeWhatsAppRateCard();
   const deactivateMutation = useDeactivateWhatsAppRateCard();
+  const activateMutation = useActivateWhatsAppRateCard();
 
   const handleMetaRateChange = (val: number) => setMetaRate(val);
 
@@ -413,6 +414,26 @@ export const WhatsAppRateCardsCard: React.FC<WhatsAppRateCardsCardProps> = ({
                           title="Deactivate provider rate schedule"
                         >
                           Deactivate
+                        </Button>
+                      )}
+
+                      {rc.isActive === false && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={activateMutation.isPending || rc.verificationStatus === "revoked"}
+                          onClick={async () => {
+                            if (!window.confirm("Reactivate this provider-rate schedule? Activation is rejected if its effective dates overlap another active schedule, and unverified rates remain ineligible for charging.")) return;
+                            await activateMutation.mutateAsync({
+                              rateCardId: rc._id,
+                              workspaceId,
+                              reason: "Reactivated by platform administrator",
+                            });
+                          }}
+                          className="h-7 px-2 text-[11px] text-emerald-700 hover:text-emerald-800"
+                          title={rc.verificationStatus === "revoked" ? "Revoked rates cannot be activated" : "Activate provider rate schedule"}
+                        >
+                          Activate
                         </Button>
                       )}
 
