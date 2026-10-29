@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import type { WhatsAppCustomerRateCard } from "../whatsapp-billing.types";
-import { useAdminCreateCustomerRateCard, useAdminDeactivateCustomerRateCard } from "../whatsapp-billing.queries";
+import { useAdminCreateCustomerRateCard, useAdminDeactivateCustomerRateCard, useAdminActivateCustomerRateCard } from "../whatsapp-billing.queries";
 import {
   PRICING_CATEGORIES,
   resolveCategoryPricingView,
@@ -44,6 +44,7 @@ export const CustomerPricingCard: React.FC<CustomerPricingCardProps> = ({
 
   const createCardMutation = useAdminCreateCustomerRateCard();
   const deactivateCardMutation = useAdminDeactivateCustomerRateCard();
+  const activateCardMutation = useAdminActivateCustomerRateCard();
 
   const handleOpenEdit = (category: WhatsAppBillingCategory, currentPricePaise?: number) => {
     setSelectedCategory(category);
@@ -83,13 +84,14 @@ export const CustomerPricingCard: React.FC<CustomerPricingCardProps> = ({
   };
 
   const viewModels = PRICING_CATEGORIES.map((cat) => {
-    const card = rateCards.find((c) => c.category === cat.key);
+    const card = rateCards.find((c) => c.category === cat.key && c.isActive !== false);
     return resolveCategoryPricingView(card, cat);
   });
 
   const unconfiguredCount = viewModels.filter((v) => !v.isConfigured).length;
   const activeSelectedMeta = PRICING_CATEGORIES.find((c) => c.key === selectedCategory);
-  const activeSelectedCard = rateCards.find((c) => c.category === selectedCategory);
+  const activeSelectedCard = rateCards.find((c) => c.category === selectedCategory && c.isActive !== false);
+  const inactiveCards = rateCards.filter((card) => card.isActive === false);
 
   return (
     <div className="rounded-xl border border-slate-200 bg-white p-5 shadow-xs dark:border-slate-800 dark:bg-slate-900">
@@ -236,6 +238,47 @@ export const CustomerPricingCard: React.FC<CustomerPricingCardProps> = ({
           );
         })}
       </div>
+
+      {isAdmin && inactiveCards.length > 0 && (
+        <section className="mt-5 rounded-lg border border-slate-200 dark:border-slate-800 p-4">
+          <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-100">Inactive customer price versions</h4>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            Historical prices are retained. Reactivation is allowed only with existing commercial approval and a non-overlapping effective period.
+          </p>
+          <div className="mt-3 divide-y divide-slate-100 dark:divide-slate-800">
+            {inactiveCards.map((card) => (
+              <div key={card._id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-xs">
+                  <div className="font-semibold uppercase text-slate-800 dark:text-slate-100">
+                    {card.category} · ₹{(card.pricePaise / 100).toFixed(2)}
+                  </div>
+                  <div className="mt-0.5 text-slate-500 dark:text-slate-400">
+                    Effective {new Date(card.effectiveFrom).toLocaleDateString()}
+                    {card.effectiveTo ? ` – ${new Date(card.effectiveTo).toLocaleDateString()}` : " – open-ended"}
+                    {" · "}GST {card.taxPercent}% ({card.taxMode})
+                  </div>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={activateCardMutation.isPending}
+                  onClick={async () => {
+                    if (!window.confirm(`Reactivate the approved NIWA customer price for ${card.category}? The server will reject overlapping effective periods.`)) return;
+                    await activateCardMutation.mutateAsync({
+                      workspaceId,
+                      rateCardId: card._id,
+                      reason: "Reactivated by platform administrator",
+                    });
+                  }}
+                  className="h-8 text-xs text-emerald-700"
+                >
+                  Activate version
+                </Button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* Pricing Rule Note */}
       <div className="mt-5 rounded-lg bg-indigo-50/60 p-3.5 text-xs text-indigo-900 dark:bg-indigo-950/40 dark:text-indigo-300 flex items-start gap-2.5 border border-indigo-100 dark:border-indigo-900">
