@@ -60,6 +60,8 @@ export interface NavigationGroup {
   label: string;
   items: NavigationItem[];
   moduleKey?: string;
+  collapsible?: boolean;
+  defaultCollapsed?: boolean;
 }
 
 export const navigationGroups: NavigationGroup[] = [
@@ -102,18 +104,6 @@ export const navigationGroups: NavigationGroup[] = [
         description: "Communication channels and WhatsApp endpoints.",
       },
       {
-        href: "/people",
-        icon: Users,
-        label: "People",
-        description: "Customer individuals, personal identities, and job titles.",
-      },
-      {
-        href: "/companies",
-        icon: Building2,
-        label: "Companies",
-        description: "B2B accounts, organizations, and industry details.",
-      },
-      {
         href: "/leads",
         icon: Target,
         label: "Leads",
@@ -131,11 +121,25 @@ export const navigationGroups: NavigationGroup[] = [
         label: "Pipelines",
         description: "Configure deal pipelines and stage workflows.",
       },
+      {
+        href: "/people",
+        icon: Users,
+        label: "People",
+        description: "Customer individuals, personal identities, and job titles.",
+      },
+      {
+        href: "/companies",
+        icon: Building2,
+        label: "Companies",
+        description: "B2B accounts, organizations, and industry details.",
+      },
     ],
   },
   {
     label: "Sales",
     moduleKey: "sales",
+    collapsible: true,
+    defaultCollapsed: true,
     items: [
       {
         href: "/sales/quotes",
@@ -176,6 +180,8 @@ export const navigationGroups: NavigationGroup[] = [
   },
   {
     label: "Catalog & Stock",
+    collapsible: true,
+    defaultCollapsed: true,
     items: [
       {
         href: "/products",
@@ -245,6 +251,8 @@ export const navigationGroups: NavigationGroup[] = [
   {
     label: "Finance",
     moduleKey: "finance",
+    collapsible: true,
+    defaultCollapsed: true,
     items: [
       {
         href: "/finance",
@@ -342,28 +350,28 @@ export const navigationGroups: NavigationGroup[] = [
         moduleKey: "ai_calling",
       },
       {
-        href: "/automations",
-        icon: Bot,
-        label: "Automations",
-        description: "Automation registry and builders.",
-      },
-      {
         href: "/campaigns",
         icon: Megaphone,
         label: "Campaigns",
         description: "Bulk messaging operations.",
       },
       {
-        href: "/scheduled",
-        icon: CalendarClock,
-        label: "Scheduled",
-        description: "Queued, upcoming, and failed scheduled messages.",
-      },
-      {
         href: "/templates",
         icon: LayoutTemplate,
         label: "Templates",
         description: "Synced WhatsApp message templates.",
+      },
+      {
+        href: "/automations",
+        icon: Bot,
+        label: "Automations",
+        description: "Automation registry and builders.",
+      },
+      {
+        href: "/scheduled",
+        icon: CalendarClock,
+        label: "Scheduled",
+        description: "Queued, upcoming, and failed scheduled messages.",
       },
       {
         href: "/quick-replies",
@@ -378,10 +386,16 @@ export const navigationGroups: NavigationGroup[] = [
         description: "Media library for reusable assets.",
       },
       {
-        href: "/message-studio",
-        icon: MessageSquare,
-        label: "Message Studio",
-        description: "Developer-oriented message payload testing.",
+        href: "/usage",
+        icon: Receipt,
+        label: "WhatsApp Usage",
+        description: "WhatsApp message pricing, allowance, and financial ledger.",
+      },
+      {
+        href: "/settings",
+        icon: Settings,
+        label: "Settings",
+        description: "Workspace, messaging, and integration settings.",
       },
       {
         href: "/webhooks",
@@ -402,16 +416,10 @@ export const navigationGroups: NavigationGroup[] = [
         description: "Inbound webhook payload and processing logs.",
       },
       {
-        href: "/usage",
-        icon: Receipt,
-        label: "WhatsApp Usage",
-        description: "WhatsApp message pricing, allowance, and financial ledger.",
-      },
-      {
-        href: "/settings",
-        icon: Settings,
-        label: "Settings",
-        description: "Workspace, messaging, and integration settings.",
+        href: "/message-studio",
+        icon: MessageSquare,
+        label: "Message Studio",
+        description: "Developer-oriented message payload testing.",
       },
     ],
   },

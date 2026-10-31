@@ -1,5 +1,16 @@
 import { KeyboardEvent } from "react";
-import { CalendarClock, Clock3, Command, Plus, Send, Smile, Sparkles, X } from "lucide-react";
+import {
+  CalendarClock,
+  CheckCircle2,
+  Clock3,
+  Command,
+  Lock,
+  Plus,
+  Send,
+  Smile,
+  Sparkles,
+  X,
+} from "lucide-react";
 import { Button } from "../../../components/ui/button";
 import { Input } from "../../../components/ui/input";
 import { Textarea } from "../../../components/ui/textarea";
@@ -50,6 +61,9 @@ export interface ChatComposerProps {
   aiDraft?: { text: string; generatedAt?: string | Date; model?: string } | null;
   onUseAiDraft?: (text: string) => void;
   onDismissAiDraft?: () => void;
+  isWindowExpired?: boolean;
+  customerName?: string;
+  onOpenTemplatePicker?: () => void;
 }
 
 export function ChatComposer({
@@ -88,16 +102,62 @@ export function ChatComposer({
   aiDraft,
   onUseAiDraft,
   onDismissAiDraft,
+  isWindowExpired = false,
+  customerName = "",
+  onOpenTemplatePicker,
 }: ChatComposerProps) {
   const handleComposerKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
-      onSendMessage();
+      if (!isWindowExpired) {
+        onSendMessage();
+      }
     }
   };
 
   return (
     <div className="border-t border-[#E4E4E7] bg-white px-4 py-2.5 dark:border-[#24272A] dark:bg-[#121416]">
+      {/* Stitch Design: Empathetic 24-Hour WhatsApp Policy Guardrail Banner */}
+      {isWindowExpired ? (
+        <div className="mb-3 rounded-xl border border-rose-200 bg-gradient-to-r from-amber-50/90 via-rose-50/80 to-amber-50/90 p-3.5 shadow-xs dark:border-rose-900/60 dark:from-rose-950/30 dark:to-amber-950/30">
+          <div className="flex items-start gap-3">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-rose-100 text-rose-700 dark:bg-rose-900/50 dark:text-rose-300 shrink-0 mt-0.5">
+              <Lock className="h-4 w-4" />
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center justify-between gap-2 flex-wrap">
+                <h4 className="text-xs font-bold text-foreground flex items-center gap-1.5">
+                  WhatsApp 24-Hour Reply Window Ended
+                </h4>
+                <span className="text-[10px] font-semibold text-rose-700 bg-rose-100/90 dark:bg-rose-900/50 dark:text-rose-300 px-2 py-0.5 rounded-full">
+                  Meta Policy Rule
+                </span>
+              </div>
+              <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                More than 24 hours have passed since {customerName || "this customer"}&apos;s last reply. WhatsApp policy requires sending an approved template message to restart the conversation.
+              </p>
+
+              <div className="mt-3 flex flex-wrap items-center gap-2">
+                <Button
+                  size="sm"
+                  onClick={onOpenTemplatePicker}
+                  type="button"
+                  className="h-8 gap-2 bg-[#176B4D] hover:bg-[#135940] text-white text-xs font-semibold shadow-xs transition-all active:scale-95"
+                >
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Choose Approved Template to Reconnect
+                </Button>
+              </div>
+
+              <div className="mt-2.5 flex items-center gap-1.5 text-[11px] text-[#176B4D] dark:text-[#63B592] font-medium">
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
+                <span>Protected by Meta&apos;s 1,000 monthly free tier allowance. Free-form messaging unlocks once customer replies back.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
       {selectedQuickReply && quickReplyPanelOpen ? (
         <div className="mb-2.5 rounded-lg border border-[#E4E4E7] bg-[#FAFAFA] p-3">
           <div className="mb-2 flex items-center justify-between">
@@ -193,7 +253,7 @@ export function ChatComposer({
         </div>
       ) : null}
 
-      <div className="flex items-end gap-2">
+      <div className={cn("flex items-end gap-2", isWindowExpired && "opacity-75")}>
         <div className="relative">
           <button
             className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-[#F4F4F5] hover:text-foreground"
@@ -238,11 +298,18 @@ export function ChatComposer({
         </button>
         <div className="relative min-w-0 flex-1">
           <Textarea
-            className="min-h-[44px] rounded-md border-[#D4D4D8] bg-white px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/15"
-            disabled={isSending}
+            className={cn(
+              "min-h-[44px] rounded-md border-[#D4D4D8] bg-white px-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:border-primary focus:ring-2 focus:ring-primary/15",
+              isWindowExpired && "bg-[#F8FAFC] dark:bg-[#15171A] cursor-not-allowed"
+            )}
+            disabled={isSending || isWindowExpired}
             onChange={(event) => onComposerBodyChange(event.target.value)}
             onKeyDown={handleComposerKeyDown}
-            placeholder="Type a message..."
+            placeholder={
+              isWindowExpired
+                ? "Standard replies paused. Choose an approved template above to reconnect with customer..."
+                : "Type a message..."
+            }
             value={composerBody}
           />
         </div>
@@ -258,20 +325,32 @@ export function ChatComposer({
         >
           <Command className="h-4 w-4" />
         </button>
-        <Button
-          className="h-9 rounded-md px-3 font-medium"
-          disabled={isSending || !composerBody.trim()}
-          onClick={onSendMessage}
-          size="sm"
-          type="button"
-          variant="primary"
-        >
-          {isSending ? (
-            <Clock3 className="h-3.5 w-3.5 animate-pulse" />
-          ) : (
-            <Send className="h-3.5 w-3.5" />
-          )}
-        </Button>
+        {isWindowExpired ? (
+          <Button
+            className="h-9 rounded-md px-3 font-medium bg-[#176B4D] hover:bg-[#135940] text-white"
+            onClick={onOpenTemplatePicker}
+            size="sm"
+            type="button"
+            title="Choose Approved WhatsApp Template"
+          >
+            <Sparkles className="h-3.5 w-3.5" />
+          </Button>
+        ) : (
+          <Button
+            className="h-9 rounded-md px-3 font-medium"
+            disabled={isSending || !composerBody.trim()}
+            onClick={onSendMessage}
+            size="sm"
+            type="button"
+            variant="primary"
+          >
+            {isSending ? (
+              <Clock3 className="h-3.5 w-3.5 animate-pulse" />
+            ) : (
+              <Send className="h-3.5 w-3.5" />
+            )}
+          </Button>
+        )}
       </div>
 
       {composerFeedback ? (
@@ -280,7 +359,7 @@ export function ChatComposer({
             "mt-3 rounded-md px-3 py-2 text-xs font-medium",
             composerFeedback.tone === "success"
               ? "bg-[#EDF8F3] text-[#16803C] border border-[#C4E8DA]"
-              : "bg-[#FEF2F2] text-[#C2413A] border border-[#FEE2E2]",
+              : "bg-[#FEF2F2] text-[#C2413A] border border-[#FEE2E2]"
           )}
         >
           {composerFeedback.message}

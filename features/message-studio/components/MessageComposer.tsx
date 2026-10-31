@@ -2,6 +2,7 @@ import React from "react";
 import { Send } from "lucide-react";
 import { ComposerMode } from "../message-studio.types";
 import { TemplateRecord, MediaRecord } from "../../../lib/api/types";
+import type { ContactRecord } from "../../contacts/contact.types";
 import { MessageRecipientField } from "./MessageRecipientField";
 import { TextMessageComposer } from "./TextMessageComposer";
 import { TemplateMessageComposer } from "./TemplateMessageComposer";
@@ -25,6 +26,8 @@ export interface MessageComposerProps {
   mode: ComposerMode;
   commonTo: string;
   onCommonToChange: (value: string) => void;
+  selectedContact?: ContactRecord | null;
+  onContactSelect?: (contact: ContactRecord | null) => void;
   // Text
   textBody: string;
   onTextBodyChange: (value: string) => void;
@@ -125,6 +128,8 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
   mode,
   commonTo,
   onCommonToChange,
+  selectedContact = null,
+  onContactSelect,
   textBody,
   onTextBodyChange,
   previewUrl,
@@ -365,7 +370,12 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
 
       <div className="mt-3.5 space-y-3">
         {mode !== "typing_indicator" ? (
-          <MessageRecipientField onChange={onCommonToChange} value={commonTo} />
+          <MessageRecipientField
+            onChange={onCommonToChange}
+            onContactSelect={onContactSelect}
+            selectedContact={selectedContact}
+            value={commonTo}
+          />
         ) : null}
 
         {renderModeComposer()}
@@ -374,6 +384,7 @@ export const MessageComposer: React.FC<MessageComposerProps> = ({
           destination={commonTo}
           isSending={isSending}
           onSend={onSend}
+          selectedContact={selectedContact}
           submitError={submitError}
         />
       </div>

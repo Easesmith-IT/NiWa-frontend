@@ -87,4 +87,25 @@ describe("message studio", () => {
     expect(preview).toMatch(/NiWa HQ/);
     expect(preview).toMatch(/22.57, 88.36/);
   });
+
+  it("buildMessageStudioPreview renders text preview with fallback", () => {
+    const emptyPreview = buildMessageStudioPreview({ mode: "text", textBody: "" });
+    expect(emptyPreview).toBe("No text entered yet.");
+
+    const textPreview = buildMessageStudioPreview({
+      mode: "text",
+      textBody: "Hello *world*! Order #101 dispatched.",
+    });
+    expect(textPreview).toBe("Hello *world*! Order #101 dispatched.");
+  });
+
+  it("buildMessageStudioPreview renders contact vCard preview", () => {
+    const preview = buildMessageStudioPreview({
+      mode: "contact",
+      contactFormattedName: "Alice Smith",
+      contactPhone: "+919876543210",
+    });
+    expect(preview).toContain("Alice Smith");
+    expect(preview).toContain("+919876543210");
+  });
 });

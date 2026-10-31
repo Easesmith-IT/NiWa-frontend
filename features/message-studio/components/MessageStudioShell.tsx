@@ -20,14 +20,12 @@ export const MessageStudioShell: React.FC<MessageStudioShellProps> = ({
     <div className="space-y-4">
       <MessageStudioHeader mode={mode} onModeSelect={onModeSelect} />
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_400px]">
-        <Card className="overflow-hidden p-0">
-          <div className="grid gap-0 lg:grid-cols-[1.1fr_0.9fr]">
-            {composerNode}
-            {previewNode}
-          </div>
-        </Card>
-      </div>
+      <Card className="overflow-hidden p-0 shadow-subtle border border-[#E4E4E7] dark:border-[#292C2F]">
+        <div className="grid gap-0 lg:grid-cols-[1.15fr_0.85fr]">
+          {composerNode}
+          {previewNode}
+        </div>
+      </Card>
     </div>
   );
 };

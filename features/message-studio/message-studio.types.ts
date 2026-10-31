@@ -16,6 +16,7 @@ export type ComposerMode =
   | "typing_indicator";
 
 import { TemplateRecord, MediaRecord } from "../../lib/api/types";
+import type { ContactRecord } from "../contacts/contact.types";
 
 export interface SendMessageRequest {
   endpoint: string;
@@ -37,6 +38,8 @@ export interface MessageModeSelectorProps {
 export interface MessageRecipientFieldProps {
   value: string;
   onChange: (value: string) => void;
+  selectedContact?: ContactRecord | null;
+  onContactSelect?: (contact: ContactRecord | null) => void;
 }
 
 export interface TextMessageComposerProps {
@@ -157,6 +160,7 @@ export interface MessageStudioActionsProps {
   isSending: boolean;
   onSend: () => void;
   submitError: string | null;
+  selectedContact?: ContactRecord | null;
 }
 
 export interface MessageStudioPreviewPanelProps {
@@ -167,4 +171,5 @@ export interface MessageStudioPreviewPanelProps {
   selectedTemplateHeaderMedia: MediaRecord | null;
   requestPreview: unknown;
   responsePreview: unknown;
+  selectedContact?: ContactRecord | null;
 }

@@ -6,6 +6,7 @@ import { InboxChatWindow } from "./InboxChatWindow";
 import { InboxContactSidebar } from "./InboxContactSidebar";
 import { InboxLayout } from "./InboxLayout";
 import { InboxThreadList } from "./InboxThreadList";
+import { TemplatePickerModal } from "./TemplatePickerModal";
 import { toIsoFromDateInput } from "../utils/formatters";
 import type { useInboxOrchestration } from "../hooks/useInboxOrchestration";
 
@@ -129,7 +130,10 @@ export const InboxShell: React.FC<InboxShellProps> = ({ orchestration }) => {
     handleScheduleMessage,
   } = composer;
 
+  const [templatePickerOpen, setTemplatePickerOpen] = useState(false);
   const [dismissedDrafts, setDismissedDrafts] = useState<Record<string, boolean>>({});
+  const closesAt = detail?.conversation?.customerServiceWindowClosesAt;
+  const isWindowExpired = closesAt ? new Date(closesAt).getTime() <= Date.now() : false;
   const activeConvId = detail?.conversation?._id ? String(detail.conversation._id) : "";
   const conversationAiDraft =
     activeConvId && !dismissedDrafts[activeConvId]
@@ -222,6 +226,9 @@ export const InboxShell: React.FC<InboxShellProps> = ({ orchestration }) => {
                   setDismissedDrafts((prev: Record<string, boolean>) => ({ ...prev, [activeConvId]: true }));
                 }
               }}
+              isWindowExpired={isWindowExpired}
+              customerName={detail?.contact?.displayName}
+              onOpenTemplatePicker={() => setTemplatePickerOpen(true)}
             />
           }
           detail={detail}
@@ -406,6 +413,15 @@ export const InboxShell: React.FC<InboxShellProps> = ({ orchestration }) => {
             lightboxImages.findIndex((img: { messageId: string }) => img.messageId === lightboxImageId),
           )}
           onClose={() => setLightboxImageId(null)}
+        />
+      ) : null}
+
+      {detail && templatePickerOpen ? (
+        <TemplatePickerModal
+          isOpen={templatePickerOpen}
+          onClose={() => setTemplatePickerOpen(false)}
+          recipientPhone={detail.contact.phoneNumber || detail.conversation.waId}
+          contactName={detail.contact.displayName}
         />
       ) : null}
     </>

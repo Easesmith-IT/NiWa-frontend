@@ -17,5 +17,18 @@ export const sendTextMessage = async (payload: {
   return response.data;
 };
 
+export const sendTemplateMessage = async (payload: {
+  to: string;
+  templateName: string;
+  languageCode: string;
+  bodyVariables?: string[];
+  headerVariables?: string[];
+  headerMediaId?: string;
+  buttonVariables?: string[];
+}) => {
+  const response = await apiClient.post("/messages/template", payload);
+  return response.data;
+};
+
 export const getMessageMediaUrl = (messageId: string) =>
   `${apiClient.defaults.baseURL}/messages/${messageId}/media`;

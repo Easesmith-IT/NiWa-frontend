@@ -47,6 +47,8 @@ export default function MessageStudioPage() {
       setMode,
       commonTo,
       setCommonTo,
+      selectedContact,
+      handleContactSelect,
       textBody,
       setTextBody,
       previewUrl,
@@ -216,6 +218,8 @@ export default function MessageStudioPage() {
           buttonHeader={buttonHeader}
           buttonRows={buttonRows}
           commonTo={commonTo}
+          selectedContact={selectedContact}
+          onContactSelect={handleContactSelect}
           contactFirstName={contactFirstName}
           contactFormattedName={contactFormattedName}
           contactLastName={contactLastName}
@@ -311,6 +315,7 @@ export default function MessageStudioPage() {
       previewNode={
         <MessagePreviewPanel
           commonTo={commonTo}
+          selectedContact={selectedContact}
           mode={mode}
           previewSummary={previewSummary}
           requestPreview={requestPreview}

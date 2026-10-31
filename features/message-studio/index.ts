@@ -12,6 +12,7 @@ export * from "./components/MessageStudioShell";
 export * from "./components/MessageStudioHeader";
 export * from "./components/MessageModeSelector";
 export * from "./components/MessageRecipientField";
+export * from "./components/MessageRecipientSelector";
 export * from "./components/MessageComposer";
 export * from "./components/TextMessageComposer";
 export * from "./components/TemplateMessageComposer";

@@ -1,9 +1,9 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { PanelLeftClose, PanelLeftOpen, ShieldCheck } from "lucide-react";
+import { ChevronDown, PanelLeftClose, PanelLeftOpen, ShieldCheck } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 import { cn } from "../../lib/utils";
@@ -24,6 +24,7 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
   const isPlatformAdmin = user?.platformRole === "SUPER_ADMIN" || user?.platformRole === "SUB_ADMIN";
   const { currency, symbol } = useWorkspaceDefaultCurrency();
   const { enabledModuleKeys } = useWorkspaceModules();
+  const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
 
   const visibleGroups = useMemo(
     () => filterNavigationByModules(navigationGroups, enabledModuleKeys),
@@ -68,14 +69,40 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
       </div>
 
       <div className="mt-5 flex-1 space-y-4 overflow-y-auto px-0.5 pb-3 niwa-scrollbar">
-        {visibleGroups.map((group) => (
-          <div key={group.label}>
-            {!collapsed ? (
-              <div className="px-2.5 pb-1.5 text-[11px] font-medium tracking-wider uppercase text-muted-foreground">
-                {group.label}
-              </div>
-            ) : null}
-            <nav className="space-y-0.5">
+        {visibleGroups.map((group) => {
+          const isCollapsible = Boolean(group.collapsible);
+          const hasActiveRoute = group.items.some(({ href }) =>
+            href === "/" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`)
+          );
+          const isExpanded = expandedGroups[group.label] !== undefined
+            ? expandedGroups[group.label]
+            : hasActiveRoute || !group.defaultCollapsed;
+
+          return (
+            <div key={group.label}>
+              {!collapsed ? (
+                isCollapsible ? (
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setExpandedGroups((prev) => ({
+                        ...prev,
+                        [group.label]: !isExpanded,
+                      }))
+                    }
+                    className="flex w-full items-center justify-between px-2.5 pb-1.5 text-[11px] font-medium tracking-wider uppercase text-muted-foreground hover:text-foreground transition-colors group/header"
+                  >
+                    <span>{group.label}</span>
+                    <ChevronDown className={cn("h-3 w-3 transition-transform duration-150 text-muted-foreground group-hover/header:text-foreground", isExpanded ? "rotate-0" : "-rotate-90")} />
+                  </button>
+                ) : (
+                  <div className="px-2.5 pb-1.5 text-[11px] font-medium tracking-wider uppercase text-muted-foreground">
+                    {group.label}
+                  </div>
+                )
+              ) : null}
+              {(!isCollapsible || isExpanded || collapsed) ? (
+                <nav className="space-y-0.5">
               {group.items.map(({ href, icon: Icon, label }) => {
                 const active =
                   href === "/"
@@ -104,9 +131,11 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
                   </Link>
                 );
               })}
-            </nav>
-          </div>
-        ))}
+                </nav>
+              ) : null}
+            </div>
+          );
+        })}
       </div>
 
       <div className="border-t border-[#E4E4E7] px-0.5 pt-3 dark:border-[#24272A]">
