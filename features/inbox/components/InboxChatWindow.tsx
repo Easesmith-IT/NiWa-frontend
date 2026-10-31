@@ -97,14 +97,27 @@ export function InboxChatWindow({
               </p>
               {(() => {
                 const closesAt = detail.conversation.customerServiceWindowClosesAt;
-                if (!closesAt) return null;
+                if (!closesAt) {
+                  return (
+                    <span
+                      className="inline-flex items-center gap-1 rounded-full bg-slate-100 border border-slate-200 px-2 py-0.5 text-[10px] font-semibold text-slate-600 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-400"
+                      title="24-hour customer service window starts when customer sends an incoming message."
+                    >
+                      <span className="h-1.5 w-1.5 rounded-full bg-slate-400" />
+                      24h Inactive
+                    </span>
+                  );
+                }
                 const closeDate = new Date(closesAt);
                 const now = new Date();
                 const diffMs = closeDate.getTime() - now.getTime();
 
                 if (diffMs <= 0) {
                   return (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 border border-rose-200 px-2 py-0.5 text-[10px] font-semibold text-rose-700">
+                    <span
+                      className="inline-flex items-center gap-1 rounded-full bg-rose-50 border border-rose-200 px-2 py-0.5 text-[10px] font-semibold text-rose-700"
+                      title="Meta Policy: More than 24 hours have passed since customer's last reply. Meta requires an approved Template to message this customer."
+                    >
                       <span className="h-1.5 w-1.5 rounded-full bg-rose-600" />
                       24h Expired
                     </span>
@@ -115,7 +128,10 @@ export function InboxChatWindow({
                 const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
 
                 return (
-                  <span className="inline-flex items-center gap-1.5 rounded-full bg-[#EDF8F3] border border-emerald-200 px-2 py-0.5 text-[10px] font-semibold text-[#176B4D]">
+                  <span
+                    className="inline-flex items-center gap-1.5 rounded-full bg-[#EDF8F3] border border-emerald-200 px-2 py-0.5 text-[10px] font-semibold text-[#176B4D]"
+                    title="Meta Policy: Active 24-hour customer service window. Freeform replies are eligible for Meta's 1,000 monthly free tier."
+                  >
                     <span className="h-1.5 w-1.5 rounded-full bg-[#176B4D] animate-pulse" />
                     24h Active ({hours}h {mins}m)
                   </span>

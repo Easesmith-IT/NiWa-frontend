@@ -43,7 +43,7 @@ export function useMetaCredentialsState() {
       phoneNumberId: "",
       verifyToken: "",
       webhookUrl: "",
-      apiVersion: "v22.0",
+      apiVersion: "v26.0",
       cloudApiBaseUrl: "https://graph.facebook.com",
     },
   });
