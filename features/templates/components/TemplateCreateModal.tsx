@@ -292,9 +292,12 @@ export function TemplateCreateModal({
 
   return (
     <Dialog onOpenChange={(open) => !open && onClose()} open={isOpen}>
-      <DialogContent className="max-w-5xl p-0 overflow-hidden bg-white dark:bg-[#121416] border-[#E4E4E7] dark:border-[#292C2F]">
+      <DialogContent
+        hideClose
+        className="max-w-5xl p-0 overflow-hidden bg-white dark:bg-[#121416] border-[#E4E4E7] dark:border-[#292C2F] [&>div]:p-0 [&>div]:flex [&>div]:flex-col [&>div]:h-[85vh] [&>div]:max-h-[85vh] [&>div]:overflow-hidden"
+      >
         {/* Header */}
-        <div className="flex items-center justify-between border-b border-[#E4E4E7] p-5 dark:border-[#282B2E]">
+        <div className="shrink-0 flex items-center justify-between border-b border-[#E4E4E7] px-6 py-4 bg-white dark:border-[#282B2E] dark:bg-[#121416]">
           <div>
             <DialogTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-[#176B4D] dark:text-[#359B76]" />
@@ -304,25 +307,43 @@ export function TemplateCreateModal({
               Submit a new template directly to Meta WhatsApp Business API for review and approval.
             </DialogDescription>
           </div>
-          <button
-            className="rounded-lg p-1.5 text-muted-foreground hover:bg-[#F4F4F5] hover:text-foreground dark:hover:bg-[#25282B]"
-            onClick={onClose}
-            type="button"
-          >
-            <X className="h-4 w-4" />
-          </button>
+          <div className="flex items-center gap-2.5">
+            <Button
+              disabled={!isValidForSubmission || createMutation.isPending}
+              onClick={handleSubmit}
+              size="sm"
+              type="button"
+              variant="primary"
+            >
+              {createMutation.isPending ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                  Submitting...
+                </>
+              ) : (
+                "Submit Template"
+              )}
+            </Button>
+            <button
+              className="rounded-lg p-1.5 text-muted-foreground hover:bg-[#F4F4F5] hover:text-foreground dark:hover:bg-[#25282B]"
+              onClick={onClose}
+              type="button"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </div>
         </div>
 
         {/* Error Alert */}
         {errorMsg ? (
-          <div className="mx-6 mt-4 flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3.5 py-2 text-xs text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-300">
+          <div className="mx-6 mt-3 shrink-0 flex items-center gap-2 rounded-lg border border-rose-200 bg-rose-50 px-3.5 py-2 text-xs text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/30 dark:text-rose-300">
             <AlertCircle className="h-4 w-4 shrink-0" />
             <span>{errorMsg}</span>
           </div>
         ) : null}
 
         {/* Two-Column Split Body */}
-        <div className="flex flex-col lg:flex-row p-6 gap-6 max-h-[75vh] overflow-y-auto">
+        <div className="flex-1 min-h-0 overflow-y-auto p-6 flex flex-col lg:flex-row gap-6">
           {/* Left Column: Form Configuration */}
           <div className="flex-1 space-y-5">
             {/* Basic Info */}
@@ -762,26 +783,45 @@ export function TemplateCreateModal({
           </div>
         </div>
 
-        {/* Modal Footer */}
-        <div className="flex items-center justify-end gap-2 border-t border-[#E4E4E7] p-4 bg-[#FAFAFA] dark:border-[#282B2E] dark:bg-[#17191B]">
-          <Button disabled={createMutation.isPending} onClick={onClose} type="button" variant="secondary">
-            Cancel
-          </Button>
-          <Button
-            disabled={!isValidForSubmission || createMutation.isPending}
-            onClick={handleSubmit}
-            type="button"
-            variant="primary"
-          >
-            {createMutation.isPending ? (
-              <>
-                <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
-                Submitting to Meta...
-              </>
+        {/* Sticky Modal Footer */}
+        <div className="shrink-0 flex flex-wrap items-center justify-between gap-3 border-t border-[#E4E4E7] px-6 py-3.5 bg-[#FAFAFA] dark:border-[#282B2E] dark:bg-[#17191B]">
+          <div className="text-xs">
+            {isValidForSubmission ? (
+              <span className="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5">
+                <Check className="h-4 w-4" />
+                All Meta requirements met — ready to submit
+              </span>
             ) : (
-              "Submit to Meta for Approval"
+              <span className="text-muted-foreground flex items-center gap-1.5">
+                <AlertCircle className="h-4 w-4 text-amber-500" />
+                Fill required fields (name, body message & samples) to submit
+              </span>
             )}
-          </Button>
+          </div>
+          <div className="flex items-center gap-2.5">
+            <Button disabled={createMutation.isPending} onClick={onClose} type="button" variant="secondary">
+              Cancel
+            </Button>
+            <Button
+              disabled={!isValidForSubmission || createMutation.isPending}
+              onClick={handleSubmit}
+              type="button"
+              variant="primary"
+              className="gap-1.5 shadow-sm"
+            >
+              {createMutation.isPending ? (
+                <>
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                  Submitting to Meta...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="h-3.5 w-3.5" />
+                  Submit to Meta for Approval
+                </>
+              )}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
