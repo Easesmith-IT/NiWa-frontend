@@ -1,7 +1,8 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { ChevronRight, Menu, Plus, Search, Wifi } from "lucide-react";
+import { ChevronRight, Menu, Plus, Search, ShieldCheck, Wifi } from "lucide-react";
+import { useWorkspace } from "../../lib/workspace/workspace-context";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -29,6 +30,8 @@ export const Topbar = ({
   const router = useRouter();
   const pathname = usePathname();
   const queryClient = useQueryClient();
+  const { user } = useWorkspace();
+  const isPlatformAdmin = user?.platformRole === "SUPER_ADMIN" || user?.platformRole === "SUB_ADMIN";
 
   const handleLogout = async () => {
     try {
@@ -111,6 +114,16 @@ export const Topbar = ({
         >
           <Search className="h-4 w-4" />
         </Button>
+        {isPlatformAdmin && (
+          <Link
+            className="inline-flex items-center gap-1.5 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700 transition-colors hover:bg-blue-100 dark:border-blue-900/60 dark:bg-blue-950/40 dark:text-blue-300 dark:hover:bg-blue-900/40"
+            href="/admin"
+            title="Switch to Platform Admin Console"
+          >
+            <ShieldCheck className="h-3.5 w-3.5" />
+            <span className="hidden sm:inline">Platform Admin</span>
+          </Link>
+        )}
         <div className="hidden items-center gap-1.5 rounded-md border border-[#E4E4E7] bg-[#FAFAFA] px-2.5 py-1 text-xs text-muted-foreground dark:border-[#303438] dark:bg-[#17191B] sm:flex">
           <Wifi className="h-3.5 w-3.5 text-[#16803C] dark:text-[#3FA66F]" />
           <span className="font-medium text-[12px] text-[#52525B] dark:text-[#B4B7BA]">API Live</span>

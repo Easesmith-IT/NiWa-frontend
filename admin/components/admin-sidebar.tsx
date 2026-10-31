@@ -28,14 +28,14 @@ export const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
         <Link className="min-w-0 flex items-center" href="/admin">
           {collapsed ? (
             <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/40">
-              <span className="font-bold text-blue-700 dark:text-blue-400">SA</span>
+              <span className="font-bold text-blue-700 dark:text-blue-400">PA</span>
             </div>
           ) : (
             <div className="flex items-center gap-2 h-8 px-1">
               <div className="flex h-6 w-6 items-center justify-center rounded bg-blue-100 dark:bg-blue-900/40">
-                <span className="text-[10px] font-bold text-blue-700 dark:text-blue-400">SA</span>
+                <span className="text-[10px] font-bold text-blue-700 dark:text-blue-400">PA</span>
               </div>
-              <span className="font-semibold tracking-tight text-slate-900 dark:text-slate-100 text-sm">Super Admin</span>
+              <span className="font-semibold tracking-tight text-slate-900 dark:text-slate-100 text-sm">Platform Admin</span>
             </div>
           )}
         </Link>
@@ -99,10 +99,10 @@ export const AdminSidebar = ({ collapsed, onToggle }: AdminSidebarProps) => {
             collapsed && "justify-center px-0",
           )}
           href="/"
-          title={collapsed ? "Back to App" : undefined}
+          title={collapsed ? "Switch to Workspace CRM" : undefined}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="h-4 w-4 shrink-0"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-          {!collapsed ? <span>Back to App</span> : null}
+          {!collapsed ? <span>Workspace CRM</span> : null}
         </Link>
       </div>
     </aside>

@@ -3,7 +3,7 @@
 import React, { useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { PanelLeftClose, PanelLeftOpen, ShieldCheck } from "lucide-react";
 import { usePathname } from "next/navigation";
 
 import { cn } from "../../lib/utils";
@@ -20,7 +20,8 @@ interface SidebarProps {
 
 export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
   const pathname = usePathname();
-  const { activeWorkspaceId, activeMembership } = useWorkspace();
+  const { activeWorkspaceId, activeMembership, user } = useWorkspace();
+  const isPlatformAdmin = user?.platformRole === "SUPER_ADMIN" || user?.platformRole === "SUB_ADMIN";
   const { currency, symbol } = useWorkspaceDefaultCurrency();
   const { enabledModuleKeys } = useWorkspaceModules();
 
@@ -125,6 +126,20 @@ export const Sidebar = ({ collapsed, onToggle }: SidebarProps) => {
               {!collapsed ? <span>{label}</span> : null}
             </Link>
           ))}
+          {isPlatformAdmin ? (
+            <Link
+              aria-label="Platform Admin Console"
+              className={cn(
+                "flex items-center gap-2.5 rounded-md px-2.5 py-1.5 text-[13px] font-semibold text-blue-600 transition-colors hover:bg-blue-50 dark:text-blue-400 dark:hover:bg-blue-950/40",
+                collapsed && "justify-center px-0",
+              )}
+              href="/admin"
+              title={collapsed ? "Platform Admin Console" : undefined}
+            >
+              <ShieldCheck className="h-4 w-4 shrink-0 text-blue-600 dark:text-blue-400" />
+              {!collapsed ? <span>Platform Admin</span> : null}
+            </Link>
+          ) : null}
         </div>
         {!collapsed ? (
           <div className="mt-3 rounded-md border border-[#E4E4E7] bg-[#FAFAFA] px-2.5 py-2 dark:border-[#24272A] dark:bg-[#17191B]">

@@ -73,7 +73,7 @@ export default function LoginPage() {
 
       const nextParam = new URLSearchParams(window.location.search).get("next");
       const role = data.user?.platformRole;
-      if ((role === "SUPER_ADMIN" || role === "SUB_ADMIN") && !serverWorkspaceId) {
+      if (role === "SUPER_ADMIN" || role === "SUB_ADMIN") {
         router.push(nextParam || "/admin");
       } else {
         router.push(nextParam || "/");

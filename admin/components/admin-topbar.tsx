@@ -54,7 +54,7 @@ export const AdminTopbar = ({ onToggleSidebar }: AdminTopbarProps) => {
       <div className="flex items-center gap-2">
         <div className="hidden items-center gap-1.5 rounded-md border border-blue-200 bg-blue-50 px-2.5 py-1 text-xs text-blue-700 dark:border-blue-900/50 dark:bg-blue-900/20 dark:text-blue-400 sm:flex">
           <ShieldAlert className="h-3.5 w-3.5" />
-          <span className="font-medium text-[12px]">Super Admin Mode</span>
+          <span className="font-medium text-[12px]">Platform Admin</span>
         </div>
         <ThemeSwitcher />
         <Button className="h-8 rounded-md px-3 text-xs font-medium" onClick={handleLogout} size="sm" type="button" variant="secondary">
