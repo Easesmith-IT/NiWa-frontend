@@ -37,6 +37,7 @@ const primaryActions = [
   { href: "/automations", label: "Create Automation", keywords: ["workflow", "automation"] },
   { href: "/scheduled", label: "Schedule Message", keywords: ["queue", "follow-up"] },
   { href: "/templates", label: "Open Templates", keywords: ["whatsapp", "meta"] },
+  { href: "/templates?action=create", label: "Create WhatsApp Template", keywords: ["template", "whatsapp", "meta", "create", "new"] },
   { href: "/settings", label: "Open Settings", keywords: ["configuration", "account"] },
 ];
 

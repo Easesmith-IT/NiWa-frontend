@@ -1,14 +1,24 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useSyncTemplatesMutation, useTemplatesPaginatedQuery } from "../templates.queries";
 
 export function useTemplatesOrchestration() {
+  const searchParams = useSearchParams();
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("");
   const [category, setCategory] = useState("");
   const [language, setLanguage] = useState("");
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(
+    () => searchParams?.get("action") === "create",
+  );
+
+  useEffect(() => {
+    if (searchParams?.get("action") === "create") {
+      setIsCreateModalOpen(true);
+    }
+  }, [searchParams]);
 
   const templatesQuery = useTemplatesPaginatedQuery({
     category: category || undefined,
