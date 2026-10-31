@@ -8,6 +8,7 @@ export function useTemplatesOrchestration() {
   const [status, setStatus] = useState("");
   const [category, setCategory] = useState("");
   const [language, setLanguage] = useState("");
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const templatesQuery = useTemplatesPaginatedQuery({
     category: category || undefined,
@@ -33,6 +34,8 @@ export function useTemplatesOrchestration() {
     setCategory,
     language,
     setLanguage,
+    isCreateModalOpen,
+    setIsCreateModalOpen,
     templatesQuery,
     syncMutation,
     templates,

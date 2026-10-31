@@ -29,3 +29,21 @@ export interface GetTemplatesParams {
   query?: string;
   status?: string;
 }
+
+export interface CreateTemplatePayload {
+  name: string;
+  category: "MARKETING" | "UTILITY" | "AUTHENTICATION";
+  language: string;
+  components: TemplateComponent[];
+  allow_category_change?: boolean;
+}
+
+export interface CreateTemplateResponse {
+  success: boolean;
+  template: MetaTemplate;
+}
+
+export interface DeleteTemplateResponse {
+  success: boolean;
+  message: string;
+}

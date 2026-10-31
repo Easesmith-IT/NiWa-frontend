@@ -11,11 +11,13 @@ import {
   Send,
   ShieldAlert,
   Sparkles,
+  Trash2,
   Video,
 } from "lucide-react";
 
 import { Button } from "../../../components/ui/button";
 import type { TemplateRecord } from "../../../lib/api/types";
+import { useDeleteTemplateMutation } from "../templates.queries";
 
 interface WhatsAppTemplateCardProps {
   template: TemplateRecord;
@@ -85,6 +87,7 @@ const getCategoryBadge = (category: string) => {
 };
 
 export function WhatsAppTemplateCard({ template }: WhatsAppTemplateCardProps) {
+  const deleteMutation = useDeleteTemplateMutation();
   const headerComp = template.components?.find((c) => c.type === "HEADER");
   const bodyComp = template.components?.find((c) => c.type === "BODY");
   const footerComp = template.components?.find((c) => c.type === "FOOTER");
@@ -148,17 +151,18 @@ export function WhatsAppTemplateCard({ template }: WhatsAppTemplateCardProps) {
             ) : null}
           </div>
 
-          {!template.isSendable && template.sendabilityReason ? (
+          {!template.isSendable && (template.rejectionReason || template.sendabilityReason) ? (
             <div className="flex items-center gap-2 rounded-md border border-rose-200 bg-rose-50 px-3 py-1.5 text-xs text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-[#D7685C]">
               <ShieldAlert className="h-4 w-4 shrink-0" />
-              <span>{template.sendabilityReason}</span>
+              <span>{template.rejectionReason || template.sendabilityReason}</span>
             </div>
           ) : null}
         </div>
 
         {/* Action Button */}
-        <div className="pt-1">
+        <div className="flex items-center gap-2 pt-1">
           <Link
+            className="flex-1"
             href={`/message-studio?mode=template&template=${encodeURIComponent(template.name)}&language=${encodeURIComponent(template.language)}`}
           >
             <Button className="w-full" size="sm" type="button" variant="primary">
@@ -166,6 +170,20 @@ export function WhatsAppTemplateCard({ template }: WhatsAppTemplateCardProps) {
               Use in Message Studio
             </Button>
           </Link>
+          <Button
+            className="text-muted-foreground hover:text-rose-600 dark:hover:text-rose-400"
+            disabled={deleteMutation.isPending}
+            onClick={() => {
+              if (window.confirm(`Are you sure you want to delete template "${template.name}"?`)) {
+                deleteMutation.mutate(template._id);
+              }
+            }}
+            size="sm"
+            type="button"
+            variant="ghost"
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </Button>
         </div>
       </div>
 

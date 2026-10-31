@@ -1,6 +1,7 @@
 import React from "react";
 import { Sparkles } from "lucide-react";
 import type { useTemplatesOrchestration } from "../hooks/useTemplatesOrchestration";
+import { TemplateCreateModal } from "./TemplateCreateModal";
 import { TemplatesFilterBar } from "./TemplatesFilterBar";
 import { TemplatesHeader } from "./TemplatesHeader";
 import { WhatsAppTemplateCard } from "./WhatsAppTemplateCard";
@@ -19,6 +20,8 @@ export const TemplatesShell: React.FC<TemplatesShellProps> = ({ orchestration })
     setCategory,
     language,
     setLanguage,
+    isCreateModalOpen,
+    setIsCreateModalOpen,
     templatesQuery,
     syncMutation,
     templates,
@@ -29,7 +32,13 @@ export const TemplatesShell: React.FC<TemplatesShellProps> = ({ orchestration })
     <div className="flex flex-col space-y-4">
       <TemplatesHeader
         isSyncing={syncMutation.isPending}
+        onCreateTemplate={() => setIsCreateModalOpen(true)}
         onSync={handleSyncFromMeta}
+      />
+
+      <TemplateCreateModal
+        isOpen={isCreateModalOpen}
+        onClose={() => setIsCreateModalOpen(false)}
       />
 
       <TemplatesFilterBar

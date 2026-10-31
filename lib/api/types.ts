@@ -231,6 +231,7 @@ export interface TemplateRecord {
   headerVariables?: string[];
   isSendable?: boolean;
   sendabilityReason?: string | null;
+  rejectionReason?: string | null;
   supportedFeatures?: string[];
   unsupportedReasons?: string[];
   urlButtons?: Array<{
