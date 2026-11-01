@@ -6,6 +6,7 @@ import type {
   DeleteTemplateResponse,
   GetTemplatesParams,
   MetaTemplate,
+  UploadSampleResponse,
 } from "./templates.types";
 
 export * from "./templates.types";
@@ -32,5 +33,16 @@ export const createTemplate = async (payload: CreateTemplatePayload) => {
 
 export const deleteTemplate = async (templateId: string) => {
   const { data } = await apiClient.delete<DeleteTemplateResponse>(`/templates/${templateId}`);
+  return data;
+};
+
+export const uploadTemplateSample = async (file: File) => {
+  const formData = new FormData();
+  formData.append("file", file);
+  const { data } = await apiClient.post<UploadSampleResponse>("/templates/upload-sample", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
   return data;
 };

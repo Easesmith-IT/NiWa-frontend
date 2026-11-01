@@ -1,9 +1,10 @@
 export interface TemplateComponent {
   type: "HEADER" | "BODY" | "FOOTER" | "BUTTONS";
-  format?: "TEXT" | "IMAGE" | "DOCUMENT" | "VIDEO";
+  format?: "TEXT" | "IMAGE" | "DOCUMENT" | "VIDEO" | "LOCATION";
   text?: string;
   example?: {
     header_text?: string[];
+    header_handle?: string[];
     body_text?: string[][];
   };
   buttons?: Array<{
@@ -46,4 +47,13 @@ export interface CreateTemplateResponse {
 export interface DeleteTemplateResponse {
   success: boolean;
   message: string;
+}
+
+export interface UploadSampleResponse {
+  success: boolean;
+  headerHandle: string;
+  fileName: string;
+  mimeType: string;
+  fileSize: number;
+  format: "IMAGE" | "VIDEO" | "DOCUMENT";
 }

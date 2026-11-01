@@ -7,6 +7,7 @@ import {
   getTemplatesPaginated,
   GetTemplatesParams,
   syncTemplates,
+  uploadTemplateSample,
 } from "./templates.api";
 
 export const templateKeys = {
@@ -56,5 +57,11 @@ export const useDeleteTemplateMutation = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: templateKeys.all });
     },
+  });
+};
+
+export const useUploadTemplateSampleMutation = () => {
+  return useMutation({
+    mutationFn: (file: File) => uploadTemplateSample(file),
   });
 };

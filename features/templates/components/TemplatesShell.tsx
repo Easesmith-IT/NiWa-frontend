@@ -11,6 +11,11 @@ export interface TemplatesShellProps {
 }
 
 export const TemplatesShell: React.FC<TemplatesShellProps> = ({ orchestration }) => {
+  const [variantBaseTemplate, setVariantBaseTemplate] = React.useState<{
+    name: string;
+    category: "MARKETING" | "UTILITY" | "AUTHENTICATION";
+  } | null>(null);
+
   const {
     query,
     setQuery,
@@ -28,17 +33,37 @@ export const TemplatesShell: React.FC<TemplatesShellProps> = ({ orchestration })
     handleSyncFromMeta,
   } = orchestration;
 
+  const handleOpenCreateModal = () => {
+    setVariantBaseTemplate(null);
+    setIsCreateModalOpen(true);
+  };
+
+  const handleAddLanguageVariant = (tpl: any) => {
+    setVariantBaseTemplate({
+      name: tpl.name,
+      category: (tpl.category?.toUpperCase() || "MARKETING") as any,
+    });
+    setIsCreateModalOpen(true);
+  };
+
   return (
     <div className="flex flex-col space-y-4">
       <TemplatesHeader
         isSyncing={syncMutation.isPending}
-        onCreateTemplate={() => setIsCreateModalOpen(true)}
+        onCreateTemplate={handleOpenCreateModal}
         onSync={handleSyncFromMeta}
       />
 
       <TemplateCreateModal
+        initialTemplate={variantBaseTemplate}
         isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
+        onClose={() => {
+          setIsCreateModalOpen(false);
+          setVariantBaseTemplate(null);
+        }}
+        onSuccess={() => {
+          templatesQuery.refetch();
+        }}
       />
 
       <TemplatesFilterBar
@@ -70,7 +95,11 @@ export const TemplatesShell: React.FC<TemplatesShellProps> = ({ orchestration })
 
       <div className="space-y-3.5">
         {templates.map((template) => (
-          <WhatsAppTemplateCard key={template._id} template={template} />
+          <WhatsAppTemplateCard
+            key={template._id}
+            onAddLanguage={handleAddLanguageVariant}
+            template={template}
+          />
         ))}
 
         {!templatesQuery.isLoading && templates.length === 0 ? (

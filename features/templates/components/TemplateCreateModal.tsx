@@ -1,17 +1,20 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import {
   AlertCircle,
   Check,
-  ChevronDown,
   Eye,
+  FileText,
   Globe,
+  Image as ImageIcon,
   Loader2,
+  MapPin,
   Phone,
   Plus,
   Sparkles,
   Trash2,
+  Video,
   X,
 } from "lucide-react";
 import {
@@ -25,11 +28,17 @@ import { Input } from "../../../components/ui/input";
 import { Textarea } from "../../../components/ui/textarea";
 import { useCreateTemplateMutation } from "../templates.queries";
 import type { CreateTemplatePayload, TemplateComponent } from "../templates.types";
+import { SearchableLanguageSelect } from "./SearchableLanguageSelect";
+import { MediaSampleDropzone } from "./MediaSampleDropzone";
 
 interface TemplateCreateModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: () => void;
+  initialTemplate?: {
+    name: string;
+    category: "MARKETING" | "UTILITY" | "AUTHENTICATION";
+  } | null;
 }
 
 interface ButtonItem {
@@ -41,30 +50,11 @@ interface ButtonItem {
   phoneNumber?: string;
 }
 
-const SUPPORTED_LANGUAGES = [
-  { code: "en_US", label: "English (US)" },
-  { code: "en_GB", label: "English (UK)" },
-  { code: "hi", label: "Hindi" },
-  { code: "es", label: "Spanish" },
-  { code: "pt_BR", label: "Portuguese (BR)" },
-  { code: "ar", label: "Arabic" },
-  { code: "fr", label: "French" },
-  { code: "de", label: "German" },
-  { code: "id", label: "Indonesian" },
-  { code: "it", label: "Italian" },
-  { code: "mr", label: "Marathi" },
-  { code: "gu", label: "Gujarati" },
-  { code: "bn", label: "Bengali" },
-  { code: "ta", label: "Tamil" },
-  { code: "te", label: "Telugu" },
-  { code: "kn", label: "Kannada" },
-  { code: "ml", label: "Malayalam" },
-];
-
 export function TemplateCreateModal({
   isOpen,
   onClose,
   onSuccess,
+  initialTemplate,
 }: TemplateCreateModalProps) {
   const createMutation = useCreateTemplateMutation();
 
@@ -73,10 +63,15 @@ export function TemplateCreateModal({
   const [category, setCategory] = useState<"MARKETING" | "UTILITY" | "AUTHENTICATION">("MARKETING");
   const [language, setLanguage] = useState("en_US");
 
-  // Header Component
-  const [headerType, setHeaderType] = useState<"NONE" | "TEXT">("NONE");
+  // Header Component: "NONE" | "TEXT" | "IMAGE" | "VIDEO" | "DOCUMENT" | "LOCATION"
+  const [headerType, setHeaderType] = useState<
+    "NONE" | "TEXT" | "IMAGE" | "VIDEO" | "DOCUMENT" | "LOCATION"
+  >("NONE");
   const [headerText, setHeaderText] = useState("");
   const [headerSample, setHeaderSample] = useState("");
+  const [headerMediaHandle, setHeaderMediaHandle] = useState<string | null>(null);
+  const [headerMediaFileName, setHeaderMediaFileName] = useState<string | null>(null);
+  const [headerMediaPreviewUrl, setHeaderMediaPreviewUrl] = useState<string | null>(null);
 
   // Body Component
   const [bodyText, setBodyText] = useState("");
@@ -91,6 +86,17 @@ export function TemplateCreateModal({
   // Preview Mode: true = with samples, false = with {{1}} placeholders
   const [previewWithSamples, setPreviewWithSamples] = useState(true);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Sync initial template if provided (e.g. adding a new language variant)
+  useEffect(() => {
+    if (initialTemplate) {
+      setName(initialTemplate.name);
+      setCategory(initialTemplate.category);
+    } else {
+      setName("");
+      setCategory("MARKETING");
+    }
+  }, [initialTemplate, isOpen]);
 
   // Auto extract body variables {{1}}, {{2}}, etc.
   const detectedBodyVars = useMemo(() => {
@@ -132,58 +138,107 @@ export function TemplateCreateModal({
 
   // Name sanitize helper
   const handleNameChange = (val: string) => {
-    const sanitized = val.toLowerCase().replace(/\s+/g, "_").replace(/[^a-z0-9_]/g, "");
+    const sanitized = val.toLowerCase().replace(/[^a-z0-9_]/g, "_");
     setName(sanitized);
   };
 
-  // Check validation readiness
-  const isNameValid = name.trim().length > 0 && /^[a-z0-9_]+$/.test(name);
-  const isBodyValid = bodyText.trim().length > 0;
-  const areBodyVarsSequential =
-    detectedBodyVars.length === 0 ||
-    detectedBodyVars.every((num, idx) => num === idx + 1);
-  const areBodySamplesProvided = detectedBodyVars.every(
-    (v) => (bodySamples[v] ?? "").trim().length > 0,
-  );
-  const isHeaderValid = !hasHeaderVar || headerSample.trim().length > 0;
+  // Validation Rules according to Meta Specifications
+  const isNameValid = useMemo(() => {
+    return /^[a-z0-9_]{1,512}$/.test(name.trim());
+  }, [name]);
+
+  const isBodyValid = useMemo(() => {
+    return bodyText.trim().length > 0 && bodyText.length <= 1024;
+  }, [bodyText]);
+
+  const areBodyVarsSequential = useMemo(() => {
+    if (detectedBodyVars.length === 0) return true;
+    for (let i = 0; i < detectedBodyVars.length; i++) {
+      if (detectedBodyVars[i] !== i + 1) return false;
+    }
+    return true;
+  }, [detectedBodyVars]);
+
+  const areBodySamplesProvided = useMemo(() => {
+    if (detectedBodyVars.length === 0) return true;
+    return detectedBodyVars.every((v) => !!bodySamples[v]?.trim());
+  }, [detectedBodyVars, bodySamples]);
+
+  const isHeaderValid = useMemo(() => {
+    if (headerType === "NONE" || headerType === "LOCATION") return true;
+    if (headerType === "TEXT") {
+      if (!headerText.trim()) return false;
+      if (hasHeaderVar && !headerSample.trim()) return false;
+      return true;
+    }
+    if (["IMAGE", "VIDEO", "DOCUMENT"].includes(headerType)) {
+      return !!headerMediaHandle;
+    }
+    return true;
+  }, [headerType, headerText, hasHeaderVar, headerSample, headerMediaHandle]);
+
+  const areButtonsValid = useMemo(() => {
+    return buttons.every((b) => {
+      if (!b.text.trim()) return false;
+      if (b.type === "URL") {
+        if (!b.url?.trim()) return false;
+        if (b.url.includes("{{1}}") && !b.urlExample?.trim()) return false;
+      }
+      if (b.type === "PHONE_NUMBER") {
+        if (!b.phoneNumber?.trim()) return false;
+      }
+      return true;
+    });
+  }, [buttons]);
 
   const isValidForSubmission =
     isNameValid &&
     isBodyValid &&
     areBodyVarsSequential &&
     areBodySamplesProvided &&
-    isHeaderValid;
+    isHeaderValid &&
+    areButtonsValid;
 
   const handleSubmit = async () => {
     setErrorMsg(null);
-    if (!isValidForSubmission) {
-      if (!isNameValid) setErrorMsg("Template name must contain only lowercase letters, numbers, and underscores.");
-      else if (!isBodyValid) setErrorMsg("Body text is required.");
-      else if (!areBodyVarsSequential) setErrorMsg("Variables must be sequential numbers starting from {{1}}.");
-      else if (!areBodySamplesProvided) setErrorMsg("Please provide sample values for all body variables.");
-      else if (!isHeaderValid) setErrorMsg("Please provide a sample value for the header variable {{1}}.");
-      return;
-    }
+    if (!isValidForSubmission) return;
 
     try {
       const components: TemplateComponent[] = [];
 
-      // Header
+      // Header component
       if (headerType === "TEXT" && headerText.trim()) {
         const headerComp: TemplateComponent = {
           type: "HEADER",
           format: "TEXT",
           text: headerText.trim(),
         };
-        if (hasHeaderVar) {
+        if (hasHeaderVar && headerSample.trim()) {
           headerComp.example = {
-            header_text: [headerSample.trim() || "Header Sample"],
+            header_text: [headerSample.trim()],
           };
         }
         components.push(headerComp);
+      } else if (["IMAGE", "VIDEO", "DOCUMENT"].includes(headerType)) {
+        if (!headerMediaHandle) {
+          setErrorMsg(`Please upload a sample ${headerType.toLowerCase()} file for Meta review.`);
+          return;
+        }
+        components.push({
+          type: "HEADER",
+          format: headerType as "IMAGE" | "VIDEO" | "DOCUMENT",
+          example: {
+            header_handle: [headerMediaHandle],
+          },
+        });
+      } else if (headerType === "LOCATION") {
+        components.push({
+          type: "HEADER",
+          format: "LOCATION",
+        });
       }
 
-      // Body
+      // Body component
       const bodyComp: TemplateComponent = {
         type: "BODY",
         text: bodyText.trim(),
@@ -196,7 +251,7 @@ export function TemplateCreateModal({
       }
       components.push(bodyComp);
 
-      // Footer
+      // Footer component
       if (footerText.trim()) {
         components.push({
           type: "FOOTER",
@@ -204,7 +259,7 @@ export function TemplateCreateModal({
         });
       }
 
-      // Buttons
+      // Buttons component
       if (buttons.length > 0) {
         components.push({
           type: "BUTTONS",
@@ -282,12 +337,79 @@ export function TemplateCreateModal({
   };
 
   const renderPreviewHeader = () => {
-    if (headerType !== "TEXT" || !headerText) return null;
-    let text = headerText;
-    if (previewWithSamples && hasHeaderVar) {
-      text = text.replace(/{{\s*1\s*}}/g, headerSample.trim() || "{{1}}");
+    if (headerType === "NONE") return null;
+
+    if (headerType === "TEXT") {
+      if (!headerText) return null;
+      let text = headerText;
+      if (previewWithSamples && hasHeaderVar) {
+        text = text.replace(/{{\s*1\s*}}/g, headerSample.trim() || "{{1}}");
+      }
+      return <div className="font-semibold text-xs text-foreground mb-1">{text}</div>;
     }
-    return <div className="font-semibold text-xs text-foreground mb-1">{text}</div>;
+
+    if (headerType === "IMAGE") {
+      return (
+        <div className="overflow-hidden rounded-md border border-[#E0DCD5] bg-[#F4F4F5] dark:border-[#27343D] dark:bg-[#1A242B] mb-2">
+          {headerMediaPreviewUrl ? (
+            <img
+              alt="Header preview"
+              className="h-32 w-full object-cover"
+              src={headerMediaPreviewUrl}
+            />
+          ) : (
+            <div className="flex h-24 flex-col items-center justify-center gap-1.5 text-muted-foreground">
+              <ImageIcon className="h-7 w-7 text-[#176B4D] dark:text-[#359B76]" />
+              <span className="text-[11px] font-medium">Header Image Preview</span>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    if (headerType === "VIDEO") {
+      return (
+        <div className="relative flex h-24 flex-col items-center justify-center overflow-hidden rounded-md border border-[#E0DCD5] bg-[#121416] text-white mb-2">
+          <div className="flex h-9 w-9 items-center justify-center rounded-full bg-white/20 backdrop-blur-sm">
+            <Video className="h-4.5 w-4.5 text-white" />
+          </div>
+          <span className="mt-1 text-[11px] font-medium text-white/80">Header Video Preview</span>
+          <span className="absolute bottom-1 right-2 text-[10px] text-white/60">0:15</span>
+        </div>
+      );
+    }
+
+    if (headerType === "DOCUMENT") {
+      return (
+        <div className="flex items-center gap-2.5 rounded-md border border-[#E0DCD5] bg-[#F4F4F5] p-2 dark:border-[#27343D] dark:bg-[#1A242B] mb-2">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-rose-100 text-rose-600 dark:bg-rose-950/60 dark:text-rose-400">
+            <FileText className="h-4.5 w-4.5" />
+          </div>
+          <div className="truncate text-xs">
+            <p className="font-medium text-foreground truncate">
+              {headerMediaFileName || "document_sample.pdf"}
+            </p>
+            <p className="text-[10px] text-muted-foreground">PDF Document</p>
+          </div>
+        </div>
+      );
+    }
+
+    if (headerType === "LOCATION") {
+      return (
+        <div className="flex items-center gap-2.5 rounded-md border border-[#E0DCD5] bg-[#EDF8F3] p-2 dark:border-[#1F4D3C] dark:bg-[#13251E] mb-2">
+          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-emerald-100 text-[#176B4D] dark:bg-[#1D3B2F] dark:text-[#359B76]">
+            <MapPin className="h-4.5 w-4.5" />
+          </div>
+          <div className="text-xs">
+            <p className="font-medium text-foreground">Location Pin Header</p>
+            <p className="text-[10px] text-muted-foreground">Coordinates provided at send time</p>
+          </div>
+        </div>
+      );
+    }
+
+    return null;
   };
 
   return (
@@ -301,7 +423,7 @@ export function TemplateCreateModal({
           <div>
             <DialogTitle className="text-lg font-semibold text-foreground flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-[#176B4D] dark:text-[#359B76]" />
-              Create WhatsApp Template
+              {initialTemplate ? `Add Language Variant (${initialTemplate.name})` : "Create WhatsApp Template"}
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground mt-0.5">
               Submit a new template directly to Meta WhatsApp Business API for review and approval.
@@ -346,11 +468,18 @@ export function TemplateCreateModal({
         <div className="flex-1 min-h-0 overflow-y-auto p-6 flex flex-col lg:flex-row gap-6">
           {/* Left Column: Form Configuration */}
           <div className="flex-1 space-y-5">
-            {/* Basic Info */}
+            {/* Template Information */}
             <div className="rounded-lg border border-[#E4E4E7] bg-[#FAFAFA] p-4 space-y-3 dark:border-[#292C2F] dark:bg-[#17191B]">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                Template Information
-              </h4>
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Template Information
+                </h4>
+                {initialTemplate ? (
+                  <span className="rounded bg-emerald-100 px-2 py-0.5 text-[11px] font-medium text-[#176B4D] dark:bg-[#1D3B2F] dark:text-[#359B76]">
+                    Language Variant Mode
+                  </span>
+                ) : null}
+              </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div>
@@ -359,12 +488,15 @@ export function TemplateCreateModal({
                   </label>
                   <Input
                     className="h-8.5 font-mono text-xs"
+                    disabled={!!initialTemplate}
                     onChange={(e) => handleNameChange(e.target.value)}
                     placeholder="e.g. order_confirmed_v1"
                     value={name}
                   />
                   <p className="mt-1 text-[11px] text-muted-foreground">
-                    Lowercase letters, numbers, and underscores only.
+                    {initialTemplate
+                      ? "Name is fixed to match the template family across languages."
+                      : "Lowercase letters, numbers, and underscores only."}
                   </p>
                 </div>
 
@@ -374,6 +506,7 @@ export function TemplateCreateModal({
                   </label>
                   <select
                     className="h-8.5 w-full rounded-md border border-[#D4D4D8] bg-white px-2.5 text-xs text-foreground outline-none focus:border-primary dark:border-[#303438] dark:bg-[#121416]"
+                    disabled={!!initialTemplate}
                     onChange={(e) => setCategory(e.target.value as any)}
                     value={category}
                   >
@@ -383,54 +516,59 @@ export function TemplateCreateModal({
                   </select>
                 </div>
 
-                <div>
+                <div className="md:col-span-2">
                   <label className="mb-1 block text-xs font-medium text-foreground">
-                    Language *
+                    Language * (90+ Meta Locales Supported)
                   </label>
-                  <select
-                    className="h-8.5 w-full rounded-md border border-[#D4D4D8] bg-white px-2.5 text-xs text-foreground outline-none focus:border-primary dark:border-[#303438] dark:bg-[#121416]"
-                    onChange={(e) => setLanguage(e.target.value)}
+                  <SearchableLanguageSelect
+                    onChange={(newLang) => setLanguage(newLang)}
                     value={language}
-                  >
-                    {SUPPORTED_LANGUAGES.map((lang) => (
-                      <option key={lang.code} value={lang.code}>
-                        {lang.label} ({lang.code})
-                      </option>
-                    ))}
-                  </select>
+                  />
+                  <p className="mt-1 text-[11px] text-muted-foreground">
+                    Search and choose any Meta WhatsApp Business language or regional dialect.
+                  </p>
                 </div>
               </div>
             </div>
 
             {/* Header Component */}
             <div className="rounded-lg border border-[#E4E4E7] bg-white p-4 space-y-3 dark:border-[#292C2F] dark:bg-[#121416]">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Header (Optional)
                 </h4>
-                <div className="flex items-center gap-1.5 text-xs">
-                  <button
-                    className={`rounded-md px-2 py-0.5 text-xs font-medium ${
-                      headerType === "NONE"
-                        ? "bg-[#176B4D] text-white dark:bg-[#359B76]"
-                        : "bg-[#F4F4F5] text-muted-foreground dark:bg-[#1C1F21]"
-                    }`}
-                    onClick={() => setHeaderType("NONE")}
-                    type="button"
-                  >
-                    None
-                  </button>
-                  <button
-                    className={`rounded-md px-2 py-0.5 text-xs font-medium ${
-                      headerType === "TEXT"
-                        ? "bg-[#176B4D] text-white dark:bg-[#359B76]"
-                        : "bg-[#F4F4F5] text-muted-foreground dark:bg-[#1C1F21]"
-                    }`}
-                    onClick={() => setHeaderType("TEXT")}
-                    type="button"
-                  >
-                    Text
-                  </button>
+                <div className="flex flex-wrap items-center gap-1 text-xs">
+                  {(["NONE", "TEXT", "IMAGE", "VIDEO", "DOCUMENT", "LOCATION"] as const).map(
+                    (format) => (
+                      <button
+                        className={`rounded-md px-2 py-0.5 text-xs font-medium transition-colors ${
+                          headerType === format
+                            ? "bg-[#176B4D] text-white dark:bg-[#359B76]"
+                            : "bg-[#F4F4F5] text-muted-foreground hover:bg-[#E4E4E7] dark:bg-[#1C1F21] dark:hover:bg-[#25282B]"
+                        }`}
+                        key={format}
+                        onClick={() => {
+                          setHeaderType(format);
+                          if (format === "TEXT") {
+                            setHeaderMediaHandle(null);
+                          }
+                        }}
+                        type="button"
+                      >
+                        {format === "NONE"
+                          ? "None"
+                          : format === "TEXT"
+                            ? "Text"
+                            : format === "IMAGE"
+                              ? "Image"
+                              : format === "VIDEO"
+                                ? "Video"
+                                : format === "DOCUMENT"
+                                  ? "Document"
+                                  : "Location"}
+                      </button>
+                    ),
+                  )}
                 </div>
               </div>
 
@@ -474,39 +612,76 @@ export function TemplateCreateModal({
                   ) : null}
                 </div>
               ) : null}
+
+              {["IMAGE", "VIDEO", "DOCUMENT"].includes(headerType) ? (
+                <MediaSampleDropzone
+                  fileName={headerMediaFileName}
+                  filePreviewUrl={headerMediaPreviewUrl}
+                  format={headerType as "IMAGE" | "VIDEO" | "DOCUMENT"}
+                  headerHandle={headerMediaHandle}
+                  onRemove={() => {
+                    setHeaderMediaHandle(null);
+                    setHeaderMediaFileName(null);
+                    setHeaderMediaPreviewUrl(null);
+                  }}
+                  onUploadSuccess={(handle, fileTitle, previewUrl) => {
+                    setHeaderMediaHandle(handle);
+                    setHeaderMediaFileName(fileTitle);
+                    setHeaderMediaPreviewUrl(previewUrl ?? null);
+                  }}
+                />
+              ) : null}
+
+              {headerType === "LOCATION" ? (
+                <div className="rounded-md border border-emerald-200 bg-[#EDF8F3] p-3 text-xs text-[#176B4D] dark:border-[#1F4D3C] dark:bg-[#13251E] dark:text-[#359B76] flex items-center gap-2">
+                  <MapPin className="h-4 w-4 shrink-0" />
+                  <span>
+                    Location headers display a map pin. No sample asset is required by Meta; you will provide GPS latitude/longitude when sending the message.
+                  </span>
+                </div>
+              ) : null}
             </div>
 
             {/* Body Component */}
             <div className="rounded-lg border border-[#E4E4E7] bg-white p-4 space-y-3 dark:border-[#292C2F] dark:bg-[#121416]">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Body * (Message Content)
-                </h4>
-                <div className="flex items-center gap-2">
-                  <span className="text-[11px] text-muted-foreground">{bodyText.length}/1024</span>
-                  <Button
-                    onClick={handleInsertBodyVariable}
-                    size="sm"
-                    type="button"
-                    variant="secondary"
-                  >
-                    <Plus className="h-3 w-3 mr-1" />
-                    Add Variable
-                  </Button>
+                <div>
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Body * (Message Content)
+                  </h4>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    The core text of your template. Use sequential variables like {"{{1}}"}, {"{{2}}"}.
+                  </p>
+                </div>
+                <Button
+                  onClick={handleInsertBodyVariable}
+                  size="sm"
+                  type="button"
+                  variant="secondary"
+                  className="h-7 text-xs gap-1"
+                >
+                  <Plus className="h-3 w-3" />
+                  Add Variable
+                </Button>
+              </div>
+
+              <div className="space-y-1">
+                <Textarea
+                  className="min-h-[110px] text-xs leading-relaxed font-sans"
+                  maxLength={1024}
+                  onChange={(e) => setBodyText(e.target.value)}
+                  placeholder="e.g. Hello {{1}}, your order {{2}} is on its way and will arrive by {{3}}!"
+                  value={bodyText}
+                />
+                <div className="flex justify-between text-[11px] text-muted-foreground pt-1">
+                  <span>Formatting: *bold*, _italic_, ~strikethrough~, ```code```</span>
+                  <span>{bodyText.length}/1024</span>
                 </div>
               </div>
 
-              <Textarea
-                className="min-h-28 text-xs leading-5"
-                maxLength={1024}
-                onChange={(e) => setBodyText(e.target.value)}
-                placeholder="Hello {{1}}, your order {{2}} has been confirmed and will arrive by {{3}}."
-                value={bodyText}
-              />
-
-              {/* Dynamic Sample Values for Body Variables */}
+              {/* Variable Sample Values Input */}
               {detectedBodyVars.length > 0 ? (
-                <div className="rounded-md border border-emerald-100 bg-[#EDF8F3]/60 p-3 space-y-2 dark:border-emerald-950/40 dark:bg-[#13251E]/40">
+                <div className="mt-3 rounded-lg border border-emerald-200 bg-[#EDF8F3] p-3 space-y-2 dark:border-[#1F4D3C] dark:bg-[#13251E]">
                   <div className="flex items-center gap-1.5 text-xs font-semibold text-[#176B4D] dark:text-[#359B76]">
                     <Sparkles className="h-3.5 w-3.5" />
                     <span>Sample Values for Meta Review (Required)</span>
@@ -515,19 +690,22 @@ export function TemplateCreateModal({
                     Meta requires realistic sample values for each variable to evaluate template quality and prevent spam.
                   </p>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 pt-1">
-                    {detectedBodyVars.map((varNum) => (
-                      <div key={varNum}>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
+                    {detectedBodyVars.map((v) => (
+                      <div key={v}>
                         <label className="block text-[11px] font-medium text-foreground mb-0.5">
-                          Sample for {"{{" + varNum + "}}"} *
+                          Sample for {"{{" + v + "}}"} *
                         </label>
                         <Input
                           className="h-7.5 text-xs bg-white dark:bg-[#121416]"
                           onChange={(e) =>
-                            setBodySamples((prev) => ({ ...prev, [varNum]: e.target.value }))
+                            setBodySamples((prev) => ({
+                              ...prev,
+                              [v]: e.target.value,
+                            }))
                           }
-                          placeholder={`e.g. Sample ${varNum}`}
-                          value={bodySamples[varNum] ?? ""}
+                          placeholder={`e.g. John Doe`}
+                          value={bodySamples[v] ?? ""}
                         />
                       </div>
                     ))}
@@ -548,10 +726,10 @@ export function TemplateCreateModal({
                 className="h-8.5 text-xs"
                 maxLength={60}
                 onChange={(e) => setFooterText(e.target.value)}
-                placeholder="e.g. Reply STOP to unsubscribe"
+                placeholder="e.g. Reply STOP to unsubscribe or for assistance"
                 value={footerText}
               />
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-[11px] text-muted-foreground">
                 Plain text only. Variables are not permitted in footers.
               </p>
             </div>
@@ -559,31 +737,42 @@ export function TemplateCreateModal({
             {/* Buttons Component */}
             <div className="rounded-lg border border-[#E4E4E7] bg-white p-4 space-y-3 dark:border-[#292C2F] dark:bg-[#121416]">
               <div className="flex items-center justify-between">
-                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                  Interactive Buttons (Optional, max 10)
-                </h4>
+                <div>
+                  <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                    Interactive Buttons (Optional, max 10)
+                  </h4>
+                  <p className="text-[11px] text-muted-foreground mt-0.5">
+                    Add quick reply chips, website URLs, or call phone numbers.
+                  </p>
+                </div>
                 <div className="flex items-center gap-1.5">
                   <Button
+                    disabled={buttons.length >= 10}
                     onClick={() => handleAddButton("QUICK_REPLY")}
                     size="sm"
                     type="button"
                     variant="secondary"
+                    className="h-7 text-xs"
                   >
                     + Quick Reply
                   </Button>
                   <Button
+                    disabled={buttons.length >= 10}
                     onClick={() => handleAddButton("URL")}
                     size="sm"
                     type="button"
                     variant="secondary"
+                    className="h-7 text-xs"
                   >
                     + Website URL
                   </Button>
                   <Button
+                    disabled={buttons.length >= 10}
                     onClick={() => handleAddButton("PHONE_NUMBER")}
                     size="sm"
                     type="button"
                     variant="secondary"
+                    className="h-7 text-xs"
                   >
                     + Call Phone
                   </Button>
@@ -777,6 +966,19 @@ export function TemplateCreateModal({
                     <X className="h-3.5 w-3.5 text-rose-500" />
                   )}
                   <span>Sample values provided for variables</span>
+                </div>
+                <div className="flex items-center gap-1.5 text-muted-foreground">
+                  {isHeaderValid ? (
+                    <Check className="h-3.5 w-3.5 text-emerald-600" />
+                  ) : (
+                    <X className="h-3.5 w-3.5 text-rose-500" />
+                  )}
+                  <span>
+                    Header:{" "}
+                    {["IMAGE", "VIDEO", "DOCUMENT"].includes(headerType)
+                      ? "Sample media asset handle uploaded"
+                      : "Valid configuration"}
+                  </span>
                 </div>
               </div>
             </div>

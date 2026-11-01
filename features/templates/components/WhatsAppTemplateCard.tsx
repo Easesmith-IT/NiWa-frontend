@@ -21,6 +21,7 @@ import { useDeleteTemplateMutation } from "../templates.queries";
 
 interface WhatsAppTemplateCardProps {
   template: TemplateRecord;
+  onAddLanguage?: (template: TemplateRecord) => void;
 }
 
 const getStatusBadge = (status: string) => {
@@ -86,7 +87,7 @@ const getCategoryBadge = (category: string) => {
   }
 };
 
-export function WhatsAppTemplateCard({ template }: WhatsAppTemplateCardProps) {
+export function WhatsAppTemplateCard({ template, onAddLanguage }: WhatsAppTemplateCardProps) {
   const deleteMutation = useDeleteTemplateMutation();
   const headerComp = template.components?.find((c) => c.type === "HEADER");
   const bodyComp = template.components?.find((c) => c.type === "BODY");
@@ -160,9 +161,9 @@ export function WhatsAppTemplateCard({ template }: WhatsAppTemplateCardProps) {
         </div>
 
         {/* Action Button */}
-        <div className="flex items-center gap-2 pt-1">
+        <div className="flex flex-wrap items-center gap-2 pt-1">
           <Link
-            className="flex-1"
+            className="flex-1 min-w-[140px]"
             href={`/message-studio?mode=template&template=${encodeURIComponent(template.name)}&language=${encodeURIComponent(template.language)}`}
           >
             <Button className="w-full" size="sm" type="button" variant="primary">
@@ -170,6 +171,18 @@ export function WhatsAppTemplateCard({ template }: WhatsAppTemplateCardProps) {
               Use in Message Studio
             </Button>
           </Link>
+          {onAddLanguage ? (
+            <Button
+              className="gap-1.5"
+              onClick={() => onAddLanguage(template)}
+              size="sm"
+              type="button"
+              variant="secondary"
+            >
+              <Globe className="h-3.5 w-3.5 text-[#176B4D] dark:text-[#359B76]" />
+              + Add Language
+            </Button>
+          ) : null}
           <Button
             className="text-muted-foreground hover:text-rose-600 dark:hover:text-rose-400"
             disabled={deleteMutation.isPending}
