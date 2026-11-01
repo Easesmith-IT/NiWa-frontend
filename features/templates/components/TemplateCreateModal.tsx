@@ -537,38 +537,39 @@ export function TemplateCreateModal({
                 <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                   Header (Optional)
                 </h4>
-                <div className="flex flex-wrap items-center gap-1 text-xs">
-                  {(["NONE", "TEXT", "IMAGE", "VIDEO", "DOCUMENT", "LOCATION"] as const).map(
-                    (format) => (
+                <div className="inline-flex flex-wrap items-center gap-1 rounded-lg border border-[#E4E4E7] bg-[#F7F8FA] p-1 dark:border-[#282B2E] dark:bg-[#151719]">
+                  {(
+                    [
+                      { format: "NONE", label: "None", icon: null },
+                      { format: "TEXT", label: "Text", icon: FileText },
+                      { format: "IMAGE", label: "Image", icon: ImageIcon },
+                      { format: "VIDEO", label: "Video", icon: Video },
+                      { format: "DOCUMENT", label: "Document", icon: FileText },
+                      { format: "LOCATION", label: "Location", icon: MapPin },
+                    ] as const
+                  ).map(({ format, label, icon: FormatIcon }) => {
+                    const isSelected = headerType === format;
+                    return (
                       <button
-                        className={`rounded-md px-2 py-0.5 text-xs font-medium transition-colors ${
-                          headerType === format
-                            ? "bg-[#176B4D] text-white dark:bg-[#359B76]"
-                            : "bg-[#F4F4F5] text-muted-foreground hover:bg-[#E4E4E7] dark:bg-[#1C1F21] dark:hover:bg-[#25282B]"
-                        }`}
                         key={format}
+                        type="button"
                         onClick={() => {
                           setHeaderType(format);
-                          if (format === "TEXT") {
+                          if (format === "TEXT" || format === "NONE" || format === "LOCATION") {
                             setHeaderMediaHandle(null);
                           }
                         }}
-                        type="button"
+                        className={`inline-flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition-all ${
+                          isSelected
+                            ? "bg-[#176B4D] text-white shadow-xs dark:bg-[#359B76]"
+                            : "text-muted-foreground hover:bg-white hover:text-foreground dark:hover:bg-[#1F2224]"
+                        }`}
                       >
-                        {format === "NONE"
-                          ? "None"
-                          : format === "TEXT"
-                            ? "Text"
-                            : format === "IMAGE"
-                              ? "Image"
-                              : format === "VIDEO"
-                                ? "Video"
-                                : format === "DOCUMENT"
-                                  ? "Document"
-                                  : "Location"}
+                        {FormatIcon ? <FormatIcon className="h-3 w-3" /> : null}
+                        <span>{label}</span>
                       </button>
-                    ),
-                  )}
+                    );
+                  })}
                 </div>
               </div>
 
@@ -587,14 +588,13 @@ export function TemplateCreateModal({
                       value={headerText}
                     />
                     {!hasHeaderVar ? (
-                      <Button
-                        onClick={() => setHeaderText((prev) => `${prev}{{1}}`)}
-                        size="sm"
+                      <button
                         type="button"
-                        variant="secondary"
+                        onClick={() => setHeaderText((prev) => `${prev}{{1}}`)}
+                        className="inline-flex items-center gap-1 h-8.5 px-3 rounded-md border border-[#D4D4D8] bg-white text-xs font-medium text-foreground whitespace-nowrap shadow-xs hover:border-[#176B4D] hover:bg-[#F2FBF7] hover:text-[#176B4D] dark:border-[#303438] dark:bg-[#1C1F21] dark:hover:border-[#359B76] dark:hover:bg-[#13251E] dark:hover:text-[#359B76] transition-colors"
                       >
                         + {"{{1}}"}
-                      </Button>
+                      </button>
                     ) : null}
                   </div>
                   {hasHeaderVar ? (
@@ -653,16 +653,14 @@ export function TemplateCreateModal({
                     The core text of your template. Use sequential variables like {"{{1}}"}, {"{{2}}"}.
                   </p>
                 </div>
-                <Button
+                <button
                   onClick={handleInsertBodyVariable}
-                  size="sm"
                   type="button"
-                  variant="secondary"
-                  className="h-7 text-xs gap-1"
+                  className="inline-flex items-center gap-1.5 h-8 px-2.5 rounded-md border border-[#D4D4D8] bg-white text-xs font-medium text-foreground whitespace-nowrap shadow-xs hover:border-[#176B4D] hover:bg-[#F2FBF7] hover:text-[#176B4D] dark:border-[#303438] dark:bg-[#1C1F21] dark:hover:border-[#359B76] dark:hover:bg-[#13251E] dark:hover:text-[#359B76] transition-colors"
                 >
-                  <Plus className="h-3 w-3" />
-                  Add Variable
-                </Button>
+                  <Plus className="h-3.5 w-3.5 text-[#176B4D] dark:text-[#359B76]" />
+                  <span>Add Variable</span>
+                </button>
               </div>
 
               <div className="space-y-1">
@@ -736,7 +734,7 @@ export function TemplateCreateModal({
 
             {/* Buttons Component */}
             <div className="rounded-lg border border-[#E4E4E7] bg-white p-4 space-y-3 dark:border-[#292C2F] dark:bg-[#121416]">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                 <div>
                   <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
                     Interactive Buttons (Optional, max 10)
@@ -745,85 +743,100 @@ export function TemplateCreateModal({
                     Add quick reply chips, website URLs, or call phone numbers.
                   </p>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Button
+                <div className="flex flex-wrap items-center gap-2 shrink-0">
+                  <button
                     disabled={buttons.length >= 10}
                     onClick={() => handleAddButton("QUICK_REPLY")}
-                    size="sm"
                     type="button"
-                    variant="secondary"
-                    className="h-7 text-xs"
+                    className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-[#D4D4D8] bg-white text-xs font-medium text-foreground whitespace-nowrap shadow-xs hover:border-[#176B4D] hover:bg-[#F2FBF7] hover:text-[#176B4D] dark:border-[#303438] dark:bg-[#1C1F21] dark:hover:border-[#359B76] dark:hover:bg-[#13251E] dark:hover:text-[#359B76] disabled:opacity-50 disabled:pointer-events-none transition-colors"
                   >
-                    + Quick Reply
-                  </Button>
-                  <Button
+                    <Plus className="h-3.5 w-3.5 text-[#176B4D] dark:text-[#359B76]" />
+                    <span>Quick Reply</span>
+                  </button>
+                  <button
                     disabled={buttons.length >= 10}
                     onClick={() => handleAddButton("URL")}
-                    size="sm"
                     type="button"
-                    variant="secondary"
-                    className="h-7 text-xs"
+                    className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-[#D4D4D8] bg-white text-xs font-medium text-foreground whitespace-nowrap shadow-xs hover:border-[#176B4D] hover:bg-[#F2FBF7] hover:text-[#176B4D] dark:border-[#303438] dark:bg-[#1C1F21] dark:hover:border-[#359B76] dark:hover:bg-[#13251E] dark:hover:text-[#359B76] disabled:opacity-50 disabled:pointer-events-none transition-colors"
                   >
-                    + Website URL
-                  </Button>
-                  <Button
+                    <Globe className="h-3.5 w-3.5 text-[#176B4D] dark:text-[#359B76]" />
+                    <span>Website URL</span>
+                  </button>
+                  <button
                     disabled={buttons.length >= 10}
                     onClick={() => handleAddButton("PHONE_NUMBER")}
-                    size="sm"
                     type="button"
-                    variant="secondary"
-                    className="h-7 text-xs"
+                    className="inline-flex items-center gap-1.5 h-8 px-3 rounded-md border border-[#D4D4D8] bg-white text-xs font-medium text-foreground whitespace-nowrap shadow-xs hover:border-[#176B4D] hover:bg-[#F2FBF7] hover:text-[#176B4D] dark:border-[#303438] dark:bg-[#1C1F21] dark:hover:border-[#359B76] dark:hover:bg-[#13251E] dark:hover:text-[#359B76] disabled:opacity-50 disabled:pointer-events-none transition-colors"
                   >
-                    + Call Phone
-                  </Button>
+                    <Phone className="h-3.5 w-3.5 text-[#176B4D] dark:text-[#359B76]" />
+                    <span>Call Phone</span>
+                  </button>
                 </div>
               </div>
 
               {buttons.length > 0 ? (
-                <div className="space-y-2">
-                  {buttons.map((btn) => (
+                <div className="space-y-2.5 pt-1">
+                  {buttons.map((btn, index) => (
                     <div
-                      className="flex flex-col gap-2 rounded-md border border-[#E4E4E7] bg-[#FAFAFA] p-3 text-xs dark:border-[#282B2E] dark:bg-[#17191B]"
+                      className="flex flex-col gap-2.5 rounded-lg border border-[#E4E4E7] bg-[#FAFAFA] p-3 text-xs dark:border-[#282B2E] dark:bg-[#17191B]"
                       key={btn.id}
                     >
-                      <div className="flex items-center justify-between">
-                        <span className="font-semibold text-foreground">
-                          {btn.type === "QUICK_REPLY"
-                            ? "Quick Reply"
-                            : btn.type === "URL"
-                              ? "Website URL"
-                              : "Phone Call"}
-                        </span>
+                      <div className="flex items-center justify-between border-b border-[#EAEAEF] pb-2 dark:border-[#26292C]">
+                        <div className="flex items-center gap-2">
+                          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[#E0ECE6] text-[10px] font-bold text-[#176B4D] dark:bg-[#1F3D31] dark:text-[#3FA66F]">
+                            {index + 1}
+                          </span>
+                          <span className="font-semibold text-foreground flex items-center gap-1.5">
+                            {btn.type === "QUICK_REPLY" ? (
+                              <>
+                                <Plus className="h-3.5 w-3.5 text-[#176B4D] dark:text-[#359B76]" />
+                                Quick Reply Button
+                              </>
+                            ) : btn.type === "URL" ? (
+                              <>
+                                <Globe className="h-3.5 w-3.5 text-[#176B4D] dark:text-[#359B76]" />
+                                Website URL Button
+                              </>
+                            ) : (
+                              <>
+                                <Phone className="h-3.5 w-3.5 text-[#176B4D] dark:text-[#359B76]" />
+                                Phone Call Button
+                              </>
+                            )}
+                          </span>
+                        </div>
                         <button
-                          className="text-rose-500 hover:text-rose-700"
+                          className="rounded p-1 text-muted-foreground hover:bg-rose-50 hover:text-rose-600 dark:hover:bg-rose-950/40 dark:hover:text-rose-400 transition-colors"
                           onClick={() => handleRemoveButton(btn.id)}
                           type="button"
+                          title="Remove button"
                         >
                           <Trash2 className="h-3.5 w-3.5" />
                         </button>
                       </div>
 
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                         <div>
-                          <label className="block text-[11px] font-medium text-muted-foreground mb-0.5">
-                            Button Label (max 25)
+                          <label className="block text-[11px] font-medium text-foreground mb-1">
+                            Button Label Text * <span className="text-muted-foreground">(max 25)</span>
                           </label>
                           <Input
-                            className="h-7.5 text-xs bg-white dark:bg-[#121416]"
+                            className="h-8 text-xs bg-white dark:bg-[#121416]"
                             maxLength={25}
                             onChange={(e) => handleUpdateButton(btn.id, { text: e.target.value })}
                             value={btn.text}
+                            placeholder="e.g. View Order"
                           />
                         </div>
 
                         {btn.type === "URL" ? (
                           <>
                             <div>
-                              <label className="block text-[11px] font-medium text-muted-foreground mb-0.5">
-                                Website URL
+                              <label className="block text-[11px] font-medium text-foreground mb-1">
+                                Website URL *
                               </label>
                               <Input
-                                className="h-7.5 text-xs bg-white dark:bg-[#121416]"
+                                className="h-8 text-xs bg-white dark:bg-[#121416]"
                                 onChange={(e) => handleUpdateButton(btn.id, { url: e.target.value })}
                                 placeholder="https://example.com/order/{{1}}"
                                 value={btn.url ?? ""}
@@ -831,11 +844,11 @@ export function TemplateCreateModal({
                             </div>
                             {btn.url?.includes("{{1}}") ? (
                               <div className="md:col-span-2">
-                                <label className="block text-[11px] font-medium text-muted-foreground mb-0.5">
+                                <label className="block text-[11px] font-medium text-foreground mb-1">
                                   Sample URL Suffix for {"{{1}}"} *
                                 </label>
                                 <Input
-                                  className="h-7.5 text-xs bg-white dark:bg-[#121416]"
+                                  className="h-8 text-xs bg-white dark:bg-[#121416]"
                                   onChange={(e) =>
                                     handleUpdateButton(btn.id, { urlExample: e.target.value })
                                   }
@@ -849,11 +862,11 @@ export function TemplateCreateModal({
 
                         {btn.type === "PHONE_NUMBER" ? (
                           <div>
-                            <label className="block text-[11px] font-medium text-muted-foreground mb-0.5">
-                              Phone Number (with +country code)
+                            <label className="block text-[11px] font-medium text-foreground mb-1">
+                              Phone Number * <span className="text-muted-foreground">(with country code)</span>
                             </label>
                             <Input
-                              className="h-7.5 text-xs bg-white dark:bg-[#121416]"
+                              className="h-8 text-xs bg-white dark:bg-[#121416]"
                               onChange={(e) =>
                                 handleUpdateButton(btn.id, { phoneNumber: e.target.value })
                               }
@@ -867,9 +880,9 @@ export function TemplateCreateModal({
                   ))}
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground italic">
-                  No interactive buttons added yet.
-                </p>
+                <div className="rounded-md border border-dashed border-[#D4D4D8] bg-[#FAFAFA] p-3 text-center text-xs text-muted-foreground dark:border-[#282B2E] dark:bg-[#151719]">
+                  No interactive buttons added yet. Click an option above to add up to 10 interactive buttons.
+                </div>
               )}
             </div>
           </div>
